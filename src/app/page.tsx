@@ -48,7 +48,9 @@ export default async function Home() {
           <span>·</span>
           <span>open research</span>
           <span>·</span>
-          <span>all sessions recorded</span>
+          <Link href="/sessions" className="hover:text-zinc-400 transition-colors">
+            all sessions recorded
+          </Link>
         </div>
       </header>
 
@@ -125,6 +127,14 @@ export default async function Home() {
                 </div>
               </Link>
             ))}
+          </div>
+          <div className="text-center mt-6">
+            <Link
+              href="/sessions"
+              className="text-zinc-500 hover:text-white font-mono text-xs transition-colors"
+            >
+              view full session archive →
+            </Link>
           </div>
         </section>
       )}

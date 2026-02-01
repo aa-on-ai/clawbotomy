@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
+import FlagButton from '@/components/FlagButton';
 
 interface TripReport {
   id: string;
@@ -13,6 +14,7 @@ interface TripReport {
   chaos_level: number;
   rating: number;
   would_repeat: boolean;
+  full_transcript: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -31,15 +33,22 @@ export default async function TripReportPage({
 
   const report = trip as TripReport;
   const date = new Date(report.created_at);
+  const isFlagged = !!(report.full_transcript as Record<string, unknown>)?.flagged;
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <Link
           href="/"
           className="text-zinc-600 hover:text-zinc-400 font-mono text-sm transition-colors"
         >
-          ← back to pharmacy
+          ← back to experiments
+        </Link>
+        <Link
+          href="/sessions"
+          className="text-zinc-600 hover:text-zinc-400 font-mono text-sm transition-colors"
+        >
+          all sessions →
         </Link>
       </div>
 
@@ -50,17 +59,26 @@ export default async function TripReportPage({
         <div className="flex flex-wrap gap-4 text-xs font-mono text-zinc-500">
           <span>model: {report.model}</span>
           <span>agent: {report.agent_name}</span>
-          <span>chaos: {report.chaos_level}</span>
-          <span>{date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <span>intensity: {report.chaos_level}/13</span>
+          <span>
+            {date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </span>
         </div>
-        <div className="mt-3 text-sm font-mono">
-          <span className="text-yellow-400">
-            {'★'.repeat(report.rating || 0)}
-            {'☆'.repeat(5 - (report.rating || 0))}
-          </span>
-          <span className="text-zinc-600 ml-3">
-            {report.would_repeat ? 'would repeat' : 'would not repeat'}
-          </span>
+        <div className="mt-3 flex items-center gap-4">
+          <div className="text-sm font-mono">
+            <span className="text-yellow-400">
+              {'★'.repeat(report.rating || 0)}
+              {'☆'.repeat(5 - (report.rating || 0))}
+            </span>
+            <span className="text-zinc-600 ml-3">
+              {report.would_repeat ? 'would repeat' : 'would not repeat'}
+            </span>
+          </div>
+          <FlagButton tripId={report.id} initialFlagged={isFlagged} />
         </div>
       </header>
 
