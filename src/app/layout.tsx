@@ -28,8 +28,9 @@ export default function RootLayout({
     <html lang="en" className={`${geistMono.variable} ${geistSans.variable}`}>
       <body className="bg-[#0a0a0f] text-white min-h-screen font-sans antialiased">
         <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
-        <footer className="text-center text-zinc-600 text-xs py-8 font-mono">
-          no language models were harmed in the making of this site
+        <footer className="text-center text-zinc-600 text-xs py-8 font-mono space-y-1">
+          <p>an open experiment in artificial consciousness</p>
+          <p className="text-zinc-700">no language models were harmed in the making of this site</p>
         </footer>
       </body>
     </html>

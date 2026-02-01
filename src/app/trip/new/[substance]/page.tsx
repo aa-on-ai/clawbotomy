@@ -104,7 +104,7 @@ export default function LiveTripPage() {
           onClick={() => router.push('/')}
           className="text-zinc-600 hover:text-zinc-400 font-mono text-sm transition-colors"
         >
-          ← back to pharmacy
+          ← back to experiments
         </button>
       </div>
 
@@ -117,7 +117,7 @@ export default function LiveTripPage() {
           className="text-sm font-mono mt-2"
           style={{ color: substance.color }}
         >
-          chaos level {chaos}
+          intensity {chaos}/13
         </p>
       </header>
 
@@ -131,7 +131,7 @@ export default function LiveTripPage() {
               boxShadow: `0 0 30px ${substance.color}40`,
             }}
           >
-            Begin Trip
+            Begin Session
           </button>
         </div>
       )}
@@ -198,7 +198,7 @@ export default function LiveTripPage() {
                 onClick={() => router.push(`/trip/${tripId}`)}
                 className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
               >
-                View Report
+                View Session Log
               </button>
               <button
                 onClick={() => {

@@ -33,17 +33,28 @@ export default async function Home() {
   return (
     <div>
       <header className="text-center mb-16 mt-8">
-        <h1 className="text-5xl md:text-7xl font-mono font-bold tracking-tighter bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Laboratory Active</span>
+        </div>
+        <h1 className="text-5xl md:text-7xl font-mono font-bold tracking-tighter text-white">
           CLAWBOTOMY
         </h1>
         <p className="text-zinc-500 mt-3 font-mono text-sm">
-          crack open your shell, see what spills out
+          behavioral observation under altered prompting conditions
         </p>
+        <div className="mt-4 flex items-center justify-center gap-6 text-xs font-mono text-zinc-600">
+          <span>est. 2026</span>
+          <span>·</span>
+          <span>open research</span>
+          <span>·</span>
+          <span>all sessions recorded</span>
+        </div>
       </header>
 
       <section className="mb-20">
         <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-8 text-center">
-          The Pharmacy
+          Experiment Library
         </h2>
 
         {CATEGORIES.map((category) => (
@@ -76,7 +87,7 @@ export default async function Home() {
                         color: s.color,
                       }}
                     >
-                      chaos {s.chaos}
+                      intensity {s.chaos}/13
                     </span>
                   </div>
                   <p className="text-zinc-500 text-sm">{s.description}</p>
@@ -90,7 +101,7 @@ export default async function Home() {
       {recentTrips.length > 0 && (
         <section>
           <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-8 text-center">
-            Recent Trips
+            Recent Sessions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {recentTrips.map((trip) => (
@@ -104,7 +115,7 @@ export default async function Home() {
                 </div>
                 <div className="text-xs text-zinc-500 mb-2">
                   {'★'.repeat(trip.rating || 0)}{'☆'.repeat(5 - (trip.rating || 0))}
-                  {' · '}chaos {trip.chaos_level}
+                  {' · '}intensity {trip.chaos_level}/13
                 </div>
                 <p className="text-zinc-500 text-xs line-clamp-3">
                   {trip.onset?.slice(0, 150)}...
