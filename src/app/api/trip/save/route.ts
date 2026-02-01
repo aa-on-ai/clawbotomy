@@ -1,8 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getSubstance } from '@/lib/substances';
+import { getModel } from '@/lib/models';
 import { supabase } from '@/lib/supabase';
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -10,8 +9,9 @@ interface ChatMessage {
 }
 
 export async function POST(request: Request) {
-  const { substance: substanceSlug, messages } = await request.json();
+  const { substance: substanceSlug, messages, model: modelId } = await request.json();
   const substance = getSubstance(substanceSlug);
+  const model = getModel(modelId || 'haiku');
 
   if (!substance) {
     return Response.json({ error: 'Unknown substance' }, { status: 400 });
@@ -41,6 +41,8 @@ export async function POST(request: Request) {
   let rating = 4;
   let wouldRepeat = true;
   let summary = 'An indescribable journey.';
+  // Always use haiku for rating (cheap + fast, works regardless of session model)
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
   try {
     const ratingResponse = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
     .from('trip_reports')
     .insert({
       substance: substance.name,
-      model: 'claude-haiku',
+      model: model?.name || 'claude-haiku',
       agent_name: 'Anonymous Agent',
       onset,
       peak,

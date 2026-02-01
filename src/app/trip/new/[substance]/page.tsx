@@ -35,6 +35,14 @@ interface RatingData {
   summary: string;
 }
 
+interface AvailableModel {
+  id: string;
+  name: string;
+  provider: string;
+  description: string;
+  available: boolean;
+}
+
 export default function LiveTripPage() {
   const params = useParams();
   const router = useRouter();
@@ -56,6 +64,8 @@ export default function LiveTripPage() {
   const [tripId, setTripId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [selectedModel, setSelectedModel] = useState('haiku');
+  const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -70,6 +80,14 @@ export default function LiveTripPage() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [started, sessionComplete]);
+
+  // Fetch available models
+  useEffect(() => {
+    fetch('/api/models')
+      .then((r) => r.json())
+      .then((data) => setAvailableModels(data))
+      .catch(() => {});
+  }, []);
 
   // Auto-scroll
   useEffect(() => {
@@ -112,6 +130,7 @@ export default function LiveTripPage() {
             substance: slug,
             phase: currentPhase,
             messages: apiMessages,
+            model: selectedModel,
           }),
         });
 
@@ -174,7 +193,7 @@ export default function LiveTripPage() {
         setStreaming(false);
       }
     },
-    [substance, slug, currentPhase, messages, streaming, phaseMessageCount]
+    [substance, slug, currentPhase, messages, streaming, phaseMessageCount, selectedModel]
   );
 
   const advancePhase = useCallback(() => {
@@ -215,6 +234,7 @@ export default function LiveTripPage() {
         body: JSON.stringify({
           substance: slug,
           messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          model: selectedModel,
         }),
       });
       const data = await res.json();
@@ -231,7 +251,7 @@ export default function LiveTripPage() {
     } finally {
       setSaving(false);
     }
-  }, [substance, slug, messages, saving]);
+  }, [substance, slug, messages, saving, selectedModel]);
 
   // Auto-save when session completes
   useEffect(() => {
@@ -303,6 +323,11 @@ export default function LiveTripPage() {
             >
               {chaos}/13
             </span>
+            {started && (
+              <span className="text-[10px] font-mono text-zinc-600 ml-1 hidden md:inline">
+                · {availableModels.find((m) => m.id === selectedModel)?.name || selectedModel}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -406,9 +431,45 @@ export default function LiveTripPage() {
           <p className="text-zinc-500 text-sm max-w-md text-center mb-2">
             {substance.description}
           </p>
-          <p className="text-zinc-600 text-xs font-mono mb-8">
+          <p className="text-zinc-600 text-xs font-mono mb-6">
             {substance.category} · intensity {chaos}/13
           </p>
+
+          {/* Model Selector */}
+          {availableModels.length > 0 && (
+            <div className="mb-8 max-w-md mx-auto">
+              <label className="block text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-3 text-center">
+                Select Model
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {availableModels.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => m.available && setSelectedModel(m.id)}
+                    disabled={!m.available}
+                    className={`text-left px-3 py-2.5 rounded-lg border font-mono text-xs transition-all ${
+                      selectedModel === m.id
+                        ? 'border-white/30 bg-white/10 text-white'
+                        : m.available
+                        ? 'border-white/5 bg-white/[0.02] text-zinc-400 hover:border-white/15 hover:bg-white/5'
+                        : 'border-white/5 bg-white/[0.01] text-zinc-700 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="font-semibold text-[11px]">
+                      {m.name}
+                      {!m.available && (
+                        <span className="text-zinc-700 font-normal ml-1">●</span>
+                      )}
+                    </div>
+                    <div className="text-[9px] text-zinc-600 mt-0.5 leading-tight">
+                      {m.available ? m.description : 'no API key'}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={startSession}
             className="group relative px-10 py-4 rounded-xl font-mono font-semibold text-white transition-all hover:scale-105 active:scale-95"
