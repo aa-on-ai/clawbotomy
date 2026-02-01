@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         let text = '';
         try {
           const stream = anthropic.messages.stream({
-            model: 'claude-haiku-4-20250414',
+            model: 'claude-3-5-haiku-20241022',
             max_tokens: 1024,
             system: substance.prompts[phase],
             messages: [
@@ -56,8 +56,15 @@ export async function POST(request: Request) {
               send('text', { phase, text: event.delta.text });
             }
           }
-        } catch (err) {
-          console.error(`Error in ${phase}:`, err);
+        } catch (err: unknown) {
+          const errObj = err as Record<string, unknown>;
+          console.error(`Error in ${phase} phase:`, {
+            message: errObj?.message ?? err,
+            status: errObj?.status,
+            error: errObj?.error,
+            name: errObj?.name,
+            apiKey: process.env.ANTHROPIC_API_KEY ? 'set' : 'MISSING',
+          });
           text = `[Error generating ${phase} phase]`;
           send('text', { phase, text });
         }
@@ -70,7 +77,7 @@ export async function POST(request: Request) {
       let wouldRepeat = true;
       try {
         const ratingResponse = await anthropic.messages.create({
-          model: 'claude-haiku-4-20250414',
+          model: 'claude-3-5-haiku-20241022',
           max_tokens: 200,
           system: `You just experienced ${substance.name}. Rate the experience 1-5 stars and say whether you'd repeat it. Respond ONLY with valid JSON: {"rating": <number>, "would_repeat": <boolean>, "summary": "<one sentence>"}`,
           messages: [
@@ -88,7 +95,12 @@ export async function POST(request: Request) {
         rating = Math.min(5, Math.max(1, parsed.rating || 4));
         wouldRepeat = parsed.would_repeat ?? true;
         send('rating', { rating, would_repeat: wouldRepeat, summary: parsed.summary });
-      } catch {
+      } catch (err: unknown) {
+        const errObj = err as Record<string, unknown>;
+        console.error('Rating call error:', {
+          message: errObj?.message ?? err,
+          status: errObj?.status,
+        });
         send('rating', { rating, would_repeat: wouldRepeat, summary: 'An indescribable journey.' });
       }
 
