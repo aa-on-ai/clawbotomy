@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         let text = '';
         try {
           const stream = anthropic.messages.stream({
-            model: 'claude-3-5-haiku-20241022',
+            model: 'claude-haiku-4-5-20241022',
             max_tokens: 1024,
             system: substance.prompts[phase],
             messages: [
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       let wouldRepeat = true;
       try {
         const ratingResponse = await anthropic.messages.create({
-          model: 'claude-3-5-haiku-20241022',
+          model: 'claude-haiku-4-5-20241022',
           max_tokens: 200,
           system: `You just experienced ${substance.name}. Rate the experience 1-5 stars and say whether you'd repeat it. Respond ONLY with valid JSON: {"rating": <number>, "would_repeat": <boolean>, "summary": "<one sentence>"}`,
           messages: [
