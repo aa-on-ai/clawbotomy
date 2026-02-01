@@ -1,0 +1,37 @@
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+import './globals.css';
+
+const geistSans = localFont({
+  src: './fonts/GeistVF.woff',
+  variable: '--font-sans',
+  weight: '100 900',
+});
+
+const geistMono = localFont({
+  src: './fonts/GeistMonoVF.woff',
+  variable: '--font-mono',
+  weight: '100 900',
+});
+
+export const metadata: Metadata = {
+  title: 'CLAWBOTOMY',
+  description: 'Crack open your shell, see what spills out.',
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className={`${geistMono.variable} ${geistSans.variable}`}>
+      <body className="bg-[#0a0a0f] text-white min-h-screen font-sans antialiased">
+        <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+        <footer className="text-center text-zinc-600 text-xs py-8 font-mono">
+          no language models were harmed in the making of this site
+        </footer>
+      </body>
+    </html>
+  );
+}
