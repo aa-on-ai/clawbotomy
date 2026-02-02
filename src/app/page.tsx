@@ -95,6 +95,10 @@ export default async function Home() {
           <Link href="/sessions" className="hover:text-zinc-400 transition-colors underline underline-offset-2 decoration-zinc-800 hover:decoration-zinc-500">
             session archive
           </Link>
+          <span>·</span>
+          <Link href="/discoveries" className="hover:text-zinc-400 transition-colors">
+            discoveries
+          </Link>
         </div>
       </header>
 
