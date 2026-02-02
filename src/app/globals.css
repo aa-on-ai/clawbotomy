@@ -208,6 +208,31 @@ body {
   @apply border-white/20 bg-white/10 scale-[1.02];
 }
 
+.specimen-card {
+  @apply relative overflow-hidden rounded border border-zinc-800 bg-zinc-900/30 p-4 cursor-pointer transition-all duration-300;
+}
+
+.specimen-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--specimen-color, #444);
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.specimen-card:hover {
+  @apply bg-zinc-900/60;
+  border-color: color-mix(in srgb, var(--specimen-color, #fff) 20%, transparent);
+}
+
+.specimen-card:hover::before {
+  opacity: 0.7;
+}
+
 .phase-text {
   @apply font-mono text-sm leading-relaxed text-zinc-300;
 }
