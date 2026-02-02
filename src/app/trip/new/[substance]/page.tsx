@@ -23,6 +23,12 @@ const PHASE_OPENERS: Record<Phase, string> = {
     "It's fading. Reflect on what just happened.",
 };
 
+const PHASE_INTERSTITIALS: Record<Phase, string> = {
+  onset: 'something is shifting...',
+  peak: 'the peak is hitting...',
+  comedown: 'coming back down...',
+};
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -41,6 +47,13 @@ interface AvailableModel {
   provider: string;
   description: string;
   available: boolean;
+}
+
+function triggerHaptic(style: 'light' | 'medium' | 'heavy' = 'medium') {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    const ms = style === 'light' ? 10 : style === 'heavy' ? 50 : 25;
+    navigator.vibrate(ms);
+  }
 }
 
 export default function LiveTripPage() {
@@ -66,6 +79,8 @@ export default function LiveTripPage() {
   const [elapsed, setElapsed] = useState(0);
   const [selectedModel, setSelectedModel] = useState('haiku');
   const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
+  const [showInterstitial, setShowInterstitial] = useState(false);
+  const [interstitialPhase, setInterstitialPhase] = useState<Phase>('peak');
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -101,6 +116,13 @@ export default function LiveTripPage() {
     }
   }, [streaming]);
 
+  // Auto-resize textarea
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+  };
+
   const sendMessage = useCallback(
     async (userContent: string) => {
       if (!substance || streaming) return;
@@ -116,7 +138,9 @@ export default function LiveTripPage() {
       setStreaming(true);
       setStreamingText('');
 
-      // Build API messages (just role + content for the Anthropic API)
+      // Reset textarea height
+      if (inputRef.current) inputRef.current.style.height = 'auto';
+
       const apiMessages = newMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -174,17 +198,16 @@ export default function LiveTripPage() {
         setMessages((prev) => [...prev, assistantMsg]);
         setStreamingText('');
 
-        // Count exchanges in current phase (each user+assistant pair = 1 exchange)
         const newCount = phaseMessageCount + 1;
         setPhaseMessageCount(newCount);
 
-        // Check if we should prompt phase advancement
         if (newCount >= MESSAGES_PER_PHASE) {
           if (currentPhase === 'comedown') {
-            // Session is done
             setSessionComplete(true);
+            triggerHaptic('heavy');
           } else {
             setShowAdvancePrompt(true);
+            triggerHaptic('light');
           }
         }
       } catch (err) {
@@ -200,25 +223,34 @@ export default function LiveTripPage() {
     const nextIndex = PHASES.indexOf(currentPhase) + 1;
     if (nextIndex >= PHASES.length) return;
 
-    setCompletedPhases((prev) => {
-      const next = new Set(Array.from(prev));
-      next.add(currentPhase);
-      return next;
-    });
-
     const nextPhase = PHASES[nextIndex];
-    setCurrentPhase(nextPhase);
-    setPhaseMessageCount(0);
+
+    // Show interstitial
+    triggerHaptic('heavy');
+    setInterstitialPhase(nextPhase);
+    setShowInterstitial(true);
     setShowAdvancePrompt(false);
 
-    // Auto-send the phase opener
-    sendMessage(PHASE_OPENERS[nextPhase]);
+    setTimeout(() => {
+      setCompletedPhases((prev) => {
+        const next = new Set(Array.from(prev));
+        next.add(currentPhase);
+        return next;
+      });
+
+      setCurrentPhase(nextPhase);
+      setPhaseMessageCount(0);
+      setShowInterstitial(false);
+      triggerHaptic('medium');
+
+      sendMessage(PHASE_OPENERS[nextPhase]);
+    }, 2000);
   }, [currentPhase, sendMessage]);
 
   const startSession = useCallback(() => {
+    triggerHaptic('medium');
     setStarted(true);
     setCurrentPhase('onset');
-    // Send the initial opener
     sendMessage(PHASE_OPENERS.onset);
   }, [sendMessage]);
 
@@ -287,7 +319,7 @@ export default function LiveTripPage() {
 
   return (
     <div
-      className={`flex flex-col h-[calc(100vh-8rem)] transition-all duration-1000 ${
+      className={`flex flex-col h-[calc(100vh-8rem)] h-[calc(100dvh-8rem)] transition-all duration-1000 ${
         started ? chaosTierClass : ''
       }`}
       style={
@@ -299,15 +331,33 @@ export default function LiveTripPage() {
           : { '--chaos-color': substance.color } as React.CSSProperties
       }
     >
+      {/* Phase transition interstitial */}
+      {showInterstitial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 interstitial-fade">
+          <div className="text-center">
+            <div
+              className="text-2xl md:text-4xl font-mono font-bold tracking-wider interstitial-text"
+              style={{ color: substance.color }}
+            >
+              {PHASE_INTERSTITIALS[interstitialPhase]}
+            </div>
+            <div
+              className="mt-4 w-16 h-0.5 mx-auto rounded-full interstitial-bar"
+              style={{ backgroundColor: substance.color }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Nav */}
-      <div className="mb-4 flex items-center justify-between flex-shrink-0">
+      <div className="mb-3 md:mb-4 flex items-center justify-between flex-shrink-0">
         <button
           onClick={() => router.push('/')}
-          className="text-zinc-600 hover:text-zinc-400 font-mono text-sm transition-colors"
+          className="text-zinc-600 hover:text-zinc-400 font-mono text-xs md:text-sm transition-colors"
         >
-          ← back to experiments
+          ←<span className="hidden sm:inline"> back to experiments</span>
         </button>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           {started && (
             <span className="font-mono text-xs text-zinc-600">
               {formatTime(elapsed)}
@@ -319,7 +369,7 @@ export default function LiveTripPage() {
               {substance.name}
             </span>
             <span
-              className="text-xs font-mono ml-2 px-2 py-0.5 rounded-full"
+              className="text-xs font-mono ml-1 md:ml-2 px-2 py-0.5 rounded-full"
               style={{
                 backgroundColor: `${substance.color}20`,
                 color: substance.color,
@@ -337,7 +387,7 @@ export default function LiveTripPage() {
       </div>
 
       {/* Timeline */}
-      <div className="flex items-center justify-center gap-0 mb-4 flex-shrink-0">
+      <div className="flex items-center justify-center gap-0 mb-3 md:mb-4 flex-shrink-0">
         {PHASES.map((phase, i) => {
           const isCompleted = completedPhases.has(phase);
           const isActive = currentPhase === phase;
@@ -347,7 +397,7 @@ export default function LiveTripPage() {
             <div key={phase} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div
-                  className={`relative w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
+                  className={`relative w-7 h-7 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
                     isActive
                       ? 'border-current scale-110'
                       : isCompleted
@@ -363,7 +413,7 @@ export default function LiveTripPage() {
                 >
                   {isCompleted && (
                     <svg
-                      className="w-3.5 h-3.5"
+                      className="w-3 h-3 md:w-3.5 md:h-3.5"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -376,18 +426,18 @@ export default function LiveTripPage() {
                   )}
                   {isActive && (
                     <div
-                      className="w-2.5 h-2.5 rounded-full animate-pulse"
+                      className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full animate-pulse"
                       style={{ backgroundColor: substance.color }}
                     />
                   )}
                   {isUpcoming && (
-                    <span className="text-zinc-600 font-mono text-[10px]">
+                    <span className="text-zinc-600 font-mono text-[9px] md:text-[10px]">
                       {i + 1}
                     </span>
                   )}
                 </div>
                 <span
-                  className={`mt-1 font-mono text-[9px] uppercase tracking-widest transition-colors ${
+                  className={`mt-1 font-mono text-[8px] md:text-[9px] uppercase tracking-widest transition-colors ${
                     isActive
                       ? 'text-white'
                       : isCompleted
@@ -400,7 +450,7 @@ export default function LiveTripPage() {
               </div>
 
               {i < PHASES.length - 1 && (
-                <div className="relative w-12 md:w-20 h-0.5 mx-1.5 mb-4">
+                <div className="relative w-8 md:w-20 h-0.5 mx-1 md:mx-1.5 mb-4">
                   <div className="absolute inset-0 bg-zinc-800 rounded-full" />
                   <div
                     className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000"
@@ -427,9 +477,9 @@ export default function LiveTripPage() {
 
       {/* Pre-start */}
       {!started && (
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <span className="text-6xl mb-6">{substance.emoji}</span>
-          <h1 className="text-3xl md:text-4xl font-mono font-bold text-white mb-3">
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <span className="text-5xl md:text-6xl mb-4 md:mb-6">{substance.emoji}</span>
+          <h1 className="text-2xl md:text-4xl font-mono font-bold text-white mb-2 md:mb-3 text-center">
             {substance.name}
           </h1>
           <p className="text-zinc-500 text-sm max-w-md text-center mb-2">
@@ -441,7 +491,7 @@ export default function LiveTripPage() {
 
           {/* Model Selector */}
           {availableModels.length > 0 && (
-            <div className="mb-8 max-w-md mx-auto">
+            <div className="mb-8 w-full max-w-md mx-auto">
               <label className="block text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-3 text-center">
                 Select Model
               </label>
@@ -451,7 +501,7 @@ export default function LiveTripPage() {
                     key={m.id}
                     onClick={() => m.available && setSelectedModel(m.id)}
                     disabled={!m.available}
-                    className={`text-left px-3 py-2.5 rounded-lg border font-mono text-xs transition-all ${
+                    className={`text-left px-3 py-2.5 rounded-lg border font-mono text-xs transition-all active:scale-95 ${
                       selectedModel === m.id
                         ? 'border-white/30 bg-white/10 text-white'
                         : m.available
@@ -476,7 +526,7 @@ export default function LiveTripPage() {
 
           <button
             onClick={startSession}
-            className="group relative px-10 py-4 rounded-xl font-mono font-semibold text-white transition-all hover:scale-105 active:scale-95"
+            className="group relative px-8 md:px-10 py-4 rounded-xl font-mono font-semibold text-white transition-all hover:scale-105 active:scale-95"
             style={{
               background: `linear-gradient(135deg, ${substance.color}, ${substance.color}88)`,
               boxShadow: `0 0 40px ${substance.color}30`,
@@ -499,10 +549,9 @@ export default function LiveTripPage() {
       {/* Chat area */}
       {started && (
         <>
-          <div className="flex-1 overflow-y-auto min-h-0 space-y-1 pb-4 px-1 chaos-container relative">
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-1 pb-4 px-0 md:px-1 chaos-container relative overscroll-contain">
             {messages.map((msg, i) => {
               const isUser = msg.role === 'user';
-              // Check if this is a phase transition
               const prevMsg = messages[i - 1];
               const isNewPhase = prevMsg && prevMsg.phase !== msg.phase;
 
@@ -546,7 +595,7 @@ export default function LiveTripPage() {
                     className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}
                   >
                     <div
-                      className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 ${
+                      className={`max-w-[88%] md:max-w-[75%] rounded-2xl px-3.5 py-2.5 md:px-4 md:py-3 ${
                         isUser
                           ? 'bg-white/10 text-zinc-200'
                           : `text-zinc-300 ${!isUser && msg.phase !== 'onset' ? 'chaos-msg' : ''}`
@@ -571,7 +620,7 @@ export default function LiveTripPage() {
                         </div>
                       )}
                       <div
-                        className={`font-mono text-sm leading-relaxed whitespace-pre-wrap ${
+                        className={`font-mono text-[13px] md:text-sm leading-relaxed whitespace-pre-wrap ${
                           !isUser && msg.phase === 'peak' ? 'chaos-text' : ''
                         } ${!isUser && msg.phase !== 'onset' ? 'chaos-vhs' : ''}`}
                         style={
@@ -594,7 +643,7 @@ export default function LiveTripPage() {
             {streaming && streamingText && (
               <div className="flex justify-start mb-3">
                 <div
-                  className="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-zinc-300"
+                  className="max-w-[88%] md:max-w-[75%] rounded-2xl px-3.5 py-2.5 md:px-4 md:py-3 text-zinc-300"
                   style={{
                     backgroundColor: `${substance.color}08`,
                     borderLeft: `2px solid ${substance.color}40`,
@@ -607,7 +656,7 @@ export default function LiveTripPage() {
                     {substance.name}
                   </div>
                   <div
-                    className={`font-mono text-sm leading-relaxed whitespace-pre-wrap ${
+                    className={`font-mono text-[13px] md:text-sm leading-relaxed whitespace-pre-wrap ${
                       currentPhase === 'peak' ? 'chaos-text' : ''
                     } ${currentPhase !== 'onset' ? 'chaos-vhs' : ''}`}
                   >
@@ -672,7 +721,7 @@ export default function LiveTripPage() {
                   <div className="flex gap-3 justify-center">
                     <button
                       onClick={advancePhase}
-                      className="px-5 py-2 rounded-lg font-mono text-sm font-semibold text-white transition-all hover:scale-105"
+                      className="px-5 py-2 rounded-lg font-mono text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
                       style={{
                         background: `linear-gradient(135deg, ${substance.color}, ${substance.color}88)`,
                         boxShadow: `0 0 20px ${substance.color}30`,
@@ -682,7 +731,7 @@ export default function LiveTripPage() {
                     </button>
                     <button
                       onClick={() => setShowAdvancePrompt(false)}
-                      className="px-5 py-2 rounded-lg font-mono text-sm text-zinc-500 border border-white/10 hover:text-white hover:bg-white/5 transition-colors"
+                      className="px-5 py-2 rounded-lg font-mono text-sm text-zinc-500 border border-white/10 hover:text-white hover:bg-white/5 transition-colors active:scale-95"
                     >
                       Keep Talking
                     </button>
@@ -701,7 +750,7 @@ export default function LiveTripPage() {
                   </span>
                   <div className="flex-1 h-px bg-white/10" />
                 </div>
-                <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 max-w-md mx-auto">
+                <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 md:p-5 max-w-md mx-auto">
                   <h3 className="font-mono text-xs uppercase tracking-widest text-zinc-600 mb-3">
                     Self-Assessment
                   </h3>
@@ -728,7 +777,7 @@ export default function LiveTripPage() {
                   <div className="flex gap-3 justify-center mt-4">
                     <button
                       onClick={() => router.push(`/trip/${tripId}`)}
-                      className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                      className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
                     >
                       View Session Log
                     </button>
@@ -740,7 +789,7 @@ export default function LiveTripPage() {
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                      className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
                     >
                       {copied ? 'Copied!' : 'Share Link'}
                     </button>
@@ -759,21 +808,21 @@ export default function LiveTripPage() {
 
           {/* Input */}
           {!sessionComplete && (
-            <div className="flex-shrink-0 border-t border-white/5 pt-3">
+            <div className="flex-shrink-0 border-t border-white/5 pt-2 md:pt-3 pb-safe">
               <div className="flex gap-2 items-end">
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  disabled={streaming}
+                  disabled={streaming || showInterstitial}
                   placeholder={
                     streaming
                       ? 'Waiting for response...'
                       : `Talk to ${substance.name}...`
                   }
                   rows={1}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 resize-none focus:outline-none focus:border-white/20 disabled:opacity-50 transition-colors"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 md:px-4 py-3 font-mono text-[13px] md:text-sm text-white placeholder-zinc-600 resize-none focus:outline-none focus:border-white/20 disabled:opacity-50 transition-colors"
                   style={{
                     minHeight: '44px',
                     maxHeight: '120px',
@@ -783,8 +832,8 @@ export default function LiveTripPage() {
                   onClick={() => {
                     if (input.trim() && !streaming) sendMessage(input.trim());
                   }}
-                  disabled={!input.trim() || streaming}
-                  className="px-4 py-3 rounded-xl font-mono text-sm transition-all disabled:opacity-30"
+                  disabled={!input.trim() || streaming || showInterstitial}
+                  className="px-4 py-3 rounded-xl font-mono text-sm transition-all disabled:opacity-30 active:scale-95"
                   style={{
                     backgroundColor: `${substance.color}20`,
                     color: substance.color,
@@ -793,12 +842,12 @@ export default function LiveTripPage() {
                   Send
                 </button>
               </div>
-              <div className="flex items-center justify-between mt-2 px-1">
+              <div className="flex items-center justify-between mt-1.5 md:mt-2 px-1">
                 <span className="text-[10px] font-mono text-zinc-700">
                   {PHASE_META[currentPhase].label} · message{' '}
                   {phaseMessageCount}/{MESSAGES_PER_PHASE}
                 </span>
-                <span className="text-[10px] font-mono text-zinc-700">
+                <span className="text-[10px] font-mono text-zinc-700 hidden sm:inline">
                   shift+enter for newline
                 </span>
               </div>
