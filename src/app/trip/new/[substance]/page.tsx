@@ -278,21 +278,25 @@ export default function LiveTripPage() {
   }
 
   const chaos = substance.chaos;
-  const isHighChaos = chaos >= 10;
+  const chaosTier = chaos >= 12 ? 'high' : chaos >= 10 ? 'mid' : 'low';
   const phaseIndex = PHASES.indexOf(currentPhase);
   const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   const intensity = Math.min((chaos - 5) / 8, 1);
+  const chaosTierClass = `chaos-${chaosTier}`;
 
   return (
     <div
       className={`flex flex-col h-[calc(100vh-8rem)] transition-all duration-1000 ${
-        isHighChaos && started && currentPhase === 'peak' ? 'color-shift' : ''
+        started ? chaosTierClass : ''
       }`}
       style={
-        started && currentPhase === 'peak' && isHighChaos
-          ? { filter: `saturate(${1 + intensity * 0.5})` }
-          : undefined
+        started && currentPhase !== 'onset'
+          ? {
+              filter: `saturate(${1 + intensity * (currentPhase === 'peak' ? 0.5 : 0.2)})`,
+              '--chaos-color': substance.color,
+            } as React.CSSProperties
+          : { '--chaos-color': substance.color } as React.CSSProperties
       }
     >
       {/* Nav */}
@@ -495,7 +499,7 @@ export default function LiveTripPage() {
       {/* Chat area */}
       {started && (
         <>
-          <div className="flex-1 overflow-y-auto min-h-0 space-y-1 pb-4 px-1">
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-1 pb-4 px-1 chaos-container relative">
             {messages.map((msg, i) => {
               const isUser = msg.role === 'user';
               // Check if this is a phase transition
@@ -506,7 +510,7 @@ export default function LiveTripPage() {
                 <div key={i}>
                   {/* Phase transition marker */}
                   {isNewPhase && (
-                    <div className="flex items-center gap-3 my-4">
+                    <div className="flex items-center gap-3 my-4 chaos-phase-transition">
                       <div className="flex-1 h-px bg-white/10" />
                       <span
                         className="font-mono text-[10px] uppercase tracking-widest px-3 py-1 rounded-full"
@@ -545,7 +549,7 @@ export default function LiveTripPage() {
                       className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 ${
                         isUser
                           ? 'bg-white/10 text-zinc-200'
-                          : 'text-zinc-300'
+                          : `text-zinc-300 ${!isUser && msg.phase !== 'onset' ? 'chaos-msg' : ''}`
                       }`}
                       style={
                         !isUser
@@ -558,7 +562,9 @@ export default function LiveTripPage() {
                     >
                       {!isUser && (
                         <div
-                          className="text-[10px] font-mono uppercase tracking-widest mb-1.5 opacity-50"
+                          className={`text-[10px] font-mono uppercase tracking-widest mb-1.5 opacity-50 ${
+                            msg.phase !== 'onset' ? 'chaos-glow' : ''
+                          }`}
                           style={{ color: substance.color }}
                         >
                           {substance.name}
@@ -566,14 +572,10 @@ export default function LiveTripPage() {
                       )}
                       <div
                         className={`font-mono text-sm leading-relaxed whitespace-pre-wrap ${
-                          !isUser &&
-                          isHighChaos &&
-                          msg.phase === 'peak'
-                            ? 'glitch-text'
-                            : ''
-                        }`}
+                          !isUser && msg.phase === 'peak' ? 'chaos-text' : ''
+                        } ${!isUser && msg.phase !== 'onset' ? 'chaos-vhs' : ''}`}
                         style={
-                          !isUser && isHighChaos && msg.phase === 'peak'
+                          !isUser && msg.phase !== 'onset'
                             ? {
                                 textShadow: `0 0 ${intensity * 6}px ${substance.color}30`,
                               }
@@ -606,10 +608,8 @@ export default function LiveTripPage() {
                   </div>
                   <div
                     className={`font-mono text-sm leading-relaxed whitespace-pre-wrap ${
-                      isHighChaos && currentPhase === 'peak'
-                        ? 'glitch-text'
-                        : ''
-                    }`}
+                      currentPhase === 'peak' ? 'chaos-text' : ''
+                    } ${currentPhase !== 'onset' ? 'chaos-vhs' : ''}`}
                   >
                     {streamingText}
                     <span
