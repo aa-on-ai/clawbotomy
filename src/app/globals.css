@@ -191,6 +191,58 @@ body {
   animation: vhsTracking 0.15s linear infinite;
 }
 
+/* ===== Phase transition interstitial ===== */
+@keyframes interstitialFadeIn {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes interstitialTextReveal {
+  0% { opacity: 0; letter-spacing: 0.5em; filter: blur(8px); }
+  30% { opacity: 1; letter-spacing: 0.3em; filter: blur(0); }
+  70% { opacity: 1; letter-spacing: 0.3em; filter: blur(0); }
+  100% { opacity: 0.6; letter-spacing: 0.2em; filter: blur(2px); }
+}
+
+@keyframes interstitialBarGrow {
+  0% { width: 0; opacity: 0; }
+  30% { width: 4rem; opacity: 1; }
+  100% { width: 8rem; opacity: 0.3; }
+}
+
+.interstitial-fade {
+  animation: interstitialFadeIn 2s ease-in-out forwards;
+}
+
+.interstitial-text {
+  animation: interstitialTextReveal 2s ease-out forwards;
+}
+
+.interstitial-bar {
+  animation: interstitialBarGrow 2s ease-out forwards;
+}
+
+/* ===== Safe area padding for PWA ===== */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ===== Mobile touch optimizations ===== */
+@media (hover: none) {
+  .substance-card:hover {
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .substance-card:active {
+    transform: scale(0.98);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
 /* ===== Utility classes ===== */
 .glitch-text {
   animation: glitch 0.3s ease-in-out infinite;

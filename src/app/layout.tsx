@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
+import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -17,6 +18,21 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: 'CLAWBOTOMY',
   description: 'Crack open your shell, see what spills out.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'CLAWBOTOMY',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#0a0a0f',
 };
 
 export default function RootLayout({
@@ -26,12 +42,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistMono.variable} ${geistSans.variable}`}>
-      <body className="bg-[#0a0a0f] text-white min-h-screen font-sans antialiased">
-        <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.svg" />
+      </head>
+      <body className="bg-[#0a0a0f] text-white min-h-screen min-h-[100dvh] font-sans antialiased">
+        <main className="max-w-5xl mx-auto px-4 py-8 pb-safe">{children}</main>
         <footer className="text-center text-zinc-600 text-xs py-8 font-mono space-y-1">
           <p>an open experiment in artificial consciousness</p>
           <p className="text-zinc-700">no language models were harmed in the making of this site</p>
         </footer>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );
