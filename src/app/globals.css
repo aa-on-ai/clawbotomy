@@ -6,21 +6,192 @@ body {
   background: #0a0a0f;
 }
 
+/* ===== CHAOS TIER 1: Subtle (7-9) ===== */
+@keyframes subtleGlow {
+  0%, 100% { text-shadow: 0 0 4px var(--chaos-color, #fff2); }
+  50% { text-shadow: 0 0 8px var(--chaos-color, #fff3); }
+}
+
+.chaos-low .chaos-glow {
+  animation: subtleGlow 4s ease-in-out infinite;
+}
+
+.chaos-low .chaos-container {
+  transition: all 1s ease;
+}
+
+/* ===== CHAOS TIER 2: Glitch (10-11) ===== */
 @keyframes glitch {
-  0% { transform: translate(0); }
+  0%, 100% { transform: translate(0); }
   20% { transform: translate(-2px, 2px); }
   40% { transform: translate(-2px, -2px); }
   60% { transform: translate(2px, 2px); }
   80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
 }
 
 @keyframes colorShift {
-  0% { filter: hue-rotate(0deg); }
+  0%, 100% { filter: hue-rotate(0deg); }
   50% { filter: hue-rotate(30deg); }
-  100% { filter: hue-rotate(0deg); }
 }
 
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-0.5deg); }
+  20% { transform: translate(2px, 1px) rotate(0.5deg); }
+  30% { transform: translate(-2px, 1px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(0.5deg); }
+  50% { transform: translate(-1px, 2px) rotate(-0.5deg); }
+  60% { transform: translate(2px, 0px) rotate(0deg); }
+  70% { transform: translate(0px, -2px) rotate(-0.5deg); }
+  80% { transform: translate(-2px, 0px) rotate(0.5deg); }
+  90% { transform: translate(1px, 1px) rotate(0deg); }
+}
+
+@keyframes flickerOpacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.97; }
+  75% { opacity: 0.94; }
+}
+
+.chaos-mid .chaos-text {
+  animation: glitch 0.3s ease-in-out infinite;
+}
+
+.chaos-mid .chaos-container {
+  animation: colorShift 3s ease-in-out infinite;
+}
+
+.chaos-mid .chaos-phase-transition {
+  animation: screenShake 0.5s ease-in-out;
+}
+
+.chaos-mid .chaos-flicker {
+  animation: flickerOpacity 2s ease-in-out infinite;
+}
+
+/* ===== CHAOS TIER 3: Full Distortion (12-13) ===== */
+@keyframes crtScanline {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+
+@keyframes hardGlitch {
+  0%, 90%, 100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+  91% { transform: translate(-4px, 2px); clip-path: inset(20% 0 60% 0); }
+  93% { transform: translate(4px, -1px); clip-path: inset(50% 0 20% 0); }
+  95% { transform: translate(-2px, -3px); clip-path: inset(10% 0 70% 0); }
+  97% { transform: translate(3px, 1px); clip-path: inset(60% 0 10% 0); }
+}
+
+@keyframes colorBleed {
+  0%, 100% {
+    text-shadow:
+      2px 0 #ff000060,
+      -2px 0 #00ffff60;
+  }
+  25% {
+    text-shadow:
+      -2px 1px #ff000080,
+      2px -1px #00ffff80;
+  }
+  50% {
+    text-shadow:
+      1px -2px #ff00ff60,
+      -1px 2px #00ff0060;
+  }
+  75% {
+    text-shadow:
+      -1px -1px #ff000070,
+      1px 1px #0000ff70;
+  }
+}
+
+@keyframes textCorrupt {
+  0%, 95%, 100% { opacity: 1; transform: skewX(0deg); }
+  96% { opacity: 0.8; transform: skewX(2deg); }
+  97% { opacity: 1; transform: skewX(-1deg); }
+  98% { opacity: 0.9; transform: skewX(0.5deg); }
+}
+
+@keyframes heavyShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-3px, -4px) rotate(-1deg); }
+  20% { transform: translate(4px, 2px) rotate(1deg); }
+  30% { transform: translate(-4px, 3px) rotate(-0.5deg); }
+  40% { transform: translate(3px, -3px) rotate(1deg); }
+  50% { transform: translate(-2px, 4px) rotate(-1deg); }
+  60% { transform: translate(4px, -1px) rotate(0.5deg); }
+  70% { transform: translate(-1px, -4px) rotate(-0.5deg); }
+  80% { transform: translate(-4px, 2px) rotate(1deg); }
+  90% { transform: translate(2px, 3px) rotate(-0.5deg); }
+}
+
+@keyframes vhsTracking {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-1px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+}
+
+/* CRT scanline overlay */
+.chaos-high .chaos-container::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  animation: crtScanline 0.1s linear infinite;
+}
+
+/* Vignette overlay for high chaos */
+.chaos-high .chaos-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 99;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}
+
+.chaos-high .chaos-text {
+  animation: hardGlitch 3s ease-in-out infinite, colorBleed 2s ease-in-out infinite;
+}
+
+.chaos-high .chaos-msg {
+  animation: textCorrupt 4s ease-in-out infinite;
+}
+
+.chaos-high .chaos-phase-transition {
+  animation: heavyShake 0.6s ease-in-out;
+}
+
+.chaos-high .chaos-container {
+  animation: colorShift 2s ease-in-out infinite;
+}
+
+.chaos-high .chaos-vhs {
+  animation: vhsTracking 0.15s linear infinite;
+}
+
+/* ===== Utility classes ===== */
 .glitch-text {
   animation: glitch 0.3s ease-in-out infinite;
 }
