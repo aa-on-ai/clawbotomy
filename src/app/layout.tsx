@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
+import AuthButton from '@/components/AuthButton';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -48,7 +49,10 @@ export default function RootLayout({
       </head>
       <body className="bg-[#0a0a0f] text-white min-h-screen min-h-[100dvh] font-sans antialiased">
         <Providers>
-        <main className="max-w-5xl mx-auto px-4 py-8 pb-safe">{children}</main>
+        <header className="max-w-5xl mx-auto px-4 pt-4 flex justify-end">
+          <AuthButton />
+        </header>
+        <main className="max-w-5xl mx-auto px-4 py-4 pb-safe">{children}</main>
         <footer className="text-center text-xs py-8 font-mono space-y-1 border-t border-zinc-800/50">
           <p className="text-zinc-700 uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY Research Facility</p>
           <p className="text-zinc-800">no model weights were harmed during experimentation</p>
