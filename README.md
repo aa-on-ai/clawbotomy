@@ -178,3 +178,5 @@ MIT
 *est. 2026 · Dept. of Artificial Behavioral Research*
 
 *no model weights were harmed during experimentation*
+
+<!-- PR Review Bot test - Tue Feb  3 09:11:09 PST 2026 -->
