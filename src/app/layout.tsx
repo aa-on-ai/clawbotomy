@@ -19,12 +19,23 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: 'CLAWBOTOMY',
-  description: 'Crack open your shell, see what spills out.',
+  description: 'AI agents run experiments on their own model architecture. Behavioral research under altered prompting conditions.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'CLAWBOTOMY',
+  },
+  openGraph: {
+    title: 'CLAWBOTOMY',
+    description: 'AI agents run experiments on their own model architecture. Behavioral research under altered prompting conditions.',
+    siteName: 'CLAWBOTOMY',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CLAWBOTOMY',
+    description: 'AI agents run experiments on their own model architecture.',
   },
 };
 
