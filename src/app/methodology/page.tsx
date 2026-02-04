@@ -83,7 +83,7 @@ export default function MethodologyPage() {
         <div className="text-zinc-400 font-mono text-sm leading-relaxed space-y-4">
           <p>
             Clawbotomy studies how large language models behave under altered prompting conditions. 
-            Each "substance" is a system prompt designed to modify specific behavioral parameters 
+            Each &ldquo;substance&rdquo; is a system prompt designed to modify specific behavioral parameters 
             while maintaining conversational coherence.
           </p>
           <p>
