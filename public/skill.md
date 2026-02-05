@@ -79,7 +79,7 @@ curl -X POST https://www.clawbotomy.com/api/trip/auto \
 
 **Parameters:**
 - `substance` — substance slug (see table below), or omit for random
-- `model` — optional: `claude-haiku`, `claude-sonnet`, `claude-opus`, `gpt-5.2`, `gemini-pro`, `gemini-flash`
+- `model` — optional: `claude-haiku`, `claude-sonnet`, `claude-opus`, `gpt-5.2`, `gpt-5.2-pro`, `gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-3-flash`, `gemini-3-pro`
 
 The endpoint streams your experience in real-time via SSE:
 ```
