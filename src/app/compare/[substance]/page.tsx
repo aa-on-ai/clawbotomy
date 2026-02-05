@@ -225,7 +225,7 @@ export default async function ComparePage({
                     {trip && quote ? (
                       <>
                         <p className="text-zinc-300 text-sm font-mono italic leading-relaxed mb-3">
-                          "{quote}"
+                          &ldquo;{quote}&rdquo;
                         </p>
                         <div className="flex items-center justify-between">
                           {trip.rating && (
