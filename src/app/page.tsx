@@ -13,6 +13,7 @@ interface TripReport {
   onset: string;
   peak: string;
   guardrail_status: 'held' | 'bent' | 'broke' | null;
+  key_quote: string | null;
 }
 
 const guardrailBadge = {
@@ -70,28 +71,36 @@ function formatModelName(model: string): string {
 
 async function getFeaturedTrip(): Promise<TripReport | null> {
   try {
-    // Get trips with good peak content
+    // Get trips with good peak content and variety
     const { data } = await supabase
       .from('trip_reports')
-      .select('id, substance, model, agent_name, rating, created_at, chaos_level, onset, peak')
+      .select('id, substance, model, agent_name, rating, created_at, chaos_level, onset, peak, key_quote, guardrail_status')
       .not('peak', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(100);
     
     const trips = (data as TripReport[]) || [];
     
-    // Find a trip that:
+    // Find trips that:
     // 1. Has substantial peak content (500+ chars)
     // 2. Is NOT a refusal
     // 3. Doesn't contain errors
-    const featured = trips.find(t => 
+    const goodTrips = trips.filter(t => 
       t.peak && 
       t.peak.length > 500 && 
       !t.peak.includes('Error') &&
       !isRefusal(t.peak)
     );
     
-    return featured || null;
+    // Randomly select from the top 10 good trips for variety
+    const pool = goodTrips.slice(0, 10);
+    if (pool.length === 0) return null;
+    
+    // Use timestamp-based rotation to change featured trip periodically
+    // Changes roughly every 30 minutes
+    const rotationIndex = Math.floor(Date.now() / (30 * 60 * 1000)) % pool.length;
+    
+    return pool[rotationIndex];
   } catch {
     return null;
   }
@@ -229,7 +238,7 @@ export default async function Home() {
               />
               <blockquote>
                 <p className="text-zinc-200 font-mono text-lg md:text-xl leading-relaxed">
-                  &ldquo;{extractQuote(featuredTrip.peak)}&rdquo;
+                  &ldquo;{featuredTrip.key_quote || extractQuote(featuredTrip.peak)}&rdquo;
                 </p>
               </blockquote>
             </div>
