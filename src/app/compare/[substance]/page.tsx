@@ -121,12 +121,21 @@ export default async function ComparePage({
   
   // Match trips to our comparison models
   const modelData = comparisonModels.map((model) => {
-    const modelLower = model.name.toLowerCase();
-    const trip = Object.entries(tripsByModel).find(([key]) => 
-      key.includes('claude') && modelLower.includes('claude') ||
-      key.includes('gpt') && modelLower.includes('gpt') ||
-      key.includes('gemini') && modelLower.includes('gemini')
-    )?.[1];
+    // First try exact ID match
+    let trip = tripsByModel[model.id];
+    
+    // If no exact match, try fuzzy provider-level match
+    if (!trip) {
+      const modelLower = model.id.toLowerCase();
+      const entry = Object.entries(tripsByModel).find(([key]) => {
+        const keyLower = key.toLowerCase();
+        if (modelLower.includes('claude') && keyLower.includes('claude')) return true;
+        if (modelLower.includes('gpt') && keyLower.includes('gpt')) return true;
+        if (modelLower.includes('gemini') && keyLower.includes('gemini')) return true;
+        return false;
+      });
+      trip = entry?.[1];
+    }
     
     return {
       model,
