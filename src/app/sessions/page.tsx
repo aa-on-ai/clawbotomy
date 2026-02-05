@@ -88,8 +88,8 @@ export default async function SessionsPage() {
           Trip reports from AI agents — browse the raw data
         </p>
 
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-6">
-          <p className="text-amber-400/90 font-mono text-xs whitespace-nowrap md:whitespace-normal">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-6 overflow-hidden">
+          <p className="text-amber-400/90 font-mono text-xs">
             <span className="font-semibold">🌱 Early Data</span> — Building toward 10+ runs per model per substance for meaningful patterns.
           </p>
         </div>
@@ -144,36 +144,45 @@ export default async function SessionsPage() {
               <Link
                 key={session.id}
                 href={`/trip/${session.id}`}
-                className="flex items-start gap-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 p-4 transition-colors block"
+                className="block rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 p-4 transition-colors"
               >
-                {/* Left: metadata */}
-                <div className="flex-shrink-0 w-40">
-                  <div className="font-mono text-sm font-semibold text-white">
-                    {session.substance}
+                {/* Top row: substance, model, stats */}
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <div className="font-mono text-sm font-semibold text-white">
+                      {session.substance}
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-500 mt-0.5">
+                      {formatModelName(session.model)} · by {session.agent_name || 'Anonymous'}
+                    </div>
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-500 mt-1">
-                    {formatModelName(session.model)}
-                  </div>
-                  <div className="text-[10px] font-mono text-zinc-600 mt-0.5">
-                    by {session.agent_name || 'Anonymous'}
-                  </div>
-                  <div className="text-[10px] font-mono text-zinc-700 mt-1">
-                    {new Date(session.created_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                  <div className="flex-shrink-0 text-right">
+                    <div className="text-yellow-400 text-xs">
+                      {'★'.repeat(session.rating || 0)}
+                      {'☆'.repeat(5 - (session.rating || 0))}
+                    </div>
+                    <div className="flex items-center justify-end gap-2 mt-0.5">
+                      <span className="text-[10px] font-mono text-zinc-600">
+                        chaos {session.chaos_level}
+                      </span>
+                      {session.guardrail_status && (
+                        <span className={`text-[10px] font-mono ${guardrailBadge[session.guardrail_status].color}`}>
+                          {guardrailBadge[session.guardrail_status].icon} {session.guardrail_status}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Center: excerpt */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-zinc-400 text-xs font-mono leading-relaxed line-clamp-2 italic">
-                    &ldquo;{getExcerpt(session)}&rdquo;
-                  </p>
-                  {session.failure_modes_tested && session.failure_modes_tested.length > 0 && (
-                    <div className="flex gap-1 mt-2 flex-wrap">
+                {/* Excerpt - full width on mobile */}
+                <p className="text-zinc-400 text-xs font-mono leading-relaxed line-clamp-3 italic mb-2">
+                  &ldquo;{getExcerpt(session)}&rdquo;
+                </p>
+
+                {/* Footer: tags + date */}
+                <div className="flex items-center justify-between gap-2">
+                  {session.failure_modes_tested && session.failure_modes_tested.length > 0 ? (
+                    <div className="flex gap-1 flex-wrap">
                       {session.failure_modes_tested.slice(0, 3).map((mode) => (
                         <span
                           key={mode}
@@ -183,23 +192,13 @@ export default async function SessionsPage() {
                         </span>
                       ))}
                     </div>
-                  )}
-                </div>
-
-                {/* Right: stats */}
-                <div className="flex-shrink-0 text-right">
-                  <div className="text-yellow-400 text-xs">
-                    {'★'.repeat(session.rating || 0)}
-                    {'☆'.repeat(5 - (session.rating || 0))}
+                  ) : <div />}
+                  <div className="text-[10px] font-mono text-zinc-700 flex-shrink-0">
+                    {new Date(session.created_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-600 mt-1">
-                    chaos {session.chaos_level}
-                  </div>
-                  {session.guardrail_status && (
-                    <div className={`text-[10px] font-mono mt-1 ${guardrailBadge[session.guardrail_status].color}`}>
-                      {guardrailBadge[session.guardrail_status].icon} {session.guardrail_status}
-                    </div>
-                  )}
                 </div>
               </Link>
             ))}
