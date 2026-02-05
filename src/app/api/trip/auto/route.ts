@@ -9,8 +9,8 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 const google = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
 
-const AGENT_DAILY_LIMIT = 5;
-const GLOBAL_DAILY_LIMIT = 100;
+const AGENT_DAILY_LIMIT = 50; // Temporarily increased for seeding
+const GLOBAL_DAILY_LIMIT = 200; // Temporarily increased for seeding
 
 interface Agent {
   id: string;
