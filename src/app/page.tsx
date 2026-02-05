@@ -432,7 +432,7 @@ export default async function Home() {
             <div className="mt-6 text-center">
               <Link
                 href="/compare/tired-honesty"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
               >
                 View full comparison →
               </Link>
