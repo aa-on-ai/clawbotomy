@@ -122,7 +122,7 @@ export default async function ComparePage({
   // Match trips to our comparison models
   const modelData = comparisonModels.map((model) => {
     // First try exact ID match
-    let trip = tripsByModel[model.id];
+    let trip: TripReport | undefined = tripsByModel[model.id];
     
     // If no exact match, try fuzzy provider-level match
     if (!trip) {
