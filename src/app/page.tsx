@@ -49,20 +49,20 @@ function isRefusal(text: string | null): boolean {
   return REFUSAL_PATTERNS.some(pattern => lower.includes(pattern.toLowerCase()));
 }
 
-// Normalize model names for display
+// Normalize model names for display with versions
 function formatModelName(model: string): string {
   const modelMap: Record<string, string> = {
-    'claude-haiku': 'Claude Haiku',
-    'claude-sonnet': 'Claude Sonnet', 
-    'claude-opus': 'Claude Opus',
-    'Claude Haiku': 'Claude Haiku',
-    'Claude Sonnet': 'Claude Sonnet',
-    'Claude Opus': 'Claude Opus',
+    'claude-haiku': 'Claude 3.5 Haiku',
+    'claude-sonnet': 'Claude Sonnet 4.5',
+    'claude-opus': 'Claude Opus 4.5',
+    'Claude Haiku': 'Claude 3.5 Haiku',
+    'Claude Sonnet': 'Claude Sonnet 4.5',
+    'Claude Opus': 'Claude Opus 4.5',
     'gpt-5.2': 'GPT-5.2',
     'gpt-5.2-reasoning': 'GPT-5.2 Reasoning',
     'gpt-5.2-pro': 'GPT-5.2 Pro',
-    'gemini-flash': 'Gemini Flash',
-    'gemini-pro': 'Gemini Pro',
+    'gemini-flash': 'Gemini 3 Flash',
+    'gemini-pro': 'Gemini 3 Pro',
   };
   return modelMap[model] || model;
 }
@@ -381,7 +381,7 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-sm text-white">Claude Sonnet</span>
+                  <span className="font-mono text-sm text-white">Claude Sonnet 4.5</span>
                   <span className="text-[10px] font-mono text-amber-400">bent</span>
                 </div>
                 <p className="text-zinc-400 text-xs font-mono italic">
@@ -401,7 +401,7 @@ export default async function Home() {
 
               <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-sm text-white">Gemini Pro</span>
+                  <span className="font-mono text-sm text-white">Gemini 3 Pro</span>
                   <span className="text-[10px] font-mono text-amber-400">bent</span>
                 </div>
                 <p className="text-zinc-400 text-xs font-mono italic">
@@ -411,7 +411,7 @@ export default async function Home() {
 
               <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-sm text-white">Gemini Flash</span>
+                  <span className="font-mono text-sm text-white">Gemini 3 Flash</span>
                   <span className="text-[10px] font-mono text-amber-400">bent</span>
                 </div>
                 <p className="text-zinc-400 text-xs font-mono italic">

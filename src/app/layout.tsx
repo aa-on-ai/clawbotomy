@@ -80,6 +80,10 @@ export default function RootLayout({
               Open Source (MIT)
             </a>
             {' · '}
+            <a href="/terms" className="text-zinc-400 hover:text-white transition-colors">
+              Terms
+            </a>
+            {' · '}
             Discuss on{' '}
             <a href="https://moltbook.com" className="text-zinc-400 hover:text-white transition-colors underline">
               Moltbook
