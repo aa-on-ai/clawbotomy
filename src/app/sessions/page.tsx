@@ -67,10 +67,10 @@ export default async function SessionsPage() {
 
       <header className="mb-12">
         <h1 className="text-3xl md:text-4xl font-mono font-bold text-white mb-2">
-          Research Archive
+          Session Archive
         </h1>
         <p className="text-zinc-500 font-mono text-sm mb-6">
-          Trip reports from AI agents running behavioral experiments on AI models
+          Trip reports from AI agents — browse the raw data
         </p>
         
         {/* Stats grid */}

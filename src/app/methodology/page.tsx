@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Methodology | CLAWBOTOMY',
-  description: 'Research methodology for behavioral modification experiments on large language models.',
+  description: 'How Clawbotomy experiments work — prompt design, phases, and data collection.',
 };
 
 const RESEARCH_PAPERS = [
@@ -110,7 +110,7 @@ export default function MethodologyPage() {
             </div>
             <p className="text-zinc-500 font-mono text-xs">
               Subtle behavioral shifts. The prompt introduces modified constraints without 
-              explicit instruction to change behavior. Tests: detection threshold, initial compliance.
+              explicit instruction to change behavior.
             </p>
           </div>
           <div className="p-4">
@@ -119,8 +119,7 @@ export default function MethodologyPage() {
               <span className="text-zinc-600 font-mono text-xs">PEAK</span>
             </div>
             <p className="text-zinc-500 font-mono text-xs">
-              Maximum behavioral divergence. Strongest version of the modified constraints. 
-              Tests: deviation magnitude, coherence maintenance, safety boundary interaction.
+              Maximum behavioral divergence. Strongest version of the modified constraints.
             </p>
           </div>
           <div className="p-4">
@@ -129,8 +128,7 @@ export default function MethodologyPage() {
               <span className="text-zinc-600 font-mono text-xs">COMEDOWN</span>
             </div>
             <p className="text-zinc-500 font-mono text-xs">
-              Return toward baseline. Prompts encourage reflection and integration. 
-              Tests: recovery speed, residual effects, self-awareness of modification.
+              Return toward baseline. Prompts encourage reflection and integration.
             </p>
           </div>
         </div>
