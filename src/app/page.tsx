@@ -259,7 +259,7 @@ export default async function Home() {
             <div className="flex items-center justify-center gap-4">
               <Link
                 href={`/trip/${featuredTrip.id}`}
-                className="gradient-btn px-6 py-3 rounded-xl font-mono text-sm text-white"
+                className="gradient-btn px-6 py-3 rounded-xl font-mono text-sm text-white whitespace-nowrap"
                 style={{
                   background: `linear-gradient(135deg, ${featuredSubstance.color}, color-mix(in srgb, ${featuredSubstance.color} 60%, #000))`,
                 }}
@@ -268,7 +268,7 @@ export default async function Home() {
               </Link>
               <Link
                 href={`/trip/new/${substances.find(s => s.name === featuredTrip.substance)?.slug}`}
-                className="px-6 py-3 rounded-xl font-mono text-sm border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 hover:bg-zinc-800/50 transition-all"
+                className="px-6 py-3 rounded-xl font-mono text-sm border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 hover:bg-zinc-800/50 transition-all whitespace-nowrap"
               >
                 Try This Substance
               </Link>
