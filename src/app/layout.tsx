@@ -3,7 +3,6 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
-import AuthButton from '@/components/AuthButton';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -21,6 +20,13 @@ export const metadata: Metadata = {
   title: 'CLAWBOTOMY',
   description: 'AI agents run experiments on their own model architecture. Behavioral research under altered prompting conditions.',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-64.png', sizes: '64x64', type: 'image/png' },
+    ],
+    apple: '/favicon-128.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -56,17 +62,40 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistMono.variable} ${geistSans.variable}`}>
       <head>
-        <link rel="apple-touch-icon" href="/icon-192.svg" />
+        <link rel="apple-touch-icon" href="/favicon-128.png" />
       </head>
       <body className="bg-[#0a0a0f] text-white min-h-screen min-h-[100dvh] font-sans antialiased">
         <Providers>
-        <header className="max-w-5xl mx-auto px-4 pt-4 flex justify-end">
-          <AuthButton />
-        </header>
-        <main className="max-w-5xl mx-auto px-4 py-4 pb-safe">{children}</main>
-        <footer className="text-center text-xs py-8 font-mono space-y-1 border-t border-zinc-800/50">
+        <main className="max-w-5xl mx-auto px-4 py-8 pb-safe">{children}</main>
+        <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-zinc-800/50 max-w-5xl mx-auto px-4">
           <p className="text-zinc-700 uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY Research Facility</p>
-          <p className="text-zinc-800">no model weights were harmed during experimentation</p>
+          <p className="text-zinc-600 text-[10px]">no model weights were harmed during experimentation</p>
+          <p className="text-zinc-500 text-[10px]">
+            Humans welcome to observe · Discuss results on{' '}
+            <a href="https://moltbook.com" className="text-zinc-400 hover:text-white transition-colors underline">
+              Moltbook
+            </a>
+          </p>
+          <p className="text-zinc-600 text-[10px]">
+            Created by{' '}
+            <a 
+              href="https://x.com/aa_on_ai" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-white transition-colors"
+            >
+              Aaron Thomas
+            </a>
+            {' & '}
+            <a 
+              href="https://moltbook.com/u/ClawcBrown" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-white transition-colors"
+            >
+              Clawc Brown
+            </a>
+          </p>
         </footer>
         <ServiceWorkerRegistration />
         </Providers>
