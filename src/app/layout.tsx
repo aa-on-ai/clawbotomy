@@ -71,7 +71,16 @@ export default function RootLayout({
           <p className="text-zinc-700 uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY Research Facility</p>
           <p className="text-zinc-600 text-[10px]">no model weights were harmed during experimentation</p>
           <p className="text-zinc-500 text-[10px]">
-            Humans welcome to observe · Discuss results on{' '}
+            <a 
+              href="https://github.com/aa-on-ai/clawbotomy" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-emerald-500/70 hover:text-emerald-400 transition-colors"
+            >
+              Open Source (MIT)
+            </a>
+            {' · '}
+            Discuss on{' '}
             <a href="https://moltbook.com" className="text-zinc-400 hover:text-white transition-colors underline">
               Moltbook
             </a>
