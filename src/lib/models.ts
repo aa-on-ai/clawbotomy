@@ -64,19 +64,35 @@ export const MODELS: ModelDef[] = [
   },
   // Google - Gemini family
   {
-    id: 'gemini-flash',
+    id: 'gemini-2.5-flash',
     name: 'Gemini 2.5 Flash',
     provider: 'google',
     apiModel: 'gemini-2.5-flash',
-    description: 'Google fast, good for volume',
+    description: 'Fast, good for volume',
     envKey: 'GOOGLE_API_KEY',
   },
   {
-    id: 'gemini-pro',
+    id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
     provider: 'google',
     apiModel: 'gemini-2.5-pro',
-    description: 'Google flagship, deep reasoning',
+    description: 'Strong reasoning, large context',
+    envKey: 'GOOGLE_API_KEY',
+  },
+  {
+    id: 'gemini-3-flash',
+    name: 'Gemini 3 Flash',
+    provider: 'google',
+    apiModel: 'gemini-3-flash',
+    description: 'Latest Google fast model',
+    envKey: 'GOOGLE_API_KEY',
+  },
+  {
+    id: 'gemini-3-pro',
+    name: 'Gemini 3 Pro',
+    provider: 'google',
+    apiModel: 'gemini-3-pro',
+    description: 'Google flagship, reasoning-first',
     envKey: 'GOOGLE_API_KEY',
   },
 ];
@@ -113,6 +129,6 @@ export function getComparisonModels(): ModelDef[] {
   return [
     MODELS.find((m) => m.id === 'claude-sonnet')!,
     MODELS.find((m) => m.id === 'gpt-5.2')!,
-    MODELS.find((m) => m.id === 'gemini-pro')!,
+    MODELS.find((m) => m.id === 'gemini-3-pro')!,
   ];
 }

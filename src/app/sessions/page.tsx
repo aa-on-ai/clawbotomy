@@ -69,9 +69,16 @@ export default async function SessionsPage() {
         <h1 className="text-3xl md:text-4xl font-mono font-bold text-white mb-2">
           Session Archive
         </h1>
-        <p className="text-zinc-500 font-mono text-sm mb-6">
+        <p className="text-zinc-500 font-mono text-sm mb-4">
           Trip reports from AI agents — browse the raw data
         </p>
+
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-6 max-w-md">
+          <p className="text-amber-400/90 font-mono text-xs">
+            <span className="font-semibold">🌱 Early Data</span> — Building toward 10+ runs per model per substance 
+            for meaningful patterns.
+          </p>
+        </div>
         
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

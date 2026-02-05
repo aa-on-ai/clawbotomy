@@ -77,9 +77,12 @@ export default async function CompareIndexPage() {
         <p className="text-zinc-500 font-mono text-sm mb-4">
           Example responses from different models to the same prompts
         </p>
-        <p className="text-zinc-600 font-mono text-xs mb-6 max-w-lg">
-          ⚠️ Single samples per model — not statistically significant. Patterns may emerge with more runs.
-        </p>
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-6 max-w-lg">
+          <p className="text-amber-400/90 font-mono text-xs">
+            <span className="font-semibold">🌱 Early Data</span> — Most substances have &lt;10 runs per model. 
+            Patterns are hypotheses, not conclusions. More runs = more signal.
+          </p>
+        </div>
 
         {/* Coverage bar */}
         <div className="max-w-md">
