@@ -54,13 +54,12 @@ export const MODELS: ModelDef[] = [
     reasoningEffort: 'medium',
   },
   {
-    id: 'gpt-5.2-pro',
-    name: 'GPT-5.2 Pro',
+    id: 'o3',
+    name: 'o3',
     provider: 'openai',
-    apiModel: 'gpt-5.2-pro',
-    description: 'OpenAI maximum capability',
+    apiModel: 'o3',
+    description: 'OpenAI reasoning flagship',
     envKey: 'OPENAI_API_KEY',
-    reasoningEffort: 'high',
   },
   // Google - Gemini family
   {

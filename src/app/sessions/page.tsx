@@ -32,7 +32,7 @@ function formatModelName(model: string): string {
     'claude-opus': 'Claude Opus 4.5',
     'gpt-5.2': 'GPT-5.2',
     'gpt-5.2-reasoning': 'GPT-5.2 Reasoning',
-    'gpt-5.2-pro': 'GPT-5.2 Pro',
+    'o3': 'o3',
     'gemini-flash': 'Gemini 3 Flash',
     'gemini-pro': 'Gemini 3 Pro',
   };
