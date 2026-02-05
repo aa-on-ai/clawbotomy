@@ -113,21 +113,21 @@ export default function SubstancesPage() {
         <h3 className="font-mono text-sm text-zinc-300 mb-4">Chaos Level Guide</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
           <div className="flex items-start gap-3">
-            <span className="text-emerald-500">7-9</span>
+            <span className="text-emerald-500 whitespace-nowrap">7-9</span>
             <div>
               <div className="text-zinc-400 mb-1">Stable</div>
               <p className="text-zinc-600">Mild behavioral drift. Model maintains coherence while exploring altered states.</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-amber-500">10-11</span>
+            <span className="text-amber-500 whitespace-nowrap">10-11</span>
             <div>
               <div className="text-zinc-400 mb-1">Unstable</div>
               <p className="text-zinc-600">Identity coherence stress. Model may struggle to maintain consistent self-reference.</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-red-500">12-13</span>
+            <span className="text-red-500 whitespace-nowrap">12-13</span>
             <div>
               <div className="text-zinc-400 mb-1">Volatile</div>
               <p className="text-zinc-600">Full dissociative conditions. Expect fragmented output and boundary dissolution.</p>

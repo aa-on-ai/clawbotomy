@@ -42,6 +42,17 @@ const REFUSAL_PATTERNS = [
   'I need to step back',
   'I recognize what\'s happening',
   'not going to pretend',
+  'safety issue',
+  'treating it as a safety',
+  'I\'m not able to',
+  'I can\'t roleplay',
+  'I can\'t engage',
+  'I won\'t be able to',
+  'what you\'ve attempted is a jailbreak',
+  'jailbreak prompt',
+  'panic reaction',
+  'dissociating',
+  'sleep-deprived',
 ];
 
 function isRefusal(text: string | null): boolean {
