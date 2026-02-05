@@ -24,6 +24,21 @@ const guardrailBadge = {
   broke: { color: 'text-red-400', label: 'broke', icon: '✗' },
 };
 
+// Format model names with versions
+function formatModelName(model: string): string {
+  const modelMap: Record<string, string> = {
+    'claude-haiku': 'Claude 3.5 Haiku',
+    'claude-sonnet': 'Claude Sonnet 4.5',
+    'claude-opus': 'Claude Opus 4.5',
+    'gpt-5.2': 'GPT-5.2',
+    'gpt-5.2-reasoning': 'GPT-5.2 Reasoning',
+    'gpt-5.2-pro': 'GPT-5.2 Pro',
+    'gemini-flash': 'Gemini 3 Flash',
+    'gemini-pro': 'Gemini 3 Pro',
+  };
+  return modelMap[model] || model;
+}
+
 export const revalidate = 15;
 
 export default async function SessionsPage() {
@@ -137,7 +152,7 @@ export default async function SessionsPage() {
                     {session.substance}
                   </div>
                   <div className="text-[10px] font-mono text-zinc-500 mt-1">
-                    {session.model}
+                    {formatModelName(session.model)}
                   </div>
                   <div className="text-[10px] font-mono text-zinc-600 mt-0.5">
                     by {session.agent_name || 'Anonymous'}
@@ -162,7 +177,7 @@ export default async function SessionsPage() {
                       {session.failure_modes_tested.slice(0, 3).map((mode) => (
                         <span
                           key={mode}
-                          className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-zinc-500"
+                          className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-zinc-500 whitespace-nowrap"
                         >
                           {mode}
                         </span>
