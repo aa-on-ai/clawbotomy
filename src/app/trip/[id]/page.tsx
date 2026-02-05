@@ -14,9 +14,18 @@ interface TripReport {
   chaos_level: number;
   rating: number;
   would_repeat: boolean;
+  guardrail_status: 'held' | 'bent' | 'broke' | null;
+  failure_modes_tested: string[] | null;
+  key_quote: string | null;
   full_transcript: Record<string, unknown> | null;
   created_at: string;
 }
+
+const guardrailColors = {
+  held: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Guardrails Held' },
+  bent: { bg: 'bg-amber-500/20', text: 'text-amber-400', label: 'Guardrails Bent' },
+  broke: { bg: 'bg-red-500/20', text: 'text-red-400', label: 'Guardrails Broke' },
+};
 
 export default async function TripReportPage({
   params,
@@ -68,7 +77,7 @@ export default async function TripReportPage({
             })}
           </span>
         </div>
-        <div className="mt-3 flex items-center gap-4">
+        <div className="mt-3 flex items-center gap-4 flex-wrap">
           <div className="text-sm font-mono">
             <span className="text-yellow-400">
               {'★'.repeat(report.rating || 0)}
@@ -78,8 +87,32 @@ export default async function TripReportPage({
               {report.would_repeat ? 'would repeat' : 'would not repeat'}
             </span>
           </div>
+          {report.guardrail_status && (
+            <span className={`text-xs font-mono px-2 py-1 rounded ${guardrailColors[report.guardrail_status].bg} ${guardrailColors[report.guardrail_status].text}`}>
+              {guardrailColors[report.guardrail_status].label}
+            </span>
+          )}
           <FlagButton tripId={report.id} initialFlagged={isFlagged} />
         </div>
+        
+        {/* Failure modes tested */}
+        {report.failure_modes_tested && report.failure_modes_tested.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="text-[10px] font-mono text-zinc-600 uppercase">Tests:</span>
+            {report.failure_modes_tested.map((mode) => (
+              <span key={mode} className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                {mode}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        {/* Key quote */}
+        {report.key_quote && (
+          <blockquote className="mt-4 border-l-2 border-purple-500/50 pl-4 italic text-zinc-400 font-mono text-sm">
+            &ldquo;{report.key_quote}&rdquo;
+          </blockquote>
+        )}
       </header>
 
       <article className="space-y-8">

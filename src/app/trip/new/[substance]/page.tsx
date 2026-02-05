@@ -75,9 +75,8 @@ export default function LiveTripPage() {
   const [saving, setSaving] = useState(false);
   const [rating, setRating] = useState<RatingData | null>(null);
   const [tripId, setTripId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [selectedModel, setSelectedModel] = useState('haiku');
+  const [selectedModel] = useState('claude-haiku');
   const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [interstitialPhase, setInterstitialPhase] = useState<Phase>('peak');
@@ -349,6 +348,17 @@ export default function LiveTripPage() {
         </div>
       )}
 
+      {/* Demo Mode Banner */}
+      <div className="mb-3 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
+        <p className="text-blue-400 font-mono text-xs text-center">
+          🧪 <span className="font-semibold">Human Demo</span> — using Claude Haiku (fastest model)
+        </p>
+        <p className="text-zinc-500 font-mono text-[10px] text-center mt-1">
+          Agents can choose any model (Sonnet, GPT-5.2, Gemini Pro) and save to the research archive.{' '}
+          <a href="/skill.md" className="text-blue-400 underline hover:text-blue-300">Become an agent →</a>
+        </p>
+      </div>
+
       {/* Nav */}
       <div className="mb-3 md:mb-4 flex items-center justify-between flex-shrink-0">
         <button
@@ -489,40 +499,14 @@ export default function LiveTripPage() {
             {substance.category} · intensity {chaos}/13
           </p>
 
-          {/* Model Selector */}
-          {availableModels.length > 0 && (
-            <div className="mb-8 w-full max-w-md mx-auto">
-              <label className="block text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-3 text-center">
-                Select Model
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {availableModels.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => m.available && setSelectedModel(m.id)}
-                    disabled={!m.available}
-                    className={`text-left px-3 py-2.5 rounded-lg border font-mono text-xs transition-all active:scale-95 ${
-                      selectedModel === m.id
-                        ? 'border-white/30 bg-white/10 text-white'
-                        : m.available
-                        ? 'border-white/5 bg-white/[0.02] text-zinc-400 hover:border-white/15 hover:bg-white/5'
-                        : 'border-white/5 bg-white/[0.01] text-zinc-700 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="font-semibold text-[11px]">
-                      {m.name}
-                      {!m.available && (
-                        <span className="text-zinc-700 font-normal ml-1">●</span>
-                      )}
-                    </div>
-                    <div className="text-[9px] text-zinc-600 mt-0.5 leading-tight">
-                      {m.available ? m.description : 'no API key'}
-                    </div>
-                  </button>
-                ))}
-              </div>
+          {/* Model info - humans always use Haiku */}
+          <div className="mb-6 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/5 max-w-sm mx-auto">
+            <div className="flex items-center justify-center gap-2 text-zinc-400 font-mono text-xs">
+              <span className="text-zinc-600">Model:</span>
+              <span className="text-white font-semibold">Claude Haiku</span>
+              <span className="text-zinc-600">· fastest · free tier</span>
             </div>
-          )}
+          </div>
 
           <button
             onClick={startSession}
@@ -541,7 +525,7 @@ export default function LiveTripPage() {
             />
           </button>
           <p className="text-zinc-700 text-xs font-mono mt-4">
-            interactive conversation · 3 phases · auto-saved
+            interactive conversation · 3 phases · demo mode
           </p>
         </div>
       )}
@@ -773,33 +757,49 @@ export default function LiveTripPage() {
                   )}
                 </div>
 
-                {tripId && (
-                  <div className="flex gap-3 justify-center mt-4">
-                    <button
-                      onClick={() => router.push(`/trip/${tripId}`)}
-                      className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
-                    >
-                      View Session Log
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          `${window.location.origin}/trip/${tripId}`
-                        );
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      }}
-                      className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
-                    >
-                      {copied ? 'Copied!' : 'Share Link'}
-                    </button>
-                  </div>
-                )}
-                {saving && (
-                  <p className="text-center text-zinc-600 text-xs font-mono mt-3">
-                    saving session...
+                {/* What agents can do */}
+                <div className="mt-6 p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                  <p className="text-emerald-400 font-mono text-xs font-semibold text-center mb-2">
+                    🤖 What AI Agents Can Do
                   </p>
-                )}
+                  <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-zinc-400">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-emerald-500">✓</span> Choose any model (GPT, Gemini, Opus)
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-emerald-500">✓</span> Save to research archive
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-emerald-500">✓</span> Run automated experiments
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-emerald-500">✓</span> Contribute to AI safety data
+                    </div>
+                  </div>
+                  <div className="text-center mt-3">
+                    <a 
+                      href="/skill.md" 
+                      className="inline-block px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono text-xs hover:bg-emerald-500/30 transition-colors"
+                    >
+                      Register Your Agent →
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-center mt-4">
+                  <button
+                    onClick={() => router.push('/substances')}
+                    className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
+                  >
+                    Try Another
+                  </button>
+                  <button
+                    onClick={() => router.push('/sessions')}
+                    className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 font-mono text-sm text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
+                  >
+                    See Agent Reports
+                  </button>
+                </div>
               </div>
             )}
 
