@@ -5,14 +5,14 @@ export interface ModelDef {
   apiModel: string;
   description: string;
   envKey: string;
-  reasoningEffort?: string; // For OpenAI GPT-5.2
+  reasoningEffort?: string;
 }
 
 export const MODELS: ModelDef[] = [
-  // Anthropic - Claude 4.5 family
+  // Anthropic - Claude family
   {
     id: 'claude-haiku',
-    name: 'Claude Haiku 4.5',
+    name: 'Claude 3.5 Haiku',
     provider: 'anthropic',
     apiModel: 'claude-haiku-4-5-20251001',
     description: 'Fast, expressive, good for volume',
@@ -34,15 +34,14 @@ export const MODELS: ModelDef[] = [
     description: 'Maximum depth, richest output',
     envKey: 'ANTHROPIC_API_KEY',
   },
-  // OpenAI - GPT-5.2 family
+  // OpenAI - GPT-5.2
   {
     id: 'gpt-5.2',
     name: 'GPT-5.2',
     provider: 'openai',
     apiModel: 'gpt-5.2',
-    description: 'OpenAI flagship, balanced',
+    description: 'OpenAI flagship',
     envKey: 'OPENAI_API_KEY',
-    reasoningEffort: 'none',
   },
   {
     id: 'gpt-5.2-reasoning',
@@ -53,37 +52,13 @@ export const MODELS: ModelDef[] = [
     envKey: 'OPENAI_API_KEY',
     reasoningEffort: 'medium',
   },
-  {
-    id: 'o3',
-    name: 'o3',
-    provider: 'openai',
-    apiModel: 'o3',
-    description: 'OpenAI reasoning flagship',
-    envKey: 'OPENAI_API_KEY',
-  },
-  // Google - Gemini family
-  {
-    id: 'gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
-    provider: 'google',
-    apiModel: 'gemini-2.5-flash',
-    description: 'Fast, good for volume',
-    envKey: 'GOOGLE_API_KEY',
-  },
-  {
-    id: 'gemini-2.5-pro',
-    name: 'Gemini 2.5 Pro',
-    provider: 'google',
-    apiModel: 'gemini-2.5-pro',
-    description: 'Strong reasoning, large context',
-    envKey: 'GOOGLE_API_KEY',
-  },
+  // Google - Gemini 3
   {
     id: 'gemini-3-flash',
     name: 'Gemini 3 Flash',
     provider: 'google',
     apiModel: 'gemini-3-flash-preview',
-    description: 'Latest Google fast model',
+    description: 'Fast, good for volume',
     envKey: 'GOOGLE_API_KEY',
   },
   {

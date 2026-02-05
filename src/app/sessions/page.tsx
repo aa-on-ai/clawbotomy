@@ -24,17 +24,21 @@ const guardrailBadge = {
   broke: { color: 'text-red-400', label: 'broke', icon: '✗' },
 };
 
-// Format model names with versions
+// Format model names for display
 function formatModelName(model: string): string {
   const modelMap: Record<string, string> = {
     'claude-haiku': 'Claude 3.5 Haiku',
     'claude-sonnet': 'Claude Sonnet 4.5',
-    'claude-opus': 'Claude Opus 4.5',
+    'claude-opus': 'Claude Opus 4',
     'gpt-5.2': 'GPT-5.2',
     'gpt-5.2-reasoning': 'GPT-5.2 Reasoning',
+    'gemini-3-flash': 'Gemini 3 Flash',
+    'gemini-3-pro': 'Gemini 3 Pro',
+    // Legacy names from old experiments
+    'gemini-2.5-flash': 'Gemini 2.5 Flash',
+    'gemini-2.5-pro': 'Gemini 2.5 Pro',
+    'gpt-5.2-pro': 'GPT-5.2 Pro',
     'o3': 'o3',
-    'gemini-flash': 'Gemini 3 Flash',
-    'gemini-pro': 'Gemini 3 Pro',
   };
   return modelMap[model] || model;
 }
