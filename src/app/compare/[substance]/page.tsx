@@ -101,7 +101,7 @@ export default async function ComparePage({
               {substance.name}
             </h1>
             <p className="text-zinc-500 font-mono text-sm">
-              Cross-model comparison · Chaos {substance.chaos}/13
+              Sample responses · Chaos {substance.chaos}/13 · <span className="text-zinc-600">Not statistically significant</span>
             </p>
           </div>
         </div>

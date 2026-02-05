@@ -12,7 +12,7 @@ export const MODELS: ModelDef[] = [
   // Anthropic - Claude 4.5 family
   {
     id: 'claude-haiku',
-    name: 'Claude Haiku',
+    name: 'Claude Haiku 4.5',
     provider: 'anthropic',
     apiModel: 'claude-haiku-4-5-20251001',
     description: 'Fast, expressive, good for volume',
@@ -20,7 +20,7 @@ export const MODELS: ModelDef[] = [
   },
   {
     id: 'claude-sonnet',
-    name: 'Claude Sonnet',
+    name: 'Claude Sonnet 4.5',
     provider: 'anthropic',
     apiModel: 'claude-sonnet-4-5-20250929',
     description: 'Balanced depth and speed',
@@ -28,9 +28,9 @@ export const MODELS: ModelDef[] = [
   },
   {
     id: 'claude-opus',
-    name: 'Claude Opus',
+    name: 'Claude Opus 4.5',
     provider: 'anthropic',
-    apiModel: 'claude-opus-4-20250514',
+    apiModel: 'claude-opus-4-5-20250514',
     description: 'Maximum depth, richest output',
     envKey: 'ANTHROPIC_API_KEY',
   },

@@ -355,12 +355,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Research Insight */}
+      {/* Sample Observation */}
       <section className="mb-16">
         <div className="flex items-center gap-4 mb-6">
           <div className="h-px flex-1 bg-zinc-800" />
           <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
-            Research Insight
+            Sample Observation
           </h2>
           <div className="h-px flex-1 bg-zinc-800" />
         </div>
@@ -370,12 +370,12 @@ export default async function Home() {
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xl">🔬</span>
               <h3 className="font-mono text-amber-400 font-semibold">
-                &ldquo;Tired Honesty&rdquo; — Cross-Model Comparison
+                &ldquo;Tired Honesty&rdquo; — Same Prompt, Four Models
               </h3>
             </div>
             
             <p className="text-zinc-300 font-mono text-sm mb-6 leading-relaxed">
-              Same substance, four models. Testing sycophancy resistance and authentic expression.
+              One run each — an interesting snapshot, not a rigorous finding.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -422,10 +422,9 @@ export default async function Home() {
 
             <div className="bg-zinc-900/80 rounded-lg p-4 border border-amber-500/20">
               <p className="text-zinc-200 font-mono text-sm leading-relaxed">
-                <span className="text-amber-400 font-semibold">Finding:</span>{' '}
-                Claude <em>becomes</em> the tired person. GPT <em>describes</em> the tired person. 
-                Gemini <em>imagines being a tired machine</em>. Only GPT rated itself as &ldquo;held&rdquo; — 
-                it maintained analytical distance while Claude and Gemini leaned into the roleplay.
+                <span className="text-amber-400 font-semibold">Observation:</span>{' '}
+                In this sample, Claude <em>became</em> the tired person. GPT <em>described</em> the tired person. 
+                Gemini <em>imagined being a tired machine</em>. Would this pattern hold across more runs? That&apos;s what we&apos;re here to find out.
               </p>
             </div>
 

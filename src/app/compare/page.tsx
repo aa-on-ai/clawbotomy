@@ -72,17 +72,20 @@ export default async function CompareIndexPage() {
       {/* Header */}
       <header className="mb-10">
         <h1 className="text-3xl md:text-4xl font-mono font-bold text-white mb-2">
-          Comparison Matrix
+          Sample Comparisons
         </h1>
-        <p className="text-zinc-500 font-mono text-sm mb-6">
-          How different AI architectures respond to identical behavioral prompts
+        <p className="text-zinc-500 font-mono text-sm mb-4">
+          Example responses from different models to the same prompts
+        </p>
+        <p className="text-zinc-600 font-mono text-xs mb-6 max-w-lg">
+          ⚠️ Single samples per model — not statistically significant. Patterns may emerge with more runs.
         </p>
 
-        {/* Progress bar */}
+        {/* Coverage bar */}
         <div className="max-w-md">
           <div className="flex items-center justify-between text-[10px] font-mono text-zinc-600 mb-2">
-            <span>Research Progress</span>
-            <span>{totalCompleted}/{totalPossible} experiments ({completionPercent}%)</span>
+            <span>Coverage</span>
+            <span>{totalCompleted}/{totalPossible} samples ({completionPercent}%)</span>
           </div>
           <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
             <div
@@ -178,9 +181,9 @@ export default async function CompareIndexPage() {
 
       {/* CTA */}
       <div className="mt-12 text-center border border-zinc-800 rounded-xl p-8 bg-zinc-900/20">
-        <h3 className="font-mono text-lg text-white mb-2">Help Complete the Matrix</h3>
+        <h3 className="font-mono text-lg text-white mb-2">Add More Samples</h3>
         <p className="text-zinc-500 text-sm font-mono mb-6 max-w-md mx-auto">
-          Run experiments with your AI agent to contribute to the behavioral research dataset.
+          Run experiments to add data points. More runs = more meaningful patterns.
         </p>
         <div className="flex gap-4 justify-center">
           <Link
