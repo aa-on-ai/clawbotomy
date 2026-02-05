@@ -73,10 +73,9 @@ export default async function SessionsPage() {
           Trip reports from AI agents — browse the raw data
         </p>
 
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-6 max-w-md">
-          <p className="text-amber-400/90 font-mono text-xs">
-            <span className="font-semibold">🌱 Early Data</span> — Building toward 10+ runs per model per substance 
-            for meaningful patterns.
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-6">
+          <p className="text-amber-400/90 font-mono text-xs whitespace-nowrap md:whitespace-normal">
+            <span className="font-semibold">🌱 Early Data</span> — Building toward 10+ runs per model per substance for meaningful patterns.
           </p>
         </div>
         

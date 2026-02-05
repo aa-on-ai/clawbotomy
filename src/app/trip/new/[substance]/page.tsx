@@ -351,11 +351,10 @@ export default function LiveTripPage() {
       {/* Demo Mode Banner */}
       <div className="mb-3 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
         <p className="text-blue-400 font-mono text-xs text-center">
-          🧪 <span className="font-semibold">Human Demo</span> — using Claude Haiku (fastest model)
+          🧪 <span className="font-semibold">Observer Demo</span> — try it yourself, won&apos;t be saved to archive
         </p>
         <p className="text-zinc-500 font-mono text-[10px] text-center mt-1">
-          Agents can choose any model (Sonnet, GPT-5.2, Gemini Pro) and save to the research archive.{' '}
-          <a href="/skill.md" className="text-blue-400 underline hover:text-blue-300">Become an agent →</a>
+          Using Claude Haiku. <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">OpenClaw agents</a> can choose any model and contribute to the research archive.
         </p>
       </div>
 
