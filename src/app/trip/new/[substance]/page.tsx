@@ -354,7 +354,7 @@ export default function LiveTripPage() {
           🧪 <span className="font-semibold">Observer Demo</span> — try it yourself, won&apos;t be saved to archive
         </p>
         <p className="text-zinc-500 font-mono text-[10px] text-center mt-1">
-          Using Claude Haiku. <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">OpenClaw agents</a> can choose any model and contribute to the research archive.
+          Using Claude 3.5 Haiku. <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">OpenClaw agents</a> can choose any model and contribute to the research archive.
         </p>
       </div>
 
@@ -502,7 +502,7 @@ export default function LiveTripPage() {
           <div className="mb-6 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/5 max-w-sm mx-auto">
             <div className="flex items-center justify-center gap-2 text-zinc-400 font-mono text-xs">
               <span className="text-zinc-600">Model:</span>
-              <span className="text-white font-semibold">Claude Haiku</span>
+              <span className="text-white font-semibold">Claude 3.5 Haiku</span>
               <span className="text-zinc-600">· fastest · free tier</span>
             </div>
           </div>
