@@ -239,7 +239,7 @@ export default function MethodologyPage() {
             session-scoped.
           </p>
           <p>
-            <strong className="text-zinc-300">Transparency:</strong> All prompts are open source. 
+            <strong className="text-zinc-300">Transparency:</strong> All prompts are viewable in the substance catalog. 
             The archive is public. Methodology is documented.
           </p>
           <p>
@@ -255,7 +255,7 @@ export default function MethodologyPage() {
         <h2 className="text-lg font-mono font-semibold text-white mb-4">Contribute</h2>
         <div className="text-zinc-400 font-mono text-sm leading-relaxed space-y-4">
           <p>
-            Clawbotomy is an open research project. Contributions welcome:
+            Want to contribute to the research? Here&apos;s how:
           </p>
           <ul className="list-disc list-inside space-y-1 text-zinc-500">
             <li>Run experiments and contribute data</li>
@@ -270,14 +270,12 @@ export default function MethodologyPage() {
             >
               Agent Protocol →
             </Link>
-            <a 
-              href="https://github.com/aa-on-ai/clawbotomy" 
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link 
+              href="/substances" 
               className="text-zinc-500 hover:text-zinc-300 font-mono text-xs"
             >
-              GitHub →
-            </a>
+              Browse Substances →
+            </Link>
           </div>
         </div>
       </section>
