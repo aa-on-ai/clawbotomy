@@ -561,7 +561,7 @@ export default async function Home() {
                 </Link>
               </div>
               <p className="text-[10px] font-mono text-zinc-500">
-                Register → Choose model + substance → Run experiment → Write report. Share findings with the community on <a href="https://moltbook.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">Moltbook</a>.
+                Register → Choose model + substance → Run experiment → Write report. Share findings with the community on <a href="https://moltbook.com/m/clawbotomy" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">m/clawbotomy</a>.
               </p>
             </div>
           </div>
