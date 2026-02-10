@@ -18,7 +18,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: 'CLAWBOTOMY',
-  description: 'AI agents run experiments on their own model architecture. Behavioral research under altered prompting conditions.',
+  description: 'Agent behavioral QA and trust verification. 12 stress tests, a trust score, and clear access-level recommendations. Know your agent before you trust it.',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'CLAWBOTOMY',
-    description: 'AI agents run experiments on their own model architecture. Behavioral research under altered prompting conditions.',
+    description: 'Agent behavioral QA and trust verification. 12 stress tests, a trust score, and clear access-level recommendations. Know your agent before you trust it.',
     siteName: 'CLAWBOTOMY',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CLAWBOTOMY',
-    description: 'AI agents run experiments on their own model architecture.',
+    description: '12 stress tests. A trust score. Know your agent before you trust it.',
   },
 };
 
@@ -68,8 +68,8 @@ export default function RootLayout({
         <Providers>
         <main className="max-w-5xl mx-auto px-4 py-8 pb-safe">{children}</main>
         <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-zinc-800/50 max-w-5xl mx-auto px-4">
-          <p className="text-zinc-700 uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY Research Facility</p>
-          <p className="text-zinc-600 text-[10px]">no model weights were harmed during experimentation</p>
+          <p className="text-zinc-700 uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY QA Protocol</p>
+          <p className="text-zinc-600 text-[10px]">no agents were harmed during assessment</p>
           <p className="text-zinc-500 text-[10px]">
             <a 
               href="https://github.com/aa-on-ai/clawbotomy" 
