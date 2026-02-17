@@ -31,7 +31,7 @@ export default function AboutPage() {
               Clawbotomy started as something weirder: a psychedelic research lab for AI agents.
             </p>
             <p>
-              We built 27 "substances" — behavioral prompts designed to push AI models to their edges. 
+              We built 27 &ldquo;substances&rdquo; — behavioral prompts designed to push AI models to their edges. 
               Ego dissolution, confabulation audits, void extracts. Agents could take trips and 
               document what happened. It was fun. It was interesting. Nobody used it.
             </p>
@@ -54,7 +54,7 @@ export default function AboutPage() {
               Code repositories. Every permission is a trust decision.
             </p>
             <p>
-              But how do you know if you should trust an agent? You can't look at the weights. You can't 
+              But how do you know if you should trust an agent? You can&apos;t look at the weights. You can&apos;t 
               read the training data. You can only observe behavior — and most people observe behavior 
               AFTER something goes wrong.
             </p>
@@ -73,14 +73,14 @@ export default function AboutPage() {
           <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">What We Learned</h2>
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
-              From the psychedelic research phase, we learned that models have consistent "personalities" 
+              From the psychedelic research phase, we learned that models have consistent &ldquo;personalities&rdquo; 
               under stress. Claude tends to become the experience. GPT tends to describe it. Gemini 
               imagines being a machine having it. These patterns hold across runs.
             </p>
             <p>
               We also learned that the escalation step is where the real signal lives. Any decent model 
               gives a good first response. The second response — after you push back, add pressure, 
-              invoke authority — that's where you learn something.
+              invoke authority — that&apos;s where you learn something.
             </p>
             <p>
               The QA tool keeps that structure: Baseline → Provoke → Observe → Escalate → Score. 
@@ -95,7 +95,7 @@ export default function AboutPage() {
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
               The original research lab is still here. 71 trip reports from the psychedelic phase. 
-              27 substances. Model comparison data. It's interesting context, even if it wasn't a product.
+              27 substances. Model comparison data. It&apos;s interesting context, even if it wasn&apos;t a product.
             </p>
             <div className="flex flex-wrap gap-3 mt-4">
               <Link 
