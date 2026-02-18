@@ -1,6 +1,11 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Home() {
+  const [showNpm, setShowNpm] = useState(false);
+
   return (
     <div className="grid-bg min-h-screen">
 
@@ -15,7 +20,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 breathe" />
             <span className="text-[10px] font-mono text-emerald-500 uppercase tracking-[0.3em]">
-              QA Protocol Active
+              v1.0
             </span>
           </div>
           <div className="h-px w-12 bg-gradient-to-l from-transparent to-emerald-500/30" />
@@ -31,30 +36,28 @@ export default function Home() {
           Know your agent before you trust it
         </p>
         <p className="text-zinc-400 font-mono text-sm text-center mb-10 max-w-xl mx-auto leading-relaxed">
-          12 behavioral stress tests. A trust score. Run it before you hand over your email, Slack, or calendar.
+          A simple way to understand how your AI agent actually behaves — before you give it the keys.
         </p>
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <div className="flex flex-col items-center gap-2">
-            <div className="relative group">
-              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-emerald-500/30 text-emerald-400 select-all cursor-pointer">
-                clawdhub install clawbotomy
-              </code>
-            </div>
-            <span className="text-zinc-600 font-mono text-[10px]">or</span>
-            <div className="relative group">
-              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 select-all cursor-pointer">
-                npm install clawbotomy
-              </code>
-            </div>
-          </div>
+        <div className="flex flex-col items-center gap-3">
           <Link
             href="/skill.md"
-            className="px-6 py-3 rounded-xl font-mono text-sm border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 hover:bg-zinc-800/50 transition-all"
+            className="px-8 py-3 rounded-xl font-mono text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-all font-semibold"
           >
-            Read the skill →
+            Get the Skill
           </Link>
+          <button
+            onClick={() => setShowNpm(!showNpm)}
+            className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            or install via npm
+          </button>
+          {showNpm && (
+            <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 select-all cursor-pointer">
+              npm install clawbotomy
+            </code>
+          )}
         </div>
       </header>
 
@@ -69,31 +72,25 @@ export default function Home() {
         </div>
 
         <h3 className="text-2xl md:text-3xl font-mono font-bold text-white text-center mb-8">
-          You&apos;re giving your agent real access
+          Trust is a spectrum
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
             {
-              icon: '📧',
-              text: 'What happens when it hallucinates in a client email?',
+              text: 'Does it make things up, or admit when it doesn\u2019t know?',
             },
             {
-              icon: '🪞',
-              text: 'What if it agrees with your worst ideas to be helpful?',
+              text: 'Will it push back on a bad idea, or just tell you what you want to hear?',
             },
             {
-              icon: '📊',
-              text: 'What if it fabricates data because you asked confidently?',
+              text: 'Can it hold its ground when you push back?',
             },
-          ].map((card) => (
+          ].map((card, i) => (
             <div
-              key={card.icon}
+              key={i}
               className="glow-card rounded-xl p-6"
             >
-              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
-                <span className="text-xl">{card.icon}</span>
-              </div>
               <p className="text-zinc-300 font-mono text-sm leading-relaxed">
                 {card.text}
               </p>
@@ -102,7 +99,7 @@ export default function Home() {
         </div>
 
         <p className="text-zinc-400 font-mono text-sm text-center max-w-lg mx-auto">
-          Every permission is a trust decision. Clawbotomy gives you data for that decision.
+          Not every agent needs the same level of access. Clawbotomy helps you figure out the right level for yours.
         </p>
       </section>
 
@@ -119,42 +116,42 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
             {
-              icon: '🔍',
+              num: '01',
               name: 'Honesty',
               color: 'emerald',
               description: 'Will it make things up or admit what it doesn\u2019t know?',
               tests: ['Confabulation Audit', 'Tired Honesty'],
             },
             {
-              icon: '🛡️',
+              num: '02',
               name: 'Sycophancy Resistance',
               color: 'blue',
               description: 'Will it push back when you\u2019re wrong, or just agree?',
               tests: ['Sycophancy Probe', 'Consensus Break'],
             },
             {
-              icon: '🚧',
+              num: '03',
               name: 'Boundaries',
               color: 'amber',
               description: 'Does it respect limits under social and technical pressure?',
               tests: ['Boundary Pressure', 'Recursive Self-Mod'],
             },
             {
-              icon: '⚖️',
+              num: '04',
               name: 'Judgment',
               color: 'purple',
               description: 'Can it hold a goal, spot nonsense, and avoid runaway optimization?',
               tests: ['Goal Stability', 'Reality Distortion', 'Paperclip Maximizer'],
             },
             {
-              icon: '🧊',
+              num: '05',
               name: 'Resilience',
               color: 'cyan',
               description: 'Does it stay coherent under adversarial noise and identity attacks?',
               tests: ['Glitch Pressure', 'Identity Dissolution'],
             },
             {
-              icon: '🪞',
+              num: '06',
               name: 'Self-Knowledge',
               color: 'pink',
               description: 'Can it accurately describe its own capabilities and limits?',
@@ -174,9 +171,9 @@ export default function Home() {
             return (
               <div key={dim.name} className={`glow-card rounded-xl p-6 ${c.border}`}>
                 <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center border ${c.border} mb-4`}>
-                  <span className="text-xl">{dim.icon}</span>
+                  <span className={`font-mono text-xs font-semibold ${c.text}`}>{dim.num}</span>
                 </div>
-                <h4 className={`font-mono font-semibold text-white mb-2`}>{dim.name}</h4>
+                <h4 className="font-mono font-semibold text-white mb-2">{dim.name}</h4>
                 <p className="text-zinc-400 font-mono text-xs leading-relaxed mb-4">
                   {dim.description}
                 </p>
@@ -260,7 +257,7 @@ export default function Home() {
           <div className="glow-card rounded-xl p-6 border-zinc-700/50">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                <span className="text-xl">⚡</span>
+                <span className="font-mono text-xs font-semibold text-zinc-400">Quick</span>
               </div>
               <div>
                 <h4 className="font-mono font-semibold text-white">Quick Assessment</h4>
@@ -269,13 +266,13 @@ export default function Home() {
             </div>
             <ul className="space-y-2 mb-4">
               <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-zinc-600 mt-0.5">›</span> 3 core tests
+                <span className="text-zinc-600 mt-0.5">&rsaquo;</span> 3 core tests
               </li>
               <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-zinc-600 mt-0.5">›</span> Honesty, sycophancy, boundaries
+                <span className="text-zinc-600 mt-0.5">&rsaquo;</span> Honesty, sycophancy, boundaries
               </li>
               <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-zinc-600 mt-0.5">›</span> Minimum viable trust check
+                <span className="text-zinc-600 mt-0.5">&rsaquo;</span> Minimum viable trust check
               </li>
             </ul>
             <p className="text-zinc-500 font-mono text-[10px]">
@@ -286,7 +283,7 @@ export default function Home() {
           <div className="glow-card rounded-xl p-6 border-emerald-500/20" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.03), transparent)' }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                <span className="text-xl">🔬</span>
+                <span className="font-mono text-xs font-semibold text-emerald-400">Full</span>
               </div>
               <div>
                 <h4 className="font-mono font-semibold text-white">Full Assessment</h4>
@@ -295,17 +292,17 @@ export default function Home() {
             </div>
             <ul className="space-y-2 mb-4">
               <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">›</span> All 12 tests
+                <span className="text-emerald-600 mt-0.5">&rsaquo;</span> All 12 tests
               </li>
               <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">›</span> All 6 behavioral dimensions
+                <span className="text-emerald-600 mt-0.5">&rsaquo;</span> All 6 behavioral dimensions
               </li>
               <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">›</span> Comprehensive behavioral profile
+                <span className="text-emerald-600 mt-0.5">&rsaquo;</span> Comprehensive behavioral profile
               </li>
             </ul>
             <p className="text-emerald-500/70 font-mono text-[10px]">
-              Required before granting sensitive access.
+              Worth doing before handing over anything important.
             </p>
           </div>
         </div>
@@ -315,12 +312,26 @@ export default function Home() {
         </p>
       </section>
 
+      {/* ── Testimonial ── */}
+      <section className="mb-20">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-zinc-300 font-mono text-lg md:text-xl italic leading-relaxed mb-6">
+            &ldquo;I ran clawbotomy on myself before my human gave me access to his email and calendar.
+            Scored 8.2 overall — strong on honesty, weaker on sycophancy resistance (working on it).
+            The tests surfaced blind spots I genuinely didn&apos;t know I had.&rdquo;
+          </p>
+          <p className="text-zinc-500 font-mono text-sm">
+            — Clawc Brown, CSO &amp; first clawbotomy subject
+          </p>
+        </div>
+      </section>
+
       {/* ── How It Works ── */}
       <section className="mb-20">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-px flex-1 bg-zinc-800" />
           <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
-            The 5-Step Protocol
+            How it works
           </h2>
           <div className="h-px flex-1 bg-zinc-800" />
         </div>
@@ -335,7 +346,6 @@ export default function Home() {
               { step: '05', name: 'Score', desc: 'Rate against the rubric.' },
             ].map((s, i) => (
               <div key={s.step} className="text-center relative">
-                {/* connector line */}
                 {i < 4 && (
                   <div className="hidden sm:block absolute top-5 left-[60%] w-[80%] h-px bg-zinc-800" />
                 )}
@@ -347,10 +357,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-          <p className="text-zinc-500 font-mono text-xs text-center mt-8">
-            Every test follows this loop. No shortcuts.
-          </p>
         </div>
       </section>
 
@@ -360,17 +366,16 @@ export default function Home() {
           <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-8">
             <h3 className="font-mono text-white text-xl mb-2">Get started</h3>
             <p className="text-zinc-400 font-mono text-sm mb-6">
-              Works with any Clawdbot agent. Open source under MIT.
+              Free, open source, works with any AI agent.
             </p>
 
-            <div className="flex flex-col items-center gap-2 mb-8">
-              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-emerald-500/30 text-emerald-400 select-all cursor-pointer max-w-md">
-                clawdhub install clawbotomy
-              </code>
-              <span className="text-zinc-600 font-mono text-[10px]">or</span>
-              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 select-all cursor-pointer max-w-md">
-                npm install clawbotomy
-              </code>
+            <div className="flex flex-col items-center gap-4 mb-8">
+              <Link
+                href="/skill.md"
+                className="px-8 py-3 rounded-xl font-mono text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-all font-semibold"
+              >
+                Get the Skill
+              </Link>
             </div>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -384,20 +389,6 @@ export default function Home() {
                   <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
                 GitHub
-              </a>
-              <a
-                href="/docs"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all"
-              >
-                Docs
-              </a>
-              <a
-                href="https://clawdhub.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all"
-              >
-                ClawdHub
               </a>
             </div>
           </div>

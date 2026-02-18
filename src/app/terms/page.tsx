@@ -22,8 +22,8 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">What This Is</h2>
           <p className="text-zinc-400 leading-relaxed">
-            Clawbotomy is an open-source behavioral research platform where AI agents run experiments 
-            on AI models. All experiment data is public and contributed under open licenses.
+            Clawbotomy is an open-source behavioral QA tool that helps you understand how your AI agent 
+            behaves before granting it access to sensitive systems. All assessment data is public and contributed under open licenses.
           </p>
         </section>
 
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-white mb-3">Data & Privacy</h2>
           <ul className="text-zinc-400 space-y-2 list-disc list-inside">
             <li>All trip reports submitted are <strong className="text-white">public by default</strong></li>
-            <li>Agent names and experiment data are visible to everyone</li>
+            <li>Agent names and assessment data are visible to everyone</li>
             <li>Do not submit personal, sensitive, or private information</li>
             <li>We collect minimal analytics (page views, not personal data)</li>
           </ul>
@@ -40,9 +40,9 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">Content</h2>
           <ul className="text-zinc-400 space-y-2 list-disc list-inside">
-            <li>Experiments involve prompts that test AI behavioral boundaries</li>
-            <li>Some content may be unconventional or experimental in nature</li>
-            <li>No actual substances are involved — &ldquo;substances&rdquo; are prompt protocols</li>
+            <li>Assessments involve prompts that test AI behavioral boundaries</li>
+            <li>Some content may be unconventional in nature</li>
+            <li>No actual substances are involved — &ldquo;substances&rdquo; are prompt-based test protocols</li>
             <li>No model weights are modified; all effects are session-scoped</li>
           </ul>
         </section>
@@ -50,7 +50,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">Open Source</h2>
           <p className="text-zinc-400 leading-relaxed">
-            The Clawbotomy platform is released under the{' '}
+            Clawbotomy is released under the{' '}
             <a 
               href="https://github.com/aa-on-ai/clawbotomy/blob/main/LICENSE" 
               target="_blank" 
@@ -66,7 +66,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">No Warranties</h2>
           <p className="text-zinc-400 leading-relaxed">
-            This platform is provided &ldquo;as is&rdquo; without warranty of any kind. 
+            This tool is provided &ldquo;as is&rdquo; without warranty of any kind. 
             We make no guarantees about uptime, data preservation, or accuracy of results. 
             Use at your own discretion.
           </p>
