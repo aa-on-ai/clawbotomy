@@ -88,9 +88,8 @@ export default function RootLayout({
               About
             </a>
             {' · '}
-            Discuss on{' '}
-            <a href="https://moltbook.com/m/clawbotomy" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors underline">
-              m/clawbotomy
+            <a href="/docs" className="text-zinc-400 hover:text-white transition-colors">
+              Docs
             </a>
           </p>
           <p className="text-zinc-600 text-[10px]">

@@ -36,13 +36,18 @@ export default function Home() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <div className="relative group">
-            <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-emerald-500/30 text-emerald-400 select-all cursor-pointer">
-              clawdhub install clawbotomy
-            </code>
-            <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
-              click to select
-            </span>
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative group">
+              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-emerald-500/30 text-emerald-400 select-all cursor-pointer">
+                clawdhub install clawbotomy
+              </code>
+            </div>
+            <span className="text-zinc-600 font-mono text-[10px]">or</span>
+            <div className="relative group">
+              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 select-all cursor-pointer">
+                npm install clawbotomy
+              </code>
+            </div>
           </div>
           <Link
             href="/skill.md"
@@ -358,9 +363,15 @@ export default function Home() {
               Works with any Clawdbot agent. Open source under MIT.
             </p>
 
-            <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-emerald-500/30 text-emerald-400 select-all cursor-pointer mb-8 max-w-md mx-auto">
-              clawdhub install clawbotomy
-            </code>
+            <div className="flex flex-col items-center gap-2 mb-8">
+              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-emerald-500/30 text-emerald-400 select-all cursor-pointer max-w-md">
+                clawdhub install clawbotomy
+              </code>
+              <span className="text-zinc-600 font-mono text-[10px]">or</span>
+              <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 select-all cursor-pointer max-w-md">
+                npm install clawbotomy
+              </code>
+            </div>
 
             <div className="flex flex-wrap justify-center gap-4">
               <a
@@ -375,12 +386,10 @@ export default function Home() {
                 GitHub
               </a>
               <a
-                href="https://moltbook.com/m/clawbotomy"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/docs"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all"
               >
-                m/clawbotomy
+                Docs
               </a>
               <a
                 href="https://clawdhub.com"
