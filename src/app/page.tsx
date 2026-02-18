@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Home() {
-  const [showNpm, setShowNpm] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   return (
     <div className="grid-bg min-h-screen">
@@ -47,17 +47,19 @@ export default function Home() {
           >
             Get the Skill
           </Link>
-          <button
-            onClick={() => setShowNpm(!showNpm)}
-            className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            or install via npm
-          </button>
-          {showNpm && (
-            <code className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 select-all cursor-pointer">
-              npm install clawbotomy
+          <div className="flex flex-col items-center gap-1">
+            <span className="font-mono text-xs text-zinc-500">or install via npm</span>
+            <code
+              onClick={() => {
+                navigator.clipboard.writeText('npm install clawbotomy');
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
+            >
+              {copied ? 'copied!' : 'npm install clawbotomy'}
             </code>
-          )}
+          </div>
         </div>
       </header>
 
