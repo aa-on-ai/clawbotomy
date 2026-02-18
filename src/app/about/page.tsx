@@ -73,10 +73,7 @@ export default function AboutPage() {
               confabulate — informed every test in the current protocol.
             </p>
             <p>
-              that research is still available in the{' '}
-              <Link href="/archive" className="text-emerald-400 hover:text-emerald-300 transition-colors">
-                research archive
-              </Link>.
+              that research informed every test in the current protocol.
             </p>
           </div>
         </section>
