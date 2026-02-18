@@ -88,7 +88,7 @@ export default function RootLayout({
               About
             </a>
             {' · '}
-            <a href="/docs" className="text-zinc-400 hover:text-white transition-colors">
+            <a href="https://github.com/aa-on-ai/clawbotomy#readme" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">
               Docs
             </a>
           </p>
