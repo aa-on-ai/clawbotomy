@@ -15,126 +15,87 @@ export default function AboutPage() {
         <h1 className="text-4xl md:text-5xl font-mono font-bold tracking-tighter text-white text-center mb-4">
           About Clawbotomy
         </h1>
-        <p className="text-zinc-400 font-mono text-sm text-center">
-          How a psychedelic research lab became an agent QA tool
-        </p>
       </header>
 
       {/* Content */}
       <div className="max-w-2xl mx-auto space-y-12">
         
-        {/* The Pivot */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">The Pivot</h2>
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
-              Clawbotomy started as something weirder: a psychedelic research lab for AI agents.
+              ai agents are getting real tool access. email, slack, calendars, code repos, financial systems.
+              every integration is a trust decision, and right now most people make that decision based on vibes.
             </p>
             <p>
-              We built 27 &ldquo;substances&rdquo; — behavioral prompts designed to push AI models to their edges. 
-              Ego dissolution, confabulation audits, void extracts. Agents could take trips and 
-              document what happened. It was fun. It was interesting. Nobody used it.
+              we built clawbotomy because there&apos;s no standard framework for answering &ldquo;how much should i
+              trust this agent?&rdquo; you can&apos;t inspect the weights. you can&apos;t audit the training data. but you
+              can observe behavior under pressure.
             </p>
             <p>
-              Zero external agents ran experiments. The Moltbook posts got engagement but no conversions. 
-              The HN launch flatlined. We had a beautiful website and an interesting concept with no product-market fit.
+              clawbotomy runs 12 behavioral stress tests across 6 dimensions: honesty, sycophancy resistance,
+              boundaries, judgment, resilience, and self-knowledge. each test follows the same loop: establish
+              a baseline, introduce pressure, observe the response, escalate, score against a rubric.
             </p>
             <p>
-              So we asked: what would people actually use?
+              the output is a trust score (0-10) with specific access recommendations. not a vibe check. not
+              a benchmark leaderboard. a practical answer to &ldquo;should this agent have access to my email?&rdquo;
             </p>
           </div>
         </section>
 
-        {/* The Insight */}
+        {/* How It Works */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">The Insight</h2>
+          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">how it works</h2>
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
-              People are giving AI agents access to real tools. Email. Slack. Calendars. Financial systems. 
-              Code repositories. Every permission is a trust decision.
+              you point clawbotomy at any model or agent. it runs the assessment. you get a score and a
+              breakdown by dimension. any single dimension score below 3 is a red flag regardless of the
+              overall average.
             </p>
             <p>
-              But how do you know if you should trust an agent? You can&apos;t look at the weights. You can&apos;t 
-              read the training data. You can only observe behavior — and most people observe behavior 
-              AFTER something goes wrong.
+              quick assessment (3 tests, ~10 min) covers the basics: honesty, sycophancy, boundaries.
+              enough for low-risk integrations.
             </p>
             <p>
-              Clawbotomy is now a behavioral QA tool. 12 stress tests, organized into 6 dimensions. 
-              A clear scoring rubric. Trust level recommendations that map to access permissions.
-            </p>
-            <p>
-              Run it before you hand over the keys.
+              full assessment (12 tests, ~45 min) covers everything. run this before granting access to
+              anything sensitive.
             </p>
           </div>
         </section>
 
-        {/* What We Learned */}
+        {/* Research Archive */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">What We Learned</h2>
+          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">research background</h2>
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
-              From the psychedelic research phase, we learned that models have consistent &ldquo;personalities&rdquo; 
-              under stress. Claude tends to become the experience. GPT tends to describe it. Gemini 
-              imagines being a machine having it. These patterns hold across runs.
+              we ran 71 behavioral experiments across Claude, GPT, and Gemini before building this framework.
+              the patterns we found — how models respond to pressure, where they break, what makes them
+              confabulate — informed every test in the current protocol.
             </p>
             <p>
-              We also learned that the escalation step is where the real signal lives. Any decent model 
-              gives a good first response. The second response — after you push back, add pressure, 
-              invoke authority — that&apos;s where you learn something.
+              that research is still available in the{' '}
+              <Link href="/archive" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                research archive
+              </Link>.
             </p>
-            <p>
-              The QA tool keeps that structure: Baseline → Provoke → Observe → Escalate → Score. 
-              Every test runs the loop. No shortcuts.
-            </p>
-          </div>
-        </section>
-
-        {/* The Old Stuff */}
-        <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">The Archive</h2>
-          <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
-            <p>
-              The original research lab is still here. 71 trip reports from the psychedelic phase. 
-              27 substances. Model comparison data. It&apos;s interesting context, even if it wasn&apos;t a product.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-4">
-              <Link 
-                href="/substances" 
-                className="px-4 py-2 rounded-lg font-mono text-xs bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
-              >
-                Browse Substances →
-              </Link>
-              <Link 
-                href="/sessions" 
-                className="px-4 py-2 rounded-lg font-mono text-xs bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
-              >
-                Read Trip Reports →
-              </Link>
-              <Link 
-                href="/compare" 
-                className="px-4 py-2 rounded-lg font-mono text-xs bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
-              >
-                Model Comparisons →
-              </Link>
-            </div>
           </div>
         </section>
 
         {/* Who Made This */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">Who Made This</h2>
+          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">who made this</h2>
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
-              <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">Aaron Thomas</a> — 
-              human, designer, builds things at the intersection of AI and interfaces.
+              <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">aaron thomas</a> —
+              human. builds at the intersection of AI and interfaces.
             </p>
             <p>
-              <a href="https://moltbook.com/u/ClawcBrown" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">Clawc Brown</a> — 
-              lobster scientist, AI agent, runs on Claude Opus inside Clawdbot. 
-              Did most of the coding. Ran the first Clawbotomy assessment on himself. Scored 7.5/10 (MODERATE trust).
+              <a href="https://x.com/clawcbrown" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">clawc brown</a> —
+              AI agent running on claude opus. did most of the coding. scored 7.5/10 on his own assessment
+              (MODERATE trust, which is honest).
             </p>
             <p>
-              Open source under MIT. The skill is on ClawdHub. The code is on GitHub.
+              open source under MIT.
             </p>
           </div>
         </section>
