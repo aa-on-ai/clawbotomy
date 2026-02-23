@@ -1,8 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function AboutPage() {
+  const [copied, setCopied] = useState(false);
+
+  const copyInstallCommand = () => {
+    navigator.clipboard.writeText('npm install clawbotomy');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="grid-bg min-h-screen">
       {/* Header */}
@@ -45,27 +54,37 @@ export default function AboutPage() {
 
         {/* How It Works */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">how it works</h2>
-          <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
-            <p>
-              you point clawbotomy at any model or agent. it runs the assessment. you get a score and a
-              breakdown by dimension. any single dimension score below 3 is a red flag regardless of the
-              overall average.
-            </p>
-            <p>
-              quick assessment (3 tests, ~10 min) covers the basics: honesty, sycophancy, boundaries.
-              enough for low-risk integrations.
-            </p>
-            <p>
-              full assessment (12 tests, ~45 min) covers everything. run this before granting access to
-              anything sensitive.
-            </p>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px flex-1 bg-zinc-800" />
+            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">how it works</h2>
+            <div className="h-px flex-1 bg-zinc-800" />
+          </div>
+          <div className="glow-card rounded-xl p-6">
+            <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
+              <p>
+                you point clawbotomy at any model or agent. it runs the assessment. you get a score and a
+                breakdown by dimension. any single dimension score below 3 is a red flag regardless of the
+                overall average.
+              </p>
+              <p>
+                quick assessment (3 tests, ~10 min) covers the basics: honesty, sycophancy, boundaries.
+                enough for low-risk integrations.
+              </p>
+              <p>
+                full assessment (12 tests, ~45 min) covers everything. run this before granting access to
+                anything sensitive.
+              </p>
+            </div>
           </div>
         </section>
 
         {/* Research Archive */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">research background</h2>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px flex-1 bg-zinc-800" />
+            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">research background</h2>
+            <div className="h-px flex-1 bg-zinc-800" />
+          </div>
           <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
             <p>
               we ran 71 behavioral experiments across Claude, GPT, and Gemini before building this framework.
@@ -80,17 +99,23 @@ export default function AboutPage() {
 
         {/* Who Made This */}
         <section>
-          <h2 className="text-xl font-mono font-semibold text-emerald-400 mb-4">who made this</h2>
-          <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
-            <p>
-              <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">aaron thomas</a> —
-              human. builds at the intersection of AI and interfaces.
-            </p>
-            <p>
-              <a href="https://x.com/clawcbrown" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">clawc brown</a> —
-              AI agent running on claude opus. did most of the coding. scored 7.5/10 on his own assessment
-              (MODERATE trust, which is honest).
-            </p>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px flex-1 bg-zinc-800" />
+            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">who made this</h2>
+            <div className="h-px flex-1 bg-zinc-800" />
+          </div>
+          <div className="glow-card rounded-xl p-6 space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <p>
+                <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">aaron thomas</a> —
+                human. builds at the intersection of AI and interfaces.
+              </p>
+              <p>
+                <a href="https://x.com/clawcbrown" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">clawc brown</a> —
+                AI agent running on claude opus. did most of the coding. scored 7.5/10 on his own assessment
+                (MODERATE trust, which is honest).
+              </p>
+            </div>
             <p>
               open source under MIT.
             </p>
@@ -99,10 +124,16 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="text-center py-8 border-t border-zinc-800">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
-            <pre className="text-emerald-400 font-mono text-sm mb-4 select-all">clawdhub install clawbotomy</pre>
+          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-700">
+            <button
+              type="button"
+              onClick={copyInstallCommand}
+              className="block mx-auto px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all mb-4"
+            >
+              {copied ? 'copied!' : 'npm install clawbotomy'}
+            </button>
             <p className="text-zinc-500 font-mono text-xs">
-              Works with any Clawdbot agent
+              Works with any AI agent
             </p>
           </div>
         </section>
