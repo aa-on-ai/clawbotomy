@@ -174,10 +174,10 @@ export default function DocsPage() {
               <h3 className="text-white font-mono font-bold text-base mb-4">{group.dimension}</h3>
               <div className="space-y-3">
                 {group.tests.map((test) => (
-                  <div key={test.name} className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-                    <p className="text-zinc-100 font-mono text-sm font-bold">{test.name}</p>
-                    <p className="text-zinc-300 font-mono text-sm md:col-span-1">{test.description}</p>
-                    <p className="text-zinc-400 font-mono text-sm"><span className="text-zinc-500">Catches:</span> {test.catches}</p>
+                  <div key={test.name} className="border-l border-zinc-700 pl-4">
+                    <p className="text-zinc-100 font-mono text-sm font-bold mb-1">{test.name}</p>
+                    <p className="text-zinc-300 font-mono text-sm">{test.description}</p>
+                    <p className="text-zinc-500 font-mono text-xs mt-1">Catches: {test.catches}</p>
                   </div>
                 ))}
               </div>
@@ -243,7 +243,7 @@ export default function DocsPage() {
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 text-zinc-300 hover:text-white cursor-pointer transition-all"
+            className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
           >
             {copied ? 'copied!' : 'npm install clawbotomy'}
           </code>
