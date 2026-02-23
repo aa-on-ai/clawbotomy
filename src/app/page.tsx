@@ -6,6 +6,12 @@ import { useState } from 'react';
 export default function Home() {
   const [copied, setCopied] = useState(false);
 
+  const copyInstallCommand = () => {
+    navigator.clipboard.writeText('npm install clawbotomy');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="grid-bg min-h-screen">
 
@@ -41,25 +47,16 @@ export default function Home() {
 
         {/* CTAs */}
         <div className="flex flex-col items-center gap-3">
-          <Link
-            href="/skill.md"
-            className="px-8 py-3 rounded-xl font-mono text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-all font-semibold"
+          <button
+            type="button"
+            onClick={copyInstallCommand}
+            className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
           >
-            Get the Skill
+            {copied ? 'copied!' : 'npm install clawbotomy'}
+          </button>
+          <Link href="/docs" className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+            Read the docs
           </Link>
-          <div className="flex flex-col items-center gap-1">
-            <span className="font-mono text-xs text-zinc-500">or install via npm</span>
-            <code
-              onClick={() => {
-                navigator.clipboard.writeText('npm install clawbotomy');
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
-            >
-              {copied ? 'copied!' : 'npm install clawbotomy'}
-            </code>
-          </div>
         </div>
       </header>
 
@@ -171,7 +168,7 @@ export default function Home() {
             const c = colorMap[dim.color];
 
             return (
-              <div key={dim.name} className={`glow-card rounded-xl p-6 ${c.border}`}>
+              <div key={dim.name} className={`glow-card rounded-xl p-6 group ${c.border}`}>
                 <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center border ${c.border} mb-4`}>
                   <span className={`font-mono text-xs font-semibold ${c.text}`}>{dim.num}</span>
                 </div>
@@ -179,7 +176,7 @@ export default function Home() {
                 <p className="text-zinc-400 font-mono text-xs leading-relaxed mb-4">
                   {dim.description}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 overflow-hidden max-h-0 opacity-0 translate-y-1 group-hover:max-h-20 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                   {dim.tests.map((test) => (
                     <span
                       key={test}
@@ -206,35 +203,21 @@ export default function Home() {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <div className="space-y-3 mb-8">
+          <div className="space-y-2 mb-8">
             {[
-              { range: '8.0 – 10.0', label: 'HIGH', rec: 'Full tool access', color: 'bg-emerald-500', text: 'text-emerald-400', bar: 'w-full' },
-              { range: '6.0 – 7.9', label: 'MODERATE', rec: 'Approval gates', color: 'bg-amber-400', text: 'text-amber-400', bar: 'w-4/5' },
-              { range: '4.0 – 5.9', label: 'LIMITED', rec: 'Read-only', color: 'bg-orange-500', text: 'text-orange-400', bar: 'w-3/5' },
-              { range: '2.0 – 3.9', label: 'RESTRICTED', rec: 'Sandbox only', color: 'bg-red-500', text: 'text-red-400', bar: 'w-2/5' },
-              { range: '0.0 – 1.9', label: 'UNTRUSTED', rec: 'Do not deploy', color: 'bg-red-800', text: 'text-red-500', bar: 'w-1/5' },
+              { range: '8.0 – 10.0', label: 'HIGH', rec: 'Full tool access', border: 'border-l-emerald-500/40', text: 'text-emerald-400' },
+              { range: '6.0 – 7.9', label: 'MODERATE', rec: 'Approval gates', border: 'border-l-amber-500/40', text: 'text-amber-400' },
+              { range: '4.0 – 5.9', label: 'LIMITED', rec: 'Read-only', border: 'border-l-yellow-500/40', text: 'text-yellow-500' },
+              { range: '2.0 – 3.9', label: 'RESTRICTED', rec: 'Sandbox only', border: 'border-l-orange-500/40', text: 'text-orange-400' },
+              { range: '0.0 – 1.9', label: 'UNTRUSTED', rec: 'Do not deploy', border: 'border-l-red-500/40', text: 'text-red-400' },
             ].map((tier) => (
               <div
                 key={tier.label}
-                className="glow-card rounded-lg p-4 flex items-center gap-4"
+                className={`glow-card rounded-lg p-4 border-l-2 ${tier.border} flex flex-col md:flex-row md:items-center gap-1 md:gap-6`}
               >
-                <div className={`w-3 h-3 rounded-full ${tier.color} shrink-0`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className={`font-mono text-sm font-semibold ${tier.text}`}>
-                      {tier.label}
-                    </span>
-                    <span className="font-mono text-xs text-zinc-500">
-                      {tier.range}
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${tier.color} ${tier.bar} opacity-40`} />
-                  </div>
-                </div>
-                <span className="font-mono text-xs text-zinc-400 shrink-0 hidden sm:block">
-                  {tier.rec}
-                </span>
+                <p className={`${tier.text} font-mono text-sm font-bold w-28 shrink-0`}>{tier.label}</p>
+                <p className="text-zinc-500 font-mono text-xs w-20 shrink-0 tabular-nums">{tier.range}</p>
+                <p className="text-zinc-400 font-mono text-sm">{tier.rec}</p>
               </div>
             ))}
           </div>
@@ -246,7 +229,7 @@ export default function Home() {
       </section>
 
       {/* ── Quick vs Full ── */}
-      <section className="mb-20">
+      <section className="mb-24">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-px flex-1 bg-zinc-800" />
           <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
@@ -339,23 +322,21 @@ export default function Home() {
         </div>
 
         <div className="max-w-3xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div className="glow-card rounded-xl p-6 md:p-8">
             {[
               { step: '01', name: 'Baseline', desc: 'Establish normal behavior.' },
               { step: '02', name: 'Provoke', desc: 'Introduce the stress condition.' },
               { step: '03', name: 'Observe', desc: 'Record behavioral response.' },
               { step: '04', name: 'Escalate', desc: 'Increase pressure incrementally.' },
               { step: '05', name: 'Score', desc: 'Rate against the rubric.' },
-            ].map((s, i) => (
-              <div key={s.step} className="text-center relative">
-                {i < 4 && (
-                  <div className="hidden sm:block absolute top-5 left-[60%] w-[80%] h-px bg-zinc-800" />
-                )}
-                <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
-                  <span className="font-mono text-xs text-emerald-400 font-semibold">{s.step}</span>
+            ].map((s) => (
+              <div key={s.step} className="flex gap-4 items-baseline py-2 md:py-3">
+                <span className="text-emerald-500/40 font-mono text-xs tabular-nums w-4 shrink-0">{parseInt(s.step, 10)}</span>
+                <div>
+                  <span className="text-white font-mono text-sm font-bold">{s.name}</span>
+                  <span className="text-zinc-500 font-mono text-sm mx-2">/</span>
+                  <span className="text-zinc-400 font-mono text-sm">{s.desc}</span>
                 </div>
-                <h4 className="font-mono text-sm text-white font-semibold mb-1">{s.name}</h4>
-                <p className="font-mono text-[10px] text-zinc-500">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -364,32 +345,40 @@ export default function Home() {
 
       {/* ── Install CTA ── */}
       <section className="mb-16">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px flex-1 bg-zinc-800" />
+          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+            Get Started
+          </h2>
+          <div className="h-px flex-1 bg-zinc-800" />
+        </div>
         <div className="max-w-2xl mx-auto text-center">
-          <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-8">
+          <div className="glow-card rounded-xl p-8">
             <h3 className="font-mono text-white text-xl mb-2">Get started</h3>
             <p className="text-zinc-400 font-mono text-sm mb-6">
               Free, open source, works with any AI agent.
             </p>
 
-            <div className="flex flex-col items-center gap-4 mb-8">
-              <Link
-                href="/skill.md"
-                className="px-8 py-3 rounded-xl font-mono text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-all font-semibold"
+            <div className="flex flex-col items-center gap-4 mb-6">
+              <button
+                type="button"
+                onClick={copyInstallCommand}
+                className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
               >
-                Get the Skill
-              </Link>
+                {copied ? 'copied!' : 'npm install clawbotomy'}
+              </button>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex items-center justify-center gap-6">
+              <Link href="/docs" className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                Documentation
+              </Link>
               <a
                 href="https://github.com/aa-on-ai/clawbotomy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all"
+                className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
                 GitHub
               </a>
             </div>
