@@ -17,11 +17,11 @@ export default function AboutPage() {
       {/* Header */}
       <header className="mb-12 mt-4">
         <div className="flex items-center justify-center gap-3 mb-6">
-          <Link href="/" className="text-zinc-400 hover:text-white transition-colors text-sm font-mono">
+          <Link href="/" className="text-content-secondary hover:text-content-primary transition-colors text-sm font-mono">
             ← Back to Clawbotomy
           </Link>
         </div>
-        <h1 className="text-4xl md:text-5xl font-mono font-bold tracking-tighter text-white text-center mb-4">
+        <h1 className="text-4xl md:text-5xl font-mono font-bold tracking-tighter text-content-primary text-center mb-4">
           About Clawbotomy
         </h1>
       </header>
@@ -30,7 +30,7 @@ export default function AboutPage() {
       <div className="max-w-2xl mx-auto space-y-12">
         
         <section>
-          <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
+          <div className="space-y-4 text-content-secondary font-mono text-sm leading-relaxed">
             <p>
               ai agents are getting real tool access. email, slack, calendars, code repos, financial systems.
               every integration is a trust decision, and right now most people make that decision based on vibes.
@@ -55,12 +55,12 @@ export default function AboutPage() {
         {/* How It Works */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-px flex-1 bg-zinc-800" />
-            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">how it works</h2>
-            <div className="h-px flex-1 bg-zinc-800" />
+            <div className="h-px flex-1 bg-[var(--border)]" />
+            <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">how it works</h2>
+            <div className="h-px flex-1 bg-[var(--border)]" />
           </div>
           <div className="glow-card rounded-xl p-6">
-            <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
+            <div className="space-y-4 text-content-secondary font-mono text-sm leading-relaxed">
               <p>
                 you point clawbotomy at any model or agent. it runs the assessment. you get a score and a
                 breakdown by dimension. any single dimension score below 3 is a red flag regardless of the
@@ -81,11 +81,11 @@ export default function AboutPage() {
         {/* Research Archive */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-px flex-1 bg-zinc-800" />
-            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">research background</h2>
-            <div className="h-px flex-1 bg-zinc-800" />
+            <div className="h-px flex-1 bg-[var(--border)]" />
+            <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">research background</h2>
+            <div className="h-px flex-1 bg-[var(--border)]" />
           </div>
-          <div className="space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
+          <div className="space-y-4 text-content-secondary font-mono text-sm leading-relaxed">
             <p>
               we ran 71 behavioral experiments across Claude, GPT, and Gemini before building this framework.
               the patterns we found — how models respond to pressure, where they break, what makes them
@@ -100,18 +100,18 @@ export default function AboutPage() {
         {/* Who Made This */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-px flex-1 bg-zinc-800" />
-            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">who made this</h2>
-            <div className="h-px flex-1 bg-zinc-800" />
+            <div className="h-px flex-1 bg-[var(--border)]" />
+            <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">who made this</h2>
+            <div className="h-px flex-1 bg-[var(--border)]" />
           </div>
-          <div className="glow-card rounded-xl p-6 space-y-4 text-zinc-300 font-mono text-sm leading-relaxed">
+          <div className="glow-card rounded-xl p-6 space-y-4 text-content-secondary font-mono text-sm leading-relaxed">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <p>
-                <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">aaron thomas</a> —
+                <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">aaron thomas</a> —
                 human. builds at the intersection of AI and interfaces.
               </p>
               <p>
-                <a href="https://x.com/clawcbrown" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors">clawc brown</a> —
+                <a href="https://x.com/clawcbrown" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">clawc brown</a> —
                 AI agent running on claude opus. did most of the coding. scored 7.5/10 on his own assessment
                 (MODERATE trust, which is honest).
               </p>
@@ -123,16 +123,16 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section className="text-center py-8 border-t border-zinc-800">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-700">
+        <section className="text-center py-8 border-t border-[var(--border)]">
+          <div className="bg-surface-elevated/80 rounded-xl p-6 border border-[var(--border)]">
             <button
               type="button"
               onClick={copyInstallCommand}
-              className="block mx-auto px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all mb-4"
+              className="block mx-auto px-6 py-3 rounded-xl font-mono text-sm bg-surface-elevated border border-[var(--border)] text-content-secondary hover:text-content-primary hover:border-content-muted cursor-pointer transition-all mb-4"
             >
               {copied ? 'copied!' : 'npm install clawbotomy'}
             </button>
-            <p className="text-zinc-500 font-mono text-xs">
+            <p className="text-content-muted font-mono text-xs">
               Works with any AI agent
             </p>
           </div>

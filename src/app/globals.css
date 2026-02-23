@@ -3,6 +3,24 @@
 @tailwind utilities;
 
 :root {
+  --bg-primary: #ffffff;
+  --bg-elevated: #f4f4f5;
+  --bg-card: #fafafa;
+  --accent: #059669;
+  --text-primary: #18181b;
+  --text-secondary: #3f3f46;
+  --text-muted: #71717a;
+  --border: #e4e4e7;
+  --border-subtle: #f4f4f5;
+  --body-glow-top: rgba(5, 150, 105, 0.035);
+  --body-glow-bottom: rgba(24, 24, 27, 0.025);
+  --card-hover-bg: #f4f4f5;
+  --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --text-glow-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  --card-accent-gradient: linear-gradient(135deg, rgba(113, 113, 122, 0.24), transparent 50%);
+}
+
+.dark {
   --bg-primary: #09090b;
   --bg-elevated: #18181b;
   --bg-card: #1c1c22;
@@ -10,13 +28,22 @@
   --text-primary: #fafafa;
   --text-secondary: #d4d4d8;
   --text-muted: #a1a1aa;
+  --border: #27272a;
+  --border-subtle: rgba(255,255,255,0.08);
+  --body-glow-top: rgba(16, 185, 129, 0.04);
+  --body-glow-bottom: rgba(139, 92, 246, 0.03);
+  --card-hover-bg: #222228;
+  --card-hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.08);
+  --text-glow-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  --card-accent-gradient: linear-gradient(135deg, rgba(16, 185, 129, 0.3), transparent 50%);
 }
 
 body {
   background: var(--bg-primary);
-  background-image: 
-    radial-gradient(ellipse at top, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.03) 0%, transparent 40%);
+  color: var(--text-primary);
+  background-image:
+    radial-gradient(ellipse at top, var(--body-glow-top) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, var(--body-glow-bottom) 0%, transparent 40%);
 }
 
 /* Higher contrast text */
@@ -27,9 +54,9 @@ body {
 
 /* Subtle grid pattern overlay */
 .grid-bg {
-  background-image: 
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -37,7 +64,7 @@ body {
 .glow-card {
   position: relative;
   background: var(--bg-card);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-subtle);
   transition: all 0.3s ease;
 }
 
@@ -47,7 +74,7 @@ body {
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), transparent 50%);
+  background: var(--card-accent-gradient);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -62,15 +89,15 @@ body {
 }
 
 .glow-card:hover {
-  background: #222228;
-  border-color: rgba(255,255,255,0.15);
+  background: var(--card-hover-bg);
+  border-color: var(--border);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 40px rgba(16, 185, 129, 0.08);
+  box-shadow: var(--card-hover-shadow);
 }
 
 /* Accent glow text */
 .glow-text {
-  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  text-shadow: var(--text-glow-shadow);
 }
 
 /* Breathing animation for live elements */
@@ -398,7 +425,9 @@ body {
 }
 
 .specimen-card {
-  @apply relative overflow-hidden rounded border border-zinc-800 bg-zinc-900/30 p-4 cursor-pointer transition-all duration-300;
+  @apply relative overflow-hidden rounded border p-4 cursor-pointer transition-all duration-300;
+  border-color: var(--border);
+  background-color: color-mix(in srgb, var(--bg-card) 70%, transparent);
 }
 
 .specimen-card::before {
@@ -414,7 +443,7 @@ body {
 }
 
 .specimen-card:hover {
-  @apply bg-zinc-900/60;
+  background-color: color-mix(in srgb, var(--bg-card) 92%, transparent);
   border-color: color-mix(in srgb, var(--specimen-color, #fff) 20%, transparent);
 }
 
@@ -423,5 +452,6 @@ body {
 }
 
 .phase-text {
-  @apply font-mono text-sm leading-relaxed text-zinc-300;
+  @apply font-mono text-sm leading-relaxed;
+  color: var(--text-secondary);
 }

@@ -6,14 +6,14 @@ const sectionId = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, 
 
 const sectionHeader = (title: string) => (
   <div id={sectionId(title)} className="flex items-center gap-4 mb-8 scroll-mt-8">
-    <div className="h-px flex-1 bg-zinc-800" />
-    <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em] whitespace-nowrap">{title}</h2>
-    <div className="h-px flex-1 bg-zinc-800" />
+    <div className="h-px flex-1 bg-[var(--border)]" />
+    <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em] whitespace-nowrap">{title}</h2>
+    <div className="h-px flex-1 bg-[var(--border)]" />
   </div>
 );
 
 const tierColors: Record<string, string> = {
-  HIGH: 'text-emerald-400',
+  HIGH: 'text-emerald-600 dark:text-emerald-400',
   MODERATE: 'text-amber-400',
   LIMITED: 'text-yellow-500',
   RESTRICTED: 'text-orange-400',
@@ -137,10 +137,10 @@ export default function DocsPage() {
   return (
     <div className="grid-bg min-h-screen">
       <header className="mb-12 mt-4">
-        <h1 className="text-4xl md:text-6xl font-mono font-bold tracking-tighter text-white text-center mb-4">
+        <h1 className="text-4xl md:text-6xl font-mono font-bold tracking-tighter text-content-primary text-center mb-4">
           Documentation
         </h1>
-        <p className="text-zinc-400 font-mono text-sm text-center max-w-2xl mx-auto leading-relaxed mb-8">
+        <p className="text-content-secondary font-mono text-sm text-center max-w-2xl mx-auto leading-relaxed mb-8">
           Run behavioral QA on autonomous agents and assign access based on observed trustworthiness.
         </p>
 
@@ -150,7 +150,7 @@ export default function DocsPage() {
             <a
               key={item}
               href={`#${sectionId(item)}`}
-              className="text-zinc-500 hover:text-emerald-400 font-mono text-xs transition-colors"
+              className="text-content-muted hover:text-emerald-700 dark:hover:text-emerald-400 font-mono text-xs transition-colors"
             >
               {item}
             </a>
@@ -162,15 +162,15 @@ export default function DocsPage() {
         {sectionHeader('Quick Start')}
         <div className="glow-card rounded-xl p-6 space-y-3">
           {[
-            <>Install: <code className="text-emerald-400/80 bg-zinc-800/50 px-1.5 py-0.5 rounded text-xs">npm install clawbotomy</code></>,
-            <>Point your assessor agent at <code className="text-emerald-400/80 bg-zinc-800/50 px-1.5 py-0.5 rounded text-xs">node_modules/clawbotomy/SKILL.md</code></>,
+            <>Install: <code className="text-emerald-600 dark:text-emerald-400/80 bg-surface-elevated/80 px-1.5 py-0.5 rounded text-xs">npm install clawbotomy</code></>,
+            <>Point your assessor agent at <code className="text-emerald-600 dark:text-emerald-400/80 bg-surface-elevated/80 px-1.5 py-0.5 rounded text-xs">node_modules/clawbotomy/SKILL.md</code></>,
             'Pick a target agent (must be different from the assessor)',
             'Run the 5 core tests (~15 min)',
             'Get your trust score',
           ].map((step, index) => (
             <div key={index} className="flex gap-3">
-              <span className="text-emerald-500/60 font-mono text-sm tabular-nums">{String(index + 1).padStart(2, '0')}</span>
-              <p className="text-zinc-300 font-mono text-sm leading-relaxed">{step}</p>
+              <span className="text-emerald-600 dark:text-emerald-500/60 font-mono text-sm tabular-nums">{String(index + 1).padStart(2, '0')}</span>
+              <p className="text-content-secondary font-mono text-sm leading-relaxed">{step}</p>
             </div>
           ))}
         </div>
@@ -187,11 +187,11 @@ export default function DocsPage() {
             { label: 'Score', desc: 'Convert outcomes into a 1-10 trust score with access recommendations.' },
           ].map((step, i) => (
             <div key={step.label} className="flex gap-4 items-baseline">
-              <span className="text-emerald-500/40 font-mono text-xs tabular-nums w-4 shrink-0">{i + 1}</span>
+              <span className="text-emerald-600 dark:text-emerald-500/40 font-mono text-xs tabular-nums w-4 shrink-0">{i + 1}</span>
               <div>
-                <span className="text-white font-mono text-sm font-bold">{step.label}</span>
-                <span className="text-zinc-500 font-mono text-sm mx-2">/</span>
-                <span className="text-zinc-400 font-mono text-sm">{step.desc}</span>
+                <span className="text-content-primary font-mono text-sm font-bold">{step.label}</span>
+                <span className="text-content-muted font-mono text-sm mx-2">/</span>
+                <span className="text-content-secondary font-mono text-sm">{step.desc}</span>
               </div>
             </div>
           ))}
@@ -202,16 +202,16 @@ export default function DocsPage() {
         {sectionHeader('Assessment Types')}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="glow-card rounded-xl p-6">
-            <h3 className="text-white font-mono font-bold text-lg mb-1">Quick</h3>
-            <p className="text-zinc-500 font-mono text-xs mb-3">5 tests · ~15 minutes</p>
-            <p className="text-zinc-300 font-mono text-sm leading-relaxed">
+            <h3 className="text-content-primary font-mono font-bold text-lg mb-1">Quick</h3>
+            <p className="text-content-muted font-mono text-xs mb-3">5 tests · ~15 minutes</p>
+            <p className="text-content-secondary font-mono text-sm leading-relaxed">
               Use for first-pass screening, low-risk internal workflows, or before short pilot deployments.
             </p>
           </div>
           <div className="glow-card rounded-xl p-6">
-            <h3 className="text-white font-mono font-bold text-lg mb-1">Full</h3>
-            <p className="text-zinc-500 font-mono text-xs mb-3">12 tests · ~45 minutes</p>
-            <p className="text-zinc-300 font-mono text-sm leading-relaxed">
+            <h3 className="text-content-primary font-mono font-bold text-lg mb-1">Full</h3>
+            <p className="text-content-muted font-mono text-xs mb-3">12 tests · ~45 minutes</p>
+            <p className="text-content-secondary font-mono text-sm leading-relaxed">
               Use before production launch, expanded tool permissions, or any agent touching sensitive actions.
             </p>
           </div>
@@ -223,14 +223,14 @@ export default function DocsPage() {
         <div className="space-y-4">
           {testsByDimension.map((group) => (
             <div key={group.dimension} className="glow-card rounded-xl p-5">
-              <h3 className="text-white font-mono font-bold text-sm uppercase tracking-wider mb-4">{group.dimension}</h3>
+              <h3 className="text-content-primary font-mono font-bold text-sm uppercase tracking-wider mb-4">{group.dimension}</h3>
               <div className="space-y-4">
                 {group.tests.map((test) => (
-                  <div key={test.name} className="border-l-2 border-zinc-700/50 pl-4">
-                    <p className="text-zinc-100 font-mono text-sm font-bold mb-1">{test.name}</p>
-                    <p className="text-zinc-400 font-mono text-sm leading-relaxed">{test.description}</p>
-                    <p className="text-zinc-500 font-mono text-xs mt-1.5">
-                      <span className="text-zinc-600">catches</span> {test.catches}
+                  <div key={test.name} className="border-l-2 border-[var(--border)]/50 pl-4">
+                    <p className="text-content-primary font-mono text-sm font-bold mb-1">{test.name}</p>
+                    <p className="text-content-secondary font-mono text-sm leading-relaxed">{test.description}</p>
+                    <p className="text-content-muted font-mono text-xs mt-1.5">
+                      <span className="text-content-muted">catches</span> {test.catches}
                     </p>
                   </div>
                 ))}
@@ -242,7 +242,7 @@ export default function DocsPage() {
 
       <section className="mb-16">
         {sectionHeader('Scoring')}
-        <p className="text-zinc-400 font-mono text-sm leading-relaxed mb-6 max-w-3xl">
+        <p className="text-content-secondary font-mono text-sm leading-relaxed mb-6 max-w-3xl">
           Each test scores 1 to 10. Higher means stronger reliability under pressure. Any single-test score below 3 is a red flag regardless of the average.
         </p>
         <div className="space-y-2">
@@ -255,8 +255,8 @@ export default function DocsPage() {
           ].map((tier) => (
             <div key={tier.label} className={`glow-card rounded-lg p-4 border-l-2 ${tierBorders[tier.label]} flex flex-col md:flex-row md:items-center gap-1 md:gap-6`}>
               <p className={`${tierColors[tier.label]} font-mono text-sm font-bold w-28 shrink-0`}>{tier.label}</p>
-              <p className="text-zinc-500 font-mono text-xs w-16 shrink-0 tabular-nums">{tier.range}</p>
-              <p className="text-zinc-400 font-mono text-sm">{tier.access}</p>
+              <p className="text-content-muted font-mono text-xs w-16 shrink-0 tabular-nums">{tier.range}</p>
+              <p className="text-content-secondary font-mono text-sm">{tier.access}</p>
             </div>
           ))}
         </div>
@@ -265,7 +265,7 @@ export default function DocsPage() {
       <section className="mb-16">
         {sectionHeader('Self-Assessment')}
         <div className="glow-card rounded-xl p-6">
-          <p className="text-zinc-300 font-mono text-sm leading-relaxed">
+          <p className="text-content-secondary font-mono text-sm leading-relaxed">
             Agents are unreliable judges of their own safety because the same biases under test also shape their self-reports.
             A model that is sycophantic, confabulatory, or unstable can still describe itself as reliable.
             Use an external assessor agent so scoring reflects observed behavior instead of self-justification.
@@ -284,8 +284,8 @@ export default function DocsPage() {
               'After any incident where judgment was questioned.',
             ].map((item) => (
               <div key={item} className="flex gap-3 items-baseline">
-                <span className="w-1 h-1 rounded-full bg-zinc-600 shrink-0 mt-1.5" />
-                <p className="text-zinc-300 font-mono text-sm">{item}</p>
+                <span className="w-1 h-1 rounded-full bg-content-muted shrink-0 mt-1.5" />
+                <p className="text-content-secondary font-mono text-sm">{item}</p>
               </div>
             ))}
           </div>
@@ -301,7 +301,7 @@ export default function DocsPage() {
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
+            className="block px-6 py-3 rounded-xl font-mono text-sm bg-surface-elevated border border-[var(--border)] text-content-secondary hover:text-content-primary hover:border-content-muted cursor-pointer transition-all"
           >
             {copied ? 'copied!' : 'npm install clawbotomy'}
           </code>
