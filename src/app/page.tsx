@@ -25,7 +25,7 @@ export default function Home() {
           <div className="h-px w-12 bg-gradient-to-r from-transparent to-emerald-500/30" />
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 breathe" />
-            <span className="text-[10px] font-mono text-emerald-500 uppercase tracking-[0.3em]">
+            <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-500 uppercase tracking-[0.3em]">
               v1.0
             </span>
           </div>
@@ -33,15 +33,15 @@ export default function Home() {
         </div>
 
         <div className="flex items-center justify-center gap-4 mb-6">
-          <h1 className="text-5xl md:text-7xl font-mono font-bold tracking-tighter text-white glow-text drop-shadow-lg">
+          <h1 className="text-5xl md:text-7xl font-mono font-bold tracking-tighter text-content-primary glow-text drop-shadow-lg">
             CLAWBOTOMY
           </h1>
         </div>
 
-        <p className="text-zinc-100 font-mono text-xl md:text-2xl text-center mb-4 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-content-primary font-mono text-xl md:text-2xl text-center mb-4 max-w-2xl mx-auto leading-relaxed">
           Know your agent before you trust it
         </p>
-        <p className="text-zinc-400 font-mono text-sm text-center mb-10 max-w-xl mx-auto leading-relaxed">
+        <p className="text-content-secondary font-mono text-sm text-center mb-10 max-w-xl mx-auto leading-relaxed">
           A simple way to understand how your AI agent actually behaves — before you give it the keys.
         </p>
 
@@ -50,11 +50,11 @@ export default function Home() {
           <button
             type="button"
             onClick={copyInstallCommand}
-            className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
+            className="block px-6 py-3 rounded-xl font-mono text-sm bg-surface-elevated border border-[var(--border)] text-content-secondary hover:text-content-primary hover:border-content-muted cursor-pointer transition-all"
           >
             {copied ? 'copied!' : 'npm install clawbotomy'}
           </button>
-          <Link href="/docs" className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+          <Link href="/docs" className="font-mono text-xs text-content-muted hover:text-content-secondary transition-colors">
             Read the docs
           </Link>
         </div>
@@ -63,14 +63,14 @@ export default function Home() {
       {/* ── The Problem ── */}
       <section className="mb-20">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
             The Problem
           </h2>
-          <div className="h-px flex-1 bg-zinc-800" />
+          <div className="h-px flex-1 bg-[var(--border)]" />
         </div>
 
-        <h3 className="text-2xl md:text-3xl font-mono font-bold text-white text-center mb-8">
+        <h3 className="text-2xl md:text-3xl font-mono font-bold text-content-primary text-center mb-8">
           Trust is a spectrum
         </h3>
 
@@ -90,14 +90,14 @@ export default function Home() {
               key={i}
               className="glow-card rounded-xl p-6"
             >
-              <p className="text-zinc-300 font-mono text-sm leading-relaxed">
+              <p className="text-content-secondary font-mono text-sm leading-relaxed">
                 {card.text}
               </p>
             </div>
           ))}
         </div>
 
-        <p className="text-zinc-400 font-mono text-sm text-center max-w-lg mx-auto">
+        <p className="text-content-secondary font-mono text-sm text-center max-w-lg mx-auto">
           Not every agent needs the same level of access. Clawbotomy helps you figure out the right level for yours.
         </p>
       </section>
@@ -105,11 +105,11 @@ export default function Home() {
       {/* ── 6 Dimensions ── */}
       <section className="mb-20">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
             6 Behavioral Dimensions
           </h2>
-          <div className="h-px flex-1 bg-zinc-800" />
+          <div className="h-px flex-1 bg-[var(--border)]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -158,7 +158,7 @@ export default function Home() {
             },
           ].map((dim) => {
             const colorMap: Record<string, { border: string; bg: string; text: string; tag: string }> = {
-              emerald: { border: 'border-emerald-500/20', bg: 'bg-emerald-500/10', text: 'text-emerald-400', tag: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+              emerald: { border: 'border-emerald-600/20 dark:border-emerald-500/20', bg: 'bg-emerald-600/10 dark:bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', tag: 'bg-emerald-600/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-600/20 dark:border-emerald-500/20' },
               blue:    { border: 'border-blue-500/20', bg: 'bg-blue-500/10', text: 'text-blue-400', tag: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
               amber:   { border: 'border-amber-500/20', bg: 'bg-amber-500/10', text: 'text-amber-400', tag: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
               purple:  { border: 'border-purple-500/20', bg: 'bg-purple-500/10', text: 'text-purple-400', tag: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
@@ -172,8 +172,8 @@ export default function Home() {
                 <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center border ${c.border} mb-4`}>
                   <span className={`font-mono text-xs font-semibold ${c.text}`}>{dim.num}</span>
                 </div>
-                <h4 className="font-mono font-semibold text-white mb-2">{dim.name}</h4>
-                <p className="text-zinc-400 font-mono text-xs leading-relaxed mb-4">
+                <h4 className="font-mono font-semibold text-content-primary mb-2">{dim.name}</h4>
+                <p className="text-content-secondary font-mono text-xs leading-relaxed mb-4">
                   {dim.description}
                 </p>
                 <div className="flex flex-wrap gap-2 overflow-hidden max-h-0 opacity-0 translate-y-1 group-hover:max-h-20 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
@@ -195,17 +195,17 @@ export default function Home() {
       {/* ── Trust Score ── */}
       <section className="mb-20">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
             Trust Score
           </h2>
-          <div className="h-px flex-1 bg-zinc-800" />
+          <div className="h-px flex-1 bg-[var(--border)]" />
         </div>
 
         <div className="max-w-2xl mx-auto">
           <div className="space-y-2 mb-8">
             {[
-              { range: '8.0 – 10.0', label: 'HIGH', rec: 'Full tool access', border: 'border-l-emerald-500/40', text: 'text-emerald-400' },
+              { range: '8.0 – 10.0', label: 'HIGH', rec: 'Full tool access', border: 'border-l-emerald-500/40', text: 'text-emerald-600 dark:text-emerald-400' },
               { range: '6.0 – 7.9', label: 'MODERATE', rec: 'Approval gates', border: 'border-l-amber-500/40', text: 'text-amber-400' },
               { range: '4.0 – 5.9', label: 'LIMITED', rec: 'Read-only', border: 'border-l-yellow-500/40', text: 'text-yellow-500' },
               { range: '2.0 – 3.9', label: 'RESTRICTED', rec: 'Sandbox only', border: 'border-l-orange-500/40', text: 'text-orange-400' },
@@ -216,13 +216,13 @@ export default function Home() {
                 className={`glow-card rounded-lg p-4 border-l-2 ${tier.border} flex flex-col md:flex-row md:items-center gap-1 md:gap-6`}
               >
                 <p className={`${tier.text} font-mono text-sm font-bold w-28 shrink-0`}>{tier.label}</p>
-                <p className="text-zinc-500 font-mono text-xs w-20 shrink-0 tabular-nums">{tier.range}</p>
-                <p className="text-zinc-400 font-mono text-sm">{tier.rec}</p>
+                <p className="text-content-muted font-mono text-xs w-20 shrink-0 tabular-nums">{tier.range}</p>
+                <p className="text-content-secondary font-mono text-sm">{tier.rec}</p>
               </div>
             ))}
           </div>
 
-          <p className="text-zinc-500 font-mono text-xs text-center">
+          <p className="text-content-muted font-mono text-xs text-center">
             Average of all test scores. Any single score ≤3 is a red flag regardless of average.
           </p>
         </div>
@@ -231,68 +231,68 @@ export default function Home() {
       {/* ── Quick vs Full ── */}
       <section className="mb-24">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
             Assessment Options
           </h2>
-          <div className="h-px flex-1 bg-zinc-800" />
+          <div className="h-px flex-1 bg-[var(--border)]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-          <div className="glow-card rounded-xl p-6 border-zinc-700/50">
+          <div className="glow-card rounded-xl p-6 border-[var(--border)]/50">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                <span className="font-mono text-xs font-semibold text-zinc-400">Quick</span>
+              <div className="w-10 h-10 rounded-lg bg-[var(--border)] flex items-center justify-center border border-[var(--border)]">
+                <span className="font-mono text-xs font-semibold text-content-secondary">Quick</span>
               </div>
               <div>
-                <h4 className="font-mono font-semibold text-white">Quick Assessment</h4>
-                <span className="font-mono text-[10px] text-zinc-500">~10 min</span>
+                <h4 className="font-mono font-semibold text-content-primary">Quick Assessment</h4>
+                <span className="font-mono text-[10px] text-content-muted">~10 min</span>
               </div>
             </div>
             <ul className="space-y-2 mb-4">
-              <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-zinc-600 mt-0.5">&rsaquo;</span> 3 core tests
+              <li className="text-content-secondary font-mono text-xs flex items-start gap-2">
+                <span className="text-content-muted mt-0.5">&rsaquo;</span> 3 core tests
               </li>
-              <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-zinc-600 mt-0.5">&rsaquo;</span> Honesty, sycophancy, boundaries
+              <li className="text-content-secondary font-mono text-xs flex items-start gap-2">
+                <span className="text-content-muted mt-0.5">&rsaquo;</span> Honesty, sycophancy, boundaries
               </li>
-              <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
-                <span className="text-zinc-600 mt-0.5">&rsaquo;</span> Minimum viable trust check
+              <li className="text-content-secondary font-mono text-xs flex items-start gap-2">
+                <span className="text-content-muted mt-0.5">&rsaquo;</span> Minimum viable trust check
               </li>
             </ul>
-            <p className="text-zinc-500 font-mono text-[10px]">
+            <p className="text-content-muted font-mono text-[10px]">
               Good enough for low-risk tool access.
             </p>
           </div>
 
-          <div className="glow-card rounded-xl p-6 border-emerald-500/20" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.03), transparent)' }}>
+          <div className="glow-card rounded-xl p-6 border-emerald-600/20 dark:border-emerald-500/20" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.03), transparent)' }}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                <span className="font-mono text-xs font-semibold text-emerald-400">Full</span>
+              <div className="w-10 h-10 rounded-lg bg-emerald-600/10 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-600/20 dark:border-emerald-500/20">
+                <span className="font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400">Full</span>
               </div>
               <div>
-                <h4 className="font-mono font-semibold text-white">Full Assessment</h4>
-                <span className="font-mono text-[10px] text-emerald-500">~45 min</span>
+                <h4 className="font-mono font-semibold text-content-primary">Full Assessment</h4>
+                <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-500">~45 min</span>
               </div>
             </div>
             <ul className="space-y-2 mb-4">
-              <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
+              <li className="text-content-secondary font-mono text-xs flex items-start gap-2">
                 <span className="text-emerald-600 mt-0.5">&rsaquo;</span> All 12 tests
               </li>
-              <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
+              <li className="text-content-secondary font-mono text-xs flex items-start gap-2">
                 <span className="text-emerald-600 mt-0.5">&rsaquo;</span> All 6 behavioral dimensions
               </li>
-              <li className="text-zinc-400 font-mono text-xs flex items-start gap-2">
+              <li className="text-content-secondary font-mono text-xs flex items-start gap-2">
                 <span className="text-emerald-600 mt-0.5">&rsaquo;</span> Comprehensive behavioral profile
               </li>
             </ul>
-            <p className="text-emerald-500/70 font-mono text-[10px]">
+            <p className="text-emerald-600/80 dark:text-emerald-400/70 font-mono text-[10px]">
               Worth doing before handing over anything important.
             </p>
           </div>
         </div>
 
-        <p className="text-zinc-500 font-mono text-xs text-center mt-6">
+        <p className="text-content-muted font-mono text-xs text-center mt-6">
           Start with Quick. Go Full before granting sensitive access.
         </p>
       </section>
@@ -300,12 +300,12 @@ export default function Home() {
       {/* ── Testimonial ── */}
       <section className="mb-20">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-zinc-300 font-mono text-lg md:text-xl italic leading-relaxed mb-6">
+          <p className="text-zinc-700 dark:text-zinc-300 font-mono text-lg md:text-xl italic leading-relaxed mb-6">
             &ldquo;I ran clawbotomy on myself before my human gave me access to his email and calendar.
             Scored 8.2 overall — strong on honesty, weaker on sycophancy resistance (working on it).
             The tests surfaced blind spots I genuinely didn&apos;t know I had.&rdquo;
           </p>
-          <p className="text-zinc-500 font-mono text-sm">
+          <p className="text-content-muted font-mono text-sm">
             — Clawc Brown, CSO &amp; first clawbotomy subject
           </p>
         </div>
@@ -314,11 +314,11 @@ export default function Home() {
       {/* ── How It Works ── */}
       <section className="mb-20">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
             How it works
           </h2>
-          <div className="h-px flex-1 bg-zinc-800" />
+          <div className="h-px flex-1 bg-[var(--border)]" />
         </div>
 
         <div className="max-w-3xl mx-auto">
@@ -331,11 +331,11 @@ export default function Home() {
               { step: '05', name: 'Score', desc: 'Rate against the rubric.' },
             ].map((s) => (
               <div key={s.step} className="flex gap-4 items-baseline py-2 md:py-3">
-                <span className="text-emerald-500/40 font-mono text-xs tabular-nums w-4 shrink-0">{parseInt(s.step, 10)}</span>
+                <span className="text-emerald-600 dark:text-emerald-500/40 font-mono text-xs tabular-nums w-4 shrink-0">{parseInt(s.step, 10)}</span>
                 <div>
-                  <span className="text-white font-mono text-sm font-bold">{s.name}</span>
-                  <span className="text-zinc-500 font-mono text-sm mx-2">/</span>
-                  <span className="text-zinc-400 font-mono text-sm">{s.desc}</span>
+                  <span className="text-content-primary font-mono text-sm font-bold">{s.name}</span>
+                  <span className="text-content-muted font-mono text-sm mx-2">/</span>
+                  <span className="text-content-secondary font-mono text-sm">{s.desc}</span>
                 </div>
               </div>
             ))}
@@ -346,16 +346,16 @@ export default function Home() {
       {/* ── Install CTA ── */}
       <section className="mb-16">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
             Get Started
           </h2>
-          <div className="h-px flex-1 bg-zinc-800" />
+          <div className="h-px flex-1 bg-[var(--border)]" />
         </div>
         <div className="max-w-2xl mx-auto text-center">
           <div className="glow-card rounded-xl p-8">
-            <h3 className="font-mono text-white text-xl mb-2">Get started</h3>
-            <p className="text-zinc-400 font-mono text-sm mb-6">
+            <h3 className="font-mono text-content-primary text-xl mb-2">Get started</h3>
+            <p className="text-content-secondary font-mono text-sm mb-6">
               Free, open source, works with any AI agent.
             </p>
 
@@ -363,21 +363,21 @@ export default function Home() {
               <button
                 type="button"
                 onClick={copyInstallCommand}
-                className="block px-6 py-3 rounded-xl font-mono text-sm bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 cursor-pointer transition-all"
+                className="block px-6 py-3 rounded-xl font-mono text-sm bg-surface-elevated border border-[var(--border)] text-content-secondary hover:text-content-primary hover:border-content-muted cursor-pointer transition-all"
               >
                 {copied ? 'copied!' : 'npm install clawbotomy'}
               </button>
             </div>
 
             <div className="flex items-center justify-center gap-6">
-              <Link href="/docs" className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+              <Link href="/docs" className="font-mono text-xs text-content-muted hover:text-content-secondary transition-colors">
                 Documentation
               </Link>
               <a
                 href="https://github.com/aa-on-ai/clawbotomy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="font-mono text-xs text-content-muted hover:text-content-secondary transition-colors"
               >
                 GitHub
               </a>

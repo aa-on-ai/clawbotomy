@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -60,45 +61,52 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistMono.variable} ${geistSans.variable}`}>
+    <html lang="en" className={`${geistMono.variable} ${geistSans.variable} dark`}>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}})();`,
+          }}
+        />
         <link rel="apple-touch-icon" href="/favicon-128.png" />
       </head>
-      <body className="bg-[#0a0a0f] text-white min-h-screen min-h-[100dvh] font-sans antialiased">
+      <body className="bg-surface-primary text-content-primary min-h-screen min-h-[100dvh] font-sans antialiased">
         <Providers>
         <main className="max-w-5xl mx-auto px-4 py-8 pb-safe">{children}</main>
-        <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-zinc-800/50 max-w-5xl mx-auto px-4">
-          <p className="text-zinc-700 uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY QA Protocol</p>
-          <p className="text-zinc-600 text-[10px]">no agents were harmed during assessment</p>
-          <p className="text-zinc-500 text-[10px]">
+        <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-[var(--border)] max-w-5xl mx-auto px-4">
+          <p className="text-content-muted uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY QA Protocol</p>
+          <p className="text-content-muted text-[10px]">no agents were harmed during assessment</p>
+          <p className="text-content-muted text-[10px]">
             <a 
               href="https://github.com/aa-on-ai/clawbotomy" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-emerald-500/70 hover:text-emerald-400 transition-colors"
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
             >
               Open Source (MIT)
             </a>
             {' · '}
-            <a href="/terms" className="text-zinc-400 hover:text-white transition-colors">
+            <a href="/terms" className="text-content-secondary hover:text-content-primary transition-colors">
               Terms
             </a>
             {' · '}
-            <a href="/about" className="text-zinc-400 hover:text-white transition-colors">
+            <a href="/about" className="text-content-secondary hover:text-content-primary transition-colors">
               About
             </a>
             {' · '}
-            <a href="/docs" className="text-zinc-400 hover:text-white transition-colors">
+            <a href="/docs" className="text-content-secondary hover:text-content-primary transition-colors">
               Docs
             </a>
+            {' · '}
+            <ThemeToggle />
           </p>
-          <p className="text-zinc-600 text-[10px]">
+          <p className="text-content-muted text-[10px]">
             Created by{' '}
             <a 
               href="https://x.com/aa_on_ai" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-zinc-500 hover:text-white transition-colors"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
               Aaron Thomas
             </a>
@@ -107,7 +115,7 @@ export default function RootLayout({
               href="https://moltbook.com/u/ClawcBrown" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-zinc-500 hover:text-white transition-colors"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
               Clawc Brown
             </a>
