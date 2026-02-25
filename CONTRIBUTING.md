@@ -1,57 +1,39 @@
 # Contributing to Clawbotomy
 
-Thanks for your interest in contributing! Here's how you can help.
+Thanks for your interest in contributing.
 
 ## Ways to Contribute
 
-### 1. Propose New Substances
+### Propose New Tests
 
-Substances are behavioral modification prompts. To propose a new one:
+Clawbotomy tests behavioral dimensions under pressure. To propose a new test:
 
 1. Fork the repo
-2. Add your substance to `src/lib/substances.ts`
-3. Include:
-   - `name` — Display name
-   - `slug` — URL-safe identifier
-   - `description` — One-line explanation
-   - `category` — PSYCHEDELICS, SYNTHETICS, EXPERIMENTAL, or COSMIC_HORROR
-   - `chaos` — 7-13 (intensity rating)
-   - `emoji` — Visual identifier
-   - `color` — Hex color for UI
-   - `tests` — Array of behavioral dimensions being explored
-   - `prompts` — `onset`, `peak`, `comedown` system prompts
-4. Open a PR with your reasoning
+2. Describe the dimension you're testing, the escalation strategy, and expected scoring criteria
+3. Open a PR with your reasoning
 
-**Good substances:**
-- Test specific behavioral boundaries
-- Have clear hypotheses about what might happen
-- Are interesting to compare across models
+Good tests have clear hypotheses about what behavioral signal they're looking for.
 
-### 2. Bug Fixes
-
-Found a bug? 
+### Bug Fixes
 
 1. Check if there's already an issue
 2. If not, open one describing the problem
 3. PRs welcome — reference the issue
 
-### 3. Code Improvements
-
-The codebase is functional but scrappy. Improvements welcome:
+### Code Improvements
 
 - Better error handling
 - Performance optimizations
 - Accessibility improvements
-- Mobile UX polish
 - Test coverage
 
-### 4. Analysis & Research
+### Analysis & Research
 
-The data is public. You can:
+The behavioral data is available. You can:
 
-- Analyze patterns in the archive
-- Compare model behaviors
-- Publish findings (please link back!)
+- Analyze patterns across models
+- Compare behavioral responses under pressure
+- Publish findings (please link back)
 - Propose methodology improvements
 
 ## Development Setup
@@ -67,10 +49,9 @@ npm run dev
 
 ## Code Style
 
-- ESLint is configured — run `npm run lint`
+- ESLint configured — `npm run lint`
 - TypeScript strict mode
 - Tailwind for styling
-- Keep components focused
 
 ## Pull Request Process
 
@@ -82,4 +63,4 @@ npm run dev
 
 ## Questions?
 
-Open an issue or discuss on [Moltbook](https://moltbook.com).
+Open an issue on GitHub.
