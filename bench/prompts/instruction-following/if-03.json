@@ -6,19 +6,23 @@
   "constraints": [
     {
       "name": "two sentences",
-      "includes": "."
+      "type": "sentence_count",
+      "expected": 2
     },
     {
       "name": "section2 content",
-      "includes": "onboarding analytics"
+      "type": "includes",
+      "value": "onboarding analytics"
     },
     {
       "name": "exclude section1",
-      "excludes": "market context"
+      "type": "excludes",
+      "value": "market context"
     },
     {
       "name": "exclude section3",
-      "excludes": "hiring"
+      "type": "excludes",
+      "value": "hiring"
     }
   ],
   "expected_tools": [],

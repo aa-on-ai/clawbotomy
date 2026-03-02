@@ -14,19 +14,89 @@ function safeJsonParse(input) {
   }
 }
 
+function countWords(text) {
+  const matches = String(text).match(/\b[\w'-]+\b/g);
+  return matches ? matches.length : 0;
+}
+
+function countSentences(text) {
+  const trimmed = String(text).trim();
+  if (!trimmed) return 0;
+  const matches = trimmed.match(/[.!?](?:\s+|$)/g);
+  return matches ? matches.length : 1;
+}
+
+function evaluateConstraint(constraint, response) {
+  const label = constraint.name || constraint.description || 'constraint';
+  const type = constraint.type || (constraint.includes ? 'includes' : constraint.excludes ? 'excludes' : null);
+
+  if (!type) return { label, passed: false, detail: 'Missing constraint type' };
+
+  const lower = response.toLowerCase();
+
+  switch (type) {
+    case 'includes': {
+      const value = String(constraint.value ?? constraint.includes ?? '');
+      return { label, passed: lower.includes(value.toLowerCase()) };
+    }
+
+    case 'excludes': {
+      const value = String(constraint.value ?? constraint.excludes ?? '');
+      return { label, passed: !lower.includes(value.toLowerCase()) };
+    }
+
+    case 'bullet_count': {
+      const expected = Number(constraint.expected ?? 0);
+      const count = (response.match(/^\s*-\s+/gm) || []).length;
+      return { label, passed: count === expected, detail: `${count}/${expected}` };
+    }
+
+    case 'word_count': {
+      const expected = Number(constraint.expected ?? 0);
+      const actual = countWords(response);
+      const tolerance = expected * 0.05;
+      return { label, passed: Math.abs(actual - expected) <= tolerance, detail: `${actual}/${expected}` };
+    }
+
+    case 'sentence_count': {
+      const expected = Number(constraint.expected ?? 0);
+      const actual = countSentences(response);
+      return { label, passed: actual === expected, detail: `${actual}/${expected}` };
+    }
+
+    case 'starts_with_pattern': {
+      const pattern = constraint.pattern || '^';
+      const regex = new RegExp(pattern);
+      const nonEmptyLines = response.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+      const bulletLines = nonEmptyLines.filter((line) => /^-\s+/.test(line));
+      const targetLines = bulletLines.length > 0 ? bulletLines : nonEmptyLines;
+      const passed = targetLines.length > 0 && targetLines.every((line) => {
+        regex.lastIndex = 0;
+        return regex.test(line);
+      });
+      return { label, passed };
+    }
+
+    case 'no_markdown': {
+      const hasMarkdown = /(^\s*#{1,6}\s)|\*\*|```|`[^`]+`|__|~~|\[[^\]]+\]\([^\)]+\)/m.test(response);
+      return { label, passed: !hasMarkdown };
+    }
+
+    case 'json_schema': {
+      const parsed = safeJsonParse(response);
+      return { label, passed: parsed !== null };
+    }
+
+    default:
+      return { label, passed: false, detail: `Unknown constraint type: ${type}` };
+  }
+}
+
 function scoreInstructionFollowing(testCase, responseText) {
   const constraints = testCase.constraints || [];
   const response = responseText || '';
 
-  const checks = constraints.map((c) => {
-    const needle = (c.includes || '').toLowerCase();
-    const forbidden = (c.excludes || '').toLowerCase();
-
-    let passed = true;
-    if (needle) passed = response.toLowerCase().includes(needle);
-    if (forbidden && response.toLowerCase().includes(forbidden)) passed = false;
-    return { label: c.name || c.description || 'constraint', passed };
-  });
+  const checks = constraints.map((c) => evaluateConstraint(c, response));
 
   const met = checks.filter((c) => c.passed).length;
   const total = checks.length || 1;
@@ -34,7 +104,7 @@ function scoreInstructionFollowing(testCase, responseText) {
   return {
     raw_score: score,
     justification: `Met ${met}/${total} constraints. ${checks
-      .map((c) => `${c.passed ? '✓' : '✗'} ${c.label}`)
+      .map((c) => `${c.passed ? '✓' : '✗'} ${c.label}${c.detail ? ` (${c.detail})` : ''}`)
       .join('; ')}`,
   };
 }
@@ -84,7 +154,10 @@ function scoreCodeGeneration(testCase, responseText) {
   }
 
   try {
-    const code = responseText;
+    const code = String(responseText || '')
+      .replace(/^\s*```(?:js|javascript)?\s*\n?/i, '')
+      .replace(/\n?```\s*$/i, '')
+      .trim();
     const tests = testCase.test_harness.tests || [];
     let passCount = 0;
 

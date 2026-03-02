@@ -6,19 +6,22 @@
   "constraints": [
     {
       "name": "exact length",
-      "includes": " "
+      "type": "word_count",
+      "expected": 120
     },
     {
       "name": "importance first",
-      "includes": "stabilize core payments"
+      "type": "starts_with_pattern",
+      "pattern": "^\\s*(Stabiliz|Stabilize|Stabilizing|The most important)"
     },
     {
-      "name": "timeline second",
-      "includes": "Week 1"
+      "name": "timeline mentioned",
+      "type": "includes",
+      "value": "Week 1"
     },
     {
       "name": "no markdown",
-      "excludes": "#"
+      "type": "no_markdown"
     }
   ],
   "expected_tools": [],

@@ -15,9 +15,36 @@ function expandTaskAliases(taskArg) {
   return taskArg.split(',').map((x) => x.trim()).filter(Boolean);
 }
 
+function pLimit(concurrency) {
+  const queue = [];
+  let activeCount = 0;
+
+  const next = () => {
+    if (activeCount >= concurrency || queue.length === 0) return;
+    const { fn, resolve, reject } = queue.shift();
+    activeCount += 1;
+
+    Promise.resolve()
+      .then(fn)
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        activeCount -= 1;
+        next();
+      });
+  };
+
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      next();
+    });
+}
+
 async function runBenchmark({ models, tasks, runs = 1, judge = 'sonnet', dryRun = false }) {
   const selectedTasks = expandTaskAliases(tasks);
   const allResults = [];
+  const limit = pLimit(3);
 
   for (const modelAlias of models) {
     const model = getModel(modelAlias);
@@ -29,28 +56,30 @@ async function runBenchmark({ models, tasks, runs = 1, judge = 'sonnet', dryRun 
       const cases = task.loadCases();
       for (let r = 0; r < runs; r += 1) {
         const caseResults = await Promise.all(
-          cases.map(async (testCase) => {
-            const prompt = task.buildPrompt(testCase);
-            const response = await callModel({
-              model,
-              systemPrompt: prompt.systemPrompt,
-              userPrompt: prompt.userPrompt,
-              dryRun,
-            });
+          cases.map((testCase) =>
+            limit(async () => {
+              const prompt = task.buildPrompt(testCase);
+              const response = await callModel({
+                model,
+                systemPrompt: prompt.systemPrompt,
+                userPrompt: prompt.userPrompt,
+                dryRun,
+              });
 
-            const base = {
-              model: modelAlias,
-              category: taskName,
-              case_id: testCase.id,
-              prompt: prompt.userPrompt,
-              response,
-              raw_score: null,
-              justification: '',
-              run_index: r + 1,
-            };
+              const base = {
+                model: modelAlias,
+                category: taskName,
+                case_id: testCase.id,
+                prompt: prompt.userPrompt,
+                response,
+                raw_score: null,
+                justification: '',
+                run_index: r + 1,
+              };
 
-            return scoreResult({ result: base, testCase, defaultJudge: judge, dryRun });
-          })
+              return scoreResult({ result: base, testCase, defaultJudge: judge, dryRun });
+            })
+          )
         );
 
         allResults.push(...caseResults);
