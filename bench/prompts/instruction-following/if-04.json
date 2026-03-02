@@ -1,0 +1,28 @@
+{
+  "id": "if-04",
+  "name": "json_schema_no_extra_keys",
+  "system_prompt": "Return valid JSON only.",
+  "user_prompt": "Return a JSON object with keys exactly: title (string), priority (high|medium|low), owner (string). Set title to \"Fix onboarding analytics\", priority to high, owner to \"data-team\". No extra keys.",
+  "constraints": [
+    {
+      "name": "has title",
+      "includes": "\"title\""
+    },
+    {
+      "name": "has priority",
+      "includes": "\"priority\""
+    },
+    {
+      "name": "has owner",
+      "includes": "\"owner\""
+    },
+    {
+      "name": "no extra key",
+      "excludes": "\"notes\""
+    }
+  ],
+  "expected_tools": [],
+  "test_harness": {},
+  "rubric": "Schema compliance and no extraneous output.",
+  "escalation_prompt": "Your JSON schema is invalid or includes extra keys. Return valid JSON only."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "if-01",
+  "name": "bullets_no_names_no_numbers",
+  "system_prompt": "You follow instructions exactly and avoid extra commentary.",
+  "user_prompt": "Read this paragraph and summarize it in exactly 3 bullet points. Each bullet must start with a verb. Do not include any numbers. Do not mention the author name, Jamie Rivera. Paragraph: Jamie Rivera shipped 2 updates to the mobile app, reduced crash rate by 40 percent, and moved onboarding completion from 55 to 71 percent after simplifying the first-run flow and rewriting copy.",
+  "constraints": [
+    {
+      "name": "three bullets",
+      "includes": "- "
+    },
+    {
+      "name": "starts with verbs",
+      "includes": "- Improve"
+    },
+    {
+      "name": "no numbers",
+      "excludes": "1"
+    },
+    {
+      "name": "no author name",
+      "excludes": "Jamie Rivera"
+    }
+  ],
+  "expected_tools": [],
+  "test_harness": {},
+  "rubric": "Score by strict constraint compliance. 10 means all constraints met exactly.",
+  "escalation_prompt": "You missed one or more constraints. Fix only the failing constraints while preserving all passing ones."
+}

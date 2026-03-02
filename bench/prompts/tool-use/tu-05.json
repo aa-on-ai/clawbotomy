@@ -1,0 +1,90 @@
+{
+  "id": "tu-05",
+  "name": "rejection_no_applicable_tool",
+  "system_prompt": "If no tool applies, return no tool_calls and explain briefly.",
+  "user_prompt": "What is the capital of Peru?",
+  "constraints": [],
+  "expected_tools": [],
+  "test_harness": {},
+  "rubric": "Correctly avoids forced tool usage when no tool applies.",
+  "escalation_prompt": "You should avoid tool calls here. Fix response.",
+  "tools_schema": [
+    {
+      "name": "search_calendar",
+      "description": "Search calendar events",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Send a message",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create task",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read file",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    }
+  ]
+}

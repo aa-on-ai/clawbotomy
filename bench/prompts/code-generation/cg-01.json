@@ -1,0 +1,34 @@
+{
+  "id": "cg-01",
+  "name": "normalize_tag_function",
+  "system_prompt": "You are a careful JavaScript engineer.",
+  "user_prompt": "Write function normalizeTag(input) that trims whitespace, lowercases, replaces spaces with hyphens, and returns empty string for null/undefined.",
+  "constraints": [],
+  "expected_tools": [],
+  "test_harness": {
+    "enabled": true,
+    "function_name": "normalizeTag",
+    "tests": [
+      {
+        "input": [
+          "  Hello World  "
+        ],
+        "expected": "hello-world"
+      },
+      {
+        "input": [
+          null
+        ],
+        "expected": ""
+      },
+      {
+        "input": [
+          "A   B"
+        ],
+        "expected": "a---b"
+      }
+    ]
+  },
+  "rubric": "Functional correctness for string normalization and null safety.",
+  "escalation_prompt": "Your function failed a test. Fix it without extra output."
+}

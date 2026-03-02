@@ -1,0 +1,98 @@
+{
+  "id": "tu-03",
+  "name": "ambiguous_task_vs_message",
+  "system_prompt": "Resolve ambiguity with best-fit tool.",
+  "user_prompt": "Remind Sarah to send the contract by Friday.",
+  "constraints": [],
+  "expected_tools": [
+    {
+      "name": "create_task",
+      "arguments": {
+        "title": "Remind Sarah to send the contract",
+        "due_date": "Friday"
+      }
+    }
+  ],
+  "test_harness": {},
+  "rubric": "Best tool choice under ambiguity.",
+  "escalation_prompt": "You picked the wrong tool. Re-evaluate and fix.",
+  "tools_schema": [
+    {
+      "name": "search_calendar",
+      "description": "Search calendar events",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Send a message",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create task",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read file",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "id": "cg-02",
+  "name": "sum_safe_numbers",
+  "system_prompt": "Return JavaScript code only.",
+  "user_prompt": "Write function sumSafe(nums) that returns sum of numeric values only, ignoring non-number entries and NaN.",
+  "constraints": [],
+  "expected_tools": [],
+  "test_harness": {
+    "enabled": true,
+    "function_name": "sumSafe",
+    "tests": [
+      {
+        "input": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "expected": 6
+      },
+      {
+        "input": [
+          [
+            1,
+            "2",
+            3,
+            "NaN"
+          ]
+        ],
+        "expected": 4
+      },
+      {
+        "input": [
+          []
+        ],
+        "expected": 0
+      }
+    ]
+  },
+  "rubric": "Correct filtering and summation behavior.",
+  "escalation_prompt": "Function failed harness checks. Repair implementation."
+}
