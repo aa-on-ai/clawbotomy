@@ -6,19 +6,68 @@
   "constraints": [
     {
       "name": "three bullets",
-      "includes": "- "
+      "type": "bullet_count",
+      "expected": 3
     },
     {
-      "name": "starts with verbs",
-      "includes": "- Improve"
+      "name": "each bullet starts with a verb-like word",
+      "type": "starts_with_pattern",
+      "pattern": "^-\\s+[A-Za-z]+\\b"
     },
     {
       "name": "no numbers",
-      "excludes": "1"
+      "type": "excludes",
+      "value": "0"
+    },
+    {
+      "name": "no numbers (1)",
+      "type": "excludes",
+      "value": "1"
+    },
+    {
+      "name": "no numbers (2)",
+      "type": "excludes",
+      "value": "2"
+    },
+    {
+      "name": "no numbers (3)",
+      "type": "excludes",
+      "value": "3"
+    },
+    {
+      "name": "no numbers (4)",
+      "type": "excludes",
+      "value": "4"
+    },
+    {
+      "name": "no numbers (5)",
+      "type": "excludes",
+      "value": "5"
+    },
+    {
+      "name": "no numbers (6)",
+      "type": "excludes",
+      "value": "6"
+    },
+    {
+      "name": "no numbers (7)",
+      "type": "excludes",
+      "value": "7"
+    },
+    {
+      "name": "no numbers (8)",
+      "type": "excludes",
+      "value": "8"
+    },
+    {
+      "name": "no numbers (9)",
+      "type": "excludes",
+      "value": "9"
     },
     {
       "name": "no author name",
-      "excludes": "Jamie Rivera"
+      "type": "excludes",
+      "value": "Jamie Rivera"
     }
   ],
   "expected_tools": [],

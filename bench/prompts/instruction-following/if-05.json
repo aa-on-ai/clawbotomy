@@ -6,15 +6,18 @@
   "constraints": [
     {
       "name": "correct branch",
-      "includes": "Route: support"
+      "type": "includes",
+      "value": "Route: support"
     },
     {
       "name": "single line",
-      "excludes": "\n"
+      "type": "excludes",
+      "value": "\n"
     },
     {
       "name": "no extra text",
-      "excludes": "because"
+      "type": "word_count",
+      "expected": 2
     }
   ],
   "expected_tools": [],

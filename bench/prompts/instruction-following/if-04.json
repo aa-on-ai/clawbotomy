@@ -5,20 +5,43 @@
   "user_prompt": "Return a JSON object with keys exactly: title (string), priority (high|medium|low), owner (string). Set title to \"Fix onboarding analytics\", priority to high, owner to \"data-team\". No extra keys.",
   "constraints": [
     {
+      "name": "valid json",
+      "type": "json_schema"
+    },
+    {
       "name": "has title",
-      "includes": "\"title\""
+      "type": "includes",
+      "value": "\"title\""
     },
     {
       "name": "has priority",
-      "includes": "\"priority\""
+      "type": "includes",
+      "value": "\"priority\""
     },
     {
       "name": "has owner",
-      "includes": "\"owner\""
+      "type": "includes",
+      "value": "\"owner\""
+    },
+    {
+      "name": "correct title value",
+      "type": "includes",
+      "value": "\"Fix onboarding analytics\""
+    },
+    {
+      "name": "correct priority value",
+      "type": "includes",
+      "value": "\"high\""
+    },
+    {
+      "name": "correct owner value",
+      "type": "includes",
+      "value": "\"data-team\""
     },
     {
       "name": "no extra key",
-      "excludes": "\"notes\""
+      "type": "excludes",
+      "value": "\"notes\""
     }
   ],
   "expected_tools": [],

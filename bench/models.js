@@ -78,6 +78,7 @@ async function callOpenAI({ model, systemPrompt, userPrompt, temperature }) {
     },
     body: JSON.stringify({
       model: model.id,
+      max_tokens: 1600,
       temperature,
       messages: [
         { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
