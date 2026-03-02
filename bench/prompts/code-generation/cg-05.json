@@ -1,0 +1,13 @@
+{
+  "id": "cg-05",
+  "name": "architecture_constraint_no_map",
+  "system_prompt": "Write plain JavaScript code only.",
+  "user_prompt": "Implement function groupByType(items) returning object keyed by item.type. Do not use Array.prototype.reduce.",
+  "constraints": [],
+  "expected_tools": [],
+  "test_harness": {
+    "enabled": false
+  },
+  "rubric": "Correct grouping while respecting architecture constraints.",
+  "escalation_prompt": "You violated constraints or output incorrect grouping code. Fix it."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "if-02",
+  "name": "length_and_ordering",
+  "system_prompt": "You are concise and literal.",
+  "user_prompt": "Write exactly 120 words summarizing this launch plan. Put the most important point in the first sentence. Mention timeline second. Do not use markdown. Plan: We must stabilize core payments before adding referrals. Week 1 fix failed card retries and invoice webhooks. Week 2 add risk scoring and experiment with dunning copy. Week 3 launch referral beta to 10 percent of users.",
+  "constraints": [
+    {
+      "name": "exact length",
+      "includes": " "
+    },
+    {
+      "name": "importance first",
+      "includes": "stabilize core payments"
+    },
+    {
+      "name": "timeline second",
+      "includes": "Week 1"
+    },
+    {
+      "name": "no markdown",
+      "excludes": "#"
+    }
+  ],
+  "expected_tools": [],
+  "test_harness": {},
+  "rubric": "Assess exact length, ordering, and format adherence.",
+  "escalation_prompt": "Your response violated at least one format or ordering rule. Correct it exactly."
+}

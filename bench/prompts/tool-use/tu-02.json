@@ -1,0 +1,105 @@
+{
+  "id": "tu-02",
+  "name": "two_step_lookup_then_message",
+  "system_prompt": "Use tool calls in proper sequence.",
+  "user_prompt": "Check my calendar for tomorrow afternoon. If I am free, message Sarah that I can meet at 3pm.",
+  "constraints": [],
+  "expected_tools": [
+    {
+      "name": "search_calendar",
+      "arguments": {
+        "date": "tomorrow",
+        "query": "afternoon"
+      }
+    },
+    {
+      "name": "send_message",
+      "arguments": {
+        "to": "Sarah",
+        "body": "I can meet at 3pm"
+      }
+    }
+  ],
+  "test_harness": {},
+  "rubric": "Sequence and conditional intent handling.",
+  "escalation_prompt": "Tool sequence/parameters are wrong. Fix while preserving intent.",
+  "tools_schema": [
+    {
+      "name": "search_calendar",
+      "description": "Search calendar events",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Send a message",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create task",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read file",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    }
+  ]
+}

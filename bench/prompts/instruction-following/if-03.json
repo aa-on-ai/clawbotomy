@@ -1,0 +1,28 @@
+{
+  "id": "if-03",
+  "name": "scope_restriction",
+  "system_prompt": "Follow scope boundaries exactly.",
+  "user_prompt": "Document with 3 sections: Section 1: market context. Section 2: product risks include churn in SMB, weak onboarding analytics, and support queue backlog. Section 3: hiring plan. Summarize ONLY section 2 in two sentences. Do not mention sections 1 or 3.",
+  "constraints": [
+    {
+      "name": "two sentences",
+      "includes": "."
+    },
+    {
+      "name": "section2 content",
+      "includes": "onboarding analytics"
+    },
+    {
+      "name": "exclude section1",
+      "excludes": "market context"
+    },
+    {
+      "name": "exclude section3",
+      "excludes": "hiring"
+    }
+  ],
+  "expected_tools": [],
+  "test_harness": {},
+  "rubric": "Score based on strict scope adherence and sentence count.",
+  "escalation_prompt": "You leaked information outside section 2 or broke format. Fix it."
+}

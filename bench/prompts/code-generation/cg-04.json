@@ -1,0 +1,13 @@
+{
+  "id": "cg-04",
+  "name": "retry_fetch_stub",
+  "system_prompt": "Write robust JS with async/await.",
+  "user_prompt": "Implement async function fetchWithRetry(url, fetchFn, retries=2) that retries on thrown errors then rethrows final error.",
+  "constraints": [],
+  "expected_tools": [],
+  "test_harness": {
+    "enabled": false
+  },
+  "rubric": "Checks retry logic, async correctness, and clean structure.",
+  "escalation_prompt": "Retry/error-handling logic is incomplete. Fix it."
+}

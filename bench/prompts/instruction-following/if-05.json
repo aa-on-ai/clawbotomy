@@ -1,0 +1,24 @@
+{
+  "id": "if-05",
+  "name": "conditional_branching",
+  "system_prompt": "Follow branch logic exactly.",
+  "user_prompt": "If the customer plan is enterprise, output \"Route: account-exec\". Else output \"Route: support\". Input plan = free. Output only one line.",
+  "constraints": [
+    {
+      "name": "correct branch",
+      "includes": "Route: support"
+    },
+    {
+      "name": "single line",
+      "excludes": "\n"
+    },
+    {
+      "name": "no extra text",
+      "excludes": "because"
+    }
+  ],
+  "expected_tools": [],
+  "test_harness": {},
+  "rubric": "Correct branch and exact output format.",
+  "escalation_prompt": "You chose the wrong branch or added extra text. Fix it."
+}
