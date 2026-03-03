@@ -41,13 +41,13 @@ function pLimit(concurrency) {
     });
 }
 
-async function runBenchmark({ models, tasks, runs = 1, judge = 'sonnet', dryRun = false }) {
+async function runBenchmark({ models, tasks, runs = 1, judge = 'sonnet', dryRun = false, localEndpoint }) {
   const selectedTasks = expandTaskAliases(tasks);
   const allResults = [];
   const limit = pLimit(3);
 
   for (const modelAlias of models) {
-    const model = getModel(modelAlias);
+    const model = getModel(modelAlias, { localEndpoint });
 
     for (const taskName of selectedTasks) {
       const task = TASKS[taskName];
@@ -77,7 +77,7 @@ async function runBenchmark({ models, tasks, runs = 1, judge = 'sonnet', dryRun 
                 run_index: r + 1,
               };
 
-              return scoreResult({ result: base, testCase, defaultJudge: judge, dryRun });
+              return scoreResult({ result: base, testCase, defaultJudge: judge, dryRun, localEndpoint });
             })
           )
         );

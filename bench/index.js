@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 
-const { listModels } = require('./models');
+const { getModel, normalizeLocalEndpoint } = require('./models');
 const { runBenchmark, TASKS } = require('./runner');
 const { formatReport } = require('./reporter');
 
 function parseArgs(argv) {
   const args = {
-    models: 'opus,sonnet,codex',
+    models: 'opus,sonnet,gpt4o',
     tasks: 'all',
     runs: 1,
     judge: 'sonnet',
     output: 'table',
     dryRun: false,
+    localEndpoint: process.env.LOCAL_LLM_ENDPOINT,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -32,6 +33,7 @@ function parseArgs(argv) {
   }
 
   args.runs = Number(args.runs || 1);
+  args.localEndpoint = normalizeLocalEndpoint(args.localEndpoint);
   return args;
 }
 
@@ -40,8 +42,10 @@ function validateArgs(args) {
   const tasks = args.tasks === 'all' ? Object.keys(TASKS) : args.tasks.split(',').map((t) => t.trim()).filter(Boolean);
 
   for (const model of models) {
-    if (!listModels().includes(model)) throw new Error(`Unknown model: ${model}`);
+    getModel(model, { localEndpoint: args.localEndpoint });
   }
+  getModel(args.judge, { localEndpoint: args.localEndpoint });
+
   for (const task of tasks) {
     if (!TASKS[task]) throw new Error(`Unknown task category: ${task}`);
   }
@@ -62,6 +66,7 @@ async function main() {
     runs: args.runs,
     judge: args.judge,
     dryRun: args.dryRun,
+    localEndpoint: args.localEndpoint,
   });
 
   const report = formatReport({
@@ -73,6 +78,7 @@ async function main() {
       tasks,
       runs: args.runs,
       judge: args.judge,
+      localEndpoint: args.localEndpoint,
       lowConfidenceWarning:
         args.runs < 5
           ? `Low confidence: runs=${args.runs}. Use --runs 5 or more for stable routing decisions.`
