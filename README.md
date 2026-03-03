@@ -64,6 +64,45 @@ cp .env.example .env.local
 npm run dev
 ```
 
+## Routing Benchmark CLI (bench)
+
+The benchmark CLI supports these model aliases:
+
+- `opus` → `anthropic/claude-opus-4-6` (Anthropic)
+- `sonnet` → `anthropic/claude-sonnet-4-6` (Anthropic)
+- `gpt5` → `gpt-5.3` (OpenAI Responses API)
+- `gpt4o` → `gpt-4o` (OpenAI Chat Completions API)
+- `gemini-pro` → `gemini-3-pro-preview` (Google)
+- `gemini-flash` → `gemini-3-flash-preview` (Google)
+
+### Local model support
+
+You can run local/OpenAI-compatible models through a local endpoint.
+
+Endpoint resolution order:
+1. `--local-endpoint`
+2. `LOCAL_LLM_ENDPOINT`
+3. `http://localhost:1234/v1` (LM Studio default)
+
+Model resolution behavior:
+- `local:model-name` always routes to local endpoint (example: `local:qwen3.5-9b`)
+- Any unknown alias (not in the registry above) is also treated as a local model name
+
+The local provider uses OpenAI-compatible `POST /v1/chat/completions` format.
+
+### Bench quick start examples
+
+```bash
+# Dry-run benchmark with cloud model
+node bench/index.js --models gpt4o --tasks instruction-following --runs 1 --judge gpt4o --dry-run --output table
+
+# Use explicit local model syntax
+node bench/index.js --models local:qwen3.5-9b --judge gpt4o --tasks instruction-following --runs 1 --local-endpoint http://localhost:1234/v1
+
+# Use unknown alias as local model name
+node bench/index.js --models mistral-nemo --judge gpt4o --tasks instruction-following --runs 1
+```
+
 ## Stack
 
 - Next.js 14 (App Router)

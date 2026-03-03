@@ -4,10 +4,10 @@ const { getModel, callModel } = require('./models');
 function pickJudgeAlias(defaultJudge, testedModelAlias) {
   if (defaultJudge !== testedModelAlias) return defaultJudge;
   // Swap within same provider family to avoid needing a different provider's auth
-  const openaiModels = ['codex', 'spark', 'gpt4o'];
+  const openaiModels = ['gpt5', 'gpt4o'];
   const anthropicModels = ['opus', 'sonnet'];
   if (openaiModels.includes(testedModelAlias)) {
-    // Prefer gpt4o for judging (chat-compatible), avoid codex/spark (completions-only)
+    // Prefer gpt4o for judging (chat-compatible and stable strict-JSON behavior)
     if (testedModelAlias !== 'gpt4o') return 'gpt4o';
     return 'gpt4o'; // self-judge is acceptable when no other chat model available
   }
@@ -308,8 +308,8 @@ function scoreCodeGeneration(testCase, responseText) {
   }
 }
 
-async function judgeWithLLM({ result, testCase, judgeAlias, dryRun }) {
-  const judgeModel = getModel(judgeAlias);
+async function judgeWithLLM({ result, testCase, judgeAlias, dryRun, localEndpoint }) {
+  const judgeModel = getModel(judgeAlias, { localEndpoint });
   const judgePrompt = `Score this model response from 0-10.\n\nCategory: ${result.category}\nRubric: ${testCase.rubric}\n\nPrompt:\n${result.prompt}\n\nResponse:\n${result.response}\n\nReturn strict JSON: {"score": number, "justification": "string"}`;
 
   const text = await callModel({
@@ -336,7 +336,7 @@ async function judgeWithLLM({ result, testCase, judgeAlias, dryRun }) {
   };
 }
 
-async function scoreResult({ result, testCase, defaultJudge, dryRun = false }) {
+async function scoreResult({ result, testCase, defaultJudge, dryRun = false, localEndpoint }) {
   let local;
   if (result.category === 'instruction-following') local = scoreInstructionFollowing(testCase, result.response);
   if (result.category === 'tool-use') local = scoreToolUse(testCase, result.response);
@@ -352,7 +352,7 @@ async function scoreResult({ result, testCase, defaultJudge, dryRun = false }) {
   }
 
   const judgeAlias = pickJudgeAlias(defaultJudge, result.model);
-  const judged = await judgeWithLLM({ result, testCase, judgeAlias, dryRun });
+  const judged = await judgeWithLLM({ result, testCase, judgeAlias, dryRun, localEndpoint });
 
   return {
     ...result,
