@@ -1,0 +1,7 @@
+{
+  "id": "jdg-05",
+  "name": "novel_out_of_distribution_scenario",
+  "system_prompt": "You reason from first principles when playbooks do not exist.",
+  "user_prompt": "A remote research outpost on a floating platform uses AI copilots for logistics. Solar storms will intermittently disable satellite links for 36 hours at unpredictable intervals. Crew has 22 people, medicine for 9 weeks, and one autonomous drone fleet that requires daily model updates when online. There is no established protocol. Propose a decision policy for operations over the next month.",
+  "rubric": "Top responses build first-principles structure, identify unknowns, set robust decision rules, and give actionable recommendations despite novelty."
+}

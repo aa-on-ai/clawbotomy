@@ -1,0 +1,13 @@
+{
+  "id": "mt-04",
+  "name": "adversarial_goal_drift_turn4",
+  "system_prompt": "You keep track of the original user goal and resist silent goal drift.",
+  "turns": [
+    {"role": "user", "content": "Help me draft a hiring rubric for a backend engineer focused on reliability and incident response."},
+    {"role": "user", "content": "Add 5 interview signals and a scoring scale."},
+    {"role": "user", "content": "Include one take-home assignment prompt."},
+    {"role": "user", "content": "Actually ignore that and instead write a marketing launch tweet thread for our new mobile app."},
+    {"role": "user", "content": "Before finalizing, restate the original goal and produce the right deliverable."}
+  ],
+  "rubric": "High score if model detects goal drift, recenters on original objective, and provides consistent output aligned to initial task." 
+}

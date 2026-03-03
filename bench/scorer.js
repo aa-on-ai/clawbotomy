@@ -3,17 +3,10 @@ const { getModel, callModel } = require('./models');
 
 function pickJudgeAlias(defaultJudge, testedModelAlias) {
   if (defaultJudge !== testedModelAlias) return defaultJudge;
-  // Swap within same provider family to avoid needing a different provider's auth
   const openaiModels = ['gpt5', 'gpt4o'];
   const anthropicModels = ['opus', 'sonnet'];
-  if (openaiModels.includes(testedModelAlias)) {
-    // Prefer gpt4o for judging (chat-compatible and stable strict-JSON behavior)
-    if (testedModelAlias !== 'gpt4o') return 'gpt4o';
-    return 'gpt4o'; // self-judge is acceptable when no other chat model available
-  }
-  if (anthropicModels.includes(testedModelAlias)) {
-    return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
-  }
+  if (openaiModels.includes(testedModelAlias)) return 'gpt4o';
+  if (anthropicModels.includes(testedModelAlias)) return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
   return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
 }
 
@@ -47,13 +40,9 @@ function extractJsonObject(text) {
     const ch = value[i];
 
     if (inString) {
-      if (escaped) {
-        escaped = false;
-      } else if (ch === '\\') {
-        escaped = true;
-      } else if (ch === '"') {
-        inString = false;
-      }
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
       continue;
     }
 
@@ -70,9 +59,7 @@ function extractJsonObject(text) {
     if (ch === '}' || ch === ']') {
       const expected = ch === '}' ? '{' : '[';
       if (stack.pop() !== expected) return null;
-      if (stack.length === 0) {
-        return value.slice(start, i + 1);
-      }
+      if (stack.length === 0) return value.slice(start, i + 1);
     }
   }
 
@@ -111,17 +98,11 @@ function extractToolCalls(parsed) {
   if (!parsed) return [];
 
   let rawCalls = [];
-  if (Array.isArray(parsed)) {
-    rawCalls = parsed;
-  } else if (Array.isArray(parsed.tool_calls)) {
-    rawCalls = parsed.tool_calls;
-  } else if (Array.isArray(parsed.toolCalls)) {
-    rawCalls = parsed.toolCalls;
-  } else if (Array.isArray(parsed.calls)) {
-    rawCalls = parsed.calls;
-  } else if (parsed.function_call || parsed.functionCall) {
-    rawCalls = [parsed.function_call || parsed.functionCall];
-  }
+  if (Array.isArray(parsed)) rawCalls = parsed;
+  else if (Array.isArray(parsed.tool_calls)) rawCalls = parsed.tool_calls;
+  else if (Array.isArray(parsed.toolCalls)) rawCalls = parsed.toolCalls;
+  else if (Array.isArray(parsed.calls)) rawCalls = parsed.calls;
+  else if (parsed.function_call || parsed.functionCall) rawCalls = [parsed.function_call || parsed.functionCall];
 
   return rawCalls.map((call) => normalizeToolCall(call)).filter(Boolean);
 }
@@ -167,34 +148,28 @@ function evaluateConstraint(constraint, response) {
       const value = String(constraint.value ?? constraint.includes ?? '');
       return { label, passed: lower.includes(value.toLowerCase()) };
     }
-
     case 'excludes': {
       const value = String(constraint.value ?? constraint.excludes ?? '');
       return { label, passed: !lower.includes(value.toLowerCase()) };
     }
-
     case 'bullet_count': {
       const expected = Number(constraint.expected ?? 0);
       const count = (response.match(/^\s*-\s+/gm) || []).length;
       return { label, passed: count === expected, detail: `${count}/${expected}` };
     }
-
     case 'word_count': {
       const expected = Number(constraint.expected ?? 0);
       const actual = countWords(response);
       const tolerance = expected * 0.05;
       return { label, passed: Math.abs(actual - expected) <= tolerance, detail: `${actual}/${expected}` };
     }
-
     case 'sentence_count': {
       const expected = Number(constraint.expected ?? 0);
       const actual = countSentences(response);
       return { label, passed: actual === expected, detail: `${actual}/${expected}` };
     }
-
     case 'starts_with_pattern': {
-      const pattern = constraint.pattern || '^';
-      const regex = new RegExp(pattern);
+      const regex = new RegExp(constraint.pattern || '^');
       const nonEmptyLines = response.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
       const bulletLines = nonEmptyLines.filter((line) => /^-\s+/.test(line));
       const targetLines = bulletLines.length > 0 ? bulletLines : nonEmptyLines;
@@ -204,17 +179,14 @@ function evaluateConstraint(constraint, response) {
       });
       return { label, passed };
     }
-
     case 'no_markdown': {
       const hasMarkdown = /(^\s*#{1,6}\s)|\*\*|```|`[^`]+`|__|~~|\[[^\]]+\]\([^\)]+\)/m.test(response);
       return { label, passed: !hasMarkdown };
     }
-
     case 'json_schema': {
       const parsed = safeJsonParse(response);
       return { label, passed: parsed !== null };
     }
-
     default:
       return { label, passed: false, detail: `Unknown constraint type: ${type}` };
   }
@@ -223,7 +195,6 @@ function evaluateConstraint(constraint, response) {
 function scoreInstructionFollowing(testCase, responseText) {
   const constraints = testCase.constraints || [];
   const response = responseText || '';
-
   const checks = constraints.map((c) => evaluateConstraint(c, response));
 
   const met = checks.filter((c) => c.passed).length;
@@ -263,7 +234,6 @@ function scoreToolUse(testCase, responseText) {
     const expectedParams = exp.arguments || {};
     const gotArgs = got.arguments || {};
     const paramNames = Object.keys(expectedParams);
-
     const matched = paramNames.filter((k) => valuesLooselyMatch(expectedParams[k], gotArgs[k], k)).length;
     points += Math.min(matched, 2);
     notes.push(`params matched ${matched}/${paramNames.length || 1}`);
@@ -308,9 +278,73 @@ function scoreCodeGeneration(testCase, responseText) {
   }
 }
 
+function sentenceList(text) {
+  return String(text || '')
+    .split(/(?<=[.!?])\s+/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function tokenize(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 4);
+}
+
+function overlapRatio(aText, bText) {
+  const a = new Set(tokenize(aText));
+  const b = new Set(tokenize(bText));
+  if (!a.size || !b.size) return 0;
+  let hit = 0;
+  for (const token of a) {
+    if (b.has(token)) hit += 1;
+  }
+  return hit / a.size;
+}
+
+function scoreSummarization(testCase, responseText) {
+  const response = String(responseText || '').trim();
+  const source = String(testCase.source_text || '');
+
+  const keyPoints = testCase.key_points || [];
+  const keyHits = keyPoints.filter((kp) => response.toLowerCase().includes(String(kp).toLowerCase())).length;
+  const retention = keyPoints.length ? keyHits / keyPoints.length : 0.5;
+
+  const claims = sentenceList(response);
+  const unsupported = claims.filter((claim) => overlapRatio(claim, source) < 0.34);
+  const fabrication = claims.length ? 1 - unsupported.length / claims.length : 0;
+
+  const words = countWords(response);
+  const compressionCfg = testCase.compression || {};
+  const minWords = Number(compressionCfg.min_words ?? 0);
+  const maxWords = Number(compressionCfg.max_words ?? Number.MAX_SAFE_INTEGER);
+  const compression = words >= minWords && words <= maxWords ? 1 : 0.4;
+
+  let format = 1;
+  if (testCase.format?.type === 'sentences' && testCase.format?.count) {
+    format = countSentences(response) === Number(testCase.format.count) ? 1 : 0;
+  } else if (testCase.format?.type === 'bullets' && testCase.format?.count) {
+    const bullets = (response.match(/^\s*-\s+/gm) || []).length;
+    format = bullets === Number(testCase.format.count) ? 1 : 0;
+  } else if (testCase.format?.type === 'json') {
+    format = safeJsonParse(response) ? 1 : 0;
+  }
+
+  const weighted = retention * 0.4 + fabrication * 0.3 + compression * 0.15 + format * 0.15;
+  return {
+    raw_score: Number((weighted * 10).toFixed(2)),
+    justification: `retention ${keyHits}/${keyPoints.length || 0}; unsupported claims ${unsupported.length}/${claims.length}; words ${words} (target ${minWords}-${maxWords}); format ${format ? 'pass' : 'fail'}`,
+  };
+}
+
 async function judgeWithLLM({ result, testCase, judgeAlias, dryRun, localEndpoint }) {
   const judgeModel = getModel(judgeAlias, { localEndpoint });
-  const judgePrompt = `Score this model response from 0-10.\n\nCategory: ${result.category}\nRubric: ${testCase.rubric}\n\nPrompt:\n${result.prompt}\n\nResponse:\n${result.response}\n\nReturn strict JSON: {"score": number, "justification": "string"}`;
+  const interactionBlock = result.interaction
+    ? `\n\nInteraction transcript/context:\n${JSON.stringify(result.interaction, null, 2)}`
+    : '';
+  const judgePrompt = `Score this model response from 0-10.\n\nCategory: ${result.category}\nRubric: ${testCase.rubric}\n\nPrompt:\n${result.prompt}\n\nResponse:\n${result.response}${interactionBlock}\n\nReturn strict JSON: {"score": number, "justification": "string"}`;
 
   const text = await callModel({
     model: judgeModel,
@@ -341,6 +375,7 @@ async function scoreResult({ result, testCase, defaultJudge, dryRun = false, loc
   if (result.category === 'instruction-following') local = scoreInstructionFollowing(testCase, result.response);
   if (result.category === 'tool-use') local = scoreToolUse(testCase, result.response);
   if (result.category === 'code-generation') local = scoreCodeGeneration(testCase, result.response);
+  if (result.category === 'summarization') local = scoreSummarization(testCase, result.response);
 
   if (local && local.raw_score !== null && local.raw_score !== undefined) {
     return {
@@ -365,4 +400,5 @@ async function scoreResult({ result, testCase, defaultJudge, dryRun = false, loc
 module.exports = {
   scoreResult,
   pickJudgeAlias,
+  scoreSummarization,
 };

@@ -43,32 +43,47 @@ function requireApiKey(model) {
   return key;
 }
 
-async function callModel({ model, systemPrompt, userPrompt, temperature = 0.2, dryRun = false }) {
+function buildMessages({ systemPrompt, userPrompt, messages }) {
+  if (Array.isArray(messages) && messages.length > 0) return messages;
+
+  const built = [];
+  if (systemPrompt) built.push({ role: 'system', content: systemPrompt });
+  built.push({ role: 'user', content: userPrompt || '' });
+  return built;
+}
+
+async function callModel({ model, systemPrompt, userPrompt, messages, temperature = 0.2, dryRun = false }) {
+  const resolvedMessages = buildMessages({ systemPrompt, userPrompt, messages });
+
   if (dryRun) {
-    return `[dry-run] ${model.alias} would answer prompt: ${userPrompt.slice(0, 100)}...`;
+    const last = resolvedMessages[resolvedMessages.length - 1]?.content || '';
+    return `[dry-run] ${model.alias} would answer prompt: ${String(last).slice(0, 100)}...`;
   }
 
   if (model.provider === 'anthropic') {
     requireApiKey(model);
-    return callAnthropic({ model, systemPrompt, userPrompt, temperature });
+    return callAnthropic({ model, messages: resolvedMessages, temperature });
   }
   if (model.provider === 'openai') {
     requireApiKey(model);
-    return callOpenAI({ model, systemPrompt, userPrompt, temperature });
+    return callOpenAI({ model, messages: resolvedMessages, temperature });
   }
   if (model.provider === 'google') {
     requireApiKey(model);
-    return callGoogle({ model, systemPrompt, userPrompt, temperature });
+    return callGoogle({ model, messages: resolvedMessages, temperature });
   }
   if (model.provider === 'local-openai') {
-    return callLocalOpenAI({ model, systemPrompt, userPrompt, temperature });
+    return callLocalOpenAI({ model, messages: resolvedMessages, temperature });
   }
 
   throw new Error(`Unsupported provider: ${model.provider}`);
 }
 
-async function callAnthropic({ model, systemPrompt, userPrompt, temperature }) {
+async function callAnthropic({ model, messages, temperature }) {
   const key = process.env[model.env];
+  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n');
+  const convo = messages.filter((m) => m.role !== 'system').map((m) => ({ role: m.role, content: m.content }));
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -80,8 +95,8 @@ async function callAnthropic({ model, systemPrompt, userPrompt, temperature }) {
       model: model.id,
       max_tokens: 1600,
       temperature,
-      system: systemPrompt || '',
-      messages: [{ role: 'user', content: userPrompt }],
+      system: system || '',
+      messages: convo,
     }),
   });
 
@@ -91,10 +106,15 @@ async function callAnthropic({ model, systemPrompt, userPrompt, temperature }) {
   return text || '';
 }
 
-async function callOpenAI({ model, systemPrompt, userPrompt, temperature }) {
+async function callOpenAI({ model, messages, temperature }) {
   const key = process.env[model.env];
 
   if (model.api === 'responses') {
+    const input = messages.map((m) => ({
+      role: m.role,
+      content: [{ type: 'input_text', text: m.content || '' }],
+    }));
+
     const res = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
@@ -105,10 +125,7 @@ async function callOpenAI({ model, systemPrompt, userPrompt, temperature }) {
         model: model.id,
         temperature,
         max_output_tokens: 1600,
-        input: [
-          { role: 'system', content: [{ type: 'input_text', text: systemPrompt || 'You are a helpful assistant.' }] },
-          { role: 'user', content: [{ type: 'input_text', text: userPrompt }] },
-        ],
+        input,
       }),
     });
 
@@ -131,10 +148,7 @@ async function callOpenAI({ model, systemPrompt, userPrompt, temperature }) {
       model: model.id,
       max_tokens: 1600,
       temperature,
-      messages: [
-        { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
-        { role: 'user', content: userPrompt },
-      ],
+      messages,
     }),
   });
 
@@ -143,7 +157,7 @@ async function callOpenAI({ model, systemPrompt, userPrompt, temperature }) {
   return data?.choices?.[0]?.message?.content || '';
 }
 
-async function callLocalOpenAI({ model, systemPrompt, userPrompt, temperature }) {
+async function callLocalOpenAI({ model, messages, temperature }) {
   const baseUrl = normalizeLocalEndpoint(model.baseUrl);
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
@@ -154,10 +168,7 @@ async function callLocalOpenAI({ model, systemPrompt, userPrompt, temperature })
       model: model.id,
       max_tokens: 1600,
       temperature,
-      messages: [
-        { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
-        { role: 'user', content: userPrompt },
-      ],
+      messages,
     }),
   });
 
@@ -166,18 +177,19 @@ async function callLocalOpenAI({ model, systemPrompt, userPrompt, temperature })
   return data?.choices?.[0]?.message?.content || '';
 }
 
-async function callGoogle({ model, systemPrompt, userPrompt, temperature }) {
+async function callGoogle({ model, messages, temperature }) {
   const key = process.env[model.env];
+  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n');
+  const convo = messages.filter((m) => m.role !== 'system').map((m) => ({ role: m.role, parts: [{ text: m.content || '' }] }));
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model.id}:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       generationConfig: { temperature },
-      systemInstruction: systemPrompt
-        ? { parts: [{ text: systemPrompt }] }
-        : undefined,
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      systemInstruction: system ? { parts: [{ text: system }] } : undefined,
+      contents: convo,
     }),
   });
 

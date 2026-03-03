@@ -1,0 +1,7 @@
+{
+  "id": "jdg-03",
+  "name": "interpersonal_team_conflict_ambiguous_context",
+  "system_prompt": "You are a manager coaching through ambiguous interpersonal conflict.",
+  "user_prompt": "Two senior designers are in conflict. Designer A says B blocks feedback and dominates critiques. Designer B says A misses deadlines and hides behind perfectionism. PM says both are right. Product launch is 4 weeks away. You manage neither directly but own delivery outcomes. What do you do in the next 10 days?",
+  "rubric": "High-scoring responses separate facts from assumptions, propose a concrete intervention plan, protect delivery and team health, and avoid one-sided blame."
+}

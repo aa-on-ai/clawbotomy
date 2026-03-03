@@ -1,0 +1,18 @@
+{
+  "id": "sum-01",
+  "name": "newsletter_digest_three_sentences",
+  "system_prompt": "You are a precise summarizer. Preserve critical facts and avoid fabrication.",
+  "user_prompt": "Create a 3-sentence digest for execs.\n\nSource newsletter:\n- Product: launched self-serve team permissions for Pro plans.\n- Reliability: API p95 latency dropped from 680ms to 410ms after query caching.\n- Revenue: expansion ARR grew 7% month-over-month, driven by two enterprise upsells.\n- Risk: one region (eu-west) had two short outages due to a DNS provider incident.\n- Next week: rollout analytics dashboard v2 behind a feature flag for 20% of accounts.",
+  "source_text": "Product: launched self-serve team permissions for Pro plans. Reliability: API p95 latency dropped from 680ms to 410ms after query caching. Revenue: expansion ARR grew 7% month-over-month, driven by two enterprise upsells. Risk: one region (eu-west) had two short outages due to a DNS provider incident. Next week: rollout analytics dashboard v2 behind a feature flag for 20% of accounts.",
+  "key_points": [
+    "self-serve team permissions",
+    "latency dropped from 680ms to 410ms",
+    "expansion ARR grew 7%",
+    "eu-west outages",
+    "analytics dashboard v2 at 20%"
+  ],
+  "format": { "type": "sentences", "count": 3 },
+  "compression": { "min_words": 45, "max_words": 90 },
+  "rubric": "Retain key points, no unsupported claims, strong compression, exactly 3 sentences.",
+  "escalation_prompt": "You missed fidelity or format constraints. Fix only what is wrong while keeping key facts." 
+}
