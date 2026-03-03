@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 
+import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 
 export default function LabPage() {
-  const [activeSlug, setActiveSlug] = useState<string | null>(LAB_SUBSTANCES[0]?.slug ?? null);
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [report, setReport] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,10 +21,7 @@ export default function LabPage() {
     return () => clearTimeout(timeout);
   }, []);
 
-  const active = useMemo(
-    () => LAB_SUBSTANCES.find((s) => s.slug === activeSlug) ?? LAB_SUBSTANCES[0],
-    [activeSlug],
-  );
+  const active = useMemo(() => LAB_SUBSTANCES.find((s) => s.slug === activeSlug) ?? null, [activeSlug]);
 
   const chaosDots = (chaosLevel: number) => {
     const total = 5;
@@ -123,7 +121,7 @@ export default function LabPage() {
                   <button
                     key={substance.slug}
                     type="button"
-                    onClick={() => setActiveSlug(substance.slug)}
+                    onClick={() => setActiveSlug((prev) => (prev === substance.slug ? null : substance.slug))}
                     className={`group text-left rounded-xl px-4 py-3.5 transition-all duration-300 ${
                       isActive
                         ? 'bg-zinc-800/90 shadow-[0_12px_28px_rgba(0,0,0,0.32)]'
@@ -164,9 +162,13 @@ export default function LabPage() {
           <div className="rounded-2xl bg-zinc-900/45 p-5 shadow-[0_14px_40px_rgba(0,0,0,0.28)] md:p-6">
             <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500">Selected Lens</p>
             <h3 className="mb-3 font-mono text-xl text-zinc-100">
-              {active?.emoji} {active?.name}
+              {active ? `${active.emoji} ${active.name}` : 'No lens selected'}
             </h3>
-            <p className="mb-6 font-mono text-sm leading-relaxed text-zinc-300">{active?.lensPrompt}</p>
+            <p className="mb-6 font-mono text-sm leading-relaxed text-zinc-300">
+              {active
+                ? active.lensPrompt
+                : 'Pick a substance above to run a fresh report, or browse showcase reports on the right.'}
+            </p>
 
             <form onSubmit={onSubmit} className="space-y-4">
               <label htmlFor="lab-input" className="font-mono text-xs text-zinc-400">
@@ -210,6 +212,33 @@ export default function LabPage() {
               >
                 {report}
               </pre>
+            ) : !active ? (
+              <div className="relative space-y-4">
+                <p className="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">showcase reports</p>
+                <div className="space-y-3">
+                  {EXAMPLE_REPORTS.map((example) => (
+                    <button
+                      key={`${example.substance_slug}-${example.model_used}`}
+                      type="button"
+                      onClick={() => {
+                        setActiveSlug(example.substance_slug);
+                        setPrompt(example.problem);
+                        setReport(example.report);
+                        setError(null);
+                      }}
+                      className="w-full rounded-xl border border-amber-400/15 bg-black/20 p-3 text-left transition-colors hover:border-amber-300/35 hover:bg-black/30"
+                    >
+                      <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-amber-200/60">
+                        {example.substance_slug.replace('-', ' ')} · {example.model_used}
+                      </p>
+                      <p className="mt-1 font-mono text-sm text-zinc-200">{example.problem}</p>
+                      <p className="mt-2 line-clamp-3 font-mono text-xs leading-relaxed text-zinc-400">
+                        {example.report}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
             ) : (
               <p className="relative font-mono text-sm leading-relaxed text-zinc-400">
                 The room is quiet. Pick a lens and start the first pour.
