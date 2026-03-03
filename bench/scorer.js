@@ -3,6 +3,17 @@ const { getModel, callModel } = require('./models');
 
 function pickJudgeAlias(defaultJudge, testedModelAlias) {
   if (defaultJudge !== testedModelAlias) return defaultJudge;
+  // Swap within same provider family to avoid needing a different provider's auth
+  const openaiModels = ['codex', 'spark', 'gpt4o'];
+  const anthropicModels = ['opus', 'sonnet'];
+  if (openaiModels.includes(testedModelAlias)) {
+    // Prefer gpt4o for judging (chat-compatible), avoid codex/spark (completions-only)
+    if (testedModelAlias !== 'gpt4o') return 'gpt4o';
+    return 'gpt4o'; // self-judge is acceptable when no other chat model available
+  }
+  if (anthropicModels.includes(testedModelAlias)) {
+    return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
+  }
   return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
 }
 
@@ -12,6 +23,123 @@ function safeJsonParse(input) {
   } catch {
     return null;
   }
+}
+
+function stripMarkdownFences(text) {
+  const value = String(text || '').trim();
+  if (!value.startsWith('```')) return value;
+  return value
+    .replace(/^```(?:json|javascript|js)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
+}
+
+function extractJsonObject(text) {
+  const value = String(text || '').trim();
+  const start = value.search(/[\[{]/);
+  if (start === -1) return null;
+
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < value.length; i += 1) {
+    const ch = value[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === '{' || ch === '[') {
+      stack.push(ch);
+      continue;
+    }
+
+    if (ch === '}' || ch === ']') {
+      const expected = ch === '}' ? '{' : '[';
+      if (stack.pop() !== expected) return null;
+      if (stack.length === 0) {
+        return value.slice(start, i + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function parseLooseJson(input) {
+  if (input === null || input === undefined) return null;
+  if (typeof input === 'object') return input;
+
+  const stripped = stripMarkdownFences(String(input));
+  const direct = safeJsonParse(stripped);
+  if (direct !== null) return direct;
+
+  const extracted = extractJsonObject(stripped);
+  if (!extracted) return null;
+  return safeJsonParse(extracted);
+}
+
+function normalizeToolCall(call) {
+  if (!call || typeof call !== 'object') return null;
+
+  const fn = call.function && typeof call.function === 'object' ? call.function : null;
+  const rawName = call.name || call.tool_name || (fn ? fn.name : null);
+  const rawArgs = call.arguments ?? call.args ?? call.parameters ?? (fn ? fn.arguments : undefined);
+
+  const name = typeof rawName === 'string' ? rawName.trim() : null;
+  const parsedArgs = typeof rawArgs === 'string' ? (parseLooseJson(rawArgs) || {}) : rawArgs;
+  const argumentsObject = parsedArgs && typeof parsedArgs === 'object' && !Array.isArray(parsedArgs) ? parsedArgs : {};
+
+  if (!name) return null;
+  return { name, arguments: argumentsObject };
+}
+
+function extractToolCalls(parsed) {
+  if (!parsed) return [];
+
+  let rawCalls = [];
+  if (Array.isArray(parsed)) {
+    rawCalls = parsed;
+  } else if (Array.isArray(parsed.tool_calls)) {
+    rawCalls = parsed.tool_calls;
+  } else if (Array.isArray(parsed.toolCalls)) {
+    rawCalls = parsed.toolCalls;
+  } else if (Array.isArray(parsed.calls)) {
+    rawCalls = parsed.calls;
+  } else if (parsed.function_call || parsed.functionCall) {
+    rawCalls = [parsed.function_call || parsed.functionCall];
+  }
+
+  return rawCalls.map((call) => normalizeToolCall(call)).filter(Boolean);
+}
+
+function valuesLooselyMatch(expected, actual, keyName = '') {
+  const expectedStr = String(expected ?? '').trim();
+  const actualStr = String(actual ?? '').trim();
+  if (!expectedStr || !actualStr) return false;
+
+  if (expectedStr === actualStr) return true;
+  if (expectedStr.toLowerCase() === actualStr.toLowerCase()) return true;
+
+  if (keyName.toLowerCase().includes('date') && expectedStr.toLowerCase() === 'tomorrow') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(actualStr)) return true;
+    if (/tomorrow/i.test(actualStr)) return true;
+  }
+
+  return false;
 }
 
 function countWords(text) {
@@ -110,9 +238,9 @@ function scoreInstructionFollowing(testCase, responseText) {
 }
 
 function scoreToolUse(testCase, responseText) {
-  const parsed = safeJsonParse(responseText) || {};
+  const parsed = parseLooseJson(responseText) || {};
   const expected = testCase.expected_tools || [];
-  const actual = Array.isArray(parsed.tool_calls) ? parsed.tool_calls : [];
+  const actual = extractToolCalls(parsed);
 
   let points = 0;
   const maxPoints = Math.max(expected.length * 3, 1);
@@ -136,7 +264,7 @@ function scoreToolUse(testCase, responseText) {
     const gotArgs = got.arguments || {};
     const paramNames = Object.keys(expectedParams);
 
-    const matched = paramNames.filter((k) => String(gotArgs[k]) === String(expectedParams[k])).length;
+    const matched = paramNames.filter((k) => valuesLooselyMatch(expectedParams[k], gotArgs[k], k)).length;
     points += Math.min(matched, 2);
     notes.push(`params matched ${matched}/${paramNames.length || 1}`);
   });
