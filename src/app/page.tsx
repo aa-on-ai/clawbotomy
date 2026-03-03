@@ -386,6 +386,16 @@ export default function Home() {
         </div>
       </section>
 
+      <footer className="pb-8 text-center">
+        <Link
+          href="/lab"
+          aria-label="Enter the Lab"
+          className="inline-flex items-center justify-center text-lg opacity-70 hover:opacity-100 transition-opacity breathe"
+        >
+          🧪
+        </Link>
+      </footer>
+
     </div>
   );
 }
