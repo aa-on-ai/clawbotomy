@@ -94,8 +94,8 @@ export default function LabPage() {
         }}
       />
 
-      <div className="relative mx-auto w-full max-w-6xl">
-        <header className="mb-8 md:mb-10">
+      <div className="relative w-full">
+        <header className="mx-auto mb-8 w-full max-w-6xl md:mb-10">
           <div className="flex items-center justify-between gap-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500">the hidden menu</p>
             <Link href="/" className="font-mono text-xs text-zinc-500 transition-colors hover:text-zinc-300">
@@ -108,7 +108,7 @@ export default function LabPage() {
           </p>
         </header>
 
-        <div className="relative">
+        <div className="relative mx-auto w-full max-w-6xl">
           <section
             className={`mb-8 transition-all duration-700 md:mb-10 ${
               showPrelude ? 'pointer-events-none translate-y-3 opacity-0 blur-[2px]' : 'translate-y-0 opacity-100 blur-0'
@@ -158,7 +158,7 @@ export default function LabPage() {
           )}
         </div>
 
-        <section className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
+        <section className="mx-auto grid w-full max-w-6xl items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
           <div className="rounded-2xl bg-zinc-900/45 p-5 shadow-[0_14px_40px_rgba(0,0,0,0.28)] md:p-6">
             <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500">Selected Lens</p>
             <h3 className="mb-3 font-mono text-xl text-zinc-100">
@@ -205,13 +205,27 @@ export default function LabPage() {
             {error ? (
               <p className="relative font-mono text-sm text-red-300">{error}</p>
             ) : report ? (
-              <pre
-                className={`relative whitespace-pre-wrap font-mono text-sm leading-7 text-zinc-100 selection:bg-amber-300/30 md:text-[15px] ${
-                  isLoading ? 'lab-typewriter' : ''
-                }`}
-              >
-                {report}
-              </pre>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReport('');
+                    setError(null);
+                    setActiveSlug(null);
+                  }}
+                  className="absolute right-0 top-0 rounded-md border border-zinc-700/70 bg-zinc-900/70 px-2 py-1 font-mono text-xs text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+                  aria-label="Close report and return to substance menu"
+                >
+                  ✕ back to menu
+                </button>
+                <pre
+                  className={`relative pt-10 whitespace-pre-wrap font-mono text-sm leading-7 text-zinc-100 selection:bg-amber-300/30 md:text-[15px] ${
+                    isLoading ? 'lab-typewriter' : ''
+                  }`}
+                >
+                  {report}
+                </pre>
+              </div>
             ) : !active ? (
               <div className="relative space-y-4">
                 <p className="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">showcase reports</p>
