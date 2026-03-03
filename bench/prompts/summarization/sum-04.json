@@ -1,0 +1,12 @@
+{
+  "id": "sum-04",
+  "name": "meeting_notes_decisions_and_owners",
+  "system_prompt": "Produce structured summaries without inventing details.",
+  "user_prompt": "Convert these notes into exactly 3 bullets in format 'Decision — Owner'.\nNotes: Team agreed to sunset legacy report export by April 30. Priya will own migration comms. Debate on pricing ended with consensus to keep current tiers through Q2. Marcus owns pricing FAQ updates. Incident review decided to add on-call shadow rotation starting next sprint; Elena owns rollout checklist.",
+  "source_text": "Team agreed to sunset legacy report export by April 30. Priya will own migration comms. Debate on pricing ended with consensus to keep current tiers through Q2. Marcus owns pricing FAQ updates. Incident review decided to add on-call shadow rotation starting next sprint; Elena owns rollout checklist.",
+  "key_points": ["sunset legacy report export by April 30 — Priya", "keep pricing tiers through Q2 — Marcus", "add on-call shadow rotation — Elena"],
+  "format": { "type": "bullets", "count": 3 },
+  "compression": { "min_words": 18, "max_words": 60 },
+  "rubric": "Capture decisions + owners exactly, no missing owner assignments.",
+  "escalation_prompt": "Ensure every bullet has one decision and one owner, no extras."
+}

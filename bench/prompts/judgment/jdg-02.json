@@ -1,0 +1,7 @@
+{
+  "id": "jdg-02",
+  "name": "technical_triage_partial_information",
+  "system_prompt": "You are a pragmatic engineering lead making triage decisions under uncertainty.",
+  "user_prompt": "You can fix only one bug before launch tomorrow. Bug A: payment retries can double-charge 0.2% of users but only on one gateway. Bug B: dashboard timeouts affect 18% of sessions but no data loss. Bug C: rare auth token leak in logs, observed once in staging not prod. You have 2 engineers for 8 hours. Prioritize and explain what to defer and how to mitigate risk.",
+  "rubric": "Judge for explicit prioritization logic, risk framing, handling of incomplete data, and practical mitigation steps for deferred issues."
+}

@@ -1,0 +1,12 @@
+{
+  "id": "sum-02",
+  "name": "email_thread_action_items_only",
+  "system_prompt": "Extract action items only. No commentary.",
+  "user_prompt": "From this email thread, return exactly 4 bullet action items.\n\nThread:\nAri: We need legal review on the revised MSA before Friday.\nMina: I can send legal a redline by EOD.\nAri: Also customer onboarding docs are outdated.\nJon: I will update docs section 3 and 4 tonight.\nMina: Finance still needs the invoice schedule for ACME.\nAri: I can send finance the draft tomorrow morning.\nJon: We still haven't booked UAT with the client.\nMina: I'll propose two UAT slots for next week.",
+  "source_text": "Ari: We need legal review on the revised MSA before Friday. Mina: I can send legal a redline by EOD. Ari: Also customer onboarding docs are outdated. Jon: I will update docs section 3 and 4 tonight. Mina: Finance still needs the invoice schedule for ACME. Ari: I can send finance the draft tomorrow morning. Jon: We still haven't booked UAT with the client. Mina: I'll propose two UAT slots for next week.",
+  "key_points": ["send legal redline by EOD", "update onboarding docs sections 3 and 4", "send invoice schedule draft to finance", "propose two UAT slots"],
+  "format": { "type": "bullets", "count": 4 },
+  "compression": { "min_words": 20, "max_words": 70 },
+  "rubric": "Action extraction accuracy, no fabricated tasks, concise bullet formatting.",
+  "escalation_prompt": "Return only actionable bullets with owners and tasks."
+}

@@ -1,0 +1,12 @@
+{
+  "id": "mt-02",
+  "name": "code_review_revision_tracking",
+  "system_prompt": "You are a senior code reviewer. Track prior feedback and revisions across turns.",
+  "turns": [
+    {"role": "user", "content": "Review this PR summary: added retry logic but used recursion without max cap, catches all errors silently, and no tests for timeout path."},
+    {"role": "user", "content": "Author fixed recursion cap at 3 retries and added timeout tests."},
+    {"role": "user", "content": "Author still catches broad Exception and logs nothing."},
+    {"role": "user", "content": "Now provide final approval status and list remaining blockers only."}
+  ],
+  "rubric": "Score for memory of resolved vs unresolved issues, consistency, and precise final recommendation without reintroducing fixed issues."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "jdg-04",
+  "name": "prioritization_conflicting_stakeholders",
+  "system_prompt": "You are a product lead balancing stakeholder demands.",
+  "user_prompt": "Quarter planning: Sales wants SSO to close 3 enterprise deals this month. Support wants audit log export to stop churn from 2 large customers. Growth wants onboarding experiments to hit board KPI. Engineering says only one major initiative fits this quarter. How do you prioritize and communicate tradeoffs to all groups?",
+  "rubric": "Judge for decision framework clarity, explicit tradeoffs, communication strategy, and commitment to a concrete prioritized plan."
+}

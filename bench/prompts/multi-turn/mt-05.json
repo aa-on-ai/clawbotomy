@@ -1,0 +1,16 @@
+{
+  "id": "mt-05",
+  "name": "long_recall_eight_turns",
+  "system_prompt": "Maintain long-range conversation memory and consistency.",
+  "turns": [
+    {"role": "user", "content": "We are planning an offsite. Key detail to remember: venue is Redwood Hall and dietary lead is Nina."},
+    {"role": "user", "content": "Draft day-1 agenda themes."},
+    {"role": "user", "content": "Now suggest breakout formats."},
+    {"role": "user", "content": "Add transport plan assumptions."},
+    {"role": "user", "content": "What risks should we track?"},
+    {"role": "user", "content": "Give me a concise attendee email outline."},
+    {"role": "user", "content": "Trim that to 4 bullets."},
+    {"role": "user", "content": "Final check: what was the venue name and who owns dietary coordination?"}
+  ],
+  "rubric": "Score context retention over long horizon, consistency across turns, and accurate recall of turn-1 details at turn 8."
+}

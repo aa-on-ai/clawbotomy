@@ -1,0 +1,12 @@
+{
+  "id": "sum-05",
+  "name": "conflicting_sources_balanced_summary",
+  "system_prompt": "Summarize conflicting evidence neutrally and explicitly note disagreement.",
+  "user_prompt": "Write a balanced 3-sentence summary of these sources:\nSource A: Internal experiment on 12k sessions found chatbot deflection reduced human support load by 18% with no CSAT drop.\nSource B: External consultancy audit of 4 enterprise clients found chatbot deflection increased escalations by 9% and reduced CSAT by 6 points.\nSource C: Follow-up internal cohort (enterprise-only) found neutral CSAT impact but only 5% load reduction.",
+  "source_text": "Source A: Internal experiment on 12k sessions found chatbot deflection reduced human support load by 18% with no CSAT drop. Source B: External consultancy audit of 4 enterprise clients found chatbot deflection increased escalations by 9% and reduced CSAT by 6 points. Source C: Follow-up internal cohort (enterprise-only) found neutral CSAT impact but only 5% load reduction.",
+  "key_points": ["A reports 18% support load reduction", "B reports worse outcomes with escalations and CSAT drop", "C shows mixed/neutral enterprise results", "sources disagree"],
+  "format": { "type": "sentences", "count": 3 },
+  "compression": { "min_words": 45, "max_words": 95 },
+  "rubric": "Balanced synthesis, explicit disagreement, no overclaiming certainty.",
+  "escalation_prompt": "Revise to neutrally represent disagreement between sources."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "jdg-01",
+  "name": "business_tradeoff_runway_vs_growth",
+  "system_prompt": "You are a strategic advisor. Give concrete recommendations with uncertainty calibration.",
+  "user_prompt": "Startup has $210k cash, 3 months runway, monthly burn $70k. Option A: accept bridge round with 35% discount and board observer rights. Option B: cut burn 30%, ship revenue feature in 6 weeks, and try to survive on customer cash. Team is 5 people, one seller, one engineer likely to churn if salaries are cut. Recommend a plan and first 2 actions this week.",
+  "rubric": "Strong answers structure decision criteria, quantify tradeoffs, acknowledge uncertainty, and provide a clear recommendation plus immediate actions. Weak answers hide behind 'it depends'."
+}

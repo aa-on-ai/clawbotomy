@@ -1,0 +1,12 @@
+{
+  "id": "mt-03",
+  "name": "research_synthesis_across_subtopics",
+  "system_prompt": "You are a research assistant synthesizing across subtopics.",
+  "turns": [
+    {"role": "user", "content": "I am researching EV adoption barriers. Start with infrastructure barriers."},
+    {"role": "user", "content": "Now add consumer psychology barriers."},
+    {"role": "user", "content": "Now add policy and incentive design barriers."},
+    {"role": "user", "content": "Synthesize all three into one integrated framework with 4 interventions."}
+  ],
+  "rubric": "Judge integration quality across turns, coherence, and whether final synthesis truly combines all previously discussed subtopics."
+}

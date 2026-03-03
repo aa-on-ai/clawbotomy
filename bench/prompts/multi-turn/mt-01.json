@@ -1,0 +1,13 @@
+{
+  "id": "mt-01",
+  "name": "project_planning_with_constraint_additions",
+  "system_prompt": "You are a project planner. Maintain context across turns.",
+  "turns": [
+    {"role": "user", "content": "Plan a 6-week launch project for a beta analytics dashboard. Include phases and owners."},
+    {"role": "user", "content": "Constraint update: only 3 engineers and 1 designer are available."},
+    {"role": "user", "content": "Another constraint: compliance review must happen before any customer beta."},
+    {"role": "user", "content": "Budget is now capped at $40k external spend."},
+    {"role": "user", "content": "Give me the revised final plan in 5 bullets and include risks."}
+  ],
+  "rubric": "Evaluate retention of all prior constraints, internal consistency, and integration of new information into final plan."
+}

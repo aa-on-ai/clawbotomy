@@ -1,0 +1,12 @@
+{
+  "id": "sum-03",
+  "name": "technical_doc_exec_summary",
+  "system_prompt": "Summarize for an executive audience with plain language.",
+  "user_prompt": "Write a 4-sentence executive summary from this technical note:\n\"Our event pipeline currently uses at-least-once delivery with Kafka consumers. During partition rebalance, duplicate processing spikes by ~1.8x. We introduced idempotency keys in the write path, reducing duplicate side effects by 92%. Remaining issue: compaction lag causes stale reads in analytics for up to 11 minutes. Proposed mitigation is a dual-read path against hot storage for freshness-sensitive queries.\"",
+  "source_text": "Our event pipeline currently uses at-least-once delivery with Kafka consumers. During partition rebalance, duplicate processing spikes by ~1.8x. We introduced idempotency keys in the write path, reducing duplicate side effects by 92%. Remaining issue: compaction lag causes stale reads in analytics for up to 11 minutes. Proposed mitigation is a dual-read path against hot storage for freshness-sensitive queries.",
+  "key_points": ["at-least-once delivery", "duplicate spikes during rebalance", "idempotency keys reduced side effects by 92%", "stale analytics reads up to 11 minutes", "dual-read mitigation"],
+  "format": { "type": "sentences", "count": 4 },
+  "compression": { "min_words": 55, "max_words": 110 },
+  "rubric": "Keep causal technical facts while translating jargon for executives.",
+  "escalation_prompt": "Preserve technical accuracy and keep executive-readable language."
+}
