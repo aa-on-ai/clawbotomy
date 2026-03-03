@@ -110,6 +110,24 @@ body {
   animation: breathe 3s ease-in-out infinite;
 }
 
+@keyframes discoveryPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.72; transform: scale(1.03); }
+}
+
+.discovery-pulse {
+  animation: discoveryPulse 5.6s ease-in-out infinite;
+}
+
+@keyframes typewriterCursor {
+  0%, 100% { box-shadow: inset -1px 0 0 rgba(251, 191, 36, 0); }
+  50% { box-shadow: inset -1px 0 0 rgba(251, 191, 36, 0.7); }
+}
+
+.lab-typewriter {
+  animation: typewriterCursor 0.95s steps(1, end) infinite;
+}
+
 /* Scientist mascot sprite animation */
 @keyframes scientist-idle {
   0% { background-position: 0 0; }

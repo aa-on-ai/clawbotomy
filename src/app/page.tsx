@@ -390,7 +390,7 @@ export default function Home() {
         <Link
           href="/lab"
           aria-label="Enter the Lab"
-          className="inline-flex items-center justify-center text-lg opacity-70 hover:opacity-100 transition-opacity breathe"
+          className="inline-flex items-center justify-center text-lg opacity-60 hover:opacity-90 transition-opacity discovery-pulse"
         >
           🧪
         </Link>
