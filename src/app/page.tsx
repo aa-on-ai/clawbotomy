@@ -54,9 +54,14 @@ export default function Home() {
           >
             {copied ? 'copied!' : 'npm install clawbotomy'}
           </button>
-          <Link href="/docs" className="font-mono text-xs text-content-muted hover:text-content-secondary transition-colors">
-            Read the docs
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/docs" className="font-mono text-xs text-content-muted hover:text-content-secondary transition-colors">
+              Read the docs
+            </Link>
+            <Link href="/bench" className="font-mono text-xs text-content-muted hover:text-content-secondary transition-colors">
+              View benchmark
+            </Link>
+          </div>
         </div>
       </header>
 

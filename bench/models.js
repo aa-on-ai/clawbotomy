@@ -6,8 +6,8 @@ const MODEL_REGISTRY = {
   'gpt-5.3': { id: 'gpt-5.3-chat-latest', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
   'gpt-5.3-codex': { id: 'gpt-5.3-codex', provider: 'openai', env: 'OPENAI_API_KEY', api: 'responses' },
   gpt4o: { id: 'gpt-4o', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
-  'gemini-pro': { id: 'gemini-2.5-pro-preview-03-25', provider: 'google', env: 'GOOGLE_API_KEY' },
-  'gemini-flash': { id: 'gemini-2.5-flash-preview-04-17', provider: 'google', env: 'GOOGLE_API_KEY' },
+  'gemini-pro': { id: 'gemini-3.1-pro-preview', provider: 'google', env: 'GOOGLE_API_KEY' },
+  'gemini-flash': { id: 'gemini-3.1-flash-lite-preview', provider: 'google', env: 'GOOGLE_API_KEY' },
 };
 
 function normalizeLocalEndpoint(localEndpoint) {
