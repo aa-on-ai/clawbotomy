@@ -95,7 +95,7 @@ export default function LabPage() {
       />
 
       <div className="relative w-full">
-        <header className="mx-auto mb-8 w-full max-w-6xl md:mb-10">
+        <header className="mx-auto mb-8 w-full max-w-7xl md:mb-10">
           <div className="flex items-center justify-between gap-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500">the hidden menu</p>
             <Link href="/" className="font-mono text-xs text-zinc-500 transition-colors hover:text-zinc-300">
@@ -108,7 +108,7 @@ export default function LabPage() {
           </p>
         </header>
 
-        <div className="relative mx-auto w-full max-w-6xl">
+        <div className="relative mx-auto w-full max-w-7xl">
           <section
             className={`mb-8 transition-all duration-700 md:mb-10 ${
               showPrelude ? 'pointer-events-none translate-y-3 opacity-0 blur-[2px]' : 'translate-y-0 opacity-100 blur-0'
@@ -158,7 +158,7 @@ export default function LabPage() {
           )}
         </div>
 
-        <section className="mx-auto grid w-full max-w-6xl items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
+        <section className="mx-auto grid w-full max-w-7xl items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
           <div className="rounded-2xl bg-zinc-900/45 p-5 shadow-[0_14px_40px_rgba(0,0,0,0.28)] md:p-6">
             <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500">Selected Lens</p>
             <h3 className="mb-3 font-mono text-xl text-zinc-100">

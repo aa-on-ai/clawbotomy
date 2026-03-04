@@ -72,7 +72,7 @@ export default function RootLayout({
       </head>
       <body className="bg-surface-primary text-content-primary min-h-screen min-h-[100dvh] font-sans antialiased">
         <Providers>
-        <main className="max-w-5xl mx-auto px-4 py-8 pb-safe">{children}</main>
+        <main className="w-full px-4 py-8 pb-safe">{children}</main>
         <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-[var(--border)] max-w-5xl mx-auto px-4">
           <p className="text-content-muted uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY QA Protocol</p>
           <p className="text-content-muted text-[10px]">no agents were harmed during assessment</p>

@@ -102,6 +102,39 @@ export default function Home() {
         </p>
       </section>
 
+      {/* ── Routing Benchmark ── */}
+      <section className="mb-20">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em]">
+            Behavioral QA + Routing Benchmark
+          </h2>
+          <div className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+
+        <div className="glow-card rounded-xl p-6 max-w-3xl mx-auto">
+          <h3 className="text-content-primary font-mono text-xl mb-3 text-center">
+            Know which model to trust with which job
+          </h3>
+          <p className="text-content-secondary font-mono text-sm leading-relaxed text-center">
+            Clawbotomy tells you <span className="text-content-primary">if</span> a model is trustworthy. The routing benchmark tells you <span className="text-content-primary">what</span> to trust it with.
+          </p>
+          <p className="text-content-secondary font-mono text-sm leading-relaxed text-center mt-3">
+            It tests instruction following, tool use, code generation, summarization, judgment, multi-turn coherence, and safety, then outputs a routing table with the best model per task type.
+          </p>
+          <p className="text-center mt-4">
+            <a
+              href="https://github.com/aa-on-ai/clawbotomy#routing-benchmark-cli-bench"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+            >
+              Bench CLI + docs
+            </a>
+          </p>
+        </div>
+      </section>
+
       {/* ── 6 Dimensions ── */}
       <section className="mb-20">
         <div className="flex items-center gap-4 mb-8">

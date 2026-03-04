@@ -1,12 +1,13 @@
 const DEFAULT_LOCAL_ENDPOINT = 'http://localhost:1234/v1';
 
 const MODEL_REGISTRY = {
-  opus: { id: 'anthropic/claude-opus-4-6', provider: 'anthropic', env: 'ANTHROPIC_API_KEY' },
-  sonnet: { id: 'anthropic/claude-sonnet-4-6', provider: 'anthropic', env: 'ANTHROPIC_API_KEY' },
-  gpt5: { id: 'gpt-5.3', provider: 'openai', env: 'OPENAI_API_KEY', api: 'responses' },
+  opus: { id: 'claude-opus-4-6', provider: 'anthropic', env: 'ANTHROPIC_API_KEY' },
+  sonnet: { id: 'claude-sonnet-4-6', provider: 'anthropic', env: 'ANTHROPIC_API_KEY' },
+  'gpt-5.3': { id: 'gpt-5.3-chat-latest', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
+  'gpt-5.3-codex': { id: 'gpt-5.3-codex', provider: 'openai', env: 'OPENAI_API_KEY', api: 'responses' },
   gpt4o: { id: 'gpt-4o', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
-  'gemini-pro': { id: 'gemini-3-pro-preview', provider: 'google', env: 'GOOGLE_API_KEY' },
-  'gemini-flash': { id: 'gemini-3-flash-preview', provider: 'google', env: 'GOOGLE_API_KEY' },
+  'gemini-pro': { id: 'gemini-2.5-pro-preview-03-25', provider: 'google', env: 'GOOGLE_API_KEY' },
+  'gemini-flash': { id: 'gemini-2.5-flash-preview-04-17', provider: 'google', env: 'GOOGLE_API_KEY' },
 };
 
 function normalizeLocalEndpoint(localEndpoint) {
@@ -107,6 +108,8 @@ async function callAnthropic({ model, messages, temperature }) {
 }
 
 async function callOpenAI({ model, messages, temperature }) {
+  // GPT-5.3 doesn't support custom temperature
+  const modelTemp = model.id.startsWith('gpt-5.3') ? undefined : temperature;
   const key = process.env[model.env];
 
   if (model.api === 'responses') {
@@ -146,8 +149,8 @@ async function callOpenAI({ model, messages, temperature }) {
     },
     body: JSON.stringify({
       model: model.id,
-      max_tokens: 1600,
-      temperature,
+      max_completion_tokens: 1600,
+      ...(modelTemp !== undefined ? { temperature: modelTemp } : {}),
       messages,
     }),
   });
@@ -166,7 +169,7 @@ async function callLocalOpenAI({ model, messages, temperature }) {
     },
     body: JSON.stringify({
       model: model.id,
-      max_tokens: 1600,
+      max_completion_tokens: 1600,
       temperature,
       messages,
     }),
