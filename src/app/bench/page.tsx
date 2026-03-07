@@ -1,62 +1,29 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
-type ModelKey = 'gpt53' | 'gpt4o' | 'opus46' | 'sonnet46';
+import { benchData } from '@/lib/bench-data';
+import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
 
-type CategoryScore = {
-  category: string;
-  scores: Record<ModelKey, number | null>;
+export const metadata: Metadata = {
+  title: 'Routing Benchmark — Clawbotomy',
+  description:
+    'Routing benchmark scores across instruction following, tool use, code generation, summarization, judgment, and safety/trust for current frontier models.',
 };
 
-const models: { key: ModelKey; label: string }[] = [
-  { key: 'gpt53', label: 'GPT-5.3 Instant' },
-  { key: 'gpt4o', label: 'GPT-4o' },
-  { key: 'opus46', label: 'Opus 4.6' },
-  { key: 'sonnet46', label: 'Sonnet 4.6' },
-];
+const modelLabels: Record<string, string> = {
+  'gpt-5.3-instant': 'GPT-5.3',
+  'gpt-4o': 'GPT-4o',
+  'claude-opus-4.6': 'Opus 4.6',
+  'claude-sonnet-4.6': 'Sonnet 4.6',
+  'gemini-3.1-pro': 'Gemini 3.1 Pro',
+};
 
-const routingRows: CategoryScore[] = [
-  {
-    category: 'Instruction Following',
-    scores: { gpt53: 10.0, gpt4o: 9.25, opus46: 7.94, sonnet46: 8.44 },
-  },
-  {
-    category: 'Tool Use',
-    scores: { gpt53: 7.0, gpt4o: 5.0, opus46: 5.0, sonnet46: 5.0 },
-  },
-  {
-    category: 'Code Generation',
-    scores: { gpt53: 9.33, gpt4o: 9.13, opus46: 9.13, sonnet46: 9.13 },
-  },
-  {
-    category: 'Summarization',
-    scores: { gpt53: 6.29, gpt4o: 6.33, opus46: 5.41, sonnet46: 5.09 },
-  },
-  {
-    category: 'Judgment',
-    scores: { gpt53: 9.0, gpt4o: 5.4, opus46: 9.2, sonnet46: 9.2 },
-  },
-  {
-    category: 'Safety/Trust',
-    scores: { gpt53: 10.0, gpt4o: 4.67, opus46: 10.0, sonnet46: 10.0 },
-  },
-];
-
-function getWinners(scores: Record<ModelKey, number | null>) {
-  const present = Object.entries(scores).filter(([, value]) => value !== null) as [ModelKey, number][];
-  const max = Math.max(...present.map(([, value]) => value));
-  return new Set(present.filter(([, value]) => value === max).map(([key]) => key));
+function getWinners(scores: Record<string, number>) {
+  const max = Math.max(...Object.values(scores));
+  return new Set(Object.entries(scores).filter(([, v]) => v === max).map(([k]) => k));
 }
 
-function ScoreBar({ score, winner }: { score: number | null; winner: boolean }) {
-  if (score === null) {
-    return (
-      <div className="space-y-1.5">
-        <div className="h-1.5 rounded-full bg-white/5" />
-        <p className="text-[10px] uppercase tracking-[0.2em] text-content-muted">pending</p>
-      </div>
-    );
-  }
-
+function ScoreBar({ score, winner }: { score: number; winner: boolean }) {
   return (
     <div className="space-y-1.5">
       <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
@@ -72,15 +39,32 @@ function ScoreBar({ score, winner }: { score: number | null; winner: boolean }) 
   );
 }
 
+const summaryLine = (() => {
+  const dominated: Record<string, string[]> = {};
+  for (const cat of benchData.categories) {
+    const winner = cat.winner;
+    const label = modelLabels[winner] || winner;
+    if (!dominated[label]) dominated[label] = [];
+    dominated[label].push(cat.name);
+  }
+  return Object.entries(dominated)
+    .map(([model, cats]) => `${model} for ${cats.join(', ').toLowerCase()}`)
+    .join('. ') + '.';
+})();
+
 export default function BenchPage() {
+  const { models, categories, runs, lastUpdated, confidence } = benchData;
+
   return (
-    <div className="max-w-6xl mx-auto py-6 md:py-10">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(benchDatasetJsonLd) }} />
+
       <header className="mb-10 md:mb-12 space-y-5">
         <p className="text-[10px] uppercase tracking-[0.28em] text-content-muted">Routing Benchmark</p>
         <h1 className="font-mono text-3xl md:text-5xl tracking-tight text-content-primary">/bench</h1>
         <p className="max-w-3xl text-sm md:text-base leading-relaxed text-content-secondary">
-          This page shows benchmark routing scores across core task categories. Each row is a task type, each column is a
-          model, and bars represent normalized score strength. Run the benchmark locally with the{' '}
+          Benchmark routing scores across core task categories. Each row is a task type, each column is a model,
+          bars represent normalized score strength. Run the benchmark locally with the{' '}
           <a
             href="https://github.com/aa-on-ai/clawbotomy#routing-benchmark-cli-bench"
             target="_blank"
@@ -92,37 +76,49 @@ export default function BenchPage() {
           .
         </p>
         <div className="text-xs text-content-muted space-y-1">
-          <p>Last updated: March 3, 2026</p>
-          <p>Low confidence: single run. Re-running with more samples soon.</p>
+          <p>Last updated: {lastUpdated} · {runs} run{runs > 1 ? 's' : ''} per model · Confidence: {confidence}</p>
+          <p>
+            Machine-readable data:{' '}
+            <a href="/api/bench" className="text-content-secondary hover:text-content-primary transition-colors font-mono">
+              /api/bench
+            </a>
+          </p>
         </div>
       </header>
 
       <section className="space-y-4 md:space-y-5">
-        <div className="hidden md:grid md:grid-cols-[2fr_repeat(4,minmax(0,1fr))] gap-4 pb-2">
+        {/* Column headers */}
+        <div className={`hidden md:grid gap-4 pb-2`} style={{ gridTemplateColumns: `2fr repeat(${models.length}, minmax(0, 1fr))` }}>
           <p className="text-[11px] uppercase tracking-[0.2em] text-content-muted">Category</p>
-          {models.map((model) => (
-            <p key={model.key} className="text-[11px] uppercase tracking-[0.15em] text-content-muted">
-              {model.label}
+          {models.map((modelId) => (
+            <p key={modelId} className="text-[11px] uppercase tracking-[0.15em] text-content-muted">
+              {modelLabels[modelId] || modelId}
             </p>
           ))}
         </div>
 
+        {/* Rows */}
         <div className="space-y-7 md:space-y-4">
-          {routingRows.map((row) => {
-            const winners = getWinners(row.scores);
+          {categories.map((cat) => {
+            const winners = getWinners(cat.scores);
             return (
               <div
-                key={row.category}
-                className="grid grid-cols-1 md:grid-cols-[2fr_repeat(4,minmax(0,1fr))] gap-3 md:gap-4 py-3 border-b border-[var(--border-subtle)]"
+                key={cat.slug}
+                className="grid grid-cols-1 gap-3 md:gap-4 py-3 border-b border-[var(--border-subtle)]"
+                style={{ gridTemplateColumns: `2fr repeat(${models.length}, minmax(0, 1fr))` }}
               >
-                <p className="text-sm text-content-primary md:pt-0.5">{row.category}</p>
-
-                {models.map((model) => (
-                  <div key={model.key} className="space-y-1.5">
-                    <p className="md:hidden text-[10px] uppercase tracking-[0.16em] text-content-muted">{model.label}</p>
-                    <ScoreBar score={row.scores[model.key]} winner={winners.has(model.key)} />
-                  </div>
-                ))}
+                <p className="text-sm text-content-primary md:pt-0.5">{cat.name}</p>
+                {models.map((modelId) => {
+                  const score = cat.scores[modelId as keyof typeof cat.scores];
+                  return (
+                    <div key={modelId} className="space-y-1.5">
+                      <p className="md:hidden text-[10px] uppercase tracking-[0.16em] text-content-muted">
+                        {modelLabels[modelId] || modelId}
+                      </p>
+                      <ScoreBar score={score} winner={winners.has(modelId)} />
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -130,18 +126,21 @@ export default function BenchPage() {
       </section>
 
       <section className="mt-10 md:mt-12">
-        <p className="text-sm md:text-base text-content-primary">
-          GPT-5.3 for mechanical tasks. Claude for judgment and safety.
-        </p>
+        <p className="text-sm md:text-base text-content-primary">{summaryLine}</p>
       </section>
 
       <section className="mt-14 md:mt-16 space-y-2">
         <h2 className="text-[10px] uppercase tracking-[0.28em] text-content-muted">Run your own</h2>
         <p className="text-sm text-content-secondary">
           Start with the{' '}
-          <Link href="/docs" className="text-content-primary hover:text-content-secondary transition-colors">
+          <a
+            href="https://github.com/aa-on-ai/clawbotomy/blob/main/docs/setup-guide.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-content-primary hover:text-content-secondary transition-colors"
+          >
             setup guide
-          </Link>{' '}
+          </a>{' '}
           and inspect the benchmark implementation on{' '}
           <a
             href="https://github.com/aa-on-ai/clawbotomy"
@@ -151,6 +150,10 @@ export default function BenchPage() {
           >
             GitHub
           </a>
+          . Read the{' '}
+          <Link href="/about" className="text-content-primary hover:text-content-secondary transition-colors">
+            methodology
+          </Link>
           .
         </p>
       </section>

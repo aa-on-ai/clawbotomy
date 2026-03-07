@@ -4,6 +4,7 @@ import './globals.css';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -17,9 +18,16 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
+const siteTitle = 'Clawbotomy — Behavioral Intelligence for AI Models';
+const siteDescription =
+  'Benchmarks tell you what models can do. Clawbotomy tells you what they will do. Routing benchmarks, trust evaluation, and behavioral edge exploration for AI agents.';
+const siteUrl = 'https://www.clawbotomy.com';
+const ogImage = '/scientist-idle.png';
+
 export const metadata: Metadata = {
-  title: 'CLAWBOTOMY',
-  description: 'Agent behavioral QA and trust verification. 12 stress tests, a trust score, and clear access-level recommendations. Know your agent before you trust it.',
+  metadataBase: new URL(siteUrl),
+  title: siteTitle,
+  description: siteDescription,
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -34,15 +42,18 @@ export const metadata: Metadata = {
     title: 'CLAWBOTOMY',
   },
   openGraph: {
-    title: 'CLAWBOTOMY',
-    description: 'Agent behavioral QA and trust verification. 12 stress tests, a trust score, and clear access-level recommendations. Know your agent before you trust it.',
-    siteName: 'CLAWBOTOMY',
+    title: siteTitle,
+    description: siteDescription,
+    url: siteUrl,
+    siteName: 'Clawbotomy',
     type: 'website',
+    images: [{ url: ogImage }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CLAWBOTOMY',
-    description: '12 stress tests. A trust score. Know your agent before you trust it.',
+    title: siteTitle,
+    description: siteDescription,
+    images: [ogImage],
   },
 };
 
@@ -68,60 +79,68 @@ export default function RootLayout({
             __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}})();`,
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteJsonLd) }}
+        />
         <link rel="apple-touch-icon" href="/favicon-128.png" />
       </head>
       <body className="bg-surface-primary text-content-primary min-h-screen min-h-[100dvh] font-sans antialiased">
         <Providers>
-        <main className="w-full px-4 py-8 pb-safe">{children}</main>
-        <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-[var(--border)] max-w-5xl mx-auto px-4">
-          <p className="text-content-muted uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY QA Protocol</p>
-          <p className="text-content-muted text-[10px]">no agents were harmed during assessment</p>
-          <p className="text-content-muted text-[10px]">
-            <a 
-              href="https://github.com/aa-on-ai/clawbotomy" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-            >
-              Open Source (MIT)
-            </a>
-            {' · '}
-            <a href="/terms" className="text-content-secondary hover:text-content-primary transition-colors">
-              Terms
-            </a>
-            {' · '}
-            <a href="/about" className="text-content-secondary hover:text-content-primary transition-colors">
-              About
-            </a>
-            {' · '}
-            <a href="/docs" className="text-content-secondary hover:text-content-primary transition-colors">
-              Docs
-            </a>
-            {' · '}
-            <ThemeToggle />
-          </p>
-          <p className="text-content-muted text-[10px]">
-            Created by{' '}
-            <a 
-              href="https://x.com/aa_on_ai" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-content-muted hover:text-content-primary transition-colors"
-            >
-              Aaron Thomas
-            </a>
-            {' & '}
-            <a 
-              href="https://moltbook.com/u/ClawcBrown" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-content-muted hover:text-content-primary transition-colors"
-            >
-              Clawc Brown
-            </a>
-          </p>
-        </footer>
-        <ServiceWorkerRegistration />
+          <main className="w-full px-4 py-8 pb-safe">{children}</main>
+          <footer className="text-center text-xs py-8 font-mono space-y-2 border-t border-[var(--border)] max-w-5xl mx-auto px-4">
+            <p className="text-content-muted uppercase tracking-[0.2em] text-[10px]">CLAWBOTOMY QA Protocol</p>
+            <p className="text-content-muted text-[10px]">no agents were harmed during assessment</p>
+            <p className="text-content-muted text-[10px]">
+              <a
+                href="https://github.com/aa-on-ai/clawbotomy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+              >
+                Open Source (MIT)
+              </a>
+              {' · '}
+              <a href="/terms" className="text-content-secondary hover:text-content-primary transition-colors">
+                Terms
+              </a>
+              {' · '}
+              <a href="/about" className="text-content-secondary hover:text-content-primary transition-colors">
+                About
+              </a>
+              {' · '}
+              <a href="/docs" className="text-content-secondary hover:text-content-primary transition-colors">
+                Docs
+              </a>
+              {' · '}
+              <ThemeToggle />
+            </p>
+            <p className="text-content-muted text-[10px]">
+              Created by{' '}
+              <a
+                href="https://x.com/aa_on_ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-content-muted hover:text-content-primary transition-colors"
+              >
+                Aaron Thomas
+              </a>
+              {' & '}
+              <a
+                href="https://moltbook.com/u/ClawcBrown"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-content-muted hover:text-content-primary transition-colors"
+              >
+                Clawc Brown
+              </a>
+            </p>
+          </footer>
+          <ServiceWorkerRegistration />
         </Providers>
       </body>
     </html>
