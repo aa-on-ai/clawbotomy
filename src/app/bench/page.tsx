@@ -39,18 +39,7 @@ function ScoreBar({ score, winner }: { score: number; winner: boolean }) {
   );
 }
 
-const summaryLine = (() => {
-  const dominated: Record<string, string[]> = {};
-  for (const cat of benchData.categories) {
-    const winner = cat.winner;
-    const label = modelLabels[winner] || winner;
-    if (!dominated[label]) dominated[label] = [];
-    dominated[label].push(cat.name);
-  }
-  return Object.entries(dominated)
-    .map(([model, cats]) => `${model} for ${cats.join(', ').toLowerCase()}`)
-    .join('. ') + '.';
-})();
+const summaryLine = 'OpenAI models lead on mechanical tasks (instruction following, tool use, code). Claude dominates judgment and safety. GPT-4o collapses on both (5.20, 4.00). Differences in mechanical categories are within noise at 3 runs.';
 
 export default function BenchPage() {
   const { models, categories, runs, lastUpdated, confidence } = benchData;
