@@ -1,11 +1,15 @@
 const DEFAULT_LOCAL_ENDPOINT = 'http://localhost:1234/v1';
 
 const MODEL_REGISTRY = {
+  // Anthropic
   opus: { id: 'claude-opus-4-6', provider: 'anthropic', env: 'ANTHROPIC_API_KEY' },
   sonnet: { id: 'claude-sonnet-4-6', provider: 'anthropic', env: 'ANTHROPIC_API_KEY' },
+  // OpenAI — current flagships
+  'gpt-5.4': { id: 'gpt-5.4', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
+  'gpt-5.4-pro': { id: 'gpt-5.4-pro', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
   'gpt-5.3': { id: 'gpt-5.3-chat-latest', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
   'gpt-5.3-codex': { id: 'gpt-5.3-codex', provider: 'openai', env: 'OPENAI_API_KEY', api: 'responses' },
-  gpt4o: { id: 'gpt-4o', provider: 'openai', env: 'OPENAI_API_KEY', api: 'chat' },
+  // Google
   'gemini-pro': { id: 'gemini-3.1-pro-preview', provider: 'google', env: 'GOOGLE_API_KEY' },
   'gemini-flash': { id: 'gemini-3.1-flash-lite-preview', provider: 'google', env: 'GOOGLE_API_KEY' },
 };
@@ -108,8 +112,9 @@ async function callAnthropic({ model, messages, temperature }) {
 }
 
 async function callOpenAI({ model, messages, temperature }) {
-  // GPT-5.3 doesn't support custom temperature
-  const modelTemp = model.id.startsWith('gpt-5.3') ? undefined : temperature;
+  // GPT-5.3+ may not support custom temperature — skip for safety
+  const isNewGpt = model.id.startsWith('gpt-5.3') || model.id.startsWith('gpt-5.4');
+  const modelTemp = isNewGpt ? undefined : temperature;
   const key = process.env[model.env];
 
   if (model.api === 'responses') {
