@@ -21,23 +21,202 @@
 }
 
 .dark {
-  --bg-primary: #09090b;
-  --bg-elevated: #18181b;
-  --bg-card: #1c1c22;
+  --bg-primary: #07070e;
+  --bg-elevated: rgba(13, 14, 24, 0.82);
+  --bg-card: rgba(10, 10, 20, 0.6);
   --accent: #10B981;
   --text-primary: #fafafa;
   --text-secondary: #d4d4d8;
   --text-muted: #a1a1aa;
-  --border: #27272a;
-  --border-subtle: rgba(255,255,255,0.08);
-  --body-glow-top: rgba(16, 185, 129, 0.04);
-  --body-glow-bottom: rgba(139, 92, 246, 0.03);
-  --card-hover-bg: #222228;
-  --card-hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.08);
-  --text-glow-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-  --card-accent-gradient: linear-gradient(135deg, rgba(16, 185, 129, 0.3), transparent 50%);
+  --border: rgba(255,255,255,0.1);
+  --border-subtle: rgba(255,255,255,0.06);
+  --body-glow-top: rgba(16, 185, 129, 0.06);
+  --body-glow-bottom: rgba(94, 234, 212, 0.035);
+  --card-hover-bg: rgba(12, 13, 24, 0.72);
+  --card-hover-shadow: 0 24px 80px rgba(0, 0, 0, 0.42), 0 0 48px rgba(16, 185, 129, 0.08);
+  --text-glow-shadow: 0 0 20px rgba(16, 185, 129, 0.24);
+  --card-accent-gradient: linear-gradient(135deg, rgba(16, 185, 129, 0.22), transparent 55%);
 }
 
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.045) 0%, rgba(16, 185, 129, 0.02) 18%, transparent 52%),
+    radial-gradient(circle at 85% 12%, rgba(99, 102, 241, 0.03) 0%, transparent 34%),
+    radial-gradient(circle at 10% 78%, rgba(56, 189, 248, 0.024) 0%, transparent 30%),
+    linear-gradient(180deg, #090913 0%, #07070e 42%, #06060c 100%);
+  background-attachment: fixed;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+}
+
+body::before {
+  opacity: 0.055;
+  background-image:
+    radial-gradient(140% 90% at 18% 22%, transparent 0 33%, rgba(255,255,255,0.92) 33.4% 33.9%, transparent 34.3% 40%, rgba(255,255,255,0.76) 40.3% 40.75%, transparent 41.15% 47%, rgba(255,255,255,0.56) 47.3% 47.75%, transparent 48.15%),
+    radial-gradient(100% 80% at 78% 28%, transparent 0 26%, rgba(255,255,255,0.82) 26.35% 26.8%, transparent 27.15% 33%, rgba(255,255,255,0.66) 33.35% 33.8%, transparent 34.15% 40%, rgba(255,255,255,0.5) 40.3% 40.7%, transparent 41.05%),
+    radial-gradient(120% 90% at 48% 62%, transparent 0 31%, rgba(255,255,255,0.74) 31.3% 31.8%, transparent 32.15% 38%, rgba(255,255,255,0.58) 38.3% 38.75%, transparent 39.1% 45%, rgba(255,255,255,0.42) 45.25% 45.65%, transparent 46%),
+    radial-gradient(115% 85% at 72% 78%, transparent 0 24%, rgba(255,255,255,0.62) 24.3% 24.7%, transparent 25.05% 31%, rgba(255,255,255,0.46) 31.35% 31.75%, transparent 32.1% 38%);
+  background-size: 1600px 1100px, 1400px 960px, 1500px 1200px, 1200px 900px;
+  background-position: center top, right top, center center, left bottom;
+  filter: blur(0.3px);
+  transform: scale(1.08);
+  animation: topoDrift 120s ease-in-out infinite alternate;
+}
+
+body::after {
+  z-index: -1;
+  opacity: 0.45;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.045) 14%, rgba(16, 185, 129, 0.018) 28%, transparent 58%),
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.016) 0%, transparent 34%),
+    radial-gradient(circle at 82% 22%, rgba(255,255,255,0.018) 0%, transparent 26%);
+}
+
+@keyframes topoDrift {
+  0% {
+    transform: scale(1.08) translate3d(0%, 0%, 0) rotate(0deg);
+    opacity: 0.045;
+  }
+  50% {
+    transform: scale(1.11) translate3d(-1.2%, 1%, 0) rotate(0.3deg);
+    opacity: 0.062;
+  }
+  100% {
+    transform: scale(1.09) translate3d(1.4%, -1.1%, 0) rotate(-0.35deg);
+    opacity: 0.05;
+  }
+}
+
+/* Higher contrast text */
+.text-high-contrast {
+  color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Topographic mesh background overlay */
+.grid-bg {
+  position: relative;
+  isolation: isolate;
+}
+
+.grid-bg::before,
+.grid-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.grid-bg::before {
+  z-index: -1;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(16, 185, 129, 0.07) 0%, rgba(16, 185, 129, 0.03) 18%, transparent 52%),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.02) 0%, transparent 26%),
+    radial-gradient(circle at 70% 38%, rgba(255,255,255,0.018) 0%, transparent 30%);
+}
+
+.grid-bg::after {
+  z-index: -1;
+  opacity: 0.035;
+  mix-blend-mode: screen;
+  background-image:
+    radial-gradient(120% 88% at 18% 18%, transparent 0 30%, rgba(255,255,255,0.95) 30.35% 30.75%, transparent 31.1% 37%, rgba(255,255,255,0.78) 37.35% 37.75%, transparent 38.1% 44%, rgba(255,255,255,0.6) 44.3% 44.65%, transparent 45%),
+    radial-gradient(110% 84% at 82% 20%, transparent 0 24%, rgba(255,255,255,0.86) 24.3% 24.7%, transparent 25.05% 31%, rgba(255,255,255,0.68) 31.35% 31.75%, transparent 32.1% 38%),
+    radial-gradient(138% 96% at 52% 65%, transparent 0 29%, rgba(255,255,255,0.76) 29.35% 29.75%, transparent 30.1% 36%, rgba(255,255,255,0.56) 36.35% 36.75%, transparent 37.1% 43%, rgba(255,255,255,0.42) 43.25% 43.6%, transparent 43.95%),
+    radial-gradient(115% 90% at 74% 82%, transparent 0 22%, rgba(255,255,255,0.58) 22.3% 22.65%, transparent 23% 29%, rgba(255,255,255,0.42) 29.3% 29.65%, transparent 30%);
+  background-size: 1500px 980px, 1250px 860px, 1460px 1180px, 1200px 900px;
+  background-position: center top, right top, center center, right bottom;
+  animation: topoDrift 110s ease-in-out infinite alternate-reverse;
+}
+
+.glass-card {
+  position: relative;
+  border-radius: 1rem;
+  background: rgba(10, 10, 20, 0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 20px 60px rgba(0, 0, 0, 0.24);
+  transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease, background-color 260ms ease;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.01) 26%, transparent 55%);
+  opacity: 0.9;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--card-accent, var(--accent)) 32%, rgba(255,255,255,0.06));
+  box-shadow:
+    0 0 40px color-mix(in srgb, var(--card-accent, var(--accent)) 15%, transparent),
+    0 20px 64px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.glass-readout {
+  background: rgba(10, 10, 20, 0.7);
+  border: 1px solid rgba(16, 185, 129, 0.14);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 0 70px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 80px rgba(0,0,0,0.3);
+}
+
+.glass-readout:hover {
+  border-color: rgba(16, 185, 129, 0.22);
+  box-shadow: 0 0 80px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 80px rgba(0,0,0,0.34);
+}
+
+.score-bar-track {
+  background: rgba(255,255,255,0.05);
+}
+
+.score-bar-fill {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.95) 0%, rgba(16, 185, 129, 0.7) 58%, rgba(110, 231, 183, 0.4) 100%);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.24), 0 0 34px rgba(16, 185, 129, 0.14);
+}
+
+.section-label {
+  color: rgba(161, 161, 170, 0.84);
+  text-shadow: 0 0 24px rgba(0,0,0,0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .grid-bg::after,
+  .breathe,
+  .discovery-pulse,
+  .lab-typewriter,
+  .chaos-low .chaos-glow,
+  .chaos-mid .chaos-text,
+  .chaos-mid .chaos-container,
+  .chaos-mid .chaos-phase-transition,
+  .chaos-mid .chaos-flicker,
+  .chaos-high .chaos-text,
+  .chaos-high .chaos-msg,
+  .chaos-high .chaos-phase-transition,
+  .chaos-high .chaos-container,
+  .chaos-high .chaos-vhs,
+  .interstitial-fade,
+  .interstitial-text,
+  .interstitial-bar {
+    animation: none !important;
+  }
+}
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
