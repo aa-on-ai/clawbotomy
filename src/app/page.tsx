@@ -69,7 +69,7 @@ export default function Home() {
   };
 
   return (
-    <div className="grid-bg min-h-screen">
+    <div className="min-h-screen">
       {/* Hero — starts at grid line, 200px top margin */}
       <header style={{ paddingTop: 200, paddingBottom: 200 }} className="max-w-[960px] mx-auto text-center px-[40px]">
         <p className="font-mono text-[11px] uppercase tracking-[0.24em] mb-[20px]" style={{ color: '#10B981' }}>
