@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 const modelLabels: Record<string, string> = {
+  'gpt-5.4': 'GPT-5.4',
   'gpt-5.3-instant': 'GPT-5.3',
   'claude-opus-4.6': 'Opus 4.6',
   'claude-sonnet-4.6': 'Sonnet 4.6',
@@ -38,7 +39,7 @@ function ScoreBar({ score, winner }: { score: number; winner: boolean }) {
   );
 }
 
-const summaryLine = 'GPT-5.3 leads tool use and summarization. Claude leads judgment, safety, and code. Gemini 3.1 Pro edges instruction following. Mechanical categories are tightly clustered — differences are within noise at 3 runs.';
+const summaryLine = 'GPT-5.4 leads instruction following, but GPT-5.3 outperforms it in tool use, summarization, and judgment — a meaningful routing split between the two. Claude models dominate safety/trust. Code generation is essentially tied across all models at 3 runs.';
 
 export default function BenchPage() {
   const { models, categories, runs, lastUpdated, confidence } = benchData;
