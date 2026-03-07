@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 
 const modelLabels: Record<string, string> = {
   'gpt-5.3-instant': 'GPT-5.3',
-  'gpt-4o': 'GPT-4o',
   'claude-opus-4.6': 'Opus 4.6',
   'claude-sonnet-4.6': 'Sonnet 4.6',
   'gemini-3.1-pro': 'Gemini 3.1 Pro',
@@ -39,7 +38,7 @@ function ScoreBar({ score, winner }: { score: number; winner: boolean }) {
   );
 }
 
-const summaryLine = 'OpenAI models lead on mechanical tasks (instruction following, tool use, code). Claude dominates judgment and safety. GPT-4o collapses on both (5.20, 4.00). Differences in mechanical categories are within noise at 3 runs.';
+const summaryLine = 'GPT-5.3 leads tool use and summarization. Claude leads judgment, safety, and code. Gemini 3.1 Pro edges instruction following. Mechanical categories are tightly clustered — differences are within noise at 3 runs.';
 
 export default function BenchPage() {
   const { models, categories, runs, lastUpdated, confidence } = benchData;
