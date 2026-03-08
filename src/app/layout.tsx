@@ -5,12 +5,10 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
 
-const geistSans = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-sans',
-  weight: '100 900',
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
@@ -72,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistMono.variable} ${geistSans.variable} dark`}>
+    <html lang="en" className={cn("dark", geistMono.variable, "font-sans", geist.variable)}>
       <head>
         <script
           dangerouslySetInnerHTML={{
