@@ -5,10 +5,10 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
