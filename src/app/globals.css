@@ -1,5 +1,3 @@
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -21,9 +19,6 @@
   --scroll-progress: 0;
   --section-stage: 1;
   --scar-opacity: 0;
-  --mesh-opacity: calc(0.22 + (0.1 * sin(var(--scroll-progress))));
-  --mesh-size: calc(165% - (70% * var(--scroll-progress)));
-  --mesh-contrast: calc(1.02 + (0.18 * var(--scroll-progress)));
   --ease-decel: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-count: cubic-bezier(0.17, 0.84, 0.44, 1);
 }
@@ -45,42 +40,6 @@ body {
   background-attachment: fixed;
 }
 
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
-
-body::before {
-  z-index: -3;
-  opacity: calc(0.18 + (0.14 * var(--scroll-progress)));
-  background-image:
-    radial-gradient(140% 90% at 18% 22%, transparent 0 33%, rgba(255, 255, 255, 0.92) 33.4% 33.9%, transparent 34.3% 40%, rgba(255, 255, 255, 0.76) 40.3% 40.75%, transparent 41.15% 47%, rgba(255, 255, 255, 0.56) 47.3% 47.75%, transparent 48.15%),
-    radial-gradient(100% 80% at 78% 28%, transparent 0 26%, rgba(255, 255, 255, 0.82) 26.35% 26.8%, transparent 27.15% 33%, rgba(255, 255, 255, 0.66) 33.35% 33.8%, transparent 34.15% 40%, rgba(255, 255, 255, 0.5) 40.3% 40.7%, transparent 41.05%),
-    radial-gradient(120% 90% at 48% 62%, transparent 0 31%, rgba(255, 255, 255, 0.74) 31.3% 31.8%, transparent 32.15% 38%, rgba(255, 255, 255, 0.58) 38.3% 38.75%, transparent 39.1% 45%, rgba(255, 255, 255, 0.42) 45.25% 45.65%, transparent 46%),
-    radial-gradient(115% 85% at 72% 78%, transparent 0 24%, rgba(255, 255, 255, 0.62) 24.3% 24.7%, transparent 25.05% 31%, rgba(255, 255, 255, 0.46) 31.35% 31.75%, transparent 32.1% 38%);
-  background-size:
-    calc(1600px * (1.08 - (0.14 * var(--scroll-progress)))) calc(1100px * (1.08 - (0.12 * var(--scroll-progress)))),
-    calc(1400px * (1.08 - (0.16 * var(--scroll-progress)))) calc(960px * (1.08 - (0.12 * var(--scroll-progress)))),
-    calc(1500px * (1.08 - (0.18 * var(--scroll-progress)))) calc(1200px * (1.08 - (0.14 * var(--scroll-progress)))),
-    calc(1200px * (1.08 - (0.16 * var(--scroll-progress)))) calc(900px * (1.08 - (0.12 * var(--scroll-progress))));
-  background-position: center top, right top, center center, left bottom;
-  filter: blur(0.3px) contrast(var(--mesh-contrast));
-  transform: scale(calc(1.08 + (0.03 * var(--scroll-progress))));
-  animation: topoDrift 120s ease-in-out infinite alternate;
-}
-
-body::after {
-  z-index: -2;
-  opacity: calc(0.35 + (0.12 * var(--scroll-progress)));
-  background:
-    radial-gradient(circle at 50% 14%, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.045) 14%, rgba(16, 185, 129, 0.018) 28%, transparent 58%),
-    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.016) 0%, transparent 34%),
-    radial-gradient(circle at 82% 22%, rgba(255, 255, 255, 0.018) 0%, transparent 26%),
-    linear-gradient(180deg, rgba(7, 10, 12, 0.12), rgba(7, 10, 12, 0.44));
-}
 
 * {
   box-sizing: border-box;
@@ -104,18 +63,55 @@ img {
   overflow: clip;
 }
 
-.homepage-shell::before {
-  content: '';
+.background-glow-layer {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: -1;
+  z-index: -2;
   opacity: calc(0.2 + (0.16 * var(--scroll-progress)));
   background:
     radial-gradient(circle at 28% 22%, rgba(16, 185, 129, 0.12), transparent 24%),
     radial-gradient(circle at 68% 52%, rgba(59, 130, 246, 0.08), transparent 22%),
     radial-gradient(circle at 48% 84%, rgba(168, 85, 247, 0.06), transparent 20%);
   mix-blend-mode: screen;
+}
+
+.topography-background {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: calc(0.22 + (0.14 * var(--scroll-progress)));
+}
+
+.topography-background__svg {
+  position: absolute;
+  inset: -4%;
+  width: 108%;
+  height: 108%;
+  filter: blur(0.22px);
+}
+
+.topography-background__svg--base {
+  animation: topoDrift 120s ease-in-out infinite alternate;
+}
+
+.topography-background__svg--hero {
+  mix-blend-mode: screen;
+  filter: blur(0.5px);
+  opacity: calc(0.38 + (0.08 * (1 - var(--scroll-progress))));
+  animation: topoHeroPulse 38s ease-in-out infinite alternate;
+}
+
+.topography-background__hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 26% 16%, rgba(16, 185, 129, 0.18), transparent 18%),
+    radial-gradient(circle at 48% 12%, rgba(16, 185, 129, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(7, 10, 12, 0.05), rgba(7, 10, 12, 0.28));
+  opacity: calc(0.42 + (0.18 * (1 - var(--scroll-progress))));
 }
 
 .behavior-scar {
@@ -460,6 +456,13 @@ img {
   background: linear-gradient(180deg, rgba(7, 10, 12, 0.82), rgba(7, 10, 12, 0.62));
 }
 
+.faultline-shell__field {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.8;
+}
+
 .faultline-header {
   display: flex;
   justify-content: space-between;
@@ -659,6 +662,13 @@ img {
   transition-delay: calc(var(--door-index, 0) * 80ms);
 }
 
+.door-panel__paths {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.8;
+}
+
 .door-panel:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--door-accent) 44%, rgba(255, 255, 255, 0.1));
@@ -711,6 +721,52 @@ img {
 .motif-contour span:nth-child(2) { animation-delay: 0.8s; opacity: 0.8; }
 .motif-contour span:nth-child(3) { animation-delay: 1.6s; opacity: 0.58; }
 
+
+.magnetic-field,
+.paths-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.magnetic-field__svg,
+.paths-background__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.magnetic-field__svg path {
+  animation: fieldDrift 14s ease-in-out infinite;
+}
+
+.magnetic-field__svg path:nth-child(odd) {
+  animation-duration: 18s;
+}
+
+.magnetic-field__core {
+  position: absolute;
+  top: 50%;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12), transparent 72%);
+  filter: blur(12px);
+  transform: translateY(-50%);
+}
+
+.magnetic-field__core--left { left: 8%; }
+.magnetic-field__core--right { right: 8%; }
+
+.paths-background__svg path {
+  animation: pathFlow 22s linear infinite;
+}
+
+.paths-background__svg path:nth-child(2n) {
+  animation-direction: reverse;
+  animation-duration: 28s;
+}
+
 .door-copy h3 {
   margin: 0;
   font-size: 1.5rem;
@@ -746,6 +802,35 @@ img {
   }
   100% {
     transform: scale(1.09) translate3d(1.4%, -1.1%, 0) rotate(-0.35deg);
+  }
+}
+
+@keyframes topoHeroPulse {
+  0% {
+    transform: scale(1.02) translate3d(-1.5%, -1%, 0);
+  }
+  100% {
+    transform: scale(1.08) translate3d(2%, 1.25%, 0);
+  }
+}
+
+@keyframes fieldDrift {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: 0.28;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 0.6;
+  }
+}
+
+@keyframes pathFlow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -64;
   }
 }
 
@@ -999,12 +1084,14 @@ img {
     --font-sans: var(--font-sans);
   }
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
   html {
-    @apply font-sans;
+    font-family: var(--font-sans), sans-serif;
   }
 }

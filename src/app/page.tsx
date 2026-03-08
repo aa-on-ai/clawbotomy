@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { MagneticField } from '@/components/backgrounds/magnetic-field';
+import { Paths } from '@/components/backgrounds/paths';
+import { Topography } from '@/components/backgrounds/topography';
 import { benchData } from '@/lib/bench-data';
 
 type ModelKey = (typeof benchData.models)[number];
@@ -309,6 +312,8 @@ export default function Home() {
 
   return (
     <main className="homepage-shell">
+      <Topography />
+      <div className="background-glow-layer" aria-hidden="true" />
       <div className="behavior-scar" aria-hidden="true" />
 
       <section ref={heroRef} className={`narrative-section hero-section ${revealed.hero ? 'is-visible' : ''}`}>
@@ -390,6 +395,7 @@ export default function Home() {
       <section ref={faultlineRef} className={`narrative-section faultline-section ${revealed.faultline ? 'is-visible' : ''}`}>
         <div className="section-inner">
           <div className="faultline-shell glass-readout">
+            <MagneticField className="faultline-shell__field" />
             <div className="faultline-header reveal-block">
               <div>
                 <p className="section-eyebrow">behavioral profile</p>
@@ -454,6 +460,7 @@ export default function Home() {
           <div className="door-grid">
             {doorCards.map((door, index) => (
               <Link key={door.href} href={door.href} className="door-panel glass-panel" style={{ ['--door-index' as string]: String(index), ['--door-accent' as string]: door.accent }}>
+                {door.href === '/bench' ? <Paths className="door-panel__paths" /> : null}
                 <p className="door-slug">{door.slug}</p>
                 <div className={`door-motif motif-${door.motif}`} aria-hidden="true">
                   <span />
