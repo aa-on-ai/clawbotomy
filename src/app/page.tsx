@@ -188,7 +188,7 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [crossSection, setCrossSection] = useState(false);
   const [revealed, setRevealed] = useState<RevealedState>({
-    hero: reducedMotion,
+    hero: true,
     fracture: reducedMotion,
     faultline: reducedMotion,
     doors: reducedMotion,
@@ -274,10 +274,10 @@ export default function Home() {
 
     const observers: IntersectionObserver[] = [];
     const entries = [
-      ['hero', heroRef.current, 0.35],
-      ['fracture', fractureRef.current, 0.28],
-      ['faultline', faultlineRef.current, 0.3],
-      ['doors', doorsRef.current, 0.28],
+      ['hero', heroRef.current, 0.05],
+      ['fracture', fractureRef.current, 0.1],
+      ['faultline', faultlineRef.current, 0.1],
+      ['doors', doorsRef.current, 0.1],
     ] as const;
 
     entries.forEach(([key, node, threshold]) => {
