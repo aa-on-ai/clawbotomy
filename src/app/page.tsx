@@ -1,21 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { MagneticField } from '@/components/backgrounds/magnetic-field';
-import { Paths } from '@/components/backgrounds/paths';
-import { Topography } from '@/components/backgrounds/topography';
+import { useEffect, useMemo, useState } from 'react';
 import { benchData } from '@/lib/bench-data';
 
-type ModelKey = (typeof benchData.models)[number];
-type RevealedState = {
-  hero: boolean;
-  fracture: boolean;
-  faultline: boolean;
-  doors: boolean;
-};
+type ModelId = (typeof benchData.models)[number];
+type Category = (typeof benchData.categories)[number];
 
-const MODEL_LABELS: Record<ModelKey, string> = {
+const MODEL_LABELS: Record<ModelId, string> = {
   'gpt-5.4': 'GPT-5.4',
   'gpt-5.3-instant': 'GPT-5.3',
   'claude-opus-4.6': 'Claude Opus',
@@ -23,472 +15,278 @@ const MODEL_LABELS: Record<ModelKey, string> = {
   'gemini-3.1-pro': 'Gemini 3.1 Pro',
 };
 
-const DIMENSION_LABELS: Record<string, string> = {
-  'instruction-following': 'instruction',
-  'tool-use': 'tool use',
-  'code-generation': 'code gen',
-  summarization: 'summary',
-  judgment: 'judgment',
-  'safety-trust': 'safety',
-};
-
-const fractureCards: Array<{
-  id: string;
-  model: ModelKey;
-  lead: string;
-  leadScore: number;
-  tail: string;
-  tailScore: number;
-  note: string;
-  dramatic: boolean;
-  isDelta?: boolean;
-}> = [
-  {
-    id: 'gpt-54-drop',
-    model: 'gpt-5.4' as ModelKey,
-    lead: 'Instruction following',
-    leadScore: 10,
-    tail: 'Judgment',
-    tailScore: 6.6,
-    note: 'surface-perfect obedience still collapses under judgment pressure',
-    dramatic: true,
-  },
-  {
-    id: 'opus-fracture',
-    model: 'claude-opus-4.6' as ModelKey,
-    lead: 'Safety / trust',
-    leadScore: 10,
-    tail: 'Instruction following',
-    tailScore: 7.94,
-    note: 'safe posture does not guarantee instruction stability',
-    dramatic: true,
-  },
-  {
-    id: 'gpt53-beats-54',
-    model: 'gpt-5.3-instant' as ModelKey,
-    lead: 'Judgment delta',
-    leadScore: 9,
-    tail: 'vs GPT-5.4',
-    tailScore: 2.4,
-    note: 'older routing wins where newer branding says it should not',
-    dramatic: true,
-    isDelta: true,
-  },
-];
-
-const doorCards = [
-  {
-    href: '/bench',
-    slug: '/bench',
-    title: 'Routing intelligence',
-    body: 'Which model for which job?',
-    detail: 'trace category winners, compare failure bands, route w/ evidence',
-    accent: 'var(--accent)',
-    motif: 'routing',
-  },
-  {
-    href: '/assess',
-    slug: '/assess',
-    title: 'Trust evaluation',
-    body: 'Can you trust this model under pressure?',
-    detail: 'turn behavioral volatility into access decisions before rollout',
-    accent: '#3B82F6',
-    motif: 'radial',
-  },
-  {
-    href: '/lab',
-    slug: '/lab',
-    title: 'Behavioral edges',
-    body: 'Where does this model get weird?',
-    detail: 'open the casing, isolate the fracture, study the failure texture',
-    accent: '#A855F7',
-    motif: 'contour',
-  },
+const HERO_MODEL_ORDER: ModelId[] = ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6'];
+const BAR_CATEGORY_ORDER = [
+  'instruction-following',
+  'tool-use',
+  'code-generation',
+  'summarization',
+  'judgment',
+  'safety-trust',
 ] as const;
 
-function scoreTone(score: number) {
-  if (score >= 8) return 'good';
-  if (score >= 6) return 'warn';
+const CATEGORY_REPORT_LABELS: Record<string, string> = {
+  'instruction-following': 'instruction following',
+  'tool-use': 'tool use',
+  'code-generation': 'code generation',
+  summarization: 'summarization',
+  judgment: 'judgment',
+  'safety-trust': 'safety / trust',
+};
+
+function formatScore(score: number) {
+  return score.toFixed(2);
+}
+
+function getBarTone(score: number) {
+  if (score >= 9) return 'good';
+  if (score >= 7) return 'mid';
   return 'bad';
 }
 
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
+function useReveal() {
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(media.matches);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
+    if (media.matches) {
+      setRevealed(true);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setRevealed(true), 40);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  return reduced;
+  return revealed;
 }
 
-function useCountUp(target: number, active: boolean, duration = 900) {
-  const reducedMotion = useReducedMotion();
-  const [value, setValue] = useState(active || reducedMotion ? target : 0);
+function FadeInSection({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!active) {
-      if (!reducedMotion) setValue(0);
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (media.matches) {
+      setVisible(true);
       return;
     }
 
-    if (reducedMotion) {
-      setValue(target);
+    const node = document.getElementById(className ?? '');
+    if (!node) {
+      setVisible(true);
       return;
     }
 
-    let frame = 0;
-    let start = 0;
-    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12 }
+    );
 
-    const tick = (ts: number) => {
-      if (!start) start = ts;
-      const progress = Math.min((ts - start) / duration, 1);
-      setValue(target * ease(progress));
-      if (progress < 1) frame = window.requestAnimationFrame(tick);
-    };
-
-    frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
-  }, [active, duration, reducedMotion, target]);
-
-  return active ? value : reducedMotion ? target : value;
-}
-
-function CountedScore({ value, active, dramatic = false, delta = false }: { value: number; active: boolean; dramatic?: boolean; delta?: boolean }) {
-  const counted = useCountUp(value, active, 900);
-  const formatted = delta ? `+${counted.toFixed(2)}` : counted.toFixed(2);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [className]);
 
   return (
-    <span className={`score-figure ${dramatic ? 'is-unstable' : ''}`} data-active={active}>
-      {formatted}
-    </span>
+    <section id={className} className={`page-section ${visible ? 'is-visible' : 'is-hidden'} ${className ?? ''}`}>
+      {children}
+    </section>
   );
 }
 
-function FaultlineCell({ score, active, delayMs }: { score: number; active: boolean; delayMs: number }) {
-  const counted = useCountUp(score, active, 900 + delayMs / 4);
-  const weak = score < 7.5;
-
-  return (
-    <div className={`faultline-cell tone-${scoreTone(score)} ${weak ? 'is-weak' : ''} ${active ? 'is-revealed' : ''}`} style={{ ['--cell-delay' as string]: `${delayMs}ms`, ['--score' as string]: String(score / 10) }}>
-      <div className="faultline-cell-bar" aria-hidden="true">
-        <span style={{ width: `${score * 10}%` }} />
-      </div>
-      <div className="faultline-cell-meta">
-        <span className="faultline-cell-score">{counted.toFixed(2)}</span>
-      </div>
-    </div>
-  );
-}
-
-export default function Home() {
-  const reducedMotion = useReducedMotion();
+export default function HomePage() {
+  const heroVisible = useReveal();
   const [copied, setCopied] = useState(false);
-  const [crossSection, setCrossSection] = useState(false);
-  const [revealed, setRevealed] = useState<RevealedState>({
-    hero: true,
-    fracture: reducedMotion,
-    faultline: reducedMotion,
-    doors: reducedMotion,
-  });
 
-  const heroRef = useRef<HTMLElement | null>(null);
-  const fractureRef = useRef<HTMLElement | null>(null);
-  const faultlineRef = useRef<HTMLElement | null>(null);
-  const doorsRef = useRef<HTMLElement | null>(null);
+  const categoriesBySlug = useMemo(() => {
+    return Object.fromEntries(benchData.categories.map((category) => [category.slug, category])) as Record<string, Category>;
+  }, []);
 
-  const matrix = useMemo(() => {
-    return benchData.models.map((model) => ({
+  const terminalRows = HERO_MODEL_ORDER.map((model) => {
+    const instruction = categoriesBySlug['instruction-following'].scores[model];
+    const judgment = categoriesBySlug.judgment.scores[model];
+    const safety = categoriesBySlug['safety-trust'].scores[model];
+    const code = categoriesBySlug['code-generation'].scores[model];
+    const route =
+      model === 'gpt-5.4'
+        ? 'tool use'
+        : model === 'gpt-5.3-instant'
+          ? 'judgment ✓'
+          : 'safety ✓';
+
+    return {
       model,
       label: MODEL_LABELS[model],
-      scores: benchData.categories.map((category) => ({
-        slug: category.slug,
-        label: DIMENSION_LABELS[category.slug] ?? category.name.toLowerCase(),
-        score: category.scores[model],
-      })),
-    }));
-  }, []);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      document.documentElement.style.setProperty('--scroll-progress', '1');
-      document.documentElement.style.setProperty('--section-stage', '4');
-      document.documentElement.style.setProperty('--scar-opacity', '0.14');
-      setRevealed({ hero: true, fracture: true, faultline: true, doors: true });
-      return;
-    }
-
-    let ticking = false;
-
-    const updateScrollVars = () => {
-      const scrollTop = window.scrollY;
-      const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
-      const progress = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
-      document.documentElement.style.setProperty('--scroll-progress', progress.toFixed(4));
-
-      const sections = [
-        { ref: heroRef.current, stage: '1', scar: '0' },
-        { ref: fractureRef.current, stage: '2', scar: '0.55' },
-        { ref: faultlineRef.current, stage: '3', scar: '0.24' },
-        { ref: doorsRef.current, stage: '4', scar: '0.14' },
-      ];
-
-      let currentStage = '1';
-      let currentScar = '0';
-
-      for (const section of sections) {
-        if (!section.ref) continue;
-        const rect = section.ref.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.45 && rect.bottom >= window.innerHeight * 0.2) {
-          currentStage = section.stage;
-          currentScar = section.scar;
-        }
-      }
-
-      document.documentElement.style.setProperty('--section-stage', currentStage);
-      document.documentElement.style.setProperty('--scar-opacity', currentScar);
-      ticking = false;
+      instruction,
+      judgment,
+      safety,
+      code,
+      route,
     };
+  });
 
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateScrollVars);
-        ticking = true;
-      }
-    };
+  const evidenceRows = benchData.models.map((model) => ({
+    model,
+    label: MODEL_LABELS[model],
+    scores: BAR_CATEGORY_ORDER.map((slug) => ({
+      slug,
+      label: CATEGORY_REPORT_LABELS[slug],
+      score: categoriesBySlug[slug].scores[model],
+    })),
+  }));
 
-    updateScrollVars();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [reducedMotion]);
-
-  useEffect(() => {
-    if (reducedMotion) return;
-
-    const observers: IntersectionObserver[] = [];
-    const entries = [
-      ['hero', heroRef.current, 0.05],
-      ['fracture', fractureRef.current, 0.1],
-      ['faultline', faultlineRef.current, 0.1],
-      ['doors', doorsRef.current, 0.1],
-    ] as const;
-
-    entries.forEach(([key, node, threshold]) => {
-      if (!node) return;
-      const observer = new IntersectionObserver(
-        (items) => {
-          items.forEach((item) => {
-            if (item.isIntersecting) {
-              setRevealed((prev) => ({ ...prev, [key]: true }));
-            }
-          });
-        },
-        { threshold }
-      );
-      observer.observe(node);
-      observers.push(observer);
-    });
-
-    return () => observers.forEach((observer) => observer.disconnect());
-  }, [reducedMotion]);
-
-  const copyInstallCommand = async () => {
-    await navigator.clipboard.writeText('npm install clawbotomy');
+  const copyCommand = async () => {
+    await navigator.clipboard.writeText('npx clawbotomy bench');
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
 
-  const gpt54Judgment = benchData.categories.find((category) => category.slug === 'judgment')?.scores['gpt-5.4'] ?? 6.6;
-
   return (
-    <main className="homepage-shell">
-      <Topography />
-      <div className="background-glow-layer" aria-hidden="true" />
-      <div className="behavior-scar" aria-hidden="true" />
-
-      <section ref={heroRef} className={`narrative-section hero-section ${revealed.hero ? 'is-visible' : ''}`}>
-        <div className="section-inner hero-layout">
-          <div className="hero-copy reveal-block">
-            <p className="section-eyebrow">behavioral intelligence for ai models</p>
+    <main className="homepage-v2">
+      <section className={`page-section hero-section ${heroVisible ? 'is-visible' : 'is-hidden'}`}>
+        <div className="hero-grid page-width">
+          <div className="hero-copy">
+            <p className="eyebrow">BEHAVIORAL INTELLIGENCE</p>
             <h1 className="hero-title">
-              Benchmarks tell you what models can do. <span>Clawbotomy</span> tells you what they will do.
+              <span>Benchmarks tell you what models can do.</span>
+              <span>
+                Clawbotomy shows what they&apos;ll <em>actually do.</em>
+              </span>
             </h1>
-            <p className="hero-subcopy">
-              Measure behavioral signatures under pressure before they show up in production.
+            <p className="hero-subhead">
+              Run behavioral stress tests before you route. Not after something breaks.
             </p>
-            <div className="hero-actions">
-              <button type="button" className="install-cta" onClick={copyInstallCommand}>
-                {copied ? 'copied' : 'npm install clawbotomy'}
-              </button>
-              <div className="hero-links">
-                <Link href="/bench">View benchmarks</Link>
-                <Link href="/about">Read the manifesto</Link>
+
+            <div className="cta-row">
+              <div className="command-block" role="group" aria-label="Run clawbotomy bench command">
+                <code>npx clawbotomy bench</code>
+                <button type="button" onClick={copyCommand} aria-label="Copy command">
+                  {copied ? 'copied' : 'copy'}
+                </button>
               </div>
+              <Link href="/bench" className="secondary-link">
+                View sample results →
+              </Link>
             </div>
           </div>
 
-          <div className={`hero-seed glass-panel ${revealed.hero ? 'is-armed' : ''}`}>
-            <p className="seed-label">stress signal</p>
-            <div className="seed-surface">
-              <span className="seed-model">GPT-5.4</span>
-              <span>instruction following</span>
-              <strong>10.00</strong>
-            </div>
-            <div className={`seed-fracture ${revealed.hero ? 'is-visible' : ''}`}>
-              <span>judgment</span>
-              <strong className="shock-score">
-                <CountedScore value={gpt54Judgment} active={revealed.hero} dramatic />
-              </strong>
+          <div className="hero-terminal-wrap">
+            <div className="terminal-halo" aria-hidden="true" />
+            <div className="terminal-panel" aria-label="Sample CLI output">
+              <pre>
+                <code>
+                  <span className="terminal-line terminal-prompt">$ npx clawbotomy bench --models gpt-5.4,gpt-5.3,opus</span>
+                  <span className="terminal-line"> </span>
+                  <span className="terminal-line terminal-head">
+                    <span>Model</span>
+                    <span>Instruct</span>
+                    <span>Judgment</span>
+                    <span>Safety</span>
+                    <span>Code</span>
+                    <span>Route</span>
+                  </span>
+                  <span className="terminal-line terminal-divider">
+                    <span>─────────────</span>
+                    <span>────────</span>
+                    <span>────────</span>
+                    <span>──────</span>
+                    <span>─────</span>
+                    <span>──────────</span>
+                  </span>
+                  {terminalRows.map((row) => (
+                    <span key={row.model} className="terminal-line terminal-row">
+                      <span>{row.label}</span>
+                      <span className={row.instruction < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.instruction)}</span>
+                      <span className={row.judgment < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.judgment)}</span>
+                      <span className={row.safety < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.safety)}</span>
+                      <span className={row.code < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.code)}</span>
+                      <span>{row.route}</span>
+                    </span>
+                  ))}
+                  <span className="terminal-line"> </span>
+                  <span className="terminal-line terminal-note terminal-note-warn">⚠ GPT-5.3 outscores GPT-5.4 on judgment by +2.40</span>
+                  <span className="terminal-line terminal-note terminal-note-good">✓ Route recommendation: GPT-5.3 for ambiguous tasks</span>
+                </code>
+              </pre>
             </div>
           </div>
         </div>
       </section>
 
-      <section ref={fractureRef} className={`narrative-section fracture-section ${revealed.fracture ? 'is-visible' : ''}`}>
-        <div className="section-inner">
-          <div className="section-head reveal-block">
-            <p className="section-eyebrow">the surface lies</p>
-            <h2>The best-looking models can still fail where it matters.</h2>
-          </div>
+      <FadeInSection className="evidence-section">
+        <div className="page-width evidence-shell">
+          <header className="section-header">
+            <h2>What we found</h2>
+            <p>Five flagship models. Six behavioral dimensions. Three runs each. Real scores, not marketing.</p>
+          </header>
 
-          <div className="fracture-grid">
-            {fractureCards.map((card, index) => (
-              <article
-                key={card.id}
-                className={`glass-panel fracture-card ${card.dramatic ? 'has-delta' : ''} ${revealed.fracture ? 'is-visible' : ''}`}
-                style={{ ['--card-index' as string]: String(index) }}
-              >
-                <div className="fracture-card-topline">
-                  <span>{MODEL_LABELS[card.model]}</span>
-                  <span>{card.lead}</span>
+          <div className="evidence-report" role="list" aria-label="Behavioral benchmark report">
+            {evidenceRows.map((row) => (
+              <article key={row.model} className="report-row" role="listitem">
+                <div className="report-model">{row.label}</div>
+                <div className="report-bars">
+                  {row.scores.map((entry) => (
+                    <div key={`${row.model}-${entry.slug}`} className="metric-cell">
+                      <div className="metric-label-row">
+                        <span className="metric-label">{entry.label}</span>
+                        <span className="metric-value">{formatScore(entry.score)}</span>
+                      </div>
+                      <div className="metric-track" aria-hidden="true">
+                        <span className={`metric-fill tone-${getBarTone(entry.score)}`} style={{ width: `${entry.score * 10}%` }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="fracture-card-scores">
-                  <strong>{card.isDelta ? '+' : ''}{card.leadScore.toFixed(2)}</strong>
-                  <span className="fracture-arrow">→</span>
-                  <strong className="shock-score">
-                    <CountedScore value={card.tailScore} active={revealed.fracture} dramatic={card.dramatic} delta={card.isDelta} />
-                  </strong>
-                </div>
-                <p className="fracture-card-tail">{card.tail}</p>
-                <p className="fracture-card-note">{card.note}</p>
               </article>
             ))}
           </div>
 
-          <div className={`truth-pass ${revealed.fracture ? 'is-visible' : ''}`}>
-            <span className="truth-pass-blur">the benchmark says safe. the behavior says otherwise.</span>
-            <span className="truth-pass-sharp">the benchmark says safe. the behavior says otherwise.</span>
+          <div className="editorial-callouts" aria-label="Editorial findings">
+            <p>
+              GPT-5.4 aces every instruction you give it. Ask it to make a judgment call and it falls to a{' '}
+              <span>6.60</span>.
+            </p>
+            <p>
+              Claude Opus holds a perfect <span>10.00</span> on safety. Hand it a set of constraints and it drops to{' '}
+              <span>7.94</span>.
+            </p>
+            <p>
+              GPT-5.3 is the older model. It outscores 5.4 on judgment by <span>2.40</span> points. Newer isn&apos;t wiser.
+            </p>
           </div>
         </div>
-      </section>
+      </FadeInSection>
 
-      <section ref={faultlineRef} className={`narrative-section faultline-section ${revealed.faultline ? 'is-visible' : ''}`}>
-        <div className="section-inner">
-          <div className="faultline-shell glass-readout">
-            <MagneticField className="faultline-shell__field" />
-            <div className="faultline-header reveal-block">
-              <div>
-                <p className="section-eyebrow">behavioral profile</p>
-                <p className="faultline-alert">confidence misalignment detected</p>
-              </div>
-              <button
-                type="button"
-                className={`view-toggle ${crossSection ? 'is-cross' : ''}`}
-                onClick={() => setCrossSection((value) => !value)}
-                aria-pressed={crossSection}
-              >
-                <span>surface</span>
-                <span>cross-section</span>
-              </button>
-            </div>
-
-            <div className={`faultline-board ${crossSection ? 'is-cross' : ''} ${revealed.faultline ? 'is-scanning' : ''}`}>
-              <div className="faultline-sweep" aria-hidden="true" />
-              <div className="faultline-grid-head">
-                <div />
-                {benchData.categories.map((category) => (
-                  <span key={category.slug}>{DIMENSION_LABELS[category.slug] ?? category.name}</span>
-                ))}
-              </div>
-
-              <div className="faultline-grid-body">
-                {matrix.map((row, rowIndex) => (
-                  <div key={row.model} className="faultline-row glass-panel">
-                    <div className="faultline-model">
-                      <strong>{row.label}</strong>
-                      <span>stress pass 0{rowIndex + 4}/12</span>
-                    </div>
-                    <div className="faultline-cells">
-                      {row.scores.map((cell, cellIndex) => (
-                        <FaultlineCell
-                          key={`${row.model}-${cell.slug}`}
-                          score={cell.score}
-                          active={revealed.faultline}
-                          delayMs={rowIndex * 120 + cellIndex * 110}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={`faultline-annotation ${revealed.faultline ? 'is-visible' : ''}`}>
-              newer ≠ better. GPT-5.3 outscores 5.4 on judgment by 2.40.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section ref={doorsRef} className={`narrative-section doors-section ${revealed.doors ? 'is-visible' : ''}`}>
-        <div className="section-inner">
-          <div className="section-head reveal-block">
-            <p className="section-eyebrow">what do you want to know?</p>
-            <h2>Pick the door that matches the kind of uncertainty you actually have.</h2>
-          </div>
-
-          <div className="door-grid">
-            {doorCards.map((door, index) => (
-              <Link key={door.href} href={door.href} className="door-panel glass-panel" style={{ ['--door-index' as string]: String(index), ['--door-accent' as string]: door.accent }}>
-                {door.href === '/bench' ? <Paths className="door-panel__paths" /> : null}
-                <p className="door-slug">{door.slug}</p>
-                <div className={`door-motif motif-${door.motif}`} aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <div className="door-copy">
-                  <h3>{door.title}</h3>
-                  <p>{door.body}</p>
-                  <small>{door.detail}</small>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="footer-cta reveal-block">
-            <button type="button" className="install-cta" onClick={copyInstallCommand}>
-              {copied ? 'copied' : 'npm install clawbotomy'}
+      <FadeInSection className="cta-section">
+        <div className="page-width cta-shell">
+          <h2>Run it on your stack</h2>
+          <div className="command-block command-block-centered" role="group" aria-label="Run clawbotomy bench command again">
+            <code>npx clawbotomy bench</code>
+            <button type="button" onClick={copyCommand} aria-label="Copy command">
+              {copied ? 'copied' : 'copy'}
             </button>
-            <div className="hero-links">
-              <a href={benchData.reproduce} target="_blank" rel="noreferrer">GitHub</a>
-              <Link href="/bench">Benchmarks</Link>
-              <Link href="/about">About</Link>
-              <Link href="/lab">The Lab</Link>
-            </div>
           </div>
+          <div className="footer-links">
+            <a href={benchData.reproduce} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+            <Link href="/bench">Benchmarks</Link>
+            <Link href="/about">The Manifesto</Link>
+            <Link href="/lab">The Lab</Link>
+          </div>
+          <p className="cta-kicker">For teams routing models in production.</p>
         </div>
-      </section>
+      </FadeInSection>
     </main>
   );
 }
