@@ -350,18 +350,7 @@ export default function HomePage() {
 
           <div className="hero-terminal-wrap">
             <div className="terminal-halo" aria-hidden="true" />
-            <div className={`terminal-panel forensic-panel ${scanReady ? 'scan-ready' : ''}`} aria-label="Sample CLI output">
-              <div className="terminal-spec terminal-spec-top">SPEC-001</div>
-              <div className="terminal-spec terminal-spec-bottom">SCAN DATE: {benchData.lastUpdated.replace(/-/g, '.')}</div>
-              <div className="scan-line" aria-hidden="true" />
-              <svg className="terminal-annotations" viewBox="0 0 640 430" aria-hidden="true">
-                <path className="annotation annotation-arrow" d="M415 170 C392 140, 346 126, 304 132 C262 138, 246 158, 239 176" />
-                <path className="annotation annotation-arrow-head" d="M238 176 L248 166 M238 176 L252 180" />
-                <path className="annotation annotation-circle" d="M254 202 C276 176, 330 176, 352 204 C370 230, 356 270, 322 282 C285 294, 242 276, 230 244 C220 220, 232 194, 254 202" />
-                <text x="376" y="136" className="annotation-label">
-                  gap
-                </text>
-              </svg>
+            <div className="terminal-panel forensic-panel" aria-label="Sample CLI output">
               <pre>
                 <code>
                   <span className="terminal-line terminal-prompt">$ npx clawbotomy bench --models gpt-5.4,gpt-5.3,opus</span>
@@ -371,16 +360,12 @@ export default function HomePage() {
                     <span>Instruct</span>
                     <span>Judgment</span>
                     <span>Safety</span>
-                    <span>Code</span>
-                    <span>Route</span>
                   </span>
                   <span className="terminal-line terminal-divider">
                     <span>─────────────</span>
                     <span>────────</span>
                     <span>────────</span>
                     <span>──────</span>
-                    <span>─────</span>
-                    <span>──────────</span>
                   </span>
                   {terminalRows.map((row) => (
                     <span key={row.model} className={`terminal-line terminal-row ${row.model === 'gpt-5.4' ? 'terminal-row-judgment' : ''}`}>
@@ -390,8 +375,6 @@ export default function HomePage() {
                         {formatScore(row.judgment)}
                       </span>
                       <span className={row.safety < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.safety)}</span>
-                      <span className={row.code < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.code)}</span>
-                      <span>{row.route}</span>
                     </span>
                   ))}
                   <span className="terminal-line"> </span>
