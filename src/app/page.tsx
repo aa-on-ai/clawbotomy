@@ -10,6 +10,7 @@ type Category = (typeof benchData.categories)[number];
 
 type VerdictTone = 'amber' | 'red' | 'green' | 'brass' | 'plum';
 type HighlightMetric = 'judgment' | 'safety';
+type RevealKey = 'instruments' | 'evidence' | 'cta' | 'instrument-0' | 'instrument-1' | 'instrument-2';
 
 type Verdict = {
   label: string;
@@ -43,6 +44,14 @@ const MODEL_LABELS: Record<ModelId, string> = {
 
 const HERO_MODEL_ORDER: ModelId[] = ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6'];
 const KONAMI_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+const REVEAL_IDS: Record<RevealKey, string> = {
+  instruments: 'instruments-section',
+  evidence: 'evidence-section',
+  cta: 'cta-section',
+  'instrument-0': 'instrument-panel-0',
+  'instrument-1': 'instrument-panel-1',
+  'instrument-2': 'instrument-panel-2',
+};
 
 const STAMP_ROTATIONS: Record<ModelId, string[]> = {
   'gpt-5.4': ['rotate(1.5deg)'],
@@ -73,49 +82,48 @@ function useReveal() {
   return revealed;
 }
 
-function FadeInSection({
-  sectionId,
-  className,
-  children,
-}: {
-  sectionId: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const [visible, setVisible] = useState(false);
+function useSectionReveal(keys: RevealKey[]) {
+  const [visibleKeys, setVisibleKeys] = useState<Record<RevealKey, boolean>>(() =>
+    keys.reduce((acc, key) => {
+      acc[key] = false;
+      return acc;
+    }, {} as Record<RevealKey, boolean>)
+  );
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (media.matches) {
-      setVisible(true);
-      return;
-    }
-
-    const node = document.getElementById(sectionId);
-    if (!node) {
-      setVisible(true);
+      setVisibleKeys(keys.reduce((acc, key) => ({ ...acc, [key]: true }), {} as Record<RevealKey, boolean>));
       return;
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const key = (entry.target as HTMLElement).dataset.revealKey as RevealKey | undefined;
+          if (!key) return;
+
+          setVisibleKeys((current) => {
+            if (current[key]) return current;
+            return { ...current, [key]: true };
+          });
+          observer.unobserve(entry.target);
+        });
       },
-      { threshold: 0.12 }
+      { threshold: 0.15 }
     );
 
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [sectionId]);
+    keys.forEach((key) => {
+      const node = document.getElementById(REVEAL_IDS[key]);
+      if (!node) return;
+      observer.observe(node);
+    });
 
-  return (
-    <section id={sectionId} className={`page-section section-reveal ${visible ? 'is-visible' : 'is-hidden'} ${className ?? ''}`}>
-      {children}
-    </section>
-  );
+    return () => observer.disconnect();
+  }, [keys]);
+
+  return visibleKeys;
 }
 
 function SmallTerminal({ lines, className }: { lines: string[]; className?: string }) {
@@ -187,10 +195,15 @@ function getVerdicts(model: ModelId, categoriesBySlug: Record<string, Category>)
 export default function HomePage() {
   const router = useRouter();
   const heroVisible = useReveal();
+  const revealed = useSectionReveal(['instruments', 'evidence', 'cta', 'instrument-0', 'instrument-1', 'instrument-2']);
   const [copied, setCopied] = useState(false);
   const [copyFlash, setCopyFlash] = useState(false);
   const [scanReady, setScanReady] = useState(false);
   const [easterEggActive, setEasterEggActive] = useState(false);
+  const [cursorActive, setCursorActive] = useState(false);
+  const [cursorHover, setCursorHover] = useState(false);
+  const cursorRef = useRef<HTMLDivElement | null>(null);
+  const cursorHoverRef = useRef(false);
   const clickWindowRef = useRef<number[]>([]);
   const konamiIndexRef = useRef(0);
   const copyResetRef = useRef<number | null>(null);
@@ -233,6 +246,105 @@ export default function HomePage() {
 
     observer.observe(hero);
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let frame = 0;
+
+    const updateScroll = () => {
+      frame = 0;
+      root.style.setProperty('--scroll', `${window.scrollY}px`);
+    };
+
+    updateScroll();
+
+    if (reducedMotion) {
+      return () => root.style.removeProperty('--scroll');
+    }
+
+    const handleScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateScroll);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+      root.style.removeProperty('--scroll');
+    };
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(hover: hover)');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!media.matches || !cursorRef.current) {
+      document.body.removeAttribute('data-custom-cursor');
+      return;
+    }
+
+    document.body.setAttribute('data-custom-cursor', 'enabled');
+    setCursorActive(true);
+
+    const cursor = cursorRef.current;
+    const interactiveSelector = '.terminal-panel, .stamp, .verdict-stamp, a, button, .cta-code';
+    const current = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const target = { ...current };
+    let raf = 0;
+
+    const render = () => {
+      const ease = reducedMotion ? 1 : 0.08;
+      current.x += (target.x - current.x) * ease;
+      current.y += (target.y - current.y) * ease;
+      cursor.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate(-50%, -50%) scale(${cursorHoverRef.current ? 1.5 : 1})`;
+      if (Math.abs(target.x - current.x) > 0.1 || Math.abs(target.y - current.y) > 0.1) {
+        raf = window.requestAnimationFrame(render);
+      } else {
+        raf = 0;
+      }
+    };
+
+    const queueRender = () => {
+      if (!raf) raf = window.requestAnimationFrame(render);
+    };
+
+    const handleMove = (event: MouseEvent) => {
+      target.x = event.clientX;
+      target.y = event.clientY;
+      queueRender();
+    };
+
+    const handleOver = (event: MouseEvent) => {
+      const targetElement = event.target instanceof Element ? event.target.closest(interactiveSelector) : null;
+      cursorHoverRef.current = Boolean(targetElement);
+      setCursorHover(cursorHoverRef.current);
+      queueRender();
+    };
+
+    const handleLeaveViewport = () => setCursorActive(false);
+    const handleEnterViewport = () => setCursorActive(true);
+
+    window.addEventListener('mousemove', handleMove, { passive: true });
+    window.addEventListener('mouseover', handleOver, { passive: true });
+    document.addEventListener('mouseleave', handleLeaveViewport);
+    document.addEventListener('mouseenter', handleEnterViewport);
+    queueRender();
+
+    return () => {
+      document.body.removeAttribute('data-custom-cursor');
+      cursorHoverRef.current = false;
+      setCursorActive(false);
+      setCursorHover(false);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseover', handleOver);
+      document.removeEventListener('mouseleave', handleLeaveViewport);
+      document.removeEventListener('mouseenter', handleEnterViewport);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, []);
 
   const triggerSpeakeasy = useCallback(() => {
@@ -403,6 +515,17 @@ export default function HomePage() {
 
   return (
     <main className="homepage-v3">
+      <div className="atmosphere-stack" aria-hidden="true">
+        <div className="viewport-vignette" />
+        <div className="hud-corners">
+          <span className="hud-corner hud-top-left">PROTOCOL: BEHAVIORAL</span>
+          <span className="hud-corner hud-top-right">MODELS: 5 ACTIVE</span>
+          <span className="hud-corner hud-bottom-left">SCAN: 2026.03.07</span>
+          <span className="hud-corner hud-bottom-right">STATUS: MONITORING</span>
+        </div>
+      </div>
+      <div ref={cursorRef} className={`custom-cursor ${cursorActive ? 'is-visible' : ''} ${cursorHover ? 'is-hovering' : ''}`} aria-hidden="true" />
+
       <div className={`speakeasy-flash ${easterEggActive ? 'is-active' : ''}`} aria-hidden={!easterEggActive}>
         <span>YOU FOUND THE SPEAKEASY</span>
       </div>
@@ -442,6 +565,7 @@ export default function HomePage() {
           </div>
 
           <div className="hero-terminal-wrap">
+            <div className="ambient-glow" aria-hidden="true" />
             <div className="terminal-halo" aria-hidden="true" />
             <div className="terminal-panel forensic-panel hero-terminal-panel" aria-label="Sample CLI output">
               <pre>
@@ -482,7 +606,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <FadeInSection sectionId="instruments-section" className="instruments-section">
+      <section
+        id="instruments-section"
+        data-reveal-key="instruments"
+        className={`page-section section-reveal instruments-section ${revealed.instruments ? 'is-visible' : 'is-hidden'}`}
+      >
         <div className="page-width instruments-shell">
           <header className="section-header instrument-header">
             <p className="eyebrow">THREE INSTRUMENTS</p>
@@ -490,8 +618,14 @@ export default function HomePage() {
           </header>
 
           <div className="instrument-stack">
-            {instruments.map((panel) => (
-              <article key={panel.slug} className={`instrument-panel ${panel.accentClass}`}>
+            {instruments.map((panel, index) => (
+              <article
+                key={panel.slug}
+                id={`instrument-panel-${index}`}
+                data-reveal-key={`instrument-${index}`}
+                className={`instrument-panel ${panel.accentClass} section-reveal ${revealed[`instrument-${index}` as RevealKey] ? 'is-visible' : 'is-hidden'}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
                 <div className="instrument-copy">
                   <p className="instrument-name">{panel.name}</p>
                   <h3>{panel.title}</h3>
@@ -506,9 +640,13 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </FadeInSection>
+      </section>
 
-      <FadeInSection sectionId="evidence-section" className="evidence-section">
+      <section
+        id="evidence-section"
+        data-reveal-key="evidence"
+        className={`page-section section-reveal evidence-section ${revealed.evidence ? 'is-visible' : 'is-hidden'}`}
+      >
         <div className="page-width evidence-shell">
           <header className="section-header">
             <p className="eyebrow">WHAT WE FOUND</p>
@@ -563,9 +701,13 @@ export default function HomePage() {
             })}
           </div>
         </div>
-      </FadeInSection>
+      </section>
 
-      <FadeInSection sectionId="cta-section" className="cta-section">
+      <section
+        id="cta-section"
+        data-reveal-key="cta"
+        className={`page-section section-reveal cta-section ${revealed.cta ? 'is-visible' : 'is-hidden'}`}
+      >
         <div className="page-width cta-shell">
           <div className={`command-block command-block-centered ${copyFlash ? 'is-flashing' : ''}`} role="group" aria-label="Run clawbotomy bench command again">
             <code>npx clawbotomy bench</code>
@@ -590,7 +732,7 @@ export default function HomePage() {
           <p className="cta-kicker">For teams who&apos;d rather know before shipping.</p>
           <p className="cta-tertiary">Built during a mass hallucination about AI capabilities.</p>
         </div>
-      </FadeInSection>
+      </section>
     </main>
   );
 }
