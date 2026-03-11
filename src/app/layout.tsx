@@ -89,7 +89,12 @@ export default function RootLayout({
         <Providers>
           {children}
           <footer className="main-footer" aria-label="Site footer">
-            <span>for teams routing models in production</span>
+            <div>
+              <div>for teams who&apos;d rather know before shipping</div>
+              <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                built during a mass hallucination about AI capabilities
+              </div>
+            </div>
             <nav>
               <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
                 GitHub

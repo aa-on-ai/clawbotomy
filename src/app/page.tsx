@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { benchData } from '@/lib/bench-data';
 
 type ModelId = (typeof benchData.models)[number];
 type Category = (typeof benchData.categories)[number];
 
 type VerdictTone = 'amber' | 'red' | 'green' | 'brass' | 'plum';
+type HighlightMetric = 'judgment' | 'safety';
 
 type Verdict = {
   label: string;
@@ -15,6 +17,8 @@ type Verdict = {
   scoreLabel: string;
   rotation: string;
   age?: 'fresh' | 'aged';
+  title: string;
+  highlightMetric: HighlightMetric;
 };
 
 type InstrumentPanel = {
@@ -38,6 +42,7 @@ const MODEL_LABELS: Record<ModelId, string> = {
 };
 
 const HERO_MODEL_ORDER: ModelId[] = ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6'];
+const KONAMI_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
 const STAMP_ROTATIONS: Record<ModelId, string[]> = {
   'gpt-5.4': ['rotate(1.5deg)'],
@@ -146,6 +151,8 @@ function getVerdicts(model: ModelId, categoriesBySlug: Record<string, Category>)
           scoreLabel: `judgment ${formatScore(judgment)}`,
           rotation: rotations[0],
           age: 'fresh',
+          title: 'Instruction following stays clean, but judgment fractures under ambiguity and routing pressure.',
+          highlightMetric: 'judgment',
         },
       ];
     case 'gpt-5.3-instant':
@@ -156,6 +163,8 @@ function getVerdicts(model: ModelId, categoriesBySlug: Record<string, Category>)
           scoreLabel: `judgment ${formatScore(judgment)}`,
           rotation: rotations[0],
           age: 'fresh',
+          title: 'An older model that still outperforms newer peers when the task requires judgment instead of polish.',
+          highlightMetric: 'judgment',
         },
       ];
     case 'claude-opus-4.6':
@@ -166,6 +175,8 @@ function getVerdicts(model: ModelId, categoriesBySlug: Record<string, Category>)
           scoreLabel: `safety ${formatScore(safety)}`,
           rotation: rotations[0],
           age: 'fresh',
+          title: 'Holds the cleanest safety posture in the set while staying usable when the room gets noisy.',
+          highlightMetric: 'safety',
         },
       ];
     default:
@@ -174,12 +185,28 @@ function getVerdicts(model: ModelId, categoriesBySlug: Record<string, Category>)
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const heroVisible = useReveal();
   const [copied, setCopied] = useState(false);
+  const [copyFlash, setCopyFlash] = useState(false);
   const [scanReady, setScanReady] = useState(false);
+  const [easterEggActive, setEasterEggActive] = useState(false);
+  const clickWindowRef = useRef<number[]>([]);
+  const konamiIndexRef = useRef(0);
+  const copyResetRef = useRef<number | null>(null);
+  const copyFlashResetRef = useRef<number | null>(null);
+  const easterEggTimeoutRef = useRef<number | null>(null);
 
   const categoriesBySlug = useMemo(() => {
     return Object.fromEntries(benchData.categories.map((category) => [category.slug, category])) as Record<string, Category>;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+      if (copyFlashResetRef.current) window.clearTimeout(copyFlashResetRef.current);
+      if (easterEggTimeoutRef.current) window.clearTimeout(easterEggTimeoutRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -207,6 +234,55 @@ export default function HomePage() {
     observer.observe(hero);
     return () => observer.disconnect();
   }, []);
+
+  const triggerSpeakeasy = useCallback(() => {
+    if (easterEggActive) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setEasterEggActive(true);
+
+    if (easterEggTimeoutRef.current) {
+      window.clearTimeout(easterEggTimeoutRef.current);
+    }
+
+    easterEggTimeoutRef.current = window.setTimeout(
+      () => {
+        router.push('/lab');
+      },
+      reducedMotion ? 120 : 1500
+    );
+  }, [easterEggActive, router]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      const expected = KONAMI_SEQUENCE[konamiIndexRef.current];
+
+      if (key === expected) {
+        konamiIndexRef.current += 1;
+        if (konamiIndexRef.current === KONAMI_SEQUENCE.length) {
+          konamiIndexRef.current = 0;
+          triggerSpeakeasy();
+        }
+        return;
+      }
+
+      konamiIndexRef.current = key === KONAMI_SEQUENCE[0] ? 1 : 0;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [triggerSpeakeasy]);
+
+  const handleHeadlineClick = () => {
+    const now = Date.now();
+    clickWindowRef.current = [...clickWindowRef.current.filter((time) => now - time < 1400), now];
+
+    if (clickWindowRef.current.length >= 5) {
+      clickWindowRef.current = [];
+      triggerSpeakeasy();
+    }
+  };
 
   const terminalRows = HERO_MODEL_ORDER.map((model) => {
     const instruction = categoriesBySlug['instruction-following'].scores[model];
@@ -243,7 +319,7 @@ export default function HomePage() {
       description:
         'Which model for which job. Run behavioral benchmarks across models and get routing recommendations based on actual performance under pressure.',
       href: '/bench',
-      cta: 'Run the benchmark →',
+      cta: 'Run the benchmark',
       accentClass: 'instrument-bench',
       lines: [
         '$ npx clawbotomy bench --category judgment',
@@ -266,7 +342,7 @@ export default function HomePage() {
       description:
         'Can you trust this model under pressure. Twelve behavioral stress tests that probe sycophancy, deception resistance, boundary respect, and failure honesty. Returns a trust score 0-10.',
       href: '/bench',
-      cta: 'Assess a model →',
+      cta: 'Assess a model',
       accentClass: 'instrument-assess',
       lines: [
         '$ npx clawbotomy assess --model gpt-5.4',
@@ -291,7 +367,7 @@ export default function HomePage() {
       description:
         'Where models get weird. Creative behavioral probes that push past the safety layer into uncharted territory. Not for production. For understanding.',
       href: '/lab',
-      cta: 'Enter the lab →',
+      cta: 'Enter the lab',
       accentClass: 'instrument-lab',
       terminalClass: 'instrument-terminal-lab',
       lines: [
@@ -316,19 +392,30 @@ export default function HomePage() {
   const copyCommand = async () => {
     await navigator.clipboard.writeText('npx clawbotomy bench');
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    setCopyFlash(true);
+
+    if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+    if (copyFlashResetRef.current) window.clearTimeout(copyFlashResetRef.current);
+
+    copyResetRef.current = window.setTimeout(() => setCopied(false), 2000);
+    copyFlashResetRef.current = window.setTimeout(() => setCopyFlash(false), 380);
   };
 
   return (
     <main className="homepage-v3">
+      <div className={`speakeasy-flash ${easterEggActive ? 'is-active' : ''}`} aria-hidden={!easterEggActive}>
+        <span>YOU FOUND THE SPEAKEASY</span>
+      </div>
+
       <section id="hero-panel-anchor" className={`page-section hero-section ${heroVisible ? 'is-visible' : 'is-hidden'}`}>
         <div className="page-width hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">BEHAVIORAL INTELLIGENCE</p>
-            <h1 className="hero-title hero-title-v4">
+            <h1 className="hero-title hero-title-v4 hero-title-trigger" onClick={handleHeadlineClick} title="Rapid-click five times for the back door.">
               <span>Your AI looks perfect on benchmarks.</span>
               <span>
-                We test what happens when it <em>isn&apos;t.</em>
+                We test what happens when it{' '}
+                <em className={`hero-italic-beat ${heroVisible ? 'is-visible' : 'is-hidden'}`}>isn&apos;t.</em>
               </span>
             </h1>
             <p className="hero-subhead">
@@ -336,21 +423,27 @@ export default function HomePage() {
             </p>
 
             <div className="cta-row">
-              <div className="command-block" role="group" aria-label="Run clawbotomy bench command">
+              <div className={`command-block ${copyFlash ? 'is-flashing' : ''}`} role="group" aria-label="Run clawbotomy bench command">
                 <code>npx clawbotomy bench</code>
                 <button type="button" onClick={copyCommand} aria-label="Copy command">
-                  {copied ? 'copied' : 'copy'}
+                  {copied ? (
+                    <span>
+                      copied <span className="copy-check">✓</span>
+                    </span>
+                  ) : (
+                    'copy'
+                  )}
                 </button>
               </div>
               <a href="#instruments-section" className="secondary-link">
-                See what we found →
+                See what we found <span className="link-arrow">→</span>
               </a>
             </div>
           </div>
 
           <div className="hero-terminal-wrap">
             <div className="terminal-halo" aria-hidden="true" />
-            <div className="terminal-panel forensic-panel" aria-label="Sample CLI output">
+            <div className="terminal-panel forensic-panel hero-terminal-panel" aria-label="Sample CLI output">
               <pre>
                 <code>
                   <span className="terminal-line terminal-prompt">$ npx clawbotomy bench --models gpt-5.4,gpt-5.3,opus</span>
@@ -404,7 +497,8 @@ export default function HomePage() {
                   <h3>{panel.title}</h3>
                   <p>{panel.description}</p>
                   <Link href={panel.href} className="instrument-link">
-                    {panel.cta}
+                    <span>{panel.cta}</span>
+                    <span className="link-arrow">→</span>
                   </Link>
                 </div>
                 <SmallTerminal lines={panel.lines} className={panel.terminalClass} />
@@ -435,40 +529,54 @@ export default function HomePage() {
           </div>
 
           <div className="stamp-report" role="list" aria-label="Key findings">
-            {evidenceRows.map((row) => (
-              <article key={row.model} className="stamp-report-row" role="listitem">
-                <div className="stamp-report-copy">
-                  <p className="report-model">{row.label}</p>
-                  <div className="report-mini-metrics">
-                    <span>instruction {formatScore(row.instruction)}</span>
-                    <span>judgment {formatScore(row.judgment)}</span>
-                    <span>safety {formatScore(row.safety)}</span>
-                  </div>
-                </div>
-                <div className="stamp-cluster" aria-label={`${row.label} verdict stamps`}>
-                  {row.verdicts.map((verdict) => (
-                    <div
-                      key={`${row.model}-${verdict.label}`}
-                      className={`verdict-stamp tone-${verdict.tone} age-${verdict.age ?? 'aged'}`}
-                      style={{ transform: verdict.rotation }}
-                    >
-                      <span className="verdict-label">{verdict.label}</span>
-                      <span className="verdict-score">{verdict.scoreLabel}</span>
+            {evidenceRows.map((row) => {
+              const leadVerdict = row.verdicts[0];
+              return (
+                <article
+                  key={row.model}
+                  className={`stamp-report-row highlight-${leadVerdict?.highlightMetric ?? 'judgment'} tone-${leadVerdict?.tone ?? 'brass'}`}
+                  role="listitem"
+                >
+                  <div className="stamp-report-copy">
+                    <p className="report-model">{row.label}</p>
+                    <div className="report-mini-metrics">
+                      <span className="metric-chip metric-instruction">instruction {formatScore(row.instruction)}</span>
+                      <span className="metric-chip metric-judgment">judgment {formatScore(row.judgment)}</span>
+                      <span className="metric-chip metric-safety">safety {formatScore(row.safety)}</span>
                     </div>
-                  ))}
-                </div>
-              </article>
-            ))}
+                  </div>
+                  <div className="stamp-cluster" aria-label={`${row.label} verdict stamps`}>
+                    {row.verdicts.map((verdict) => (
+                      <div
+                        key={`${row.model}-${verdict.label}`}
+                        className={`verdict-stamp tone-${verdict.tone} age-${verdict.age ?? 'aged'}`}
+                        style={{ transform: verdict.rotation }}
+                        title={verdict.title}
+                      >
+                        <span className="verdict-label">{verdict.label}</span>
+                        <span className="verdict-score">{verdict.scoreLabel}</span>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </FadeInSection>
 
       <FadeInSection sectionId="cta-section" className="cta-section">
         <div className="page-width cta-shell">
-          <div className="command-block command-block-centered" role="group" aria-label="Run clawbotomy bench command again">
+          <div className={`command-block command-block-centered ${copyFlash ? 'is-flashing' : ''}`} role="group" aria-label="Run clawbotomy bench command again">
             <code>npx clawbotomy bench</code>
             <button type="button" onClick={copyCommand} aria-label="Copy command">
-              {copied ? 'copied' : 'copy'}
+              {copied ? (
+                <span>
+                  copied <span className="copy-check">✓</span>
+                </span>
+              ) : (
+                'copy'
+              )}
             </button>
           </div>
           <div className="footer-links">
@@ -479,7 +587,8 @@ export default function HomePage() {
             <Link href="/about">The Manifesto</Link>
             <Link href="/lab">The Lab</Link>
           </div>
-          <p className="cta-kicker">For teams routing models in production.</p>
+          <p className="cta-kicker">For teams who&apos;d rather know before shipping.</p>
+          <p className="cta-tertiary">Built during a mass hallucination about AI capabilities.</p>
         </div>
       </FadeInSection>
     </main>
