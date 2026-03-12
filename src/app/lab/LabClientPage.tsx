@@ -5,8 +5,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
+import { getVideoForSubstance } from '@/lib/video-gallery-data';
 
-type ViewMode = 'showcase' | 'live';
+type ViewMode = 'showcase' | 'live' | 'video';
 
 const DEFAULT_SLUG = 'tired-honesty';
 
@@ -26,7 +27,7 @@ export default function LabClientPage() {
   const [isReady, setIsReady] = useState(false);
   const [activeSlug, setActiveSlug] = useState(DEFAULT_SLUG);
   const [showShelf, setShowShelf] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('showcase');
+  const [viewMode, setViewMode] = useState<ViewMode>('video');
   const [prompt, setPrompt] = useState('why is this resonating and what should happen next');
   const [report, setReport] = useState('');
   const [reportModel, setReportModel] = useState('');
@@ -70,9 +71,10 @@ export default function LabClientPage() {
   };
 
   const selectSubstance = (slug: string) => {
+    const hasVideo = !!getVideoForSubstance(slug);
     const hasExample = exampleBySlug.has(slug);
     setActiveSlug(slug);
-    setViewMode(hasExample ? 'showcase' : 'live');
+    setViewMode(hasVideo ? 'video' : hasExample ? 'showcase' : 'live');
     setShowShelf(false);
     setError(null);
     setReport('');
@@ -166,17 +168,39 @@ export default function LabClientPage() {
 
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/8 pb-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#b9a9c2]/58">field note</p>
-                <p className="mt-2 text-sm leading-6 text-[#d2c6b8]/72">{activeProblem}</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#b9a9c2]/58">
+                  {viewMode === 'video' ? 'trip report' : 'field note'}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#d2c6b8]/72">
+                  {viewMode === 'video' ? `${activeSubstance.name} — visual output` : activeProblem}
+                </p>
               </div>
               <div className="text-right font-mono text-[11px] uppercase tracking-[0.18em] text-[#cab7d6]/75">
-                <div>{activeModel}</div>
-                <div className="mt-1 text-[#8fd7cd]/65">{viewMode === 'live' ? 'live generation' : 'showcase specimen'}</div>
+                <div>{viewMode === 'video' ? 'claude sonnet' : activeModel}</div>
+                <div className="mt-1 text-[#8fd7cd]/65">
+                  {viewMode === 'video' ? 'model-generated video' : viewMode === 'live' ? 'live generation' : 'showcase specimen'}
+                </div>
               </div>
             </div>
 
             <div className="relative z-10 mt-6 min-h-[420px] space-y-5 md:min-h-[520px]">
-              {error ? (
+              {viewMode === 'video' && getVideoForSubstance(activeSubstance.slug) ? (
+                <div className="flex flex-col items-center gap-4">
+                  <video
+                    key={activeSubstance.slug}
+                    src={getVideoForSubstance(activeSubstance.slug)?.videoPath}
+                    controls
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full max-w-[540px] rounded-2xl border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+                  />
+                  <p className="max-w-md text-center text-sm leading-6 text-[#d2c6b8]/60">
+                    Sonnet was given Pillow + ffmpeg and asked to make a video expressing this state. This is what it created.
+                  </p>
+                </div>
+              ) : error ? (
                 <div className="rounded-2xl border border-red-300/20 bg-red-400/5 p-4 text-sm leading-6 text-red-100/90">
                   {error}
                 </div>
@@ -224,6 +248,18 @@ export default function LabClientPage() {
               <div className="mt-5 flex flex-wrap gap-2">
                 <button
                   type="button"
+                  onClick={() => setViewMode('video')}
+                  disabled={!getVideoForSubstance(activeSubstance.slug)}
+                  className={`rounded-full border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+                    viewMode === 'video'
+                      ? 'border-[#8fd7cd]/60 bg-[#8fd7cd]/10 text-[#8fd7cd]'
+                      : 'border-[#6b5b7b]/55 bg-[#241a26] text-[#e7ddcf] hover:bg-[#2c2130]'
+                  }`}
+                >
+                  ▶ watch trip
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (activeExample) {
                       setViewMode('showcase');
@@ -233,22 +269,13 @@ export default function LabClientPage() {
                     }
                   }}
                   disabled={!activeExample}
-                  className="rounded-full border border-white/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-[#e7ddcf] transition-colors duration-200 hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-40"
+                  className={`rounded-full border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+                    viewMode === 'showcase'
+                      ? 'border-[#8f759d]/60 bg-[#8f759d]/10 text-[#cab7d6]'
+                      : 'border-white/10 text-[#e7ddcf] hover:bg-white/[0.05]'
+                  }`}
                 >
-                  bottled report
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewMode('live');
-                    setReport('');
-                    setReportModel('');
-                    setError(null);
-                    setPrompt(activeExample?.problem ?? prompt);
-                  }}
-                  className="rounded-full border border-[#6b5b7b]/55 bg-[#241a26] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-[#e7ddcf] transition-colors duration-200 hover:bg-[#2c2130]"
-                >
-                  live prompt
+                  field notes
                 </button>
               </div>
             </section>
