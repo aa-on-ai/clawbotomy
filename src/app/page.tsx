@@ -290,6 +290,22 @@ export default function HomePage() {
     document.body.setAttribute('data-custom-cursor', 'enabled');
     setCursorActive(true);
 
+    // Restore native cursor when keyboard navigation detected
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        document.body.removeAttribute('data-custom-cursor');
+        setCursorActive(false);
+      }
+    };
+    const handleMouseAfterTab = () => {
+      if (cursorRef.current) {
+        document.body.setAttribute('data-custom-cursor', 'enabled');
+        setCursorActive(true);
+      }
+    };
+    window.addEventListener('keydown', handleTab);
+    window.addEventListener('mousemove', handleMouseAfterTab, { once: true });
+
     const cursor = cursorRef.current;
     const interactiveSelector = '.terminal-panel, .stamp, .verdict-stamp, a, button, .cta-code';
     const current = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -297,7 +313,7 @@ export default function HomePage() {
     let raf = 0;
 
     const render = () => {
-      const ease = reducedMotion ? 1 : 0.08;
+      const ease = reducedMotion ? 1 : 0.35;
       current.x += (target.x - current.x) * ease;
       current.y += (target.y - current.y) * ease;
       cursor.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate(-50%, -50%) scale(${cursorHoverRef.current ? 1.5 : 1})`;
