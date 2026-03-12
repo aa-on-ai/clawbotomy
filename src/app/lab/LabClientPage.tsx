@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
@@ -30,7 +30,7 @@ export default function LabClientPage() {
   const [prompt, setPrompt] = useState('why is this resonating and what should happen next');
   const [report, setReport] = useState('');
   const [reportModel, setReportModel] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,45 +80,7 @@ export default function LabClientPage() {
     setPrompt(hasExample ? exampleBySlug.get(slug)?.problem ?? '' : '');
   };
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!activeSubstance || !prompt.trim()) return;
-
-    setIsLoading(true);
-    setError(null);
-    setReport('');
-    setReportModel('');
-    setViewMode('live');
-
-    try {
-      const response = await fetch('/api/lab/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ substance: activeSubstance.slug, prompt: prompt.trim() }),
-      });
-
-      if (!response.ok || !response.body) {
-        throw new Error("The room went quiet before the report came through.");
-      }
-
-      setReportModel(response.headers.get('X-Lab-Provider') ?? 'live session');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let next = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        next += decoder.decode(value, { stream: true });
-        setReport(next);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something drifted out of phase.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  /* Live generation removed from web — use CLI: clawbotomy lab --substance <slug> */
 
   return (
     <main className="lab-room relative min-h-screen overflow-hidden bg-[#110e0c] text-[#e7ddcf]">
@@ -182,7 +144,14 @@ export default function LabClientPage() {
 
             <button
               type="button"
-              onClick={() => setShowShelf((current) => !current)}
+              onClick={() => {
+                setShowShelf((current) => !current);
+                if (!showShelf) {
+                  setTimeout(() => {
+                    document.getElementById('lens-shelf')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }, 60);
+                }
+              }}
               className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#6b5b7b]/60 bg-[#221a23]/90 px-5 font-mono text-[11px] uppercase tracking-[0.18em] text-[#e7ddcf] transition-all duration-200 hover:border-[#8f759d] hover:bg-[#2c2130]"
             >
               {showShelf ? 'hide lenses' : 'try another lens'}
@@ -285,6 +254,7 @@ export default function LabClientPage() {
             </section>
 
             <section
+              id="lens-shelf"
               className={`overflow-hidden rounded-[28px] border border-[#5f4d67]/28 bg-[linear-gradient(180deg,rgba(26,19,24,0.96),rgba(19,15,18,0.98))] transition-all duration-300 ${
                 showShelf ? 'max-h-[900px] opacity-100' : 'max-h-[120px] opacity-95'
               }`}
@@ -338,30 +308,14 @@ export default function LabClientPage() {
             </section>
 
             <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm md:p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#b9a9c2]/58">run your own session</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#b9a9c2]/58">run your own</p>
               <p className="mt-2 text-sm leading-6 text-[#d2c6b8]/72">
-                Same room, different question. Bring a concept, tension, naming problem, product bet, or uneasy hunch.
+                The back room runs locally. Bring your own key, pick a lens, see what comes back.
               </p>
-
-              <form onSubmit={onSubmit} className="mt-4 space-y-4">
-                <label htmlFor="lab-input" className="sr-only">
-                  What are you trying to crack?
-                </label>
-                <textarea
-                  id="lab-input"
-                  value={prompt}
-                  onChange={(event) => setPrompt(event.target.value)}
-                  placeholder="what are we missing in this idea..."
-                  className="min-h-[160px] w-full rounded-[22px] border border-white/10 bg-[#120f12] px-4 py-4 text-sm leading-6 text-[#f0e7db] placeholder:text-[#8b7d88] focus:outline-none focus:ring-1 focus:ring-[#8f759d]"
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading || !prompt.trim()}
-                  className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[#8f759d]/45 bg-[linear-gradient(90deg,rgba(78,58,87,0.92),rgba(45,212,191,0.14))] px-4 font-mono text-[11px] uppercase tracking-[0.2em] text-[#f7f0e7] transition-all duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  {isLoading ? 'distilling...' : 'begin session'}
-                </button>
-              </form>
+              <div className="mt-4 rounded-[18px] border border-white/8 bg-[#120f12] px-4 py-3 font-mono text-[12px] leading-6 text-[#8fd7cd]">
+                <span className="text-[#d2c6b8]/50">$</span> npm install -g clawbotomy<br/>
+                <span className="text-[#d2c6b8]/50">$</span> clawbotomy lab --substance {activeSubstance.slug}
+              </div>
             </section>
           </aside>
         </div>
