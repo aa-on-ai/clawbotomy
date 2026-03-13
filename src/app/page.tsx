@@ -95,10 +95,6 @@ export default function HomePage() {
               Models have behavioral patterns that only show up under pressure, at the edges,
               and when the conditions change. Clawbotomy finds them before your users do.
             </p>
-            <div className="hero-proof-label">
-              <span>This is what Ego Death looks like when Claude generates it.</span>
-              <Link href="/lab/ego-death" className="hero-proof-link">See more →</Link>
-            </div>
           </div>
           {heroVideo && (
             <div className="hero-video-compact">
@@ -110,6 +106,10 @@ export default function HomePage() {
                 playsInline
                 className="hero-video-el"
               />
+              <div className="hero-proof-label">
+                <span>This is what Ego Death looks like when Claude generates it.</span>
+                <Link href="/lab/ego-death" className="hero-proof-link">See more →</Link>
+              </div>
             </div>
           )}
         </div>

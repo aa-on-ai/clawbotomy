@@ -1464,10 +1464,10 @@ img {
 }
 
 .hero-proof-label {
-  margin-top: 32px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   font-size: 13px;
   color: var(--color-tertiary);
 }
