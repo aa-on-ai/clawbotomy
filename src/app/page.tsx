@@ -149,16 +149,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Bottom ── */}
-      <section className="page-section cta-section-v4">
-        <div className="page-width cta-v4-content">
-          <p className="cta-line">probe behavior. route intelligently. trust carefully.</p>
-          <div className="cta-links">
-            <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noreferrer">GitHub</a>
-            <Link href="/about">About</Link>
-          </div>
-        </div>
-      </section>
+
     </main>
   );
 }
