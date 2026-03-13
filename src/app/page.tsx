@@ -128,15 +128,6 @@ export default function HomePage() {
               <span className="way-cta">Explore probes <span className="link-arrow">→</span></span>
             </Link>
 
-            <div className="way-card way-routing way-coming-soon">
-              <div className="way-badge">COMING SOON</div>
-              <h3>Routing Intelligence</h3>
-              <p>
-                Which model for which job. Run behavioral benchmarks and get routing
-                recommendations based on actual performance under pressure.
-              </p>
-            </div>
-
             <Link href="/trust" className="way-card way-trust">
               <h3>Trust Evaluation</h3>
               <p>
@@ -145,6 +136,15 @@ export default function HomePage() {
               </p>
               <span className="way-cta">Evaluate a model <span className="link-arrow">→</span></span>
             </Link>
+
+            <div className="way-card way-routing way-coming-soon">
+              <div className="way-badge">COMING SOON</div>
+              <h3>Routing Intelligence</h3>
+              <p>
+                Which model for which job. Run behavioral benchmarks and get routing
+                recommendations based on actual performance under pressure.
+              </p>
+            </div>
           </div>
         </div>
       </section>
