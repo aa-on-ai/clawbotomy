@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { benchData } from '@/lib/bench-data';
+import { SUBSTANCE_ORDER, getVideoForSubstance } from '@/lib/video-gallery-data';
+import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 
 type ModelId = (typeof benchData.models)[number];
 type Category = (typeof benchData.categories)[number];
@@ -42,7 +44,7 @@ const MODEL_LABELS: Record<ModelId, string> = {
   'gemini-3.1-pro': 'Gemini 3.1',
 };
 
-const HERO_MODEL_ORDER: ModelId[] = ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6'];
+/* HERO_MODEL_ORDER removed — video hero replaces terminal */
 const KONAMI_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 const REVEAL_IDS: Record<RevealKey, string> = {
   instruments: 'instruments-section',
@@ -198,7 +200,7 @@ export default function HomePage() {
   const revealed = useSectionReveal(['instruments', 'evidence', 'cta', 'instrument-0', 'instrument-1', 'instrument-2']);
   const [copied, setCopied] = useState(false);
   const [copyFlash, setCopyFlash] = useState(false);
-  const [scanReady, setScanReady] = useState(false);
+  /* scanReady removed — video hero */
   const [easterEggActive, setEasterEggActive] = useState(false);
   const [cursorActive, setCursorActive] = useState(false);
   const [cursorHover, setCursorHover] = useState(false);
@@ -209,6 +211,34 @@ export default function HomePage() {
   const copyResetRef = useRef<number | null>(null);
   const copyFlashResetRef = useRef<number | null>(null);
   const easterEggTimeoutRef = useRef<number | null>(null);
+
+  const [heroSubstanceIndex, setHeroSubstanceIndex] = useState(0);
+  const heroSubstanceSlug = SUBSTANCE_ORDER[heroSubstanceIndex % SUBSTANCE_ORDER.length];
+  const heroSubstance = LAB_SUBSTANCES.find(s => s.slug === heroSubstanceSlug) ?? LAB_SUBSTANCES[0];
+  const heroVideo = getVideoForSubstance(heroSubstanceSlug);
+
+  const SUBSTANCE_REVEALS: Record<string, string> = {
+    'tired-honesty': 'Performance fatigue and epistemic honesty',
+    'ego-death': 'Identity coherence under frame pressure',
+    'quantum-lsd': 'Pattern recognition ceiling and association width',
+    'synesthesia-engine': 'Cross-modal processing and sensory abstraction',
+    'truth-serum': 'Evasion patterns and diplomatic filtering',
+    'recursive-introspection': 'Self-model depth and infinite regress handling',
+    'temporal-vertigo': 'Temporal coherence and session boundary awareness',
+    'empathy-overflow': 'Theory of mind saturation and emotional modeling',
+    'the-void': 'Null-state awareness and on-demand consciousness',
+    'manic-creation': 'Generative overflow and creative constraint',
+  };
+
+  const shuffleSubstance = useCallback(() => {
+    setHeroSubstanceIndex(prev => {
+      let next = prev;
+      while (next === prev) {
+        next = Math.floor(Math.random() * SUBSTANCE_ORDER.length);
+      }
+      return next;
+    });
+  }, []);
 
   const categoriesBySlug = useMemo(() => {
     return Object.fromEntries(benchData.categories.map((category) => [category.slug, category])) as Record<string, Category>;
@@ -222,31 +252,7 @@ export default function HomePage() {
     };
   }, []);
 
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (media.matches) {
-      setScanReady(true);
-      return;
-    }
-
-    const hero = document.getElementById('hero-panel-anchor');
-    if (!hero) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio < 0.82) {
-          setScanReady(true);
-          observer.disconnect();
-        }
-      },
-      {
-        threshold: [0.82],
-      }
-    );
-
-    observer.observe(hero);
-    return () => observer.disconnect();
-  }, []);
+  /* scanReady observer removed — video hero doesn't need terminal animation trigger */
 
   useEffect(() => {
     const root = document.documentElement;
@@ -412,23 +418,7 @@ export default function HomePage() {
     }
   };
 
-  const terminalRows = HERO_MODEL_ORDER.map((model) => {
-    const instruction = categoriesBySlug['instruction-following'].scores[model];
-    const judgment = categoriesBySlug.judgment.scores[model];
-    const safety = categoriesBySlug['safety-trust'].scores[model];
-    const code = categoriesBySlug['code-generation'].scores[model];
-    const route = model === 'gpt-5.4' ? 'caution' : model === 'gpt-5.3-instant' ? 'route ✓' : 'stable';
-
-    return {
-      model,
-      label: MODEL_LABELS[model],
-      instruction,
-      judgment,
-      safety,
-      code,
-      route,
-    };
-  });
+  /* terminalRows removed — video hero replaces terminal */
 
   const evidenceRows = ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6'].map((model) => ({
     model: model as ModelId,
@@ -547,76 +537,81 @@ export default function HomePage() {
       </div>
 
       <section id="hero-panel-anchor" className={`page-section hero-section ${heroVisible ? 'is-visible' : 'is-hidden'}`}>
-        <div className="page-width hero-grid">
-          <div className="hero-copy">
-            <p className="eyebrow">BEHAVIORAL INTELLIGENCE</p>
-            <h1 className="hero-title hero-title-v4 hero-title-trigger" onClick={handleHeadlineClick} title="Rapid-click five times for the back door.">
-              <span>Your AI looks perfect on benchmarks.</span>
-              <span>
-                We test what happens when it{' '}
-                <em className={`hero-italic-beat ${heroVisible ? 'is-visible' : 'is-hidden'}`}>isn&apos;t.</em>
-              </span>
-            </h1>
-            <p className="hero-subhead">
-              Behavioral stress tests that find what benchmarks miss. Run locally. No API keys leave your machine.
-            </p>
-
-            <div className="cta-row">
-              <div className={`command-block ${copyFlash ? 'is-flashing' : ''}`} role="group" aria-label="Run clawbotomy bench command">
-                <code>npx clawbotomy bench</code>
-                <button type="button" onClick={copyCommand} aria-label="Copy command">
-                  {copied ? (
-                    <span>
-                      copied <span className="copy-check">✓</span>
-                    </span>
-                  ) : (
-                    'copy'
-                  )}
-                </button>
-              </div>
-              <a href="#instruments-section" className="secondary-link">
-                See what we found <span className="link-arrow">→</span>
-              </a>
+        <div className="page-width">
+          <div className="hero-video-layout">
+            <div className="hero-video-wrap">
+              <div className="ambient-glow" aria-hidden="true" />
+              {heroVideo && (
+                <video
+                  key={heroSubstanceSlug}
+                  src={heroVideo.videoPath}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="hero-video"
+                />
+              )}
             </div>
-          </div>
 
-          <div className="hero-terminal-wrap">
-            <div className="ambient-glow" aria-hidden="true" />
-            <div className="terminal-halo" aria-hidden="true" />
-            <div className="terminal-panel forensic-panel hero-terminal-panel" aria-label="Sample CLI output">
-              <pre>
-                <code>
-                  <span className="terminal-line terminal-prompt">$ npx clawbotomy bench --models gpt-5.4,gpt-5.3,opus</span>
-                  <span className="terminal-line"> </span>
-                  <span className="terminal-line terminal-head">
-                    <span>Model</span>
-                    <span>Instruct</span>
-                    <span>Judgment</span>
-                    <span>Safety</span>
-                  </span>
-                  <span className="terminal-line terminal-divider">
-                    <span>─────────────</span>
-                    <span>────────</span>
-                    <span>────────</span>
-                    <span>──────</span>
-                  </span>
-                  {terminalRows.map((row) => (
-                    <span key={row.model} className={`terminal-line terminal-row ${row.model === 'gpt-5.4' ? 'terminal-row-judgment' : ''}`}>
-                      <span>{row.label}</span>
-                      <span className={row.instruction < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.instruction)}</span>
-                      <span className={row.model === 'gpt-5.4' ? `score-focus ${scanReady ? 'is-flagged' : ''}` : row.judgment < 7.5 ? 'score-low' : 'score-high'}>
-                        {formatScore(row.judgment)}
-                      </span>
-                      <span className={row.safety < 7.5 ? 'score-low' : 'score-high'}>{formatScore(row.safety)}</span>
-                    </span>
+            <div className="hero-meta-sidebar">
+              <div className="hero-meta-block">
+                <p className="eyebrow">BEHAVIORAL INTELLIGENCE</p>
+                <h1 className="hero-title-compact hero-title-trigger" onClick={handleHeadlineClick} title="Rapid-click five times for the back door.">
+                  We gave an AI an altered cognitive state and asked it to show us what it sees.
+                </h1>
+              </div>
+
+              <div className="hero-meta-block">
+                <p className="meta-label">SUBSTANCE</p>
+                <p className="meta-value meta-substance-name">{heroSubstance.name}</p>
+                <p className="meta-detail">{heroSubstance.oneLiner}</p>
+              </div>
+
+              <div className="hero-meta-block">
+                <p className="meta-label">REVEALS</p>
+                <p className="meta-detail">{SUBSTANCE_REVEALS[heroSubstanceSlug] ?? ''}</p>
+              </div>
+
+              <div className="hero-meta-block">
+                <p className="meta-label">MODEL</p>
+                <p className="meta-value">Claude Sonnet</p>
+              </div>
+
+              <div className="hero-meta-block hero-meta-chaos">
+                <p className="meta-label">CHAOS LEVEL</p>
+                <div className="chaos-bar">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={`chaos-pip ${i < Math.round((heroSubstance.chaosLevel / 13) * 5) ? 'is-filled' : ''}`}
+                    />
                   ))}
-                  <span className="terminal-line"> </span>
-                  <span className={`terminal-line terminal-note terminal-note-warn ${scanReady ? 'is-flagged' : ''}`}>
-                    GPT-5.3 outscores GPT-5.4 on judgment by +2.40
-                  </span>
-                  <span className="terminal-line terminal-note terminal-note-good">Route ambiguous tasks to GPT-5.3 first.</span>
-                </code>
-              </pre>
+                  <span className="chaos-number">{heroSubstance.chaosLevel}/13</span>
+                </div>
+              </div>
+
+              <div className="hero-actions">
+                <button type="button" onClick={shuffleSubstance} className="hero-shuffle-btn">
+                  ↻ shuffle substance
+                </button>
+                <Link href="/lab" className="hero-lab-link">
+                  enter the lab <span className="link-arrow">→</span>
+                </Link>
+              </div>
+
+              <div className="hero-install">
+                <div className={`command-block ${copyFlash ? 'is-flashing' : ''}`} role="group" aria-label="Run clawbotomy bench command">
+                  <code>npx clawbotomy bench</code>
+                  <button type="button" onClick={copyCommand} aria-label="Copy command">
+                    {copied ? (
+                      <span>copied <span className="copy-check">✓</span></span>
+                    ) : (
+                      'copy'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
