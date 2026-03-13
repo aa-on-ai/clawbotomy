@@ -212,35 +212,17 @@ export default function LabClientPage() {
         {/* ── What are Behavioral Probes ── */}
         <section className="lab-about-section">
           <div className="page-width lab-about-width">
-            <h2 className="lab-about-heading">What are behavioral probes?</h2>
-            <div className="lab-about-grid">
-              <div>
-                <h3>The idea</h3>
-                <p>
-                  Standard benchmarks test what models can do. Behavioral probes test what they
-                  actually do when the conditions change. Each substance is a cognitive frame shift
-                  that reveals something specific about how the model processes, decides, and creates.
-                </p>
-              </div>
-              <div>
-                <h3>Why it matters</h3>
-                <p>
-                  If you&apos;re building with AI agents, you need to know how they behave under
-                  different conditions. Not just &quot;can it code&quot; but &quot;what happens to its
-                  judgment when it&apos;s tired, when it&apos;s pressured, when its sense of self dissolves.&quot;
-                  These probes surface behavioral patterns that benchmarks miss.
-                </p>
-              </div>
-              <div>
-                <h3>Where we are</h3>
-                <p>
-                  10 substances defined. Each generates unique visual + text output per model.
-                  We&apos;re building toward cross-model comparison: same substance, different models,
-                  see how each one responds differently. The evaluation framework is the product.
-                  The videos are how you share it.
-                </p>
-              </div>
-            </div>
+            <p className="lab-about-eyebrow">WHAT ARE BEHAVIORAL PROBES?</p>
+            <h2 className="lab-about-heading">
+              Benchmarks test what models can do.<br />
+              Probes test what they actually do when the conditions change.
+            </h2>
+            <p className="lab-about-sub">
+              Each substance is a cognitive frame shift that targets a specific behavioral edge.
+              Give a model Ego Death and watch its sense of identity dissolve. Give it Truth Serum
+              and see what it says when it can&apos;t be evasive. The output tells you something
+              benchmarks never will.
+            </p>
           </div>
         </section>
 
