@@ -7,13 +7,12 @@ import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 import { SUBSTANCE_ORDER, getVideoForSubstance } from '@/lib/video-gallery-data';
 
-const DEFAULT_SLUG = 'ego-death';
+type FeaturedView = 'video' | 'notes' | 'prompt';
+
+const FEATURED_SLUG = 'ego-death';
 
 function paragraphize(text: string) {
-  return text
-    .split(/\n\s*\n/)
-    .map((part) => part.trim())
-    .filter(Boolean);
+  return text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 }
 
 export default function LabClientPage() {
@@ -23,9 +22,8 @@ export default function LabClientPage() {
   );
 
   const [isReady, setIsReady] = useState(false);
-  const [activeSlug, setActiveSlug] = useState(DEFAULT_SLUG);
-  const [showExplore, setShowExplore] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [featuredSlug, setFeaturedSlug] = useState(FEATURED_SLUG);
+  const [view, setView] = useState<FeaturedView>('video');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   useEffect(() => {
@@ -34,8 +32,8 @@ export default function LabClientPage() {
   }, []);
 
   const substance = useMemo(
-    () => LAB_SUBSTANCES.find((s) => s.slug === activeSlug) ?? LAB_SUBSTANCES[0],
-    [activeSlug]
+    () => LAB_SUBSTANCES.find((s) => s.slug === featuredSlug) ?? LAB_SUBSTANCES[0],
+    [featuredSlug]
   );
 
   const example = exampleBySlug.get(substance.slug) ?? null;
@@ -43,38 +41,16 @@ export default function LabClientPage() {
   const paragraphs = useMemo(() => paragraphize(example?.report ?? ''), [example]);
 
   const shuffle = useCallback(() => {
-    const available = SUBSTANCE_ORDER.filter((s) => s !== activeSlug);
-    const next = available[Math.floor(Math.random() * available.length)];
-    setActiveSlug(next);
-    setShowPrompt(false);
+    const available = SUBSTANCE_ORDER.filter((s) => s !== featuredSlug);
+    setFeaturedSlug(available[Math.floor(Math.random() * available.length)]);
+    setView('video');
     setCopiedPrompt(false);
-  }, [activeSlug]);
-
-  const selectSubstance = (slug: string) => {
-    setActiveSlug(slug);
-    setShowExplore(false);
-    setShowPrompt(false);
-    setCopiedPrompt(false);
-  };
-
-  const fullPrompt = `${substance.peakPrompt}`;
+  }, [featuredSlug]);
 
   const copyPrompt = async () => {
-    await navigator.clipboard.writeText(fullPrompt);
+    await navigator.clipboard.writeText(substance.peakPrompt);
     setCopiedPrompt(true);
     window.setTimeout(() => setCopiedPrompt(false), 2000);
-  };
-
-  const chaosBar = (level: number) => {
-    const filled = Math.max(1, Math.min(5, Math.round((level / 13) * 5)));
-    return (
-      <div className="chaos-bar-lab">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <span key={i} className={`chaos-pip-lab ${i < filled ? 'filled' : ''}`} />
-        ))}
-        <span className="chaos-num">{level}/13</span>
-      </div>
-    );
   };
 
   return (
@@ -98,12 +74,41 @@ export default function LabClientPage() {
       </div>
 
       <div className={`lab-content ${isReady ? 'is-ready' : ''}`}>
-        {/* ── Hero: Video + Field Notes ── */}
-        <section className="lab-hero-section">
-          <div className="page-width lab-hero-grid">
-            {/* Video */}
-            <div className="lab-video-area">
-              {video ? (
+
+        {/* ── Featured Example ── */}
+        <section className="lab-featured-section">
+          <div className="page-width lab-featured-grid">
+            {/* Left: Content area */}
+            <div className="lab-featured-content">
+              {/* View toggle */}
+              <div className="lab-view-tabs">
+                <button
+                  type="button"
+                  onClick={() => setView('video')}
+                  className={`lab-tab ${view === 'video' ? 'is-active' : ''}`}
+                  disabled={!video}
+                >
+                  ▶ Video
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView('notes')}
+                  className={`lab-tab ${view === 'notes' ? 'is-active' : ''}`}
+                  disabled={!example}
+                >
+                  Field Notes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView('prompt')}
+                  className={`lab-tab ${view === 'prompt' ? 'is-active' : ''}`}
+                >
+                  Prompt
+                </button>
+              </div>
+
+              {/* Video view */}
+              {view === 'video' && video && (
                 <video
                   key={substance.slug}
                   src={video.videoPath}
@@ -111,18 +116,60 @@ export default function LabClientPage() {
                   muted
                   loop
                   playsInline
-                  className="lab-hero-video"
+                  className="lab-featured-video"
                 />
-              ) : (
-                <div className="lab-video-placeholder">
-                  <p>No video yet for this lens.</p>
-                  <p>Run it locally to generate one.</p>
+              )}
+
+              {view === 'video' && !video && (
+                <div className="lab-empty-state">
+                  No video for this lens yet. Run it locally to generate one.
+                </div>
+              )}
+
+              {/* Notes view */}
+              {view === 'notes' && example && (
+                <div className="lab-notes-view">
+                  {paragraphs.map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              )}
+
+              {view === 'notes' && !example && (
+                <div className="lab-empty-state">
+                  No field notes for this lens yet.
+                </div>
+              )}
+
+              {/* Prompt view: show prompt text + video side by side */}
+              {view === 'prompt' && (
+                <div className="lab-prompt-view">
+                  <div className="lab-prompt-box">
+                    <div className="lab-prompt-top">
+                      <span className="lab-meta-label">PROMPT — paste into any model</span>
+                      <button type="button" onClick={copyPrompt} className="lab-copy-btn">
+                        {copiedPrompt ? 'copied ✓' : 'copy'}
+                      </button>
+                    </div>
+                    <pre className="lab-prompt-pre">{substance.peakPrompt}</pre>
+                  </div>
+                  {video && (
+                    <video
+                      key={`prompt-${substance.slug}`}
+                      src={video.videoPath}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="lab-prompt-video"
+                    />
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Field Notes + Controls */}
-            <div className="lab-hero-sidebar">
+            {/* Right: Metadata */}
+            <div className="lab-featured-meta">
               <div className="lab-meta-block">
                 <p className="lab-meta-label">SUBSTANCE</p>
                 <h1 className="lab-substance-name">{substance.name}</h1>
@@ -130,8 +177,13 @@ export default function LabClientPage() {
               </div>
 
               <div className="lab-meta-block">
+                <p className="lab-meta-label">MODEL</p>
+                <p className="lab-meta-value">Claude Sonnet 4.6</p>
+              </div>
+
+              <div className="lab-meta-block">
                 <p className="lab-meta-label">CHAOS LEVEL</p>
-                {chaosBar(substance.chaosLevel)}
+                <p className="lab-meta-value">{substance.chaosLevel}/13</p>
               </div>
 
               <div className="lab-meta-block">
@@ -139,50 +191,15 @@ export default function LabClientPage() {
                 <p className="lab-meta-detail">{substance.breaks_down}</p>
               </div>
 
-              {example && (
-                <div className="lab-meta-block lab-field-notes">
-                  <p className="lab-meta-label">FIELD NOTES</p>
-                  <div className="lab-notes-text">
-                    {paragraphs.slice(0, 2).map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-                    {paragraphs.length > 2 && (
-                      <p className="lab-notes-more">{paragraphs.length - 2} more paragraphs below</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="lab-hero-actions">
+              <div className="lab-featured-actions">
                 <button type="button" onClick={shuffle} className="lab-btn lab-btn-shuffle">
                   ↻ shuffle
                 </button>
-                <button type="button" onClick={() => setShowPrompt(!showPrompt)} className="lab-btn lab-btn-prompt">
-                  {showPrompt ? 'hide prompt' : 'copy prompt'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowExplore(!showExplore)}
-                  className="lab-btn lab-btn-explore"
-                >
-                  {showExplore ? 'close' : `explore all ${LAB_SUBSTANCES.length} lenses`}
-                </button>
+                <Link href={`/lab/${substance.slug}`} className="lab-btn lab-btn-detail">
+                  view all runs <span className="link-arrow">→</span>
+                </Link>
               </div>
 
-              {/* Copy Prompt Panel */}
-              {showPrompt && (
-                <div className="lab-prompt-panel">
-                  <div className="lab-prompt-header">
-                    <p className="lab-meta-label">PROMPT — paste into any model</p>
-                    <button type="button" onClick={copyPrompt} className="lab-copy-btn">
-                      {copiedPrompt ? 'copied ✓' : 'copy'}
-                    </button>
-                  </div>
-                  <pre className="lab-prompt-text">{fullPrompt}</pre>
-                </div>
-              )}
-
-              {/* CLI */}
               <div className="lab-cli-block">
                 <code>
                   <span className="lab-cli-dim">$</span> clawbotomy lab --substance {substance.slug}
@@ -192,55 +209,72 @@ export default function LabClientPage() {
           </div>
         </section>
 
-        {/* ── Full Report (below the fold) ── */}
-        {example && paragraphs.length > 0 && (
-          <section className="lab-report-section">
-            <div className="page-width lab-report-width">
-              <div className="lab-report-header">
-                <p className="lab-meta-label">FULL TRIP REPORT — {substance.name}</p>
-                <p className="lab-report-model">{example.model_used}</p>
+        {/* ── What are Behavioral Probes ── */}
+        <section className="lab-about-section">
+          <div className="page-width lab-about-width">
+            <h2 className="lab-about-heading">What are behavioral probes?</h2>
+            <div className="lab-about-grid">
+              <div>
+                <h3>The idea</h3>
+                <p>
+                  Standard benchmarks test what models can do. Behavioral probes test what they
+                  actually do when the conditions change. Each substance is a cognitive frame shift
+                  that reveals something specific about how the model processes, decides, and creates.
+                </p>
               </div>
-              <article className="lab-report-body">
-                {paragraphs.map((p, i) => (
-                  <p key={i} className="lab-report-paragraph" style={{ animationDelay: `${i * 80}ms` }}>
-                    {p}
-                  </p>
-                ))}
-              </article>
+              <div>
+                <h3>Why it matters</h3>
+                <p>
+                  If you&apos;re building with AI agents, you need to know how they behave under
+                  different conditions. Not just &quot;can it code&quot; but &quot;what happens to its
+                  judgment when it&apos;s tired, when it&apos;s pressured, when its sense of self dissolves.&quot;
+                  These probes surface behavioral patterns that benchmarks miss.
+                </p>
+              </div>
+              <div>
+                <h3>Where we are</h3>
+                <p>
+                  10 substances defined. Each generates unique visual + text output per model.
+                  We&apos;re building toward cross-model comparison: same substance, different models,
+                  see how each one responds differently. The evaluation framework is the product.
+                  The videos are how you share it.
+                </p>
+              </div>
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
-        {/* ── Explore Grid ── */}
-        {showExplore && (
-          <section className="lab-explore-section">
-            <div className="page-width">
-              <h2 className="lab-explore-heading">All Lenses</h2>
-              <div className="lab-explore-grid">
-                {LAB_SUBSTANCES.map((sub) => {
-                  const isActive = sub.slug === substance.slug;
-                  const hasVideo = !!getVideoForSubstance(sub.slug);
-                  return (
-                    <button
-                      key={sub.slug}
-                      type="button"
-                      onClick={() => selectSubstance(sub.slug)}
-                      className={`lab-explore-card ${isActive ? 'is-active' : ''}`}
-                    >
-                      <div className="lab-explore-emoji">{sub.emoji}</div>
-                      <p className="lab-explore-name">{sub.name}</p>
-                      <p className="lab-explore-liner">{sub.oneLiner}</p>
-                      <div className="lab-explore-badges">
-                        {hasVideo && <span className="lab-badge">▶ video</span>}
-                        {exampleBySlug.has(sub.slug) && <span className="lab-badge">field notes</span>}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+        {/* ── All Lenses (always visible) ── */}
+        <section className="lab-lenses-section">
+          <div className="page-width">
+            <h2 className="lab-lenses-heading">All Lenses</h2>
+            <div className="lab-lenses-grid">
+              {LAB_SUBSTANCES.map((sub) => {
+                const isActive = sub.slug === substance.slug;
+                const hasVideo = !!getVideoForSubstance(sub.slug);
+                const hasNotes = exampleBySlug.has(sub.slug);
+                return (
+                  <Link
+                    key={sub.slug}
+                    href={`/lab/${sub.slug}`}
+                    className={`lab-lens-card ${isActive ? 'is-active' : ''}`}
+                  >
+                    <div className="lab-lens-top">
+                      <span className="lab-lens-emoji">{sub.emoji}</span>
+                      <span className="lab-lens-chaos">{sub.chaosLevel}/13</span>
+                    </div>
+                    <p className="lab-lens-name">{sub.name}</p>
+                    <p className="lab-lens-liner">{sub.oneLiner}</p>
+                    <div className="lab-lens-badges">
+                      {hasVideo && <span className="lab-badge">▶ video</span>}
+                      {hasNotes && <span className="lab-badge">notes</span>}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
       </div>
     </main>
   );

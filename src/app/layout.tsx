@@ -90,7 +90,7 @@ export default function RootLayout({
           {children}
           <footer className="main-footer" aria-label="Site footer">
             <div>
-              <div>for teams who&apos;d rather know before shipping</div>
+              <div>probe behavior. route intelligently. trust carefully.</div>
               <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
                 built during a mass hallucination about AI capabilities
               </div>
