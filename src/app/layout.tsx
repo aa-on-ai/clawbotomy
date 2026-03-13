@@ -99,9 +99,9 @@ export default function RootLayout({
               <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
                 GitHub
               </a>
-              <a href="/bench">Benchmarks</a>
+              <a href="/lab">Probes</a>
+              <a href="/trust">Trust</a>
               <a href="/about">About</a>
-              <a href="/lab">The Lab</a>
             </nav>
           </footer>
           <ServiceWorkerRegistration />
