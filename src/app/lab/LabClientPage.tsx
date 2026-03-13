@@ -116,6 +116,7 @@ export default function LabClientPage() {
                   muted
                   loop
                   playsInline
+                  controls
                   className="lab-featured-video"
                 />
               )}
@@ -161,6 +162,7 @@ export default function LabClientPage() {
                       muted
                       loop
                       playsInline
+                      controls
                       className="lab-prompt-video"
                     />
                   )}
