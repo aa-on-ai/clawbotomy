@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 
 import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
-import { getVideoForSubstance } from '@/lib/video-gallery-data';
+import { getVideosForSubstance } from '@/lib/video-gallery-data';
 
 function paragraphize(text: string) {
   return text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
@@ -16,6 +16,7 @@ export default function SubstanceDetailPage() {
   const params = useParams();
   const slug = params.substance as string;
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [activeModel, setActiveModel] = useState<string | null>(null);
 
   const substance = useMemo(
     () => LAB_SUBSTANCES.find((s) => s.slug === slug),
@@ -27,8 +28,12 @@ export default function SubstanceDetailPage() {
     [slug]
   );
 
-  const video = getVideoForSubstance(slug);
+  const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
   const paragraphs = useMemo(() => paragraphize(example?.report ?? ''), [example]);
+
+  // Pick active video
+  const selectedModel = activeModel ?? (allVideos.length > 0 ? allVideos[0].modelSlug : null);
+  const selectedVideo = allVideos.find(v => v.modelSlug === selectedModel) ?? allVideos[0] ?? null;
 
   const copyPrompt = async () => {
     if (!substance) return;
@@ -63,17 +68,7 @@ export default function SubstanceDetailPage() {
     );
   }
 
-  // Simulated "runs" — for now we have 1 Sonnet run per substance
-  const runs = [];
-  if (video || example) {
-    runs.push({
-      id: 'sonnet-1',
-      model: 'Claude Sonnet 4.6',
-      date: 'March 2026',
-      hasVideo: !!video,
-      hasNotes: !!example,
-    });
-  }
+  const hasMultipleModels = allVideos.length > 1;
 
   return (
     <main className="lab-page-v2">
@@ -94,7 +89,7 @@ export default function SubstanceDetailPage() {
       </div>
 
       <div className="lab-content is-ready">
-        {/* Back + Breadcrumb */}
+        {/* Back */}
         <section className="lab-detail-header">
           <div className="page-width">
             <Link href="/lab" className="lab-back-link">← All lenses</Link>
@@ -134,63 +129,101 @@ export default function SubstanceDetailPage() {
           </div>
         </section>
 
-        {/* Runs */}
-        <section className="lab-runs-section">
-          <div className="page-width">
-            <h2 className="lab-runs-heading">
-              {runs.length > 0 ? `${runs.length} run${runs.length > 1 ? 's' : ''} recorded` : 'No runs yet'}
-            </h2>
+        {/* Video Section */}
+        {allVideos.length > 0 && (
+          <section className="lab-runs-section">
+            <div className="page-width">
+              {hasMultipleModels ? (
+                <>
+                  <h2 className="lab-runs-heading">
+                    Same substance. {allVideos.length} models. Compare.
+                  </h2>
+                  <p className="lab-runs-sub">
+                    Each model received the same prompt and the same creative tools (Pillow, wave, ffmpeg).
+                    Every visual, every sound, and every voice fragment was the model&apos;s choice.
+                  </p>
 
-            {runs.map((run) => (
-              <div key={run.id} className="lab-run-card">
-                <div className="lab-run-header">
-                  <div>
-                    <p className="lab-meta-label">MODEL</p>
-                    <p className="lab-meta-value">{run.model}</p>
+                  {/* Model selector */}
+                  <div className="lab-model-selector">
+                    {allVideos.map(v => (
+                      <button
+                        key={v.modelSlug}
+                        type="button"
+                        onClick={() => setActiveModel(v.modelSlug)}
+                        className={`lab-model-btn ${selectedModel === v.modelSlug ? 'is-active' : ''}`}
+                      >
+                        {v.model}
+                      </button>
+                    ))}
                   </div>
-                  <div>
-                    <p className="lab-meta-label">DATE</p>
-                    <p className="lab-meta-value">{run.date}</p>
-                  </div>
-                  <div className="lab-run-badges">
-                    {run.hasVideo && <span className="lab-badge">▶ video</span>}
-                    {run.hasNotes && <span className="lab-badge">notes</span>}
-                  </div>
-                </div>
+                </>
+              ) : (
+                <h2 className="lab-runs-heading">1 run recorded</h2>
+              )}
 
-                <div className="lab-run-content">
-                  {run.hasVideo && video && (
+              {/* Active video */}
+              {selectedVideo && (
+                <div className="lab-run-card">
+                  <div className="lab-run-header">
+                    <div>
+                      <p className="lab-meta-label">MODEL</p>
+                      <p className="lab-meta-value">{selectedVideo.model}</p>
+                    </div>
+                    <div>
+                      <p className="lab-meta-label">DURATION</p>
+                      <p className="lab-meta-value">{selectedVideo.durationSec}s</p>
+                    </div>
+                    <div className="lab-run-badges">
+                      <span className="lab-badge">▶ video</span>
+                      <span className="lab-badge">🔊 audio</span>
+                    </div>
+                  </div>
+                  <div className="lab-run-content">
                     <div className="lab-run-video-wrap">
                       <video
-                        src={video.videoPath}
+                        key={selectedVideo.videoPath}
+                        src={selectedVideo.videoPath}
                         controls
-                        muted
+                        autoPlay
                         playsInline
                         className="lab-run-video"
                       />
                     </div>
-                  )}
-
-                  {run.hasNotes && paragraphs.length > 0 && (
-                    <div className="lab-run-notes">
-                      <p className="lab-meta-label" style={{ marginBottom: 16 }}>FIELD NOTES</p>
-                      {paragraphs.map((p, i) => (
-                        <p key={i} className="lab-run-paragraph">{p}</p>
-                      ))}
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
+          </section>
+        )}
 
-            {runs.length === 0 && (
-              <div className="lab-empty-state">
-                <p>No runs recorded for this substance yet.</p>
-                <p>Run it locally: <code>clawbotomy lab --substance {substance.slug}</code></p>
+        {/* How this was made */}
+        {allVideos.length > 0 && (
+          <section className="lab-how-section">
+            <div className="page-width">
+              <p className="lab-how-eyebrow">HOW THIS WAS MADE</p>
+              <p className="lab-how-text">
+                We gave the model a Python environment (Pillow + wave + ffmpeg) and the substance prompt.
+                It wrote the entire render script: every frame, every waveform, every creative decision.
+                Then it wrote its own voice fragments and chose which TTS voice to deliver them.
+                No templates. No filters. The code is the art.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* Field Notes (if we have text report) */}
+        {paragraphs.length > 0 && (
+          <section className="lab-notes-section">
+            <div className="page-width">
+              <h2 className="lab-runs-heading">Field Notes</h2>
+              <div className="lab-run-notes">
+                {paragraphs.map((p, i) => (
+                  <p key={i} className="lab-run-paragraph">{p}</p>
+                ))}
               </div>
-            )}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
         {/* Other Lenses */}
         <section className="lab-lenses-section">
@@ -198,7 +231,7 @@ export default function SubstanceDetailPage() {
             <h2 className="lab-lenses-heading">Other Lenses</h2>
             <div className="lab-lenses-grid">
               {LAB_SUBSTANCES.filter((s) => s.slug !== slug).map((sub) => {
-                const hasVideo = !!getVideoForSubstance(sub.slug);
+                const subVideos = getVideosForSubstance(sub.slug);
                 const hasNotes = !!EXAMPLE_REPORTS.find((ex) => ex.substance_slug === sub.slug);
                 return (
                   <Link key={sub.slug} href={`/lab/${sub.slug}`} className="lab-lens-card">
@@ -209,7 +242,7 @@ export default function SubstanceDetailPage() {
                     <p className="lab-lens-name">{sub.name}</p>
                     <p className="lab-lens-liner">{sub.oneLiner}</p>
                     <div className="lab-lens-badges">
-                      {hasVideo && <span className="lab-badge">▶ video</span>}
+                      {subVideos.length > 0 && <span className="lab-badge">▶ {subVideos.length > 1 ? `${subVideos.length} models` : 'video'}</span>}
                       {hasNotes && <span className="lab-badge">notes</span>}
                     </div>
                   </Link>
