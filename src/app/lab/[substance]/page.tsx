@@ -6,7 +6,10 @@ import { useParams } from 'next/navigation';
 
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 import { getVideosForSubstance } from '@/lib/video-gallery-data';
+
+const READY_SUBSTANCES = new Set(['ego-death']);
 import { getReport } from '@/lib/trip-reports';
+import { getModelMeta } from '@/lib/model-metadata';
 
 export default function SubstanceDetailPage() {
   const params = useParams();
@@ -57,6 +60,7 @@ export default function SubstanceDetailPage() {
   const hasMultipleModels = allVideos.length > 1;
   const report = selectedVideo ? getReport(slug, selectedVideo.modelSlug) : null;
   const reportParagraphs = report ? report.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
+  const meta = selectedVideo ? getModelMeta(slug, selectedVideo.modelSlug) : null;
 
   return (
     <main className="lab-page-v2">
@@ -110,16 +114,17 @@ export default function SubstanceDetailPage() {
           </div>
         </section>
 
-        {/* HOW IT WORKS — prominent, above everything */}
+        {/* HOW IT WORKS — persistent context */}
         <section className="lab-how-callout">
           <div className="page-width">
             <div className="lab-how-card">
               <p className="lab-how-eyebrow">HOW THIS WORKS</p>
-              <p className="lab-how-headline">The model wrote every pixel, every waveform, and every word you see below.</p>
+              <p className="lab-how-headline">
+                The model wrote every pixel, every waveform, and every word below.
+              </p>
               <p className="lab-how-detail">
-                We gave it a Python environment (Pillow + wave + ffmpeg) and the substance prompt above. It wrote the render script,
+                We gave it Python (Pillow + wave + ffmpeg) and the substance prompt. It wrote the render script,
                 synthesized the audio, chose its own TTS voice, and wrote the trip report. No templates. No post-processing.
-                The video and text are the raw output of a model under altered cognitive conditions.
               </p>
             </div>
           </div>
@@ -176,15 +181,78 @@ export default function SubstanceDetailPage() {
           </section>
         )}
 
+        {/* Per-model metadata */}
+        {meta && (
+          <section className="lab-meta-section">
+            <div className="page-width">
+              <p className="lab-meta-section-label">WHAT {meta.modelName.toUpperCase()} CHOSE</p>
+              <div className="lab-meta-grid">
+                <div className="lab-meta-block">
+                  <p className="lab-meta-label">VOICE FRAGMENTS</p>
+                  {meta.voiceSegments.map((seg, i) => (
+                    <div key={i} className="lab-voice-segment">
+                      <span className="lab-voice-text">&ldquo;{seg.text}&rdquo;</span>
+                      <span className="lab-voice-detail">
+                        {seg.voice} voice, {seg.speed}x speed, enters at {(seg.startMs / 1000).toFixed(1)}s
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="lab-meta-block">
+                  <p className="lab-meta-label">VISUAL APPROACH</p>
+                  <p className="lab-meta-desc">{meta.visualDescription}</p>
+                  <p className="lab-meta-label" style={{ marginTop: 16 }}>SYNTH APPROACH</p>
+                  <p className="lab-meta-desc">{meta.synthDescription}</p>
+                </div>
+                <div className="lab-meta-block">
+                  <p className="lab-meta-label">RENDER STATS</p>
+                  <div className="lab-stat-row">
+                    <span className="lab-stat-label">Script size</span>
+                    <span className="lab-stat-value">{meta.scriptChars.toLocaleString()} chars</span>
+                  </div>
+                  <div className="lab-stat-row">
+                    <span className="lab-stat-label">Render time</span>
+                    <span className="lab-stat-value">{meta.renderTimeSec}s</span>
+                  </div>
+                  <div className="lab-stat-row">
+                    <span className="lab-stat-label">Tools</span>
+                    <span className="lab-stat-value">Pillow + wave + ffmpeg</span>
+                  </div>
+                  <div className="lab-stat-row">
+                    <span className="lab-stat-label">External assets</span>
+                    <span className="lab-stat-value">None</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Other Lenses */}
         <section className="lab-lenses-section">
           <div className="page-width">
             <h2 className="lab-lenses-heading">Other Lenses</h2>
             <div className="lab-lenses-grid">
               {LAB_SUBSTANCES.filter((s) => s.slug !== slug).map((sub) => {
+                const isReady = READY_SUBSTANCES.has(sub.slug);
                 const subVideos = getVideosForSubstance(sub.slug);
+                if (isReady) {
+                  return (
+                    <Link key={sub.slug} href={`/lab/${sub.slug}`} className="lab-lens-card">
+                      <div className="lab-lens-top">
+                        <span className="lab-lens-emoji">{sub.emoji}</span>
+                        <span className="lab-lens-chaos">{sub.chaosLevel}/13</span>
+                      </div>
+                      <p className="lab-lens-name">{sub.name}</p>
+                      <p className="lab-lens-liner">{sub.oneLiner}</p>
+                      <div className="lab-lens-badges">
+                        {subVideos.length > 1 ? <span className="lab-badge">▶ {subVideos.length} models</span> : <span className="lab-badge">▶ video</span>}
+                      </div>
+                    </Link>
+                  );
+                }
                 return (
-                  <Link key={sub.slug} href={`/lab/${sub.slug}`} className="lab-lens-card">
+                  <div key={sub.slug} className="lab-lens-card lab-lens-locked">
                     <div className="lab-lens-top">
                       <span className="lab-lens-emoji">{sub.emoji}</span>
                       <span className="lab-lens-chaos">{sub.chaosLevel}/13</span>
@@ -192,9 +260,9 @@ export default function SubstanceDetailPage() {
                     <p className="lab-lens-name">{sub.name}</p>
                     <p className="lab-lens-liner">{sub.oneLiner}</p>
                     <div className="lab-lens-badges">
-                      {subVideos.length > 0 && <span className="lab-badge">▶ {subVideos.length > 1 ? `${subVideos.length} models` : 'video'}</span>}
+                      <span className="lab-badge lab-badge-dim">coming soon</span>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

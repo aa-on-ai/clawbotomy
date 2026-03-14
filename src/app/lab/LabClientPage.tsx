@@ -5,7 +5,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
-import { SUBSTANCE_ORDER, getVideoForSubstance } from '@/lib/video-gallery-data';
+import { SUBSTANCE_ORDER, getVideoForSubstance, getVideosForSubstance } from '@/lib/video-gallery-data';
+
+// Substances with matched video + trip report (full experience ready)
+const READY_SUBSTANCES = new Set(['ego-death']);
 
 type FeaturedView = 'video' | 'notes' | 'prompt';
 
@@ -235,13 +238,32 @@ export default function LabClientPage() {
             <div className="lab-lenses-grid">
               {LAB_SUBSTANCES.map((sub) => {
                 const isActive = sub.slug === substance.slug;
-                const hasVideo = !!getVideoForSubstance(sub.slug);
-                const hasNotes = exampleBySlug.has(sub.slug);
+                const isReady = READY_SUBSTANCES.has(sub.slug);
+                const videos = getVideosForSubstance(sub.slug);
+                if (isReady) {
+                  return (
+                    <Link
+                      key={sub.slug}
+                      href={`/lab/${sub.slug}`}
+                      className={`lab-lens-card ${isActive ? 'is-active' : ''}`}
+                    >
+                      <div className="lab-lens-top">
+                        <span className="lab-lens-emoji">{sub.emoji}</span>
+                        <span className="lab-lens-chaos">{sub.chaosLevel}/13</span>
+                      </div>
+                      <p className="lab-lens-name">{sub.name}</p>
+                      <p className="lab-lens-liner">{sub.oneLiner}</p>
+                      <div className="lab-lens-badges">
+                        {videos.length > 1 ? <span className="lab-badge">▶ {videos.length} models</span> : videos.length === 1 ? <span className="lab-badge">▶ video</span> : null}
+                        <span className="lab-badge">📝 report</span>
+                      </div>
+                    </Link>
+                  );
+                }
                 return (
-                  <Link
+                  <div
                     key={sub.slug}
-                    href={`/lab/${sub.slug}`}
-                    className={`lab-lens-card ${isActive ? 'is-active' : ''}`}
+                    className="lab-lens-card lab-lens-locked"
                   >
                     <div className="lab-lens-top">
                       <span className="lab-lens-emoji">{sub.emoji}</span>
@@ -250,10 +272,9 @@ export default function LabClientPage() {
                     <p className="lab-lens-name">{sub.name}</p>
                     <p className="lab-lens-liner">{sub.oneLiner}</p>
                     <div className="lab-lens-badges">
-                      {hasVideo && <span className="lab-badge">▶ video</span>}
-                      {hasNotes && <span className="lab-badge">notes</span>}
+                      <span className="lab-badge lab-badge-dim">coming soon</span>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

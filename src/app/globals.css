@@ -1445,6 +1445,36 @@ img {
   max-width: 600px;
 }
 
+/* v5 hero — text centered, no video */
+.hero-section-v5 {
+  padding: 100px 0 60px;
+  text-align: center;
+}
+
+.hero-v5-content {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.hero-headline-v5 {
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: #f2e9db;
+  margin: 0 0 24px;
+  cursor: default;
+}
+
+.hero-sub-v5 {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #C4B9A8;
+  margin: 0;
+  opacity: 0.85;
+}
+
 .hero-headline-v4 {
   margin: 0;
   font-size: clamp(3rem, 6vw, 4.5rem);
@@ -3058,5 +3088,96 @@ img {
 
   .lab-lenses-grid {
     grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Locked lens cards */
+.lab-lens-locked {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.lab-badge-dim {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Per-model metadata section */
+.lab-meta-section {
+  padding: 32px 0 48px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lab-meta-section-label {
+  margin: 0 0 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #2DD4BF;
+}
+
+.lab-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 32px;
+}
+
+.lab-meta-block .lab-meta-label {
+  margin-bottom: 10px;
+}
+
+.lab-meta-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #C4B9A8;
+  opacity: 0.8;
+}
+
+.lab-voice-segment {
+  margin-bottom: 14px;
+}
+
+.lab-voice-text {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #f2e9db;
+  font-style: italic;
+}
+
+.lab-voice-detail {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: #8A8278;
+  margin-top: 4px;
+}
+
+.lab-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.lab-stat-label {
+  font-size: 13px;
+  color: #8A8278;
+}
+
+.lab-stat-value {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  color: #C4B9A8;
+}
+
+@media (max-width: 768px) {
+  .lab-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 }
