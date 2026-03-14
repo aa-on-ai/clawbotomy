@@ -3181,3 +3181,48 @@ img {
     gap: 24px;
   }
 }
+
+/* Lab hero (simplified) */
+.lab-hero-section {
+  padding: 80px 0 40px;
+}
+
+/* Hover video preview */
+.lab-hover-preview {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  animation: hover-fade-in 0.15s ease forwards;
+}
+
+@keyframes hover-fade-in {
+  to { opacity: 1; }
+}
+
+.lab-hover-video {
+  display: block;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-hover-preview {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .lab-hover-preview {
+    display: none;
+  }
+  
+  .lab-hero-section {
+    padding: 60px 0 32px;
+  }
+}
