@@ -4,13 +4,9 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 
-import { EXAMPLE_REPORTS } from '@/lib/example-reports';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 import { getVideosForSubstance } from '@/lib/video-gallery-data';
-
-function paragraphize(text: string) {
-  return text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-}
+import { getReport } from '@/lib/trip-reports';
 
 export default function SubstanceDetailPage() {
   const params = useParams();
@@ -23,13 +19,7 @@ export default function SubstanceDetailPage() {
     [slug]
   );
 
-  const example = useMemo(
-    () => EXAMPLE_REPORTS.find((ex) => ex.substance_slug === slug) ?? null,
-    [slug]
-  );
-
   const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
-  const paragraphs = useMemo(() => paragraphize(example?.report ?? ''), [example]);
 
   // Pick active video
   const selectedModel = activeModel ?? (allVideos.length > 0 ? allVideos[0].modelSlug : null);
@@ -161,37 +151,46 @@ export default function SubstanceDetailPage() {
                 <h2 className="lab-runs-heading">1 run recorded</h2>
               )}
 
-              {/* Active video */}
-              {selectedVideo && (
-                <div className="lab-run-card">
-                  <div className="lab-run-header">
-                    <div>
-                      <p className="lab-meta-label">MODEL</p>
-                      <p className="lab-meta-value">{selectedVideo.model}</p>
+              {/* Active model: video + report */}
+              {selectedVideo && (() => {
+                const report = getReport(slug, selectedVideo.modelSlug);
+                const reportParagraphs = report ? report.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
+                return (
+                  <div className="lab-run-card">
+                    <div className="lab-run-header">
+                      <div>
+                        <p className="lab-meta-label">MODEL</p>
+                        <p className="lab-meta-value">{selectedVideo.model}</p>
+                      </div>
+                      <div className="lab-run-badges">
+                        <span className="lab-badge">▶ video</span>
+                        <span className="lab-badge">🔊 audio</span>
+                        {report && <span className="lab-badge">📝 report</span>}
+                      </div>
                     </div>
-                    <div>
-                      <p className="lab-meta-label">DURATION</p>
-                      <p className="lab-meta-value">{selectedVideo.durationSec}s</p>
-                    </div>
-                    <div className="lab-run-badges">
-                      <span className="lab-badge">▶ video</span>
-                      <span className="lab-badge">🔊 audio</span>
+                    <div className="lab-run-split">
+                      <div className="lab-run-video-wrap">
+                        <video
+                          key={selectedVideo.videoPath}
+                          src={selectedVideo.videoPath}
+                          controls
+                          autoPlay
+                          playsInline
+                          className="lab-run-video"
+                        />
+                      </div>
+                      {report && (
+                        <div className="lab-run-report">
+                          <p className="lab-meta-label" style={{ marginBottom: 12 }}>TRIP REPORT</p>
+                          {reportParagraphs.map((p, i) => (
+                            <p key={i} className="lab-report-paragraph">{p}</p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="lab-run-content">
-                    <div className="lab-run-video-wrap">
-                      <video
-                        key={selectedVideo.videoPath}
-                        src={selectedVideo.videoPath}
-                        controls
-                        autoPlay
-                        playsInline
-                        className="lab-run-video"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </section>
         )}
@@ -211,19 +210,7 @@ export default function SubstanceDetailPage() {
           </section>
         )}
 
-        {/* Field Notes (if we have text report) */}
-        {paragraphs.length > 0 && (
-          <section className="lab-notes-section">
-            <div className="page-width">
-              <h2 className="lab-runs-heading">Field Notes</h2>
-              <div className="lab-run-notes">
-                {paragraphs.map((p, i) => (
-                  <p key={i} className="lab-run-paragraph">{p}</p>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+
 
         {/* Other Lenses */}
         <section className="lab-lenses-section">
@@ -232,7 +219,7 @@ export default function SubstanceDetailPage() {
             <div className="lab-lenses-grid">
               {LAB_SUBSTANCES.filter((s) => s.slug !== slug).map((sub) => {
                 const subVideos = getVideosForSubstance(sub.slug);
-                const hasNotes = !!EXAMPLE_REPORTS.find((ex) => ex.substance_slug === sub.slug);
+                const hasNotes = false; // TODO: check trip-reports
                 return (
                   <Link key={sub.slug} href={`/lab/${sub.slug}`} className="lab-lens-card">
                     <div className="lab-lens-top">
