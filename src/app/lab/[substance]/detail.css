@@ -35,7 +35,7 @@
   height: 48px;
 }
 .dp-brand {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -81,7 +81,7 @@
   margin: 0;
 }
 .dp-label {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -121,7 +121,7 @@
   margin-bottom: 12px;
 }
 .dp-copy-btn {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 12px;
   padding: 4px 12px;
   border-radius: 4px;
@@ -132,7 +132,7 @@
 }
 .dp-copy-btn:hover { background: rgba(45,212,191,0.15); }
 .dp-prompt-text {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 14px;
   line-height: 1.7;
   color: #d4cabb;
