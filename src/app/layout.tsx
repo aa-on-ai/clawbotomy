@@ -4,20 +4,7 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
 import { GeistSans } from 'geist/font/sans';
-import { IBM_Plex_Mono, Instrument_Serif } from 'next/font/google';
-
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-mono',
-});
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ['latin'],
-  weight: '400',
-  style: ['italic'],
-  variable: '--font-serif',
-});
+import { GeistMono } from 'geist/font/mono';
 
 const siteTitle = 'Clawbotomy — Behavioral Intelligence for AI Models';
 const siteDescription =
@@ -73,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${ibmPlexMono.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -90,10 +77,7 @@ export default function RootLayout({
           {children}
           <footer className="main-footer" aria-label="Site footer">
             <div>
-              <div>probe behavior. route intelligently. trust carefully.</div>
-              <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
-                built during a mass hallucination about AI capabilities
-              </div>
+              <div className="footer-tagline">probe behavior. route intelligently. trust carefully.</div>
             </div>
             <nav>
               <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
