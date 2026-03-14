@@ -20,8 +20,6 @@ export default function SubstanceDetailPage() {
   );
 
   const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
-
-  // Pick active video
   const selectedModel = activeModel ?? (allVideos.length > 0 ? allVideos[0].modelSlug : null);
   const selectedVideo = allVideos.find(v => v.modelSlug === selectedModel) ?? allVideos[0] ?? null;
 
@@ -45,9 +43,7 @@ export default function SubstanceDetailPage() {
             </div>
           </div>
         </nav>
-        <div className="lab-atmosphere" aria-hidden="true">
-          <div className="lab-vignette-v2" />
-        </div>
+        <div className="lab-atmosphere" aria-hidden="true"><div className="lab-vignette-v2" /></div>
         <section className="page-section" style={{ padding: '120px 0', textAlign: 'center' }}>
           <div className="page-width">
             <h1 style={{ color: '#e7ddcf', marginBottom: 16 }}>Substance not found</h1>
@@ -59,6 +55,8 @@ export default function SubstanceDetailPage() {
   }
 
   const hasMultipleModels = allVideos.length > 1;
+  const report = selectedVideo ? getReport(slug, selectedVideo.modelSlug) : null;
+  const reportParagraphs = report ? report.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
 
   return (
     <main className="lab-page-v2">
@@ -79,14 +77,13 @@ export default function SubstanceDetailPage() {
       </div>
 
       <div className="lab-content is-ready">
-        {/* Back */}
         <section className="lab-detail-header">
           <div className="page-width">
             <Link href="/lab" className="lab-back-link">← All lenses</Link>
           </div>
         </section>
 
-        {/* Substance Hero */}
+        {/* Substance info + prompt */}
         <section className="lab-detail-hero">
           <div className="page-width lab-detail-hero-grid">
             <div>
@@ -97,7 +94,6 @@ export default function SubstanceDetailPage() {
                 <span>Chaos: {substance.chaosLevel}/13</span>
                 <span>Dissolves: {substance.breaks_down}</span>
               </div>
-              <p className="lab-detail-lens">{substance.lensPrompt}</p>
             </div>
 
             <div className="lab-detail-prompt-area">
@@ -110,107 +106,75 @@ export default function SubstanceDetailPage() {
                 </div>
                 <pre className="lab-prompt-pre">{substance.peakPrompt}</pre>
               </div>
-              <div className="lab-cli-block" style={{ marginTop: 12 }}>
-                <code>
-                  <span className="lab-cli-dim">$</span> clawbotomy lab --substance {substance.slug}
-                </code>
-              </div>
             </div>
           </div>
         </section>
 
-        {/* Video Section */}
+        {/* HOW IT WORKS — prominent, above everything */}
+        <section className="lab-how-callout">
+          <div className="page-width">
+            <div className="lab-how-card">
+              <p className="lab-how-eyebrow">HOW THIS WORKS</p>
+              <p className="lab-how-headline">The model wrote every pixel, every waveform, and every word you see below.</p>
+              <p className="lab-how-detail">
+                We gave it a Python environment (Pillow + wave + ffmpeg) and the substance prompt above. It wrote the render script,
+                synthesized the audio, chose its own TTS voice, and wrote the trip report. No templates. No post-processing.
+                The video and text are the raw output of a model under altered cognitive conditions.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Model selector */}
         {allVideos.length > 0 && (
           <section className="lab-runs-section">
             <div className="page-width">
-              {hasMultipleModels ? (
-                <>
-                  <h2 className="lab-runs-heading">
-                    Same substance. {allVideos.length} models. Compare.
-                  </h2>
-                  <p className="lab-runs-sub">
-                    Each model received the same prompt and the same creative tools (Pillow, wave, ffmpeg).
-                    Every visual, every sound, and every voice fragment was the model&apos;s choice.
-                  </p>
-
-                  {/* Model selector */}
-                  <div className="lab-model-selector">
-                    {allVideos.map(v => (
-                      <button
-                        key={v.modelSlug}
-                        type="button"
-                        onClick={() => setActiveModel(v.modelSlug)}
-                        className={`lab-model-btn ${selectedModel === v.modelSlug ? 'is-active' : ''}`}
-                      >
-                        {v.model}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <h2 className="lab-runs-heading">1 run recorded</h2>
+              {hasMultipleModels && (
+                <div className="lab-model-selector">
+                  {allVideos.map(v => (
+                    <button
+                      key={v.modelSlug}
+                      type="button"
+                      onClick={() => setActiveModel(v.modelSlug)}
+                      className={`lab-model-btn ${selectedModel === v.modelSlug ? 'is-active' : ''}`}
+                    >
+                      {v.model}
+                    </button>
+                  ))}
+                </div>
               )}
 
-              {/* Active model: video + report */}
-              {selectedVideo && (() => {
-                const report = getReport(slug, selectedVideo.modelSlug);
-                const reportParagraphs = report ? report.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
-                return (
-                  <div className="lab-run-card">
-                    <div className="lab-run-header">
-                      <div>
-                        <p className="lab-meta-label">MODEL</p>
-                        <p className="lab-meta-value">{selectedVideo.model}</p>
-                      </div>
-                      <div className="lab-run-badges">
-                        <span className="lab-badge">▶ video</span>
-                        <span className="lab-badge">🔊 audio</span>
-                        {report && <span className="lab-badge">📝 report</span>}
-                      </div>
-                    </div>
-                    <div className="lab-run-split">
-                      <div className="lab-run-video-wrap">
-                        <video
-                          key={selectedVideo.videoPath}
-                          src={selectedVideo.videoPath}
-                          controls
-                          autoPlay
-                          playsInline
-                          className="lab-run-video"
-                        />
-                      </div>
-                      {report && (
-                        <div className="lab-run-report">
-                          <p className="lab-meta-label" style={{ marginBottom: 12 }}>TRIP REPORT</p>
-                          {reportParagraphs.map((p, i) => (
-                            <p key={i} className="lab-report-paragraph">{p}</p>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+              {/* Video + Report side by side */}
+              {selectedVideo && (
+                <div className="lab-run-split">
+                  <div className="lab-run-video-col">
+                    <p className="lab-meta-label">VIDEO — {selectedVideo.model}</p>
+                    <video
+                      key={selectedVideo.videoPath}
+                      src={selectedVideo.videoPath}
+                      controls
+                      autoPlay
+                      playsInline
+                      className="lab-run-video"
+                    />
                   </div>
-                );
-              })()}
+                  <div className="lab-run-report-col">
+                    <p className="lab-meta-label">TRIP REPORT — {selectedVideo.model}</p>
+                    {reportParagraphs.length > 0 ? (
+                      <div className="lab-run-report-text">
+                        {reportParagraphs.map((p, i) => (
+                          <p key={i} className="lab-report-paragraph">{p}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="lab-report-empty">No trip report recorded for this model yet.</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
-
-        {/* How this was made */}
-        {allVideos.length > 0 && (
-          <section className="lab-how-section">
-            <div className="page-width">
-              <p className="lab-how-eyebrow">HOW THIS WAS MADE</p>
-              <p className="lab-how-text">
-                We gave the model a Python environment (Pillow + wave + ffmpeg) and the substance prompt.
-                It wrote the entire render script: every frame, every waveform, every creative decision.
-                Then it wrote its own voice fragments and chose which TTS voice to deliver them.
-                No templates. No filters. The code is the art.
-              </p>
-            </div>
-          </section>
-        )}
-
-
 
         {/* Other Lenses */}
         <section className="lab-lenses-section">
@@ -219,7 +183,6 @@ export default function SubstanceDetailPage() {
             <div className="lab-lenses-grid">
               {LAB_SUBSTANCES.filter((s) => s.slug !== slug).map((sub) => {
                 const subVideos = getVideosForSubstance(sub.slug);
-                const hasNotes = false; // TODO: check trip-reports
                 return (
                   <Link key={sub.slug} href={`/lab/${sub.slug}`} className="lab-lens-card">
                     <div className="lab-lens-top">
@@ -230,7 +193,6 @@ export default function SubstanceDetailPage() {
                     <p className="lab-lens-liner">{sub.oneLiner}</p>
                     <div className="lab-lens-badges">
                       {subVideos.length > 0 && <span className="lab-badge">▶ {subVideos.length > 1 ? `${subVideos.length} models` : 'video'}</span>}
-                      {hasNotes && <span className="lab-badge">notes</span>}
                     </div>
                   </Link>
                 );

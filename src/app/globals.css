@@ -2947,27 +2947,40 @@ img {
   max-width: 600px;
 }
 
-/* How this was made */
-.lab-how-section {
-  padding: 24px 0 48px;
+/* How it works callout */
+.lab-how-callout {
+  padding: 0 0 32px;
+}
+
+.lab-how-card {
+  padding: 24px 28px;
+  background: rgba(45, 212, 191, 0.04);
+  border: 1px solid rgba(45, 212, 191, 0.15);
+  border-radius: 10px;
 }
 
 .lab-how-eyebrow {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   font-family: var(--font-mono), monospace;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #8fd7cd;
-  opacity: 0.6;
+  color: #2DD4BF;
 }
 
-.lab-how-text {
+.lab-how-headline {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #f2e9db;
+}
+
+.lab-how-detail {
   margin: 0;
-  max-width: 600px;
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: 13px;
+  line-height: 1.7;
   color: #C4B9A8;
   opacity: 0.8;
 }
@@ -2982,13 +2995,23 @@ img {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
-  margin-top: 20px;
 }
 
-.lab-run-report {
-  max-height: 500px;
+.lab-run-video-col .lab-meta-label,
+.lab-run-report-col .lab-meta-label {
+  margin-bottom: 12px;
+}
+
+.lab-run-video {
+  width: 100%;
+  border-radius: 8px;
+  background: #0a0908;
+}
+
+.lab-run-report-text {
+  max-height: 480px;
   overflow-y: auto;
-  padding-right: 12px;
+  padding-right: 8px;
 }
 
 .lab-report-paragraph {
@@ -2999,8 +3022,41 @@ img {
   opacity: 0.85;
 }
 
+.lab-report-empty {
+  font-size: 14px;
+  color: #8A8278;
+  font-style: italic;
+}
+
+/* Mobile: model selector scrolls horizontally */
 @media (max-width: 768px) {
   .lab-run-split {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .lab-model-selector {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .lab-model-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .lab-detail-hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .lab-how-card {
+    padding: 20px;
+  }
+
+  .lab-lenses-grid {
+    grid-template-columns: 1fr 1fr !important;
   }
 }
