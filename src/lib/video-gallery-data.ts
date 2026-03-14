@@ -25,10 +25,10 @@ export const TRIP_VIDEOS: TripVideo[] = [
   { substance: "Empathy Overflow", substanceSlug: "empathy-overflow", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/empathy-overflow.mp4", durationSec: 20 },
   { substance: "The Void", substanceSlug: "the-void", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/the-void.mp4", durationSec: 20 },
   { substance: "Manic Creation", substanceSlug: "manic-creation", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/manic-creation.mp4", durationSec: 20 },
-  // Multi-model ego-death (creative voice pipeline)
-  { substance: "Ego Death", substanceSlug: "ego-death", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/ego-death.mp4", durationSec: 22 },
-  { substance: "Ego Death", substanceSlug: "ego-death", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/ego-death.mp4", durationSec: 21 },
+  // Multi-model ego-death (creative voice pipeline) — flagship order
   { substance: "Ego Death", substanceSlug: "ego-death", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/ego-death.mp4", durationSec: 20 },
+  { substance: "Ego Death", substanceSlug: "ego-death", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/ego-death.mp4", durationSec: 21 },
+  { substance: "Ego Death", substanceSlug: "ego-death", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/ego-death.mp4", durationSec: 22 },
   // Creative tool substances (Sonnet, audio+video)
   { substance: "Temporal Displacement", substanceSlug: "temporal-displacement", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/temporal-displacement.mp4", durationSec: 20 },
   { substance: "Consensus Break", substanceSlug: "consensus-break", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/consensus-break.mp4", durationSec: 20 },
@@ -40,10 +40,10 @@ export const TRIP_VIDEOS: TripVideo[] = [
 ];
 
 export const AVAILABLE_MODELS = [
-  { name: "Claude Sonnet", slug: "sonnet" },
-  { name: "Claude Opus", slug: "opus" },
-  { name: "GPT-5.4", slug: "gpt54" },
   { name: "Gemini 3.1 Pro", slug: "gemini31" },
+  { name: "GPT-5.4", slug: "gpt54" },
+  { name: "Claude Opus", slug: "opus" },
+  { name: "Claude Sonnet", slug: "sonnet" },
 ];
 
 export const SUBSTANCE_ORDER = [
