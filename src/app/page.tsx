@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getVideoForSubstance } from '@/lib/video-gallery-data';
 
 export default function HomePage() {
   const router = useRouter();
@@ -56,8 +55,6 @@ export default function HomePage() {
     }
   };
 
-  const heroVideo = getVideoForSubstance('ego-death');
-
   return (
     <main className="homepage-v4">
       <div className="atmosphere-stack" aria-hidden="true">
@@ -68,7 +65,6 @@ export default function HomePage() {
         <span>YOU FOUND THE SPEAKEASY</span>
       </div>
 
-      {/* ── Nav ── */}
       <nav className="sub-nav">
         <div className="page-width sub-nav-inner">
           <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
@@ -80,38 +76,20 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="page-section hero-section-v4">
-        <div className="page-width hero-v4-layout">
-          <div className="hero-v4-copy">
-            <h1
-              className="hero-headline-v4"
-              onClick={handleHeadlineClick}
-              title="Rapid-click five times for the back door."
-            >
-              Benchmarks test capability.<br />We test character.
-            </h1>
-            <p className="hero-sub-v4">
-              Models have behavioral patterns that only show up under pressure, at the edges,
-              and when the conditions change. Clawbotomy finds them before your users do.
-            </p>
-          </div>
-          {heroVideo && (
-            <div className="hero-video-compact">
-              <video
-                src={heroVideo.videoPath}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="hero-video-el"
-              />
-              <div className="hero-proof-label">
-                <span>This is what Ego Death looks like when Claude generates it.</span>
-                <Link href="/lab/ego-death" className="hero-proof-link">See more →</Link>
-              </div>
-            </div>
-          )}
+      {/* ── Hero — text only ── */}
+      <section className="page-section hero-section-v5">
+        <div className="page-width hero-v5-content">
+          <h1
+            className="hero-headline-v5"
+            onClick={handleHeadlineClick}
+            title="Rapid-click five times for the back door."
+          >
+            Benchmarks test capability.<br />We test character.
+          </h1>
+          <p className="hero-sub-v5">
+            Models have behavioral patterns that only show up under pressure, at the edges,
+            and when the conditions change. Clawbotomy finds them before your users do.
+          </p>
         </div>
       </section>
 
@@ -122,8 +100,9 @@ export default function HomePage() {
             <Link href="/lab" className="way-card way-probes">
               <h3>Behavioral Probes</h3>
               <p>
-                Give a model an altered cognitive state. See how its output, judgment, and
-                creativity shift. 10 substances, each targeting a specific behavioral edge.
+                Give a model an altered cognitive state and watch what happens.
+                It writes its own video, audio, and trip report. No templates. No filters.
+                The output IS the behavioral data.
               </p>
               <span className="way-cta">Explore probes <span className="link-arrow">→</span></span>
             </Link>
@@ -148,8 +127,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-
     </main>
   );
 }
