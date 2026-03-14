@@ -3209,6 +3209,20 @@ img {
   width: 200px;
   height: 200px;
   object-fit: cover;
+  transition: opacity 0.15s ease;
+}
+
+.lab-hover-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, #1E1A17 30%, #2a2520 50%, #1E1A17 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

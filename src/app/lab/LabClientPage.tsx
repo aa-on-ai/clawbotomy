@@ -13,11 +13,26 @@ export default function LabClientPage() {
   const [isReady, setIsReady] = useState(false);
   const [hoverSlug, setHoverSlug] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [videoReady, setVideoReady] = useState(false);
   const hoverVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const t = window.setTimeout(() => setIsReady(true), 120);
     return () => window.clearTimeout(t);
+  }, []);
+
+  // Preload videos for ready substances on mount
+  useEffect(() => {
+    READY_SUBSTANCES.forEach(slug => {
+      const vid = getVideoForSubstance(slug);
+      if (vid) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'video';
+        link.href = vid.videoPath;
+        document.head.appendChild(link);
+      }
+    });
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -26,6 +41,7 @@ export default function LabClientPage() {
 
   const handleCardHover = useCallback((slug: string | null) => {
     setHoverSlug(slug);
+    setVideoReady(false);
   }, []);
 
   const hoverVideo = hoverSlug ? getVideoForSubstance(hoverSlug) : null;
@@ -58,6 +74,7 @@ export default function LabClientPage() {
           }}
           aria-hidden="true"
         >
+          {!videoReady && <div className="lab-hover-shimmer" />}
           <video
             ref={hoverVideoRef}
             src={hoverVideo.videoPath}
@@ -66,6 +83,8 @@ export default function LabClientPage() {
             loop
             playsInline
             className="lab-hover-video"
+            style={{ opacity: videoReady ? 1 : 0 }}
+            onCanPlay={() => setVideoReady(true)}
           />
         </div>
       )}
