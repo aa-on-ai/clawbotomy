@@ -69,8 +69,8 @@ export default function SubstanceDetailPage() {
           <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
           <div className="sub-nav-links">
             <Link href="/lab" className="sub-nav-active">Probes</Link>
-            <span className="sub-nav-disabled">Routing</span>
             <Link href="/trust">Trust</Link>
+            <span className="sub-nav-disabled">Routing</span>
           </div>
         </div>
       </nav>
