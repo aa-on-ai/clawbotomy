@@ -2334,10 +2334,10 @@ img {
 
 .lab-report-paragraph {
   margin: 0;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 17px;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 15px;
   line-height: 1.8;
-  color: #f0e7db;
+  color: #ddd2c4;
   opacity: 0;
   transform: translateY(10px);
   animation: labReveal 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -2792,7 +2792,7 @@ img {
 }
 
 .lab-detail-hero {
-  padding: 24px 0 48px;
+  padding: 24px 0 24px;
 }
 
 .lab-detail-hero-grid {
