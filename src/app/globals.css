@@ -2833,7 +2833,7 @@ img {
 
 /* Runs Section */
 .lab-runs-section {
-  padding: 0 0 60px;
+  padding: 0 0 24px;
 }
 
 .lab-runs-heading {
@@ -2949,7 +2949,7 @@ img {
 
 /* How this was made */
 .lab-how-section {
-  padding: 48px 0;
+  padding: 24px 0 48px;
 }
 
 .lab-how-eyebrow {
