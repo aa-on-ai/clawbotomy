@@ -27,7 +27,7 @@
   
   background: var(--dp-bg);
   color: var(--dp-text);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.625;
   min-height: 100vh;
@@ -57,7 +57,7 @@
   height: 52px;
 }
 .dp-brand {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -106,7 +106,7 @@
   margin: 0;
 }
 .dp-label {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -154,7 +154,7 @@
   margin-bottom: 16px;
 }
 .dp-copy-btn {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 12px;
   padding: 6px 14px;
   border-radius: 4px;
@@ -166,7 +166,7 @@
 }
 .dp-copy-btn:hover { background: rgba(45,212,191,0.08); }
 .dp-prompt-text {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 14px;
   line-height: 1.7;
   color: var(--dp-dim);
@@ -246,7 +246,7 @@
 }
 .dp-voice-seg .dp-small {
   color: var(--dp-faint);
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 12px;
 }
 .dp-meta-grid .dp-body {
@@ -264,7 +264,7 @@
 .dp-stat span:first-child { color: var(--dp-faint); }
 .dp-stat span:last-child { 
   color: var(--dp-dim);
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 13px;
 }
 

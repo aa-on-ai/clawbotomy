@@ -119,6 +119,7 @@ export default function SubstanceDetailPage() {
               src={selectedVideo.videoPath}
               controls
               autoPlay
+              muted
               playsInline
               className="dp-video"
             />
