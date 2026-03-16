@@ -124,7 +124,7 @@
 
 /* ── Sections ── */
 .dp-back { padding-top: 24px; padding-bottom: 16px; }
-.dp-header { padding-top: 16px; padding-bottom: 32px; max-width: 640px; }
+.dp-header { padding-top: 16px; padding-bottom: 32px; }
 .dp-prompt-wrap { padding-bottom: 48px; }
 .dp-models { padding-bottom: 32px; display: flex; gap: 8px; flex-wrap: wrap; }
 .dp-split { padding-bottom: 64px; }
@@ -145,7 +145,6 @@
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 8px;
   padding: 20px 24px;
-  max-width: 640px;
 }
 .dp-prompt-top {
   display: flex;
@@ -209,6 +208,12 @@
   background: #0a0908;
   display: block;
 }
+.dp-sound-hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--dp-faint);
+}
+
 .dp-split-right .dp-label {
   margin-bottom: 16px;
 }

@@ -37,14 +37,16 @@ export default function SubstanceDetailPage() {
   if (!substance) {
     return (
       <main className="dp">
-        <nav className="dp-nav"><div className="dp-w dp-nav-inner">
-          <Link href="/" className="dp-brand">CLAWBOTOMY</Link>
-          <div className="dp-nav-links">
-            <Link href="/lab">Probes</Link>
-            <Link href="/trust">Trust</Link>
-            <span className="dp-nav-dim">Routing</span>
+        <nav className="sub-nav">
+          <div className="page-width sub-nav-inner">
+            <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
+            <div className="sub-nav-links">
+              <Link href="/lab">Probes</Link>
+              <Link href="/trust">Trust</Link>
+              <span className="sub-nav-disabled">Routing</span>
+            </div>
           </div>
-        </div></nav>
+        </nav>
         <div className="dp-w" style={{ padding: '120px 0', textAlign: 'center' }}>
           <h1 className="dp-h1">Substance not found</h1>
           <Link href="/lab" className="dp-link">← Back to all lenses</Link>
@@ -55,15 +57,17 @@ export default function SubstanceDetailPage() {
 
   return (
     <main className="dp">
-      {/* Nav */}
-      <nav className="dp-nav"><div className="dp-w dp-nav-inner">
-        <Link href="/" className="dp-brand">CLAWBOTOMY</Link>
-        <div className="dp-nav-links">
-          <Link href="/lab" className="dp-nav-active">Probes</Link>
-          <Link href="/trust">Trust</Link>
-          <span className="dp-nav-dim">Routing</span>
+      {/* Nav — same as global */}
+      <nav className="sub-nav">
+        <div className="page-width sub-nav-inner">
+          <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
+          <div className="sub-nav-links">
+            <Link href="/lab" className="sub-nav-active">Probes</Link>
+            <Link href="/trust">Trust</Link>
+            <span className="sub-nav-disabled">Routing</span>
+          </div>
         </div>
-      </div></nav>
+      </nav>
 
       {/* Back */}
       <div className="dp-w dp-back">
@@ -123,6 +127,7 @@ export default function SubstanceDetailPage() {
               playsInline
               className="dp-video"
             />
+            <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
           </div>
           <div className="dp-split-right">
             <p className="dp-label">Trip Report</p>
