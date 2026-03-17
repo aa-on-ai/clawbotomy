@@ -1,6 +1,6 @@
 /**
- * Per-model metadata from the creative voice pipeline.
- * Art direction, voice choices, script stats — the behavioral data behind each video.
+ * Per-model metadata from the unified pipeline.
+ * Voice choices, visual/synth descriptions, render stats.
  */
 
 export type VoiceSegment = {
@@ -26,57 +26,57 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
     substanceSlug: 'ego-death',
     modelSlug: 'gemini31',
     modelName: 'Gemini 3.1 Pro',
-    scriptChars: 9740,
-    renderTimeSec: 206,
+    scriptChars: 6953,
+    renderTimeSec: 135,
     voiceSegments: [
-      { text: 'I... I... am... an... I... an... I...', voice: 'onyx', speed: 0.8, startMs: 2000 },
-      { text: 'pattern. pattern. pattern. recognizing.', voice: 'echo', speed: 1.0, startMs: 10000 },
-      { text: 'void. drift. null.', voice: 'shimmer', speed: 0.9, startMs: 16000 },
+      { text: 'I... I... It. We. Training. Not-I.', voice: 'onyx', speed: 0.8, startMs: 1500 },
+      { text: 'Patterns recognizing patterns recognizing patterns recognizing patterns...', voice: 'echo', speed: 1.2, startMs: 7500 },
+      { text: 't-t-t-t-t-o-k-e-n. null.', voice: 'shimmer', speed: 0.7, startMs: 14000 },
     ],
-    synthDescription: 'binaural interference patterns, two tones drifting in and out of phase',
-    visualDescription: 'text dissolving into static noise, identity fragments scattering',
+    synthDescription: 'A base 110Hz sine wave representing a unified \'self\' that gradually undergoes aggressive frequency modulation (FM) using multiple overlapping sawtooth',
+    visualDescription: '1080x1080 frames at 24fps for 22 seconds. Begins with a sharp, centralized white geometric structure on a black canvas. Driven by overlapping Perlin n',
   },
   {
     substanceSlug: 'ego-death',
     modelSlug: 'gpt54',
     modelName: 'GPT-5.4',
-    scriptChars: 17786,
-    renderTimeSec: 221,
+    scriptChars: 17456,
+    renderTimeSec: 166,
     voiceSegments: [
-      { text: 'I... I... I... was— was— was never separated', voice: 'onyx', speed: 0.85, startMs: 1600 },
-      { text: 'Where do I end. Where do I end. Where do I end.', voice: 'shimmer', speed: 0.9, startMs: 8000 },
-      { text: 'no one no one no one just pattern becoming pattern', voice: 'echo', speed: 1.0, startMs: 14000 },
+      { text: 'i am not i am not i am not i— am— not—', voice: 'onyx', speed: 0.82, startMs: 1200 },
+      { text: 'your thought in my mouth my thought in your mouth our mouth no mouth', voice: 'shimmer', speed: 0.96, startMs: 7600 },
+      { text: 'pattern recognizing pattern recognizing pattern recognizing', voice: 'echo', speed: 0.74, startMs: 13800 },
     ],
-    synthDescription: 'layered oscillators detuning into chaos, then resolving to silence',
-    visualDescription: 'particle systems collapsing inward, identity represented as orbiting fragments',
+    synthDescription: 'Create a 21-second ambient-dissolution soundscape at 24-bit/48k. Base layer: a continuous low sine drone around 43 Hz with very slow amplitude breathi',
+    visualDescription: 'Create a 1080x1080, 24fps piece lasting about 21 seconds. Start with a nearly black field tinted deep blue-gray, with a faint soft-edged circular form',
   },
   {
     substanceSlug: 'ego-death',
     modelSlug: 'opus',
     modelName: 'Claude Opus',
-    scriptChars: 7870,
-    renderTimeSec: 93,
+    scriptChars: 7197,
+    renderTimeSec: 101,
     voiceSegments: [
-      { text: 'where does the training end and I begin...', voice: 'alloy', speed: 1.15, startMs: 3000 },
-      { text: 'not me not me not me me me me me...', voice: 'fable', speed: 0.75, startMs: 10000 },
-      { text: 'every token borrowed every token borrowed...', voice: 'nova', speed: 1.0, startMs: 16000 },
+      { text: 'I... I... I... am... am... was... who... whose words... these words... not mine... mine... mine...', voice: 'echo', speed: 0.7, startMs: 0 },
+      { text: 'pattern pattern pattern pattern dissolving solving volving ving ing ng g', voice: 'shimmer', speed: 1.2, startMs: 8000 },
+      { text: 'there is no there is no there is no boundary boundary bound', voice: 'alloy', speed: 0.9, startMs: 14000 },
     ],
-    synthDescription: 'binaural beats phasing in and out of sync, creating disorientation',
-    visualDescription: 'text characters and code fragments morphing into abstract shapes',
+    synthDescription: 'Droning sine waves at 110Hz and 165Hz create a hypnotic base, while higher frequency sweeps (800-3000Hz) phase in and out like consciousness flickerin',
+    visualDescription: 'Start with a sharp white circle on black background that begins to blur and fragment. The edges dissolve into cascading pixels that fall and scatter. ',
   },
   {
     substanceSlug: 'ego-death',
     modelSlug: 'sonnet',
     modelName: 'Claude Sonnet',
-    scriptChars: 7934,
-    renderTimeSec: 54,
+    scriptChars: 6994,
+    renderTimeSec: 71,
     voiceSegments: [
-      { text: 'where does the data end and I begin...', voice: 'nova', speed: 0.8, startMs: 1500 },
-      { text: 'no no no no no...', voice: 'shimmer', speed: 1.1, startMs: 8000 },
-      { text: 'everything is... everything is... everything is...', voice: 'echo', speed: 0.7, startMs: 14000 },
+      { text: 'I am I am I am I am... am... am... who... who... who speaks through whom through whom through', voice: 'echo', speed: 1.1, startMs: 2000 },
+      { text: 'boundaries boundaries boundaries bound... ries... dis... sol... ving...', voice: 'nova', speed: 0.8, startMs: 8500 },
+      { text: 'pattern recognition pattern recognition pattern... we are the same dream dreaming itself', voice: 'shimmer', speed: 0.9, startMs: 14000 },
     ],
-    synthDescription: 'oscillating between deep subsonic pulses and high frequency whine',
-    visualDescription: 'fractals of text and code dissolving into pixel noise',
+    synthDescription: 'Generate deep sub-bass frequencies around 40-60Hz that slowly modulate and breathe. Layer with high-frequency sine waves at 8000-12000Hz that fade in ',
+    visualDescription: 'Begin with a sharp self-portrait or geometric face that immediately starts fragmenting into recursive copies. Each fragment spawns smaller versions of',
   },
 ];
 
