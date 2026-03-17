@@ -7,7 +7,7 @@ import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 import { getVideoForSubstance, getVideosForSubstance } from '@/lib/video-gallery-data';
 
 // Substances with matched video + trip report (full experience ready)
-const READY_SUBSTANCES = new Set(['ego-death']);
+const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection']);
 
 export default function LabClientPage() {
   const [isReady, setIsReady] = useState(false);

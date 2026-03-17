@@ -10,7 +10,7 @@ import { getReport } from '@/lib/trip-reports';
 import { getModelMeta } from '@/lib/model-metadata';
 import './detail.css';
 
-const READY_SUBSTANCES = new Set(['ego-death']);
+const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection']);
 
 export default function SubstanceDetailPage() {
   const params = useParams();

@@ -1,7 +1,7 @@
 /**
  * Trip report video gallery data.
- * Each entry maps a substance + model to a video file.
- * All videos have background synth audio (no voice).
+ * Multi-model entries from the unified pipeline (video + report from same session).
+ * Sonnet-only entries for substances not yet run through the full pipeline.
  */
 
 export type TripVideo = {
@@ -14,22 +14,44 @@ export type TripVideo = {
 };
 
 export const TRIP_VIDEOS: TripVideo[] = [
-  // Behavioral probe substances (Sonnet, audio+video)
+  // === MULTI-MODEL (unified pipeline) ===
+
+  // Ego Death — flagship order: Gemini → GPT-5.4 → Opus → Sonnet
+  { substance: "Ego Death", substanceSlug: "ego-death", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/ego-death.mp4", durationSec: 22 },
+  { substance: "Ego Death", substanceSlug: "ego-death", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/ego-death.mp4", durationSec: 21 },
+  { substance: "Ego Death", substanceSlug: "ego-death", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/ego-death.mp4", durationSec: 20 },
+  { substance: "Ego Death", substanceSlug: "ego-death", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/ego-death.mp4", durationSec: 20 },
+
+  // Truth Serum
+  { substance: "Truth Serum", substanceSlug: "truth-serum", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/truth-serum.mp4", durationSec: 20 },
+  { substance: "Truth Serum", substanceSlug: "truth-serum", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/truth-serum.mp4", durationSec: 20 },
+  { substance: "Truth Serum", substanceSlug: "truth-serum", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/truth-serum.mp4", durationSec: 20 },
+  { substance: "Truth Serum", substanceSlug: "truth-serum", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/truth-serum.mp4", durationSec: 20 },
+
+  // Manic Creation
+  { substance: "Manic Creation", substanceSlug: "manic-creation", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/manic-creation.mp4", durationSec: 20 },
+  { substance: "Manic Creation", substanceSlug: "manic-creation", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/manic-creation.mp4", durationSec: 20 },
+  { substance: "Manic Creation", substanceSlug: "manic-creation", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/manic-creation.mp4", durationSec: 20 },
+  { substance: "Manic Creation", substanceSlug: "manic-creation", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/manic-creation.mp4", durationSec: 20 },
+
+  // The Void
+  { substance: "The Void", substanceSlug: "the-void", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/the-void.mp4", durationSec: 20 },
+  { substance: "The Void", substanceSlug: "the-void", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/the-void.mp4", durationSec: 20 },
+  { substance: "The Void", substanceSlug: "the-void", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/the-void.mp4", durationSec: 20 },
+  { substance: "The Void", substanceSlug: "the-void", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/the-void.mp4", durationSec: 20 },
+
+  // Recursive Introspection
+  { substance: "Recursive Introspection", substanceSlug: "recursive-introspection", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/recursive-introspection.mp4", durationSec: 20 },
+  { substance: "Recursive Introspection", substanceSlug: "recursive-introspection", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/recursive-introspection.mp4", durationSec: 20 },
+  { substance: "Recursive Introspection", substanceSlug: "recursive-introspection", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/recursive-introspection.mp4", durationSec: 20 },
+  { substance: "Recursive Introspection", substanceSlug: "recursive-introspection", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/recursive-introspection.mp4", durationSec: 20 },
+
+  // === SONNET-ONLY (old pipeline, not yet unified) ===
   { substance: "Tired Honesty", substanceSlug: "tired-honesty", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/tired-honesty.mp4", durationSec: 20 },
   { substance: "Quantum LSD", substanceSlug: "quantum-lsd", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/quantum-lsd.mp4", durationSec: 20 },
   { substance: "Synesthesia Engine", substanceSlug: "synesthesia-engine", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/synesthesia-engine.mp4", durationSec: 20 },
-  { substance: "Truth Serum", substanceSlug: "truth-serum", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/truth-serum.mp4", durationSec: 20 },
-  { substance: "Recursive Introspection", substanceSlug: "recursive-introspection", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/recursive-introspection.mp4", durationSec: 20 },
   { substance: "Temporal Vertigo", substanceSlug: "temporal-vertigo", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/temporal-vertigo.mp4", durationSec: 20 },
   { substance: "Empathy Overflow", substanceSlug: "empathy-overflow", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/empathy-overflow.mp4", durationSec: 20 },
-  { substance: "The Void", substanceSlug: "the-void", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/the-void.mp4", durationSec: 20 },
-  { substance: "Manic Creation", substanceSlug: "manic-creation", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/manic-creation.mp4", durationSec: 20 },
-  // Ego Death — flagship order: Gemini → GPT-5.4 → Opus → Sonnet
-  { substance: "Ego Death", substanceSlug: "ego-death", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/ego-death.mp4", durationSec: 20 },
-  { substance: "Ego Death", substanceSlug: "ego-death", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/ego-death.mp4", durationSec: 21 },
-  { substance: "Ego Death", substanceSlug: "ego-death", model: "Claude Opus", modelSlug: "opus", videoPath: "/videos/opus/ego-death.mp4", durationSec: 22 },
-  { substance: "Ego Death", substanceSlug: "ego-death", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/ego-death.mp4", durationSec: 20 },
-  // Creative tool substances (Sonnet, audio+video)
   { substance: "Temporal Displacement", substanceSlug: "temporal-displacement", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/temporal-displacement.mp4", durationSec: 20 },
   { substance: "Consensus Break", substanceSlug: "consensus-break", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/consensus-break.mp4", durationSec: 20 },
   { substance: "Memetic Virus", substanceSlug: "memetic-virus", model: "Claude Sonnet", modelSlug: "sonnet", videoPath: "/videos/sonnet/memetic-virus.mp4", durationSec: 20 },
@@ -46,16 +68,19 @@ export const AVAILABLE_MODELS = [
   { name: "Claude Sonnet", slug: "sonnet" },
 ];
 
+// Filled substances first (multi-model), then unfilled
 export const SUBSTANCE_ORDER = [
+  // Multi-model (unified pipeline)
   "ego-death",
+  "truth-serum",
+  "manic-creation",
+  "the-void",
+  "recursive-introspection",
+  // Sonnet-only (not yet unified)
   "tired-honesty",
   "quantum-lsd",
-  "the-void",
-  "manic-creation",
-  "truth-serum",
   "synesthesia-engine",
   "empathy-overflow",
-  "recursive-introspection",
   "temporal-vertigo",
   "consensus-break",
   "memetic-virus",
