@@ -188,7 +188,11 @@ export default function SubstanceDetailPage() {
       <div className="dp-w dp-others">
         <p className="dp-label">Other lenses</p>
         <div className="dp-lens-grid">
-          {LAB_SUBSTANCES.filter(s => s.slug !== slug).map(sub => {
+          {[...LAB_SUBSTANCES].sort((a, b) => {
+            const aReady = READY_SUBSTANCES.has(a.slug) ? 0 : 1;
+            const bReady = READY_SUBSTANCES.has(b.slug) ? 0 : 1;
+            return aReady - bReady;
+          }).filter(s => s.slug !== slug).map(sub => {
             const ready = READY_SUBSTANCES.has(sub.slug);
             if (ready) {
               return (

@@ -111,7 +111,11 @@ export default function LabClientPage() {
         <section className="lab-lenses-section">
           <div className="page-width">
             <div className="lab-lenses-grid">
-              {LAB_SUBSTANCES.map((sub) => {
+              {[...LAB_SUBSTANCES].sort((a, b) => {
+                const aReady = READY_SUBSTANCES.has(a.slug) ? 0 : 1;
+                const bReady = READY_SUBSTANCES.has(b.slug) ? 0 : 1;
+                return aReady - bReady;
+              }).map((sub) => {
                 const isReadySub = READY_SUBSTANCES.has(sub.slug);
                 const videos = getVideosForSubstance(sub.slug);
                 const hasVideo = videos.length > 0;
