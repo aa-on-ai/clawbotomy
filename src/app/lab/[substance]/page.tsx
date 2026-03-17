@@ -126,7 +126,16 @@ export default function SubstanceDetailPage() {
               muted
               playsInline
               className="dp-video"
-            />
+              crossOrigin="anonymous"
+            >
+              <track
+                kind="captions"
+                src={`/captions/${slug}-${selectedVideo.modelSlug}.vtt`}
+                srcLang="en"
+                label="English"
+                default
+              />
+            </video>
             <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
           </div>
           <div className="dp-split-right">
