@@ -220,11 +220,14 @@
 .dp-report {
   max-height: 520px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding: 24px 28px;
+  background: #2a2520;
+  border-radius: 8px;
+  border-left: 3px solid rgba(45,212,191,0.25);
 }
 .dp-report .dp-body {
-  color: var(--dp-dim);
-  font-size: 15px;
+  color: #f0e8dc;
+  font-size: 16px;
   line-height: 1.75;
 }
 
