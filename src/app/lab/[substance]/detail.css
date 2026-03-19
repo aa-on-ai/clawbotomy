@@ -201,6 +201,9 @@
   flex-direction: column;
   gap: 32px;
 }
+.dp-video-wrap {
+  position: relative;
+}
 .dp-video {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -209,6 +212,46 @@
   display: block;
   object-fit: contain;
 }
+.dp-theater-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ccc;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 2;
+}
+.dp-video-wrap:hover .dp-theater-btn {
+  opacity: 1;
+}
+.dp-theater-btn:hover {
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+}
+
+/* Theater mode: break out of content width, go edge-to-edge */
+.dp-theater {
+  max-width: none !important;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  width: 100vw;
+  padding: 0 24px;
+}
+.dp-theater .dp-video {
+  border-radius: 0;
+  max-height: 80vh;
+}
+
 .dp-sound-hint {
   margin: 8px 0 0;
   font-size: 13px;

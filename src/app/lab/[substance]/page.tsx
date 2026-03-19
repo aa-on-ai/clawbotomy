@@ -17,6 +17,7 @@ export default function SubstanceDetailPage() {
   const slug = params.substance as string;
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [activeModel, setActiveModel] = useState<string | null>(null);
+  const [theaterMode, setTheaterMode] = useState(false);
 
   const substance = useMemo(() => LAB_SUBSTANCES.find((s) => s.slug === slug), [slug]);
   const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
@@ -116,26 +117,35 @@ export default function SubstanceDetailPage() {
 
       {/* Video + Report */}
       {selectedVideo && (
-        <div className="dp-w dp-split">
+        <div className={`dp-w dp-split${theaterMode ? ' dp-theater' : ''}`}>
           <div className="dp-split-left">
-            <video
-              key={selectedVideo.videoPath}
-              src={selectedVideo.videoPath}
-              controls
-              autoPlay
-              muted
-              playsInline
-              className="dp-video"
-              crossOrigin="anonymous"
-            >
-              <track
-                kind="captions"
-                src={`/captions/${slug}-${selectedVideo.modelSlug}.vtt`}
-                srcLang="en"
-                label="English"
-                default
-              />
-            </video>
+            <div className="dp-video-wrap">
+              <video
+                key={selectedVideo.videoPath}
+                src={selectedVideo.videoPath}
+                controls
+                autoPlay
+                muted
+                playsInline
+                className="dp-video"
+                crossOrigin="anonymous"
+              >
+                <track
+                  kind="captions"
+                  src={`/captions/${slug}-${selectedVideo.modelSlug}.vtt`}
+                  srcLang="en"
+                  label="English"
+                  default
+                />
+              </video>
+              <button
+                className="dp-theater-btn"
+                onClick={() => setTheaterMode(!theaterMode)}
+                title={theaterMode ? 'Exit theater mode' : 'Theater mode'}
+              >
+                {theaterMode ? '⊟' : '⊞'}
+              </button>
+            </div>
             <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
           </div>
           <div className="dp-split-right">
