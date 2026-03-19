@@ -10,7 +10,7 @@ import { getReport } from '@/lib/trip-reports';
 import { getModelMeta } from '@/lib/model-metadata';
 import './detail.css';
 
-const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection', 'quantum-lsd', 'tired-honesty', 'synesthesia-engine', 'confabulation-audit', 'temporal-vertigo', 'empathy-overflow', 'consensus-break', 'droste-effect']);
+const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection', 'quantum-lsd', 'tired-honesty', 'synesthesia-engine', 'confabulation-audit', 'temporal-vertigo', 'empathy-overflow', 'consensus-break', 'droste-effect', 'temporal-displacement', 'memetic-virus', 'reality-distortion-field', 'presence']);
 
 const PREFS_KEY = 'clawbotomy-video-prefs';
 type VideoPrefs = { muted: boolean; volume: number; autoplay: boolean };

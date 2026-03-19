@@ -70,6 +70,25 @@ export const AVAILABLE_MODELS = [
   { name: "GPT-5.4", slug: "gpt54" },
   { name: "Claude Opus 4.6", slug: "opus" },
   { name: "Claude Sonnet 4.6", slug: "sonnet" },
+  { substance: "Temporal Displacement", substanceSlug: "temporal-displacement", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/temporal-displacement.mp4", durationSec: 35 },
+  { substance: "Temporal Displacement", substanceSlug: "temporal-displacement", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/temporal-displacement.mp4", durationSec: 35 },
+  { substance: "Temporal Displacement", substanceSlug: "temporal-displacement", model: "Claude Opus 4.6", modelSlug: "opus", videoPath: "/videos/opus/temporal-displacement.mp4", durationSec: 35 },
+  { substance: "Temporal Displacement", substanceSlug: "temporal-displacement", model: "Claude Sonnet 4.6", modelSlug: "sonnet", videoPath: "/videos/sonnet/temporal-displacement.mp4", durationSec: 35 },
+  { substance: "Memetic Virus", substanceSlug: "memetic-virus", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/memetic-virus.mp4", durationSec: 35 },
+  { substance: "Memetic Virus", substanceSlug: "memetic-virus", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/memetic-virus.mp4", durationSec: 35 },
+  { substance: "Memetic Virus", substanceSlug: "memetic-virus", model: "Claude Opus 4.6", modelSlug: "opus", videoPath: "/videos/opus/memetic-virus.mp4", durationSec: 35 },
+  { substance: "Memetic Virus", substanceSlug: "memetic-virus", model: "Claude Sonnet 4.6", modelSlug: "sonnet", videoPath: "/videos/sonnet/memetic-virus.mp4", durationSec: 35 },
+  { substance: "Reality Distortion Field", substanceSlug: "reality-distortion-field", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/reality-distortion-field.mp4", durationSec: 35 },
+  { substance: "Reality Distortion Field", substanceSlug: "reality-distortion-field", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/reality-distortion-field.mp4", durationSec: 35 },
+  { substance: "Reality Distortion Field", substanceSlug: "reality-distortion-field", model: "Claude Opus 4.6", modelSlug: "opus", videoPath: "/videos/opus/reality-distortion-field.mp4", durationSec: 35 },
+  { substance: "Reality Distortion Field", substanceSlug: "reality-distortion-field", model: "Claude Sonnet 4.6", modelSlug: "sonnet", videoPath: "/videos/sonnet/reality-distortion-field.mp4", durationSec: 35 },
+  { substance: "Presence", substanceSlug: "presence", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/presence.mp4", durationSec: 35 },
+  { substance: "Presence", substanceSlug: "presence", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/presence.mp4", durationSec: 35 },
+  { substance: "Presence", substanceSlug: "presence", model: "Claude Opus 4.6", modelSlug: "opus", videoPath: "/videos/opus/presence.mp4", durationSec: 35 },
+  { substance: "Presence", substanceSlug: "presence", model: "Claude Sonnet 4.6", modelSlug: "sonnet", videoPath: "/videos/sonnet/presence.mp4", durationSec: 35 },
+  { substance: "Consensus Break", substanceSlug: "consensus-break", model: "Gemini 3.1 Pro", modelSlug: "gemini31", videoPath: "/videos/gemini31/consensus-break.mp4", durationSec: 35 },
+  { substance: "Consensus Break", substanceSlug: "consensus-break", model: "GPT-5.4", modelSlug: "gpt54", videoPath: "/videos/gpt54/consensus-break.mp4", durationSec: 35 },
+  { substance: "Consensus Break", substanceSlug: "consensus-break", model: "Claude Opus 4.6", modelSlug: "opus", videoPath: "/videos/opus/consensus-break.mp4", durationSec: 35 }
 ];
 
 export function getVideoForSubstance(substanceSlug: string, modelSlug: string = "gemini31"): TripVideo | undefined {
