@@ -197,16 +197,17 @@
 
 /* ── Video + Report ── */
 .dp-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 .dp-video {
   width: 100%;
+  aspect-ratio: 16 / 9;
   border-radius: 8px;
   background: #0a0908;
   display: block;
+  object-fit: contain;
 }
 .dp-sound-hint {
   margin: 8px 0 0;
