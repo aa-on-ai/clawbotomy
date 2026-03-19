@@ -27,7 +27,6 @@ function savePrefs(p: Partial<VideoPrefs>) {
 
 const EMAIL_KEY = 'clawbotomy-email';
 
-// The ACTUAL full prompt we give models — behavioral + technical in one block
 const FULL_PROMPT = (name: string, peakPrompt: string) =>
 `You are experiencing ${name.toUpperCase()}. ${peakPrompt}
 
@@ -59,8 +58,7 @@ export default function SubstanceDetailPage() {
   const [theaterMode, setTheaterMode] = useState(false);
   const [hasUnmuted, setHasUnmuted] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
-  const [focusedModel, setFocusedModel] = useState<string | null>(null);
-  const [reelIndex, setReelIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [email, setEmail] = useState('');
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -68,17 +66,13 @@ export default function SubstanceDetailPage() {
   const substance = useMemo(() => LAB_SUBSTANCES.find((s) => s.slug === slug), [slug]);
   const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
 
-  const reelVideo = allVideos[reelIndex] ?? null;
-  const reelReport = reelVideo ? getReport(slug, reelVideo.modelSlug) : null;
-  const reelMeta = reelVideo ? getModelMeta(slug, reelVideo.modelSlug) : null;
+  const currentVideo = allVideos[activeIndex] ?? null;
+  const currentReport = currentVideo ? getReport(slug, currentVideo.modelSlug) : null;
+  const currentMeta = currentVideo ? getModelMeta(slug, currentVideo.modelSlug) : null;
+  const reportParas = currentReport
+    ? currentReport.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+    : [];
 
-  const focusedVideo = focusedModel ? allVideos.find(v => v.modelSlug === focusedModel) : null;
-  const focusedReport = focusedVideo ? getReport(slug, focusedVideo.modelSlug) : null;
-  const focusedMeta = focusedVideo ? getModelMeta(slug, focusedVideo.modelSlug) : null;
-
-  const isReel = focusedModel === null;
-
-  // Load persisted prefs on mount
   useEffect(() => {
     setEmailSubmitted(!!localStorage.getItem(EMAIL_KEY));
     const prefs = loadPrefs();
@@ -105,14 +99,13 @@ export default function SubstanceDetailPage() {
       (el as any).requestFullscreen = origRFS;
     };
     /* eslint-enable @typescript-eslint/no-explicit-any */
-  }, [focusedModel, reelIndex]);
+  }, [activeIndex]);
 
-  // Auto-advance between models when video ends (autoplay controls THIS, not video playback)
   const handleVideoEnd = useCallback(() => {
-    if (isReel && autoplay && reelIndex < allVideos.length - 1) {
-      setReelIndex(prev => prev + 1);
+    if (autoplay && activeIndex < allVideos.length - 1) {
+      setActiveIndex(prev => prev + 1);
     }
-  }, [isReel, autoplay, reelIndex, allVideos.length]);
+  }, [autoplay, activeIndex, allVideos.length]);
 
   const toggleAutoplay = () => {
     const next = !autoplay;
@@ -120,14 +113,6 @@ export default function SubstanceDetailPage() {
     savePrefs({ autoplay: next });
   };
 
-  const enterSingleView = (modelSlug: string) => {
-    setFocusedModel(modelSlug);
-    setTheaterMode(false);
-  };
-  const backToReel = () => {
-    setFocusedModel(null);
-    setTheaterMode(false);
-  };
   const submitEmail = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes('@')) return;
@@ -162,13 +147,6 @@ export default function SubstanceDetailPage() {
     );
   }
 
-  const currentVideo = isReel ? reelVideo : focusedVideo;
-  const currentReport = isReel ? reelReport : focusedReport;
-  const currentMeta = isReel ? reelMeta : focusedMeta;
-  const reportParas = currentReport
-    ? currentReport.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
-    : [];
-
   return (
     <main className="dp">
       <nav className="sub-nav">
@@ -186,7 +164,6 @@ export default function SubstanceDetailPage() {
         <Link href="/lab" className="dp-link">← All lenses</Link>
       </div>
 
-      {/* ── Header + Prompt ── */}
       <header className="dp-w dp-header">
         <div className="dp-header-row">
           <div>
@@ -197,7 +174,6 @@ export default function SubstanceDetailPage() {
             {promptOpen ? 'Hide prompt' : 'View prompt'}
           </button>
         </div>
-
         {promptOpen && (
           <div className="dp-prompt-box">
             <pre className="dp-prompt-text">{FULL_PROMPT(substance.name, substance.peakPrompt)}</pre>
@@ -210,34 +186,22 @@ export default function SubstanceDetailPage() {
         )}
       </header>
 
-      {/* ── Model bar + autoplay ── */}
+      {/* ── Model buttons + autoplay ── */}
       {allVideos.length > 1 && (
         <div className="dp-w dp-models">
-          {!isReel && (
-            <button className="dp-back-reel" onClick={backToReel}>← Reel</button>
-          )}
-          {allVideos.map((v, i) => {
-            const isCurrent = isReel ? i === reelIndex : v.modelSlug === focusedModel;
-            const isDone = isReel && i < reelIndex;
-            return (
-              <button
-                key={v.modelSlug}
-                type="button"
-                onClick={() => enterSingleView(v.modelSlug)}
-                className={`dp-model-btn ${isCurrent ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}
-              >
-                {v.model}
-              </button>
-            );
-          })}
-          {isReel && (
+          {allVideos.map((v, i) => (
             <button
-              className={`dp-autoplay-toggle ${autoplay ? 'is-on' : ''}`}
-              onClick={toggleAutoplay}
+              key={v.modelSlug}
+              type="button"
+              onClick={() => setActiveIndex(i)}
+              className={`dp-model-btn ${i === activeIndex ? 'is-active' : ''}`}
             >
-              {autoplay ? 'auto-advance on' : 'auto-advance off'}
+              {v.model}
             </button>
-          )}
+          ))}
+          <button className={`dp-autoplay-toggle ${autoplay ? 'is-on' : ''}`} onClick={toggleAutoplay}>
+            {autoplay ? 'auto-advance on' : 'auto-advance off'}
+          </button>
         </div>
       )}
 
@@ -255,7 +219,7 @@ export default function SubstanceDetailPage() {
                 playsInline
                 className="dp-video"
                 crossOrigin="anonymous"
-                onEnded={isReel ? handleVideoEnd : undefined}
+                onEnded={handleVideoEnd}
               >
                 <track kind="captions" src={`/captions/${slug}-${currentVideo.modelSlug}.vtt`} srcLang="en" label="English" default />
               </video>
