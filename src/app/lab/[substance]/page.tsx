@@ -14,8 +14,8 @@ const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 
 
 /* ── Video prefs (localStorage) ── */
 const PREFS_KEY = 'clawbotomy-video-prefs';
-type VideoPrefs = { muted: boolean; volume: number; captions: boolean };
-const defaultPrefs: VideoPrefs = { muted: true, volume: 1, captions: true };
+type VideoPrefs = { muted: boolean; volume: number };
+const defaultPrefs: VideoPrefs = { muted: true, volume: 1 };
 
 function loadPrefs(): VideoPrefs {
   if (typeof window === 'undefined') return defaultPrefs;
@@ -28,18 +28,6 @@ function savePrefs(p: Partial<VideoPrefs>) {
   localStorage.setItem(PREFS_KEY, JSON.stringify({ ...cur, ...p }));
 }
 
-/* ── Hearts (localStorage) ── */
-const HEARTS_KEY = 'clawbotomy-hearts';
-function loadHearts(): Record<string, boolean> {
-  if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(HEARTS_KEY) || '{}'); } catch { return {}; }
-}
-function saveHeart(key: string) {
-  const h = loadHearts();
-  h[key] = true;
-  localStorage.setItem(HEARTS_KEY, JSON.stringify(h));
-}
-
 /* ── Email (localStorage) ── */
 const EMAIL_KEY = 'clawbotomy-email';
 
@@ -47,40 +35,34 @@ export default function SubstanceDetailPage() {
   const params = useParams();
   const slug = params.substance as string;
   const [copiedPrompt, setCopiedPrompt] = useState(false);
-  const [activeModel, setActiveModel] = useState<string | null>(null);
   const [theaterMode, setTheaterMode] = useState(false);
-  const [viewMode, setViewMode] = useState<'single' | 'reel' | 'compare'>('single');
+  // null = reel mode, string = single model view
+  const [focusedModel, setFocusedModel] = useState<string | null>(null);
   const [reelIndex, setReelIndex] = useState(0);
-  const [hearts, setHearts] = useState<Record<string, boolean>>({});
-  const [heartCounts, setHeartCounts] = useState<Record<string, number>>({});
   const [email, setEmail] = useState('');
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const substance = useMemo(() => LAB_SUBSTANCES.find((s) => s.slug === slug), [slug]);
   const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
-  // const allReports = useMemo(() => getReportsForSubstance(slug), [slug]);
-  const selectedModel = activeModel ?? (allVideos.length > 0 ? allVideos[0].modelSlug : null);
-  const selectedVideo = allVideos.find(v => v.modelSlug === selectedModel) ?? allVideos[0] ?? null;
 
-  const report = selectedVideo ? getReport(slug, selectedVideo.modelSlug) : null;
-  const reportParagraphs = report ? report.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
-  const meta = selectedVideo ? getModelMeta(slug, selectedVideo.modelSlug) : null;
+  // Reel state
+  const reelVideo = allVideos[reelIndex] ?? null;
+  const reelReport = reelVideo ? getReport(slug, reelVideo.modelSlug) : null;
 
-  // Load hearts + email state on mount
+  // Single/focused state
+  const focusedVideo = focusedModel ? allVideos.find(v => v.modelSlug === focusedModel) : null;
+  const focusedReport = focusedVideo ? getReport(slug, focusedVideo.modelSlug) : null;
+  const focusedMeta = focusedVideo ? getModelMeta(slug, focusedVideo.modelSlug) : null;
+
+  const isReel = focusedModel === null;
+
+  // Load email state on mount
   useEffect(() => {
-    setHearts(loadHearts());
     setEmailSubmitted(!!localStorage.getItem(EMAIL_KEY));
-    // Seed some heart counts (would be server-side in production)
-    const seed: Record<string, number> = {};
-    allVideos.forEach(v => {
-      const key = `${slug}:${v.modelSlug}`;
-      seed[key] = Math.floor(Math.random() * 20) + 3;
-    });
-    setHeartCounts(seed);
-  }, [slug, allVideos]);
+  }, []);
 
-  // Apply video prefs when video element mounts/changes
+  // Apply video prefs
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
@@ -88,62 +70,44 @@ export default function SubstanceDetailPage() {
     el.muted = prefs.muted;
     el.volume = prefs.volume;
 
-    const onVolChange = () => {
-      savePrefs({ muted: el.muted, volume: el.volume });
-    };
+    const onVolChange = () => savePrefs({ muted: el.muted, volume: el.volume });
 
-    // Hijack fullscreen — use theater mode instead
-    const onFullscreen = (e: Event) => {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      }
-      e.preventDefault();
-      setTheaterMode(prev => !prev);
-    };
+    // Hijack fullscreen for theater mode
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const origRFS = (el as any).requestFullscreen;
+    (el as any).requestFullscreen = async () => { setTheaterMode(prev => !prev); };
 
     el.addEventListener('volumechange', onVolChange);
-    el.addEventListener('fullscreenchange', onFullscreen);
-    // Also intercept the actual fullscreen request
-    const origRequestFullscreen = el.requestFullscreen.bind(el);
-    el.requestFullscreen = async () => {
-      setTheaterMode(prev => !prev);
-    };
-
     return () => {
       el.removeEventListener('volumechange', onVolChange);
-      el.removeEventListener('fullscreenchange', onFullscreen);
-      el.requestFullscreen = origRequestFullscreen;
+      (el as any).requestFullscreen = origRFS;
     };
-  }, [selectedModel, reelIndex, viewMode]);
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  }, [focusedModel, reelIndex]);
 
-  // Reel: auto-advance when video ends
+  // Reel: auto-advance
   const handleVideoEnd = useCallback(() => {
-    if (viewMode === 'reel' && reelIndex < allVideos.length - 1) {
+    if (isReel && reelIndex < allVideos.length - 1) {
       setReelIndex(prev => prev + 1);
-    } else if (viewMode === 'reel' && reelIndex === allVideos.length - 1) {
-      setViewMode('compare');
     }
-  }, [viewMode, reelIndex, allVideos.length]);
+    // On last video, just stop — user can click into any model or navigate
+  }, [isReel, reelIndex, allVideos.length]);
 
-  const reelVideo = allVideos[reelIndex] ?? null;
-  const reelReport = reelVideo ? getReport(slug, reelVideo.modelSlug) : null;
-  // const reelMeta = reelVideo ? getModelMeta(slug, reelVideo.modelSlug) : null;
+  const enterSingleView = (modelSlug: string) => {
+    setFocusedModel(modelSlug);
+    setTheaterMode(false);
+  };
 
-  const toggleHeart = (modelSlug: string) => {
-    const key = `${slug}:${modelSlug}`;
-    if (hearts[key]) return; // already hearted
-    saveHeart(key);
-    setHearts(prev => ({ ...prev, [key]: true }));
-    setHeartCounts(prev => ({ ...prev, [key]: (prev[key] || 0) + 1 }));
+  const backToReel = () => {
+    setFocusedModel(null);
+    setTheaterMode(false);
   };
 
   const submitEmail = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes('@')) return;
-    // In production this would POST to an API route
     localStorage.setItem(EMAIL_KEY, email);
     setEmailSubmitted(true);
-    console.log('Email collected:', email);
   };
 
   const copyPrompt = async () => {
@@ -174,6 +138,13 @@ export default function SubstanceDetailPage() {
     );
   }
 
+  // Current video + report (reel or single)
+  const currentVideo = isReel ? reelVideo : focusedVideo;
+  const currentReport = isReel ? reelReport : focusedReport;
+  const reportParas = currentReport
+    ? currentReport.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+    : [];
+
   return (
     <main className="dp">
       <nav className="sub-nav">
@@ -195,9 +166,8 @@ export default function SubstanceDetailPage() {
         <h1 className="dp-h1">{substance.emoji} {substance.name}</h1>
         <p className="dp-sub">{substance.oneLiner}</p>
         <p className="dp-body dp-muted">
-          The model receives this prompt and a Python environment (Pillow, wave, ffmpeg).
-          It writes every frame, every waveform, chooses its own TTS voice, and writes the trip report.
-          No templates. No post-processing.
+          Each model receives the same prompt and a Python environment. It writes every frame,
+          every waveform, chooses its own voice, and writes the field notes. No templates. No post-processing.
         </p>
       </header>
 
@@ -214,188 +184,87 @@ export default function SubstanceDetailPage() {
         </div>
       </div>
 
-      {/* View mode selector */}
+      {/* Model bar — always visible, works as both reel progress and model selector */}
       {allVideos.length > 1 && (
-        <div className="dp-w dp-view-modes">
-          <div className="dp-mode-tabs">
-            <button
-              className={`dp-mode-tab ${viewMode === 'single' ? 'is-active' : ''}`}
-              onClick={() => setViewMode('single')}
-            >
-              Single
-            </button>
-            <button
-              className={`dp-mode-tab ${viewMode === 'reel' ? 'is-active' : ''}`}
-              onClick={() => { setViewMode('reel'); setReelIndex(0); }}
-            >
-              Highlight Reel
-            </button>
-            <button
-              className={`dp-mode-tab ${viewMode === 'compare' ? 'is-active' : ''}`}
-              onClick={() => setViewMode('compare')}
-            >
-              Compare
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ════════ SINGLE VIEW ════════ */}
-      {viewMode === 'single' && (
-        <>
-          {allVideos.length > 1 && (
-            <div className="dp-w dp-models">
-              {allVideos.map(v => (
-                <button
-                  key={v.modelSlug}
-                  type="button"
-                  onClick={() => setActiveModel(v.modelSlug)}
-                  className={`dp-model-btn ${selectedModel === v.modelSlug ? 'is-active' : ''}`}
-                >
-                  {v.model}
-                </button>
-              ))}
-            </div>
+        <div className="dp-w dp-models">
+          {!isReel && (
+            <button className="dp-back-reel" onClick={backToReel}>← Reel</button>
           )}
-
-          {selectedVideo && (
-            <div className={`dp-w dp-split${theaterMode ? ' dp-theater' : ''}`}>
-              <div className="dp-split-left">
-                <div className="dp-video-wrap">
-                  <video
-                    ref={videoRef}
-                    key={selectedVideo.videoPath}
-                    src={selectedVideo.videoPath}
-                    controls
-                    autoPlay
-                    playsInline
-                    className="dp-video"
-                    crossOrigin="anonymous"
-                  >
-                    <track kind="captions" src={`/captions/${slug}-${selectedVideo.modelSlug}.vtt`} srcLang="en" label="English" default />
-                  </video>
-                  <div className="dp-video-overlay-name">{selectedVideo.model}</div>
-                </div>
-                <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
-              </div>
-              <div className="dp-split-right">
-                <p className="dp-label">Trip Report</p>
-                {reportParagraphs.length > 0 ? (
-                  <div className="dp-report">
-                    {reportParagraphs.map((p, i) => <p key={i} className="dp-body">{p}</p>)}
-                  </div>
-                ) : (
-                  <p className="dp-body dp-muted">No trip report for this model yet.</p>
-                )}
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* ════════ HIGHLIGHT REEL ════════ */}
-      {viewMode === 'reel' && reelVideo && (
-        <div className="dp-w dp-reel">
-          <div className="dp-reel-progress">
-            {allVideos.map((v, i) => (
+          {allVideos.map((v, i) => {
+            const isCurrent = isReel
+              ? i === reelIndex
+              : v.modelSlug === focusedModel;
+            const isDone = isReel && i < reelIndex;
+            return (
               <button
                 key={v.modelSlug}
-                className={`dp-reel-dot ${i === reelIndex ? 'is-active' : ''} ${i < reelIndex ? 'is-done' : ''}`}
-                onClick={() => setReelIndex(i)}
+                type="button"
+                onClick={() => isReel ? enterSingleView(v.modelSlug) : enterSingleView(v.modelSlug)}
+                className={`dp-model-btn ${isCurrent ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}
               >
                 {v.model}
+                {isReel && isCurrent && <span className="dp-now-playing">playing</span>}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+      )}
 
-          <div className="dp-video-wrap">
-            <video
-              ref={videoRef}
-              key={reelVideo.videoPath}
-              src={reelVideo.videoPath}
-              controls
-              autoPlay
-              playsInline
-              className="dp-video"
-              crossOrigin="anonymous"
-              onEnded={handleVideoEnd}
-            >
-              <track kind="captions" src={`/captions/${slug}-${reelVideo.modelSlug}.vtt`} srcLang="en" label="English" default />
-            </video>
-            <div className="dp-video-overlay-name">{reelVideo.model}</div>
-          </div>
-
-          {reelReport && (
-            <div className="dp-reel-report">
-              <p className="dp-label">Trip Report — {reelVideo.model}</p>
-              <div className="dp-report">
-                {reelReport.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean).map((p, i) => (
-                  <p key={i} className="dp-body">{p}</p>
-                ))}
-              </div>
+      {/* Video + Report — shared between reel and single */}
+      {currentVideo && (
+        <div className={`dp-w dp-split${theaterMode ? ' dp-theater' : ''}`}>
+          <div className="dp-split-left">
+            <div className="dp-video-wrap">
+              <video
+                ref={videoRef}
+                key={currentVideo.videoPath}
+                src={currentVideo.videoPath}
+                controls
+                autoPlay
+                playsInline
+                className="dp-video"
+                crossOrigin="anonymous"
+                onEnded={isReel ? handleVideoEnd : undefined}
+              >
+                <track kind="captions" src={`/captions/${slug}-${currentVideo.modelSlug}.vtt`} srcLang="en" label="English" default />
+              </video>
+              <div className="dp-video-overlay-name">{currentVideo.model}</div>
             </div>
-          )}
-
-          <div className="dp-reel-nav">
-            {reelIndex > 0 && (
-              <button className="dp-reel-btn" onClick={() => setReelIndex(reelIndex - 1)}>← Previous</button>
-            )}
-            {reelIndex < allVideos.length - 1 ? (
-              <button className="dp-reel-btn dp-reel-btn-next" onClick={() => setReelIndex(reelIndex + 1)}>Next →</button>
+            <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
+          </div>
+          <div className="dp-split-right">
+            <p className="dp-label">Field Notes — {currentVideo.model}</p>
+            {reportParas.length > 0 ? (
+              <div className="dp-report">
+                {reportParas.map((p, i) => <p key={i} className="dp-body">{p}</p>)}
+              </div>
             ) : (
-              <button className="dp-reel-btn dp-reel-btn-next" onClick={() => setViewMode('compare')}>See comparison →</button>
+              <p className="dp-body dp-muted">No field notes for this model yet.</p>
             )}
           </div>
         </div>
       )}
 
-      {/* ════════ COMPARE VIEW ════════ */}
-      {viewMode === 'compare' && (
-        <div className="dp-w dp-compare">
-          <p className="dp-compare-q">Which {substance.name.toLowerCase()} hit hardest?</p>
-          <div className="dp-compare-grid">
-            {allVideos.map(v => {
-              const r = getReport(slug, v.modelSlug);
-              const key = `${slug}:${v.modelSlug}`;
-              const paras = r ? r.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
-              return (
-                <div key={v.modelSlug} className="dp-compare-col">
-                  <div className="dp-compare-header">
-                    <span className="dp-compare-model">{v.model}</span>
-                    <button
-                      className={`dp-heart-btn ${hearts[key] ? 'is-hearted' : ''}`}
-                      onClick={() => toggleHeart(v.modelSlug)}
-                    >
-                      {hearts[key] ? '❤️' : '🤍'} {heartCounts[key] || 0}
-                    </button>
-                  </div>
-                  <video
-                    src={v.videoPath}
-                    controls
-                    muted
-                    playsInline
-                    className="dp-compare-video"
-                    crossOrigin="anonymous"
-                  />
-                  <div className="dp-compare-report">
-                    {paras.slice(0, 2).map((p, i) => <p key={i} className="dp-body">{p}</p>)}
-                    {paras.length > 2 && <p className="dp-body dp-muted">... {paras.length - 2} more paragraphs</p>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Reel nav — only in reel mode */}
+      {isReel && allVideos.length > 1 && (
+        <div className="dp-w dp-reel-nav">
+          {reelIndex > 0 && (
+            <button className="dp-reel-btn" onClick={() => setReelIndex(reelIndex - 1)}>← {allVideos[reelIndex - 1]?.model}</button>
+          )}
+          {reelIndex < allVideos.length - 1 && (
+            <button className="dp-reel-btn dp-reel-btn-next" onClick={() => setReelIndex(reelIndex + 1)}>{allVideos[reelIndex + 1]?.model} →</button>
+          )}
         </div>
       )}
 
-      {/* Model metadata (single view only) */}
-      {viewMode === 'single' && meta && (
+      {/* Model metadata — single view only */}
+      {!isReel && focusedMeta && (
         <div className="dp-w dp-meta">
-          <p className="dp-label">What {meta.modelName} chose</p>
+          <p className="dp-label">What {focusedMeta.modelName} chose</p>
           <div className="dp-meta-grid">
             <div>
               <p className="dp-label">Voice fragments</p>
-              {meta.voiceSegments.map((seg, i) => (
+              {focusedMeta.voiceSegments.map((seg, i) => (
                 <div key={i} className="dp-voice-seg">
                   <p className="dp-body">&ldquo;{seg.text}&rdquo;</p>
                   <p className="dp-small dp-muted">{seg.voice}, {seg.speed}x, at {(seg.startMs / 1000).toFixed(1)}s</p>
@@ -404,14 +273,14 @@ export default function SubstanceDetailPage() {
             </div>
             <div>
               <p className="dp-label">Visual</p>
-              <p className="dp-body">{meta.visualDescription}</p>
+              <p className="dp-body">{focusedMeta.visualDescription}</p>
               <p className="dp-label" style={{ marginTop: 16 }}>Audio</p>
-              <p className="dp-body">{meta.synthDescription}</p>
+              <p className="dp-body">{focusedMeta.synthDescription}</p>
             </div>
             <div>
               <p className="dp-label">Stats</p>
-              <div className="dp-stat"><span className="dp-muted">Script</span><span>{meta.scriptChars.toLocaleString()} chars</span></div>
-              <div className="dp-stat"><span className="dp-muted">Render</span><span>{meta.renderTimeSec}s</span></div>
+              <div className="dp-stat"><span className="dp-muted">Script</span><span>{focusedMeta.scriptChars.toLocaleString()} chars</span></div>
+              <div className="dp-stat"><span className="dp-muted">Render</span><span>{focusedMeta.renderTimeSec}s</span></div>
               <div className="dp-stat"><span className="dp-muted">Tools</span><span>Pillow + wave + ffmpeg</span></div>
               <div className="dp-stat"><span className="dp-muted">Assets</span><span>None</span></div>
             </div>
