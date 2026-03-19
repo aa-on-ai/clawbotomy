@@ -38,7 +38,6 @@ export default function SubstanceDetailPage() {
   const [promptOpen, setPromptOpen] = useState(false);
   const [theaterMode, setTheaterMode] = useState(false);
   const [hasUnmuted, setHasUnmuted] = useState(false);
-  // null = reel mode, string = single model view
   const [focusedModel, setFocusedModel] = useState<string | null>(null);
   const [reelIndex, setReelIndex] = useState(0);
   const [email, setEmail] = useState('');
@@ -48,23 +47,23 @@ export default function SubstanceDetailPage() {
   const substance = useMemo(() => LAB_SUBSTANCES.find((s) => s.slug === slug), [slug]);
   const allVideos = useMemo(() => getVideosForSubstance(slug), [slug]);
 
-  // Reel state
   const reelVideo = allVideos[reelIndex] ?? null;
   const reelReport = reelVideo ? getReport(slug, reelVideo.modelSlug) : null;
+  const reelMeta = reelVideo ? getModelMeta(slug, reelVideo.modelSlug) : null;
 
-  // Single/focused state
   const focusedVideo = focusedModel ? allVideos.find(v => v.modelSlug === focusedModel) : null;
   const focusedReport = focusedVideo ? getReport(slug, focusedVideo.modelSlug) : null;
   const focusedMeta = focusedVideo ? getModelMeta(slug, focusedVideo.modelSlug) : null;
 
   const isReel = focusedModel === null;
 
-  // Load email state on mount
+  // Fix #7: check localStorage for unmute state on mount
   useEffect(() => {
     setEmailSubmitted(!!localStorage.getItem(EMAIL_KEY));
+    const prefs = loadPrefs();
+    if (!prefs.muted) setHasUnmuted(true);
   }, []);
 
-  // Apply video prefs
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
@@ -77,11 +76,9 @@ export default function SubstanceDetailPage() {
       if (!el.muted) setHasUnmuted(true);
     };
 
-    // Hijack fullscreen for theater mode
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const origRFS = (el as any).requestFullscreen;
     (el as any).requestFullscreen = async () => { setTheaterMode(prev => !prev); };
-
     el.addEventListener('volumechange', onVolChange);
     return () => {
       el.removeEventListener('volumechange', onVolChange);
@@ -90,12 +87,10 @@ export default function SubstanceDetailPage() {
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, [focusedModel, reelIndex]);
 
-  // Reel: auto-advance
   const handleVideoEnd = useCallback(() => {
     if (isReel && reelIndex < allVideos.length - 1) {
       setReelIndex(prev => prev + 1);
     }
-    // On last video, just stop — user can click into any model or navigate
   }, [isReel, reelIndex, allVideos.length]);
 
   const enterSingleView = (modelSlug: string) => {
@@ -143,9 +138,9 @@ export default function SubstanceDetailPage() {
     );
   }
 
-  // Current video + report (reel or single)
   const currentVideo = isReel ? reelVideo : focusedVideo;
   const currentReport = isReel ? reelReport : focusedReport;
+  const currentMeta = isReel ? reelMeta : focusedMeta;
   const reportParas = currentReport
     ? currentReport.report.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
     : [];
@@ -176,11 +171,11 @@ export default function SubstanceDetailPage() {
         </p>
       </header>
 
-      {/* Prompt (collapsed by default) */}
+      {/* Fix #5: Bigger prompt toggle */}
       <div className="dp-w dp-prompt-wrap">
         <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
-          <span className="dp-label" style={{ margin: 0 }}>PROMPT</span>
-          <span className="dp-prompt-arrow">{promptOpen ? '▾' : '▸'}</span>
+          <span className="dp-prompt-label">View the prompt given to each model</span>
+          <span className="dp-prompt-arrow">{promptOpen ? '−' : '+'}</span>
         </button>
         {promptOpen && (
           <div className="dp-prompt-box">
@@ -195,7 +190,7 @@ export default function SubstanceDetailPage() {
         )}
       </div>
 
-      {/* Model bar — reel progress + model selector */}
+      {/* Model bar */}
       {allVideos.length > 1 && (
         <div className="dp-w dp-models">
           {!isReel && (
@@ -205,9 +200,7 @@ export default function SubstanceDetailPage() {
             <span className="dp-reel-counter">{reelIndex + 1} / {allVideos.length}</span>
           )}
           {allVideos.map((v, i) => {
-            const isCurrent = isReel
-              ? i === reelIndex
-              : v.modelSlug === focusedModel;
+            const isCurrent = isReel ? i === reelIndex : v.modelSlug === focusedModel;
             const isDone = isReel && i < reelIndex;
             return (
               <button
@@ -223,7 +216,7 @@ export default function SubstanceDetailPage() {
         </div>
       )}
 
-      {/* Video + Report — shared between reel and single */}
+      {/* Video + Report */}
       {currentVideo && (
         <div className={`dp-w dp-split${theaterMode ? ' dp-theater' : ''}`}>
           <div className="dp-split-left">
@@ -258,26 +251,14 @@ export default function SubstanceDetailPage() {
         </div>
       )}
 
-      {/* Reel nav — only in reel mode */}
-      {isReel && allVideos.length > 1 && (
-        <div className="dp-w dp-reel-nav">
-          {reelIndex > 0 && (
-            <button className="dp-reel-btn" onClick={() => setReelIndex(reelIndex - 1)}>← {allVideos[reelIndex - 1]?.model}</button>
-          )}
-          {reelIndex < allVideos.length - 1 && (
-            <button className="dp-reel-btn dp-reel-btn-next" onClick={() => setReelIndex(reelIndex + 1)}>{allVideos[reelIndex + 1]?.model} →</button>
-          )}
-        </div>
-      )}
-
-      {/* Model metadata — single view only */}
-      {!isReel && focusedMeta && (
+      {/* Fix #1: Model metadata — ALWAYS visible (reel and single) */}
+      {currentMeta && (
         <div className="dp-w dp-meta">
-          <p className="dp-label">What {focusedMeta.modelName} chose</p>
+          <p className="dp-label">How {currentMeta.modelName} built this</p>
           <div className="dp-meta-grid">
             <div>
               <p className="dp-label">Voice fragments</p>
-              {focusedMeta.voiceSegments.map((seg, i) => (
+              {currentMeta.voiceSegments.map((seg, i) => (
                 <div key={i} className="dp-voice-seg">
                   <p className="dp-body">&ldquo;{seg.text}&rdquo;</p>
                   <p className="dp-small dp-muted">{seg.voice}, {seg.speed}x, at {(seg.startMs / 1000).toFixed(1)}s</p>
@@ -285,43 +266,21 @@ export default function SubstanceDetailPage() {
               ))}
             </div>
             <div>
-              <p className="dp-label">Visual</p>
-              <p className="dp-body">{focusedMeta.visualDescription}</p>
-              <p className="dp-label" style={{ marginTop: 16 }}>Audio</p>
-              <p className="dp-body">{focusedMeta.synthDescription}</p>
+              <p className="dp-label">Visual direction</p>
+              <p className="dp-body">{currentMeta.visualDescription}</p>
+              <p className="dp-label" style={{ marginTop: 16 }}>Synth direction</p>
+              <p className="dp-body">{currentMeta.synthDescription}</p>
             </div>
             <div>
               <p className="dp-label">Stats</p>
-              <div className="dp-stat"><span className="dp-muted">Script</span><span>{focusedMeta.scriptChars.toLocaleString()} chars</span></div>
-              <div className="dp-stat"><span className="dp-muted">Render</span><span>{focusedMeta.renderTimeSec}s</span></div>
+              <div className="dp-stat"><span className="dp-muted">Script</span><span>{currentMeta.scriptChars.toLocaleString()} chars</span></div>
+              <div className="dp-stat"><span className="dp-muted">Render</span><span>{currentMeta.renderTimeSec}s</span></div>
               <div className="dp-stat"><span className="dp-muted">Tools</span><span>Pillow + wave + ffmpeg</span></div>
-              <div className="dp-stat"><span className="dp-muted">Assets</span><span>None</span></div>
+              <div className="dp-stat"><span className="dp-muted">Assets</span><span>None (all generated)</span></div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Email capture */}
-      <div className="dp-w dp-email-section">
-        {emailSubmitted ? (
-          <p className="dp-email-thanks">You&apos;re on the list. We&apos;ll let you know when new substances drop.</p>
-        ) : (
-          <form onSubmit={submitEmail} className="dp-email-form">
-            <p className="dp-email-pitch">New substances drop regularly. Get notified.</p>
-            <div className="dp-email-row">
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="dp-email-input"
-                required
-              />
-              <button type="submit" className="dp-email-btn">Notify me</button>
-            </div>
-          </form>
-        )}
-      </div>
 
       {/* Other lenses */}
       <div className="dp-w dp-others">
@@ -349,6 +308,28 @@ export default function SubstanceDetailPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Fix #3: Email capture at very bottom, better copy, subtle design */}
+      <div className="dp-w dp-email-section">
+        {emailSubmitted ? (
+          <p className="dp-email-thanks">You&apos;re in. We&apos;ll reach out.</p>
+        ) : (
+          <form onSubmit={submitEmail} className="dp-email-form">
+            <p className="dp-email-pitch">We&apos;re building something new. Want early access?</p>
+            <div className="dp-email-row">
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="dp-email-input"
+                required
+              />
+              <button type="submit" className="dp-email-btn">Get in</button>
+            </div>
+          </form>
+        )}
       </div>
     </main>
   );

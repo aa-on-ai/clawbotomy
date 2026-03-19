@@ -359,18 +359,27 @@
 .dp-prompt-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--dp-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
   cursor: pointer;
-  padding: 0;
+  padding: 14px 20px;
   margin-bottom: 12px;
+  transition: border-color 0.15s;
 }
-.dp-prompt-arrow {
-  font-size: 12px;
+.dp-prompt-toggle:hover { border-color: rgba(255,255,255,0.12); }
+.dp-prompt-label {
+  font-size: 14px;
   color: var(--dp-dim);
 }
-.dp-prompt-toggle:hover .dp-prompt-arrow { color: var(--dp-text); }
+.dp-prompt-arrow {
+  font-size: 18px;
+  color: var(--dp-dim);
+  font-weight: 300;
+}
+.dp-prompt-toggle:hover .dp-prompt-label { color: var(--dp-text); }
 
 /* ── Reel counter ── */
 .dp-reel-counter {
@@ -449,49 +458,47 @@
 
 /* ── Email capture ── */
 .dp-email-section {
-  padding: 48px 24px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 48px 24px 96px;
   text-align: center;
 }
 .dp-email-pitch {
-  color: var(--dp-dim);
-  font-size: 16px;
-  margin: 0 0 16px;
+  color: var(--dp-faint);
+  font-size: 14px;
+  margin: 0 0 12px;
 }
 .dp-email-row {
   display: flex;
   gap: 8px;
-  max-width: 400px;
+  max-width: 360px;
   margin: 0 auto;
 }
 .dp-email-input {
   flex: 1;
-  padding: 10px 16px;
-  background: var(--dp-card);
-  border: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 6px;
   color: var(--dp-text);
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
 }
-.dp-email-input:focus { border-color: rgba(45,212,191,0.4); }
+.dp-email-input:focus { border-color: rgba(255,255,255,0.2); }
 .dp-email-input::placeholder { color: var(--dp-faint); }
 .dp-email-btn {
-  padding: 10px 20px;
-  background: var(--dp-teal);
-  border: none;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
-  color: #000;
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--dp-dim);
+  font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  transition: all 0.15s;
 }
-.dp-email-btn:hover { opacity: 0.85; }
+.dp-email-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--dp-text); }
 .dp-email-thanks {
-  color: var(--dp-teal);
-  font-size: 14px;
+  color: var(--dp-dim);
+  font-size: 13px;
 }
 
 /* ── Mobile ── */
