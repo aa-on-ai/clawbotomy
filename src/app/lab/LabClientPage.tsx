@@ -129,20 +129,9 @@ export default function LabClientPage() {
                       onMouseEnter={() => handleCardHover(sub.slug)}
                       onMouseLeave={() => handleCardHover(null)}
                     >
-                      <div className="lab-lens-top">
-                        <span className="lab-lens-emoji">{sub.emoji}</span>
-                        <span className="lab-lens-chaos">{sub.chaosLevel}/13</span>
-                      </div>
+                      <span className="lab-lens-emoji">{sub.emoji}</span>
                       <p className="lab-lens-name">{sub.name}</p>
                       <p className="lab-lens-liner">{sub.oneLiner}</p>
-                      <div className="lab-lens-badges">
-                        {videos.length > 1 ? (
-                          <span className="lab-badge">▶ {videos.length} models</span>
-                        ) : hasVideo ? (
-                          <span className="lab-badge">▶ video</span>
-                        ) : null}
-                        <span className="lab-badge">📝 report</span>
-                      </div>
                     </Link>
                   );
                 }
@@ -152,15 +141,9 @@ export default function LabClientPage() {
                     key={sub.slug}
                     className="lab-lens-card lab-lens-locked"
                   >
-                    <div className="lab-lens-top">
-                      <span className="lab-lens-emoji">{sub.emoji}</span>
-                      <span className="lab-lens-chaos">{sub.chaosLevel}/13</span>
-                    </div>
+                    <span className="lab-lens-emoji">{sub.emoji}</span>
                     <p className="lab-lens-name">{sub.name}</p>
                     <p className="lab-lens-liner">{sub.oneLiner}</p>
-                    <div className="lab-lens-badges">
-                      <span className="lab-badge lab-badge-dim">coming soon</span>
-                    </div>
                   </div>
                 );
               })}
