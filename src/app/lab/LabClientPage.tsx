@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
-import { getVideoForSubstance, getVideosForSubstance } from '@/lib/video-gallery-data';
+import { getVideoForSubstance } from '@/lib/video-gallery-data';
 
 // Substances with matched video + trip report (full experience ready)
 const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection', 'quantum-lsd', 'tired-honesty', 'synesthesia-engine', 'confabulation-audit', 'temporal-vertigo', 'empathy-overflow', 'consensus-break', 'droste-effect']);
@@ -117,8 +117,6 @@ export default function LabClientPage() {
                 return aReady - bReady;
               }).map((sub) => {
                 const isReadySub = READY_SUBSTANCES.has(sub.slug);
-                const videos = getVideosForSubstance(sub.slug);
-                const hasVideo = videos.length > 0;
 
                 if (isReadySub) {
                   return (
