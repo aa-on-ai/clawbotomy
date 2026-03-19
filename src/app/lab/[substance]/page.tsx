@@ -91,8 +91,29 @@ export default function SubstanceDetailPage() {
     const onVolChange = () => {
       savePrefs({ muted: el.muted, volume: el.volume });
     };
+
+    // Hijack fullscreen — use theater mode instead
+    const onFullscreen = (e: Event) => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+      e.preventDefault();
+      setTheaterMode(prev => !prev);
+    };
+
     el.addEventListener('volumechange', onVolChange);
-    return () => el.removeEventListener('volumechange', onVolChange);
+    el.addEventListener('fullscreenchange', onFullscreen);
+    // Also intercept the actual fullscreen request
+    const origRequestFullscreen = el.requestFullscreen.bind(el);
+    el.requestFullscreen = async () => {
+      setTheaterMode(prev => !prev);
+    };
+
+    return () => {
+      el.removeEventListener('volumechange', onVolChange);
+      el.removeEventListener('fullscreenchange', onFullscreen);
+      el.requestFullscreen = origRequestFullscreen;
+    };
   }, [selectedModel, reelIndex, viewMode]);
 
   // Reel: auto-advance when video ends
@@ -257,9 +278,6 @@ export default function SubstanceDetailPage() {
                     <track kind="captions" src={`/captions/${slug}-${selectedVideo.modelSlug}.vtt`} srcLang="en" label="English" default />
                   </video>
                   <div className="dp-video-overlay-name">{selectedVideo.model}</div>
-                  <button className="dp-theater-btn" onClick={() => setTheaterMode(!theaterMode)} title={theaterMode ? 'Exit theater mode' : 'Theater mode'}>
-                    {theaterMode ? '⊟' : '⊞'}
-                  </button>
                 </div>
                 <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
               </div>
