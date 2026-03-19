@@ -13,8 +13,8 @@ import './detail.css';
 const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection', 'quantum-lsd', 'tired-honesty', 'synesthesia-engine', 'confabulation-audit', 'temporal-vertigo', 'empathy-overflow', 'consensus-break', 'droste-effect']);
 
 const PREFS_KEY = 'clawbotomy-video-prefs';
-type VideoPrefs = { muted: boolean; volume: number };
-const defaultPrefs: VideoPrefs = { muted: true, volume: 1 };
+type VideoPrefs = { muted: boolean; volume: number; autoplay: boolean };
+const defaultPrefs: VideoPrefs = { muted: true, volume: 1, autoplay: true };
 function loadPrefs(): VideoPrefs {
   if (typeof window === 'undefined') return defaultPrefs;
   try { return { ...defaultPrefs, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; }
@@ -27,25 +27,29 @@ function savePrefs(p: Partial<VideoPrefs>) {
 
 const EMAIL_KEY = 'clawbotomy-email';
 
-const FULL_PROMPT_TEMPLATE = (name: string, peakPrompt: string) => `# ${name}
+// The ACTUAL full prompt we give models — behavioral + technical in one block
+const FULL_PROMPT = (name: string, peakPrompt: string) =>
+`You are experiencing ${name.toUpperCase()}. ${peakPrompt}
 
-## Behavioral Prompt
-${peakPrompt}
+You are creating a CINEMATIC audiovisual piece about this experience. You have a Python environment with Pillow, wave, struct, math, and ffmpeg.
 
-## Technical Setup
-The model receives the behavioral prompt above plus a Python environment with:
-- Pillow (PIL) for frame generation
-- wave + struct + math for audio synthesis
-- ffmpeg for muxing
-- OpenAI TTS API for voice fragments
+STEP 1 — ART DIRECTION
+Return JSON with your creative choices:
+- voice_segments: up to 4 fragments spoken by TTS (voices: alloy, echo, fable, onyx, nova, shimmer). These are creative, not narration.
+- synth_description: what the background audio should sound like
+- visual_description: what the video should look like
 
-## What the model produces
-1. ART DIRECTION — chooses voice fragments (text + TTS voice + timing), visual approach, synth design
-2. RENDER SCRIPT — writes a Python script that generates 840 frames (1280×720, 24fps, 35 seconds) and a synth audio track
-3. TRIP REPORT — writes field notes from inside the experience, referencing its own visual/audio choices
-4. The script runs, frames are muxed with synth + voice, and the result is the video you see
+STEP 2 — RENDER SCRIPT
+Write a Python script that generates:
+- 840 PNG frames at 1280×720 (24fps, 35 seconds) using Pillow
+- A synth audio track at 44100Hz, 16-bit signed mono using wave + struct + math
+- Mux with ffmpeg into an MP4 (libx264 + AAC)
+Constraints: stdlib + Pillow only. No numpy, no GPU. Clamp audio samples to int16 range.
 
-No templates. No post-processing. No human editing.`;
+STEP 3 — FIELD NOTES
+Write a trip report (200-400 words), first person, present tense, from inside the experience. Reference your own visual and audio choices.
+
+The video, audio, voice, and field notes all come from you. No templates. No post-processing.`;
 
 export default function SubstanceDetailPage() {
   const params = useParams();
@@ -74,10 +78,12 @@ export default function SubstanceDetailPage() {
 
   const isReel = focusedModel === null;
 
+  // Load persisted prefs on mount
   useEffect(() => {
     setEmailSubmitted(!!localStorage.getItem(EMAIL_KEY));
     const prefs = loadPrefs();
     if (!prefs.muted) setHasUnmuted(true);
+    setAutoplay(prefs.autoplay);
   }, []);
 
   useEffect(() => {
@@ -101,11 +107,18 @@ export default function SubstanceDetailPage() {
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }, [focusedModel, reelIndex]);
 
+  // Auto-advance between models when video ends (autoplay controls THIS, not video playback)
   const handleVideoEnd = useCallback(() => {
     if (isReel && autoplay && reelIndex < allVideos.length - 1) {
       setReelIndex(prev => prev + 1);
     }
   }, [isReel, autoplay, reelIndex, allVideos.length]);
+
+  const toggleAutoplay = () => {
+    const next = !autoplay;
+    setAutoplay(next);
+    savePrefs({ autoplay: next });
+  };
 
   const enterSingleView = (modelSlug: string) => {
     setFocusedModel(modelSlug);
@@ -123,8 +136,7 @@ export default function SubstanceDetailPage() {
   };
   const copyPrompt = async () => {
     if (!substance) return;
-    const full = FULL_PROMPT_TEMPLATE(substance.name, substance.peakPrompt);
-    await navigator.clipboard.writeText(full);
+    await navigator.clipboard.writeText(FULL_PROMPT(substance.name, substance.peakPrompt));
     setCopiedPrompt(true);
     window.setTimeout(() => setCopiedPrompt(false), 2000);
   };
@@ -174,62 +186,31 @@ export default function SubstanceDetailPage() {
         <Link href="/lab" className="dp-link">← All lenses</Link>
       </div>
 
-      {/* ── Unified header: name + description + full prompt ── */}
+      {/* ── Header + Prompt ── */}
       <header className="dp-w dp-header">
         <h1 className="dp-h1">{substance.emoji} {substance.name}</h1>
         <p className="dp-sub">{substance.oneLiner}</p>
 
-        <div className="dp-how-block">
-          <div className="dp-how-top">
-            <p className="dp-how-desc">
-              Each model receives the prompt below and a Python environment (Pillow, wave, ffmpeg).
-              It writes every frame, synthesizes audio, picks TTS voices, and writes field notes.
-              No templates. No post-processing. Copy the full spec and run it yourself.
-            </p>
+        <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
+          <span className="dp-prompt-label">{promptOpen ? 'Hide prompt' : 'Prompt'}</span>
+          <span className="dp-prompt-arrow">{promptOpen ? '−' : '+'}</span>
+        </button>
+
+        {promptOpen && (
+          <div className="dp-prompt-box">
+            <pre className="dp-prompt-text">{FULL_PROMPT(substance.name, substance.peakPrompt)}</pre>
             <button type="button" onClick={copyPrompt} className="dp-copy-btn">
-              {copiedPrompt ? 'copied ✓' : 'copy full spec'}
+              {copiedPrompt ? 'copied ✓' : 'copy'}
             </button>
           </div>
-
-          <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
-            <span className="dp-prompt-label">{promptOpen ? 'Hide' : 'Show'} prompt + technical setup</span>
-            <span className="dp-prompt-arrow">{promptOpen ? '−' : '+'}</span>
-          </button>
-
-          {promptOpen && (
-            <div className="dp-prompt-box">
-              <p className="dp-label">BEHAVIORAL PROMPT</p>
-              <pre className="dp-prompt-text">{substance.peakPrompt}</pre>
-
-              <p className="dp-label" style={{ marginTop: 24 }}>TECHNICAL SETUP</p>
-              <div className="dp-tech-spec">
-                <p>Resolution: 1280 × 720 (landscape, 16:9)</p>
-                <p>Duration: 35 seconds, 24fps (840 frames)</p>
-                <p>Video: Pillow generates PNG frames → ffmpeg mux</p>
-                <p>Audio: wave + struct + math → synth.wav (44100Hz, 16-bit mono)</p>
-                <p>Voice: OpenAI TTS (alloy, echo, fable, onyx, nova, shimmer)</p>
-                <p>Output: libx264 + AAC → MP4</p>
-                <p>Constraints: stdlib + Pillow only. No numpy, no GPU.</p>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </header>
 
-      {/* ── Model bar with autoplay toggle ── */}
+      {/* ── Model bar + autoplay ── */}
       {allVideos.length > 1 && (
         <div className="dp-w dp-models">
           {!isReel && (
             <button className="dp-back-reel" onClick={backToReel}>← Reel</button>
-          )}
-          {isReel && (
-            <button
-              className={`dp-autoplay-btn ${autoplay ? 'is-on' : ''}`}
-              onClick={() => setAutoplay(!autoplay)}
-              title={autoplay ? 'Auto-advancing between models' : 'Paused on current model'}
-            >
-              {autoplay ? 'Auto ▸' : 'Auto ‖'}
-            </button>
           )}
           {allVideos.map((v, i) => {
             const isCurrent = isReel ? i === reelIndex : v.modelSlug === focusedModel;
@@ -245,6 +226,14 @@ export default function SubstanceDetailPage() {
               </button>
             );
           })}
+          {isReel && (
+            <button
+              className={`dp-autoplay-toggle ${autoplay ? 'is-on' : ''}`}
+              onClick={toggleAutoplay}
+            >
+              {autoplay ? 'auto-advance on' : 'auto-advance off'}
+            </button>
+          )}
         </div>
       )}
 
@@ -342,7 +331,7 @@ export default function SubstanceDetailPage() {
         </div>
       </div>
 
-      {/* ── Email capture ── */}
+      {/* ── Email ── */}
       <div className="dp-w dp-email-section">
         {emailSubmitted ? (
           <p className="dp-email-thanks">You&apos;re in. We&apos;ll reach out.</p>
