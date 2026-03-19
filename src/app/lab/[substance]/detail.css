@@ -139,18 +139,11 @@
   border-top: 1px solid rgba(255,255,255,0.06);
 }
 
-/* ── Prompt box ── */
+/* ── Prompt box (inside how-block) ── */
 .dp-prompt-box {
-  background: var(--dp-card);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
-  padding: 20px 24px;
-}
-.dp-prompt-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.04);
 }
 .dp-copy-btn {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -355,31 +348,80 @@
   pointer-events: none;
 }
 
+/* ── How block (unified header + prompt) ── */
+.dp-how-block {
+  margin-top: 24px;
+  background: var(--dp-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+.dp-how-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.dp-how-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--dp-dim);
+  margin: 0;
+}
+
 /* ── Prompt toggle ── */
 .dp-prompt-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: var(--dp-card);
+  background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  padding: 14px 20px;
-  margin-bottom: 12px;
+  padding: 12px 16px;
   transition: border-color 0.15s;
 }
 .dp-prompt-toggle:hover { border-color: rgba(255,255,255,0.12); }
 .dp-prompt-label {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--dp-dim);
 }
 .dp-prompt-arrow {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--dp-dim);
   font-weight: 300;
 }
 .dp-prompt-toggle:hover .dp-prompt-label { color: var(--dp-text); }
+
+/* ── Tech spec ── */
+.dp-tech-spec {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--dp-faint);
+}
+.dp-tech-spec p { margin: 0; }
+
+/* ── Autoplay button ── */
+.dp-autoplay-btn {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: var(--dp-faint);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.dp-autoplay-btn.is-on {
+  color: var(--dp-teal);
+  border-color: rgba(45,212,191,0.2);
+}
+.dp-autoplay-btn:hover { border-color: rgba(255,255,255,0.2); }
 
 /* ── Reel counter ── */
 .dp-reel-counter {

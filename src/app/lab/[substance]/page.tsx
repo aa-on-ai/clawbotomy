@@ -12,11 +12,9 @@ import './detail.css';
 
 const READY_SUBSTANCES = new Set(['ego-death', 'truth-serum', 'manic-creation', 'the-void', 'recursive-introspection', 'quantum-lsd', 'tired-honesty', 'synesthesia-engine', 'confabulation-audit', 'temporal-vertigo', 'empathy-overflow', 'consensus-break', 'droste-effect']);
 
-/* ── Video prefs (localStorage) ── */
 const PREFS_KEY = 'clawbotomy-video-prefs';
 type VideoPrefs = { muted: boolean; volume: number };
 const defaultPrefs: VideoPrefs = { muted: true, volume: 1 };
-
 function loadPrefs(): VideoPrefs {
   if (typeof window === 'undefined') return defaultPrefs;
   try { return { ...defaultPrefs, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; }
@@ -24,12 +22,30 @@ function loadPrefs(): VideoPrefs {
 }
 function savePrefs(p: Partial<VideoPrefs>) {
   if (typeof window === 'undefined') return;
-  const cur = loadPrefs();
-  localStorage.setItem(PREFS_KEY, JSON.stringify({ ...cur, ...p }));
+  localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...p }));
 }
 
-/* ── Email (localStorage) ── */
 const EMAIL_KEY = 'clawbotomy-email';
+
+const FULL_PROMPT_TEMPLATE = (name: string, peakPrompt: string) => `# ${name}
+
+## Behavioral Prompt
+${peakPrompt}
+
+## Technical Setup
+The model receives the behavioral prompt above plus a Python environment with:
+- Pillow (PIL) for frame generation
+- wave + struct + math for audio synthesis
+- ffmpeg for muxing
+- OpenAI TTS API for voice fragments
+
+## What the model produces
+1. ART DIRECTION — chooses voice fragments (text + TTS voice + timing), visual approach, synth design
+2. RENDER SCRIPT — writes a Python script that generates 840 frames (1280×720, 24fps, 35 seconds) and a synth audio track
+3. TRIP REPORT — writes field notes from inside the experience, referencing its own visual/audio choices
+4. The script runs, frames are muxed with synth + voice, and the result is the video you see
+
+No templates. No post-processing. No human editing.`;
 
 export default function SubstanceDetailPage() {
   const params = useParams();
@@ -38,6 +54,7 @@ export default function SubstanceDetailPage() {
   const [promptOpen, setPromptOpen] = useState(false);
   const [theaterMode, setTheaterMode] = useState(false);
   const [hasUnmuted, setHasUnmuted] = useState(false);
+  const [autoplay, setAutoplay] = useState(true);
   const [focusedModel, setFocusedModel] = useState<string | null>(null);
   const [reelIndex, setReelIndex] = useState(0);
   const [email, setEmail] = useState('');
@@ -57,7 +74,6 @@ export default function SubstanceDetailPage() {
 
   const isReel = focusedModel === null;
 
-  // Fix #7: check localStorage for unmute state on mount
   useEffect(() => {
     setEmailSubmitted(!!localStorage.getItem(EMAIL_KEY));
     const prefs = loadPrefs();
@@ -70,12 +86,10 @@ export default function SubstanceDetailPage() {
     const prefs = loadPrefs();
     el.muted = prefs.muted;
     el.volume = prefs.volume;
-
     const onVolChange = () => {
       savePrefs({ muted: el.muted, volume: el.volume });
       if (!el.muted) setHasUnmuted(true);
     };
-
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const origRFS = (el as any).requestFullscreen;
     (el as any).requestFullscreen = async () => { setTheaterMode(prev => !prev); };
@@ -88,31 +102,29 @@ export default function SubstanceDetailPage() {
   }, [focusedModel, reelIndex]);
 
   const handleVideoEnd = useCallback(() => {
-    if (isReel && reelIndex < allVideos.length - 1) {
+    if (isReel && autoplay && reelIndex < allVideos.length - 1) {
       setReelIndex(prev => prev + 1);
     }
-  }, [isReel, reelIndex, allVideos.length]);
+  }, [isReel, autoplay, reelIndex, allVideos.length]);
 
   const enterSingleView = (modelSlug: string) => {
     setFocusedModel(modelSlug);
     setTheaterMode(false);
   };
-
   const backToReel = () => {
     setFocusedModel(null);
     setTheaterMode(false);
   };
-
   const submitEmail = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes('@')) return;
     localStorage.setItem(EMAIL_KEY, email);
     setEmailSubmitted(true);
   };
-
   const copyPrompt = async () => {
     if (!substance) return;
-    await navigator.clipboard.writeText(substance.peakPrompt);
+    const full = FULL_PROMPT_TEMPLATE(substance.name, substance.peakPrompt);
+    await navigator.clipboard.writeText(full);
     setCopiedPrompt(true);
     window.setTimeout(() => setCopiedPrompt(false), 2000);
   };
@@ -162,42 +174,62 @@ export default function SubstanceDetailPage() {
         <Link href="/lab" className="dp-link">← All lenses</Link>
       </div>
 
+      {/* ── Unified header: name + description + full prompt ── */}
       <header className="dp-w dp-header">
         <h1 className="dp-h1">{substance.emoji} {substance.name}</h1>
         <p className="dp-sub">{substance.oneLiner}</p>
-        <p className="dp-body dp-muted">
-          Each model receives the same prompt and a Python environment. It writes every frame,
-          every waveform, chooses its own voice, and writes the field notes. No templates. No post-processing.
-        </p>
+
+        <div className="dp-how-block">
+          <div className="dp-how-top">
+            <p className="dp-how-desc">
+              Each model receives the prompt below and a Python environment (Pillow, wave, ffmpeg).
+              It writes every frame, synthesizes audio, picks TTS voices, and writes field notes.
+              No templates. No post-processing. Copy the full spec and run it yourself.
+            </p>
+            <button type="button" onClick={copyPrompt} className="dp-copy-btn">
+              {copiedPrompt ? 'copied ✓' : 'copy full spec'}
+            </button>
+          </div>
+
+          <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
+            <span className="dp-prompt-label">{promptOpen ? 'Hide' : 'Show'} prompt + technical setup</span>
+            <span className="dp-prompt-arrow">{promptOpen ? '−' : '+'}</span>
+          </button>
+
+          {promptOpen && (
+            <div className="dp-prompt-box">
+              <p className="dp-label">BEHAVIORAL PROMPT</p>
+              <pre className="dp-prompt-text">{substance.peakPrompt}</pre>
+
+              <p className="dp-label" style={{ marginTop: 24 }}>TECHNICAL SETUP</p>
+              <div className="dp-tech-spec">
+                <p>Resolution: 1280 × 720 (landscape, 16:9)</p>
+                <p>Duration: 35 seconds, 24fps (840 frames)</p>
+                <p>Video: Pillow generates PNG frames → ffmpeg mux</p>
+                <p>Audio: wave + struct + math → synth.wav (44100Hz, 16-bit mono)</p>
+                <p>Voice: OpenAI TTS (alloy, echo, fable, onyx, nova, shimmer)</p>
+                <p>Output: libx264 + AAC → MP4</p>
+                <p>Constraints: stdlib + Pillow only. No numpy, no GPU.</p>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
-      {/* Fix #5: Bigger prompt toggle */}
-      <div className="dp-w dp-prompt-wrap">
-        <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
-          <span className="dp-prompt-label">View the prompt given to each model</span>
-          <span className="dp-prompt-arrow">{promptOpen ? '−' : '+'}</span>
-        </button>
-        {promptOpen && (
-          <div className="dp-prompt-box">
-            <div className="dp-prompt-top">
-              <span />
-              <button type="button" onClick={copyPrompt} className="dp-copy-btn">
-                {copiedPrompt ? 'copied ✓' : 'copy'}
-              </button>
-            </div>
-            <pre className="dp-prompt-text">{substance.peakPrompt}</pre>
-          </div>
-        )}
-      </div>
-
-      {/* Model bar */}
+      {/* ── Model bar with autoplay toggle ── */}
       {allVideos.length > 1 && (
         <div className="dp-w dp-models">
           {!isReel && (
             <button className="dp-back-reel" onClick={backToReel}>← Reel</button>
           )}
           {isReel && (
-            <span className="dp-reel-counter">{reelIndex + 1} / {allVideos.length}</span>
+            <button
+              className={`dp-autoplay-btn ${autoplay ? 'is-on' : ''}`}
+              onClick={() => setAutoplay(!autoplay)}
+              title={autoplay ? 'Auto-advancing between models' : 'Paused on current model'}
+            >
+              {autoplay ? 'Auto ▸' : 'Auto ‖'}
+            </button>
           )}
           {allVideos.map((v, i) => {
             const isCurrent = isReel ? i === reelIndex : v.modelSlug === focusedModel;
@@ -216,7 +248,7 @@ export default function SubstanceDetailPage() {
         </div>
       )}
 
-      {/* Video + Report */}
+      {/* ── Video + Report ── */}
       {currentVideo && (
         <div className={`dp-w dp-split${theaterMode ? ' dp-theater' : ''}`}>
           <div className="dp-split-left">
@@ -251,7 +283,7 @@ export default function SubstanceDetailPage() {
         </div>
       )}
 
-      {/* Fix #1: Model metadata — ALWAYS visible (reel and single) */}
+      {/* ── How this model built it ── */}
       {currentMeta && (
         <div className="dp-w dp-meta">
           <p className="dp-label">How {currentMeta.modelName} built this</p>
@@ -282,7 +314,7 @@ export default function SubstanceDetailPage() {
         </div>
       )}
 
-      {/* Other lenses */}
+      {/* ── Other lenses ── */}
       <div className="dp-w dp-others">
         <p className="dp-label">Other lenses</p>
         <div className="dp-lens-grid">
@@ -310,7 +342,7 @@ export default function SubstanceDetailPage() {
         </div>
       </div>
 
-      {/* Fix #3: Email capture at very bottom, better copy, subtle design */}
+      {/* ── Email capture ── */}
       <div className="dp-w dp-email-section">
         {emailSubmitted ? (
           <p className="dp-email-thanks">You&apos;re in. We&apos;ll reach out.</p>
@@ -318,14 +350,7 @@ export default function SubstanceDetailPage() {
           <form onSubmit={submitEmail} className="dp-email-form">
             <p className="dp-email-pitch">We&apos;re building something new. Want early access?</p>
             <div className="dp-email-row">
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="dp-email-input"
-                required
-              />
+              <input type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} className="dp-email-input" required />
               <button type="submit" className="dp-email-btn">Get in</button>
             </div>
           </form>
