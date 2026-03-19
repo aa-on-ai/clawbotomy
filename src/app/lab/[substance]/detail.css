@@ -355,6 +355,32 @@
   pointer-events: none;
 }
 
+/* ── Prompt toggle ── */
+.dp-prompt-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.dp-prompt-arrow {
+  font-size: 12px;
+  color: var(--dp-dim);
+}
+.dp-prompt-toggle:hover .dp-prompt-arrow { color: var(--dp-text); }
+
+/* ── Reel counter ── */
+.dp-reel-counter {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--dp-faint);
+  padding: 10px 0;
+  flex-shrink: 0;
+}
+
 /* ── Back to reel button ── */
 .dp-back-reel {
   padding: 10px 16px;

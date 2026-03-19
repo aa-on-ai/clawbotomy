@@ -35,7 +35,9 @@ export default function SubstanceDetailPage() {
   const params = useParams();
   const slug = params.substance as string;
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [promptOpen, setPromptOpen] = useState(false);
   const [theaterMode, setTheaterMode] = useState(false);
+  const [hasUnmuted, setHasUnmuted] = useState(false);
   // null = reel mode, string = single model view
   const [focusedModel, setFocusedModel] = useState<string | null>(null);
   const [reelIndex, setReelIndex] = useState(0);
@@ -70,7 +72,10 @@ export default function SubstanceDetailPage() {
     el.muted = prefs.muted;
     el.volume = prefs.volume;
 
-    const onVolChange = () => savePrefs({ muted: el.muted, volume: el.volume });
+    const onVolChange = () => {
+      savePrefs({ muted: el.muted, volume: el.volume });
+      if (!el.muted) setHasUnmuted(true);
+    };
 
     // Hijack fullscreen for theater mode
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -171,24 +176,33 @@ export default function SubstanceDetailPage() {
         </p>
       </header>
 
-      {/* Prompt */}
+      {/* Prompt (collapsed by default) */}
       <div className="dp-w dp-prompt-wrap">
-        <div className="dp-prompt-box">
-          <div className="dp-prompt-top">
-            <span className="dp-label">PROMPT</span>
-            <button type="button" onClick={copyPrompt} className="dp-copy-btn">
-              {copiedPrompt ? 'copied ✓' : 'copy'}
-            </button>
+        <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
+          <span className="dp-label" style={{ margin: 0 }}>PROMPT</span>
+          <span className="dp-prompt-arrow">{promptOpen ? '▾' : '▸'}</span>
+        </button>
+        {promptOpen && (
+          <div className="dp-prompt-box">
+            <div className="dp-prompt-top">
+              <span />
+              <button type="button" onClick={copyPrompt} className="dp-copy-btn">
+                {copiedPrompt ? 'copied ✓' : 'copy'}
+              </button>
+            </div>
+            <pre className="dp-prompt-text">{substance.peakPrompt}</pre>
           </div>
-          <pre className="dp-prompt-text">{substance.peakPrompt}</pre>
-        </div>
+        )}
       </div>
 
-      {/* Model bar — always visible, works as both reel progress and model selector */}
+      {/* Model bar — reel progress + model selector */}
       {allVideos.length > 1 && (
         <div className="dp-w dp-models">
           {!isReel && (
             <button className="dp-back-reel" onClick={backToReel}>← Reel</button>
+          )}
+          {isReel && (
+            <span className="dp-reel-counter">{reelIndex + 1} / {allVideos.length}</span>
           )}
           {allVideos.map((v, i) => {
             const isCurrent = isReel
@@ -199,11 +213,10 @@ export default function SubstanceDetailPage() {
               <button
                 key={v.modelSlug}
                 type="button"
-                onClick={() => isReel ? enterSingleView(v.modelSlug) : enterSingleView(v.modelSlug)}
+                onClick={() => enterSingleView(v.modelSlug)}
                 className={`dp-model-btn ${isCurrent ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}
               >
                 {v.model}
-                {isReel && isCurrent && <span className="dp-now-playing">playing</span>}
               </button>
             );
           })}
@@ -230,7 +243,7 @@ export default function SubstanceDetailPage() {
               </video>
               <div className="dp-video-overlay-name">{currentVideo.model}</div>
             </div>
-            <p className="dp-sound-hint">🔊 Unmute for the full experience</p>
+            {!hasUnmuted && <p className="dp-sound-hint">🔊 Unmute for the full experience</p>}
           </div>
           <div className="dp-split-right">
             <p className="dp-label">Field Notes — {currentVideo.model}</p>
