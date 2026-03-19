@@ -188,20 +188,24 @@ export default function SubstanceDetailPage() {
 
       {/* ── Header + Prompt ── */}
       <header className="dp-w dp-header">
-        <h1 className="dp-h1">{substance.emoji} {substance.name}</h1>
-        <p className="dp-sub">{substance.oneLiner}</p>
-
-        <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
-          <span className="dp-prompt-label">{promptOpen ? 'Hide prompt' : 'Prompt'}</span>
-          <span className="dp-prompt-arrow">{promptOpen ? '−' : '+'}</span>
-        </button>
+        <div className="dp-header-row">
+          <div>
+            <h1 className="dp-h1">{substance.emoji} {substance.name}</h1>
+            <p className="dp-sub">{substance.oneLiner}</p>
+          </div>
+          <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
+            {promptOpen ? 'Hide prompt' : 'View prompt'}
+          </button>
+        </div>
 
         {promptOpen && (
           <div className="dp-prompt-box">
             <pre className="dp-prompt-text">{FULL_PROMPT(substance.name, substance.peakPrompt)}</pre>
-            <button type="button" onClick={copyPrompt} className="dp-copy-btn">
-              {copiedPrompt ? 'copied ✓' : 'copy'}
-            </button>
+            <div className="dp-prompt-bottom">
+              <button type="button" onClick={copyPrompt} className="dp-copy-btn">
+                {copiedPrompt ? 'copied ✓' : 'copy prompt'}
+              </button>
+            </div>
           </div>
         )}
       </header>

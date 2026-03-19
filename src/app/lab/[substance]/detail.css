@@ -146,12 +146,11 @@
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 8px;
   padding: 20px 24px;
-  position: relative;
 }
-.dp-prompt-box .dp-copy-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+.dp-prompt-bottom {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.04);
 }
 .dp-copy-btn {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -356,27 +355,28 @@
   pointer-events: none;
 }
 
+/* ── Header row ── */
+.dp-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+.dp-header-row .dp-h1 { margin-bottom: 8px; }
+
 /* ── Prompt toggle ── */
 .dp-prompt-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  margin-top: 8px;
-}
-.dp-prompt-label {
   font-size: 14px;
   color: var(--dp-teal);
-  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 6px;
 }
-.dp-prompt-arrow {
-  font-size: 14px;
-  color: var(--dp-teal);
-}
-.dp-prompt-toggle:hover .dp-prompt-label { opacity: 0.8; }
+.dp-prompt-toggle:hover { opacity: 0.8; }
 
 /* ── Autoplay toggle (text, not button) ── */
 .dp-autoplay-toggle {
