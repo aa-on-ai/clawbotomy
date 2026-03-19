@@ -253,9 +253,6 @@ export default function SubstanceDetailPage() {
                   className={`dp-model-btn ${selectedModel === v.modelSlug ? 'is-active' : ''}`}
                 >
                   {v.model}
-                  <span className="dp-heart-inline" onClick={(e) => { e.stopPropagation(); toggleHeart(v.modelSlug); }}>
-                    {hearts[`${slug}:${v.modelSlug}`] ? '❤️' : '🤍'} {heartCounts[`${slug}:${v.modelSlug}`] || 0}
-                  </span>
                 </button>
               ))}
             </div>
