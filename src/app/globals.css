@@ -3228,3 +3228,21 @@ img {
     padding: 60px 0 32px;
   }
 }
+
+/* ── Shuffle button ── */
+.lab-shuffle-btn {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 10px 24px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: var(--text-secondary, rgba(255,255,255,0.6));
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.lab-shuffle-btn:hover {
+  border-color: rgba(45,212,191,0.3);
+  color: var(--text-primary, #fff);
+}
