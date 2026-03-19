@@ -104,6 +104,7 @@ export default function LabClientPage() {
               The model writes its own video, synthesizes its own audio, chooses its own voice,
               and writes a trip report. No templates. The output IS the behavioral data.
             </p>
+            <Link href="/lab/shuffle" className="lab-shuffle-btn">🔀 Shuffle all</Link>
           </div>
         </section>
 

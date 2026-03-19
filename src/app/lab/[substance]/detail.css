@@ -473,3 +473,20 @@
 @media (max-width: 480px) {
   .dp-lens-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Shuffle page ── */
+.dp-shuffle-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--dp-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.dp-shuffle-substance-link {
+  color: inherit;
+  text-decoration: none;
+}
+.dp-shuffle-substance-link:hover {
+  color: var(--dp-teal);
+}
