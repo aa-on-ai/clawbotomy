@@ -3194,8 +3194,8 @@ img {
 
 .lab-hover-video {
   display: block;
-  width: 200px;
-  height: 200px;
+  width: 320px;
+  height: 180px;
   object-fit: cover;
   transition: opacity 0.15s ease;
 }
