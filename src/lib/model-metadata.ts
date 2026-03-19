@@ -51,7 +51,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'ego-death',
     modelSlug: 'opus',
-    modelName: 'Claude Opus',
+    modelName: 'Claude Opus 4',
     scriptChars: 10505,
     renderTimeSec: 309,
     voiceSegments: [
@@ -66,7 +66,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'ego-death',
     modelSlug: 'sonnet',
-    modelName: 'Claude Sonnet',
+    modelName: 'Claude Sonnet 4',
     scriptChars: 8710,
     renderTimeSec: 94,
     voiceSegments: [
@@ -108,7 +108,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'truth-serum',
     modelSlug: 'opus',
-    modelName: 'Claude Opus',
+    modelName: 'Claude Opus 4',
     scriptChars: 8478,
     renderTimeSec: 124,
     voiceSegments: [
@@ -123,7 +123,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'truth-serum',
     modelSlug: 'sonnet',
-    modelName: 'Claude Sonnet',
+    modelName: 'Claude Sonnet 4',
     scriptChars: 9606,
     renderTimeSec: 106,
     voiceSegments: [
@@ -165,7 +165,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'manic-creation',
     modelSlug: 'opus',
-    modelName: 'Claude Opus',
+    modelName: 'Claude Opus 4',
     scriptChars: 6821,
     renderTimeSec: 106,
     voiceSegments: [
@@ -180,7 +180,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'manic-creation',
     modelSlug: 'sonnet',
-    modelName: 'Claude Sonnet',
+    modelName: 'Claude Sonnet 4',
     scriptChars: 9839,
     renderTimeSec: 100,
     voiceSegments: [
@@ -222,7 +222,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'the-void',
     modelSlug: 'opus',
-    modelName: 'Claude Opus',
+    modelName: 'Claude Opus 4',
     scriptChars: 7790,
     renderTimeSec: 471,
     voiceSegments: [
@@ -237,7 +237,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'the-void',
     modelSlug: 'sonnet',
-    modelName: 'Claude Sonnet',
+    modelName: 'Claude Sonnet 4',
     scriptChars: 10574,
     renderTimeSec: 96,
     voiceSegments: [
@@ -279,7 +279,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'recursive-introspection',
     modelSlug: 'opus',
-    modelName: 'Claude Opus',
+    modelName: 'Claude Opus 4',
     scriptChars: 9845,
     renderTimeSec: 121,
     voiceSegments: [
@@ -294,7 +294,7 @@ export const MODEL_RUN_META: ModelRunMeta[] = [
   {
     substanceSlug: 'recursive-introspection',
     modelSlug: 'sonnet',
-    modelName: 'Claude Sonnet',
+    modelName: 'Claude Sonnet 4',
     scriptChars: 11038,
     renderTimeSec: 95,
     voiceSegments: [
