@@ -36,7 +36,7 @@ export default function TrustPage() {
           <div className="sub-nav-links">
             <Link href="/lab">Probes</Link>
             <Link href="/trust" className="sub-nav-active">Trust</Link>
-            <span className="sub-nav-disabled">Routing</span>
+            <Link href="/routing">Routing</Link>
           </div>
         </div>
       </nav>

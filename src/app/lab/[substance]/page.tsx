@@ -135,7 +135,7 @@ export default function SubstanceDetailPage() {
             <div className="sub-nav-links">
               <Link href="/lab">Probes</Link>
               <Link href="/trust">Trust</Link>
-              <span className="sub-nav-disabled">Routing</span>
+              <Link href="/routing">Routing</Link>
             </div>
           </div>
         </nav>
@@ -155,7 +155,7 @@ export default function SubstanceDetailPage() {
           <div className="sub-nav-links">
             <Link href="/lab" className="sub-nav-active">Probes</Link>
             <Link href="/trust">Trust</Link>
-            <span className="sub-nav-disabled">Routing</span>
+            <Link href="/routing">Routing</Link>
           </div>
         </div>
       </nav>

@@ -54,7 +54,7 @@ export default function LabClientPage() {
           <div className="sub-nav-links">
             <Link href="/lab" className="sub-nav-active">Probes</Link>
             <Link href="/trust">Trust</Link>
-            <span className="sub-nav-disabled">Routing</span>
+            <Link href="/routing">Routing</Link>
           </div>
         </div>
       </nav>
