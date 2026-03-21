@@ -20,9 +20,19 @@
 /* ── Model selector ── */
 .rt-model-selector {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 32px;
+}
+.rt-provider-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.rt-provider-group + .rt-provider-group {
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255,255,255,0.06);
 }
 .rt-model-btn {
   display: flex;
@@ -203,7 +213,7 @@
 }
 
 /* ── CTA ── */
-.rt-cta { padding: 48px 0 80px; }
+.rt-cta { padding: 32px 0 48px; }
 .rt-cta-text {
   font-size: 18px;
   color: rgba(255,255,255,0.3);

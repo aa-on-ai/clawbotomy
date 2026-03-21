@@ -82,16 +82,24 @@ export default function RoutingPage() {
       <section className="page-section">
         <div className="page-width">
           <div className="rt-model-selector">
-            {MODEL_PROFILES.map((m, i) => (
-              <button
-                key={m.modelId}
-                className={`rt-model-btn ${i === selectedModel ? 'is-active' : ''}`}
-                onClick={() => setSelectedModel(i)}
-              >
-                <span className="rt-model-name">{m.model}</span>
-                <span className="rt-model-score">{m.overallScore.toFixed(1)}</span>
-              </button>
-            ))}
+            {['OpenAI', 'Anthropic', 'Google'].map(provider => {
+              const models = MODEL_PROFILES.map((m, i) => ({ ...m, index: i })).filter(m => m.provider === provider);
+              if (models.length === 0) return null;
+              return (
+                <div key={provider} className="rt-provider-group">
+                  {models.map(m => (
+                    <button
+                      key={m.modelId}
+                      className={`rt-model-btn ${m.index === selectedModel ? 'is-active' : ''}`}
+                      onClick={() => setSelectedModel(m.index)}
+                    >
+                      <span className="rt-model-name">{m.model}</span>
+                      <span className="rt-model-score">{m.overallScore.toFixed(1)}</span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
