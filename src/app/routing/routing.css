@@ -1,6 +1,6 @@
 /* ── Routing page ── */
 .rt-page { min-height: 100vh; }
-.rt-page .page-section { padding: 0; }
+.rt-page .page-section { padding: 0 !important; margin: 0 !important; }
 
 .rt-hero { padding: 120px 0 40px; }
 .rt-headline {
