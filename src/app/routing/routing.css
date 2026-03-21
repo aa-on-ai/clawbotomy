@@ -1,8 +1,9 @@
 /* ── Routing page ── */
 .rt-page { min-height: 100vh; }
-.rt-page .page-section { padding: 0 !important; margin: 0 !important; }
+.rt-page .page-section,
+.rt-page section { padding-top: 0 !important; padding-bottom: 0 !important; margin: 0 !important; }
 
-.rt-hero { padding: 120px 0 40px; }
+.rt-hero { padding: 80px 0 24px !important; }
 .rt-headline {
   font-size: clamp(28px, 5vw, 42px);
   font-weight: 700;
@@ -191,7 +192,7 @@
 }
 
 /* ── How it works ── */
-.rt-how { padding: 40px 0 0; }
+.rt-how { padding: 24px 0 0 !important; }
 .rt-how-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -221,7 +222,7 @@
 }
 
 /* ── CTA ── */
-.rt-cta { padding: 24px 0 40px; }
+.rt-cta { padding: 16px 0 32px !important; }
 .rt-cta-text {
   font-size: 15px;
   color: rgba(255,255,255,0.25);
