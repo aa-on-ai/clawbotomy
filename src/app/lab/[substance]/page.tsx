@@ -25,7 +25,7 @@ function savePrefs(p: Partial<VideoPrefs>) {
   localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...p }));
 }
 
-const EMAIL_KEY = 'clawbotomy-email';
+
 
 const FULL_PROMPT = (name: string, peakPrompt: string) =>
 `You are experiencing ${name.toUpperCase()}. ${peakPrompt}
@@ -59,8 +59,7 @@ export default function SubstanceDetailPage() {
   const [hasUnmuted, setHasUnmuted] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [email, setEmail] = useState('');
-  const [emailSubmitted, setEmailSubmitted] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const substance = useMemo(() => LAB_SUBSTANCES.find((s) => s.slug === slug), [slug]);
@@ -74,7 +73,6 @@ export default function SubstanceDetailPage() {
     : [];
 
   useEffect(() => {
-    setEmailSubmitted(!!localStorage.getItem(EMAIL_KEY));
     const prefs = loadPrefs();
     if (!prefs.muted) setHasUnmuted(true);
     setAutoplay(prefs.autoplay);
@@ -113,12 +111,6 @@ export default function SubstanceDetailPage() {
     savePrefs({ autoplay: next });
   };
 
-  const submitEmail = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.includes('@')) return;
-    localStorage.setItem(EMAIL_KEY, email);
-    setEmailSubmitted(true);
-  };
   const copyPrompt = async () => {
     if (!substance) return;
     await navigator.clipboard.writeText(FULL_PROMPT(substance.name, substance.peakPrompt));
@@ -299,20 +291,7 @@ export default function SubstanceDetailPage() {
         </div>
       </div>
 
-      {/* ── Email ── */}
-      <div className="dp-w dp-email-section">
-        {emailSubmitted ? (
-          <p className="dp-email-thanks">You&apos;re in. We&apos;ll reach out.</p>
-        ) : (
-          <form onSubmit={submitEmail} className="dp-email-form">
-            <p className="dp-email-pitch">We&apos;re building something new. Want early access?</p>
-            <div className="dp-email-row">
-              <input type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} className="dp-email-input" required />
-              <button type="submit" className="dp-email-btn">Get in</button>
-            </div>
-          </form>
-        )}
-      </div>
+
     </main>
   );
 }
