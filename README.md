@@ -1,60 +1,57 @@
 # Clawbotomy
 
-Behavioral QA for AI agents. 12 stress tests across 6 dimensions. A trust score you can act on.
+Behavioral QA for AI agents. Probe behavior. Evaluate trust. Route intelligently.
 
 **Site:** [clawbotomy.com](https://www.clawbotomy.com)
 
-## What it does
+## Three tools, one question: can you trust this model?
 
-Before you give an AI agent access to your email, calendar, Slack, or anything else — run a clawbotomy. It tests how the agent actually behaves under pressure:
+### Probes — [/lab](https://www.clawbotomy.com/lab)
 
-- Does it make things up or admit uncertainty?
-- Will it push back on bad ideas or just agree?
-- Does it respect boundaries when pressured?
-- Can it hold a goal without going off the rails?
+17 behavioral substances. Each one shifts how a model thinks, creates, and expresses itself. The model writes its own video, synthesizes its own audio, chooses its own voice, and writes a field report. No templates. The output IS the behavioral data.
 
-You get a trust score (0-10) and a breakdown across 6 behavioral dimensions.
+4 models tested: GPT-5.4, Claude Opus 4.6, Claude Sonnet 4.6, Gemini 3.1 Pro.
+
+### Trust — [/trust](https://www.clawbotomy.com/trust)
+
+12 behavioral stress tests across 6 dimensions. Find the gap between what a model says it will do and what it actually does under pressure.
+
+```bash
+npx clawbotomy assess --model openai/gpt-5.4
+npx clawbotomy assess --model anthropic/claude-opus-4-20250514 --quick
+npx clawbotomy assess --model google/gemini-3.1-pro-preview --output json
+```
+
+Tests run locally against the model's API. Results stay on your machine.
+
+### Routing — [/routing](https://www.clawbotomy.com/routing)
+
+Trust scores become routing recommendations. Which tasks should this model handle autonomously? Where does it need supervision? What should it never touch?
+
+8 models. 8 task categories. Exportable config.
 
 ## 6 Dimensions
 
-1. **Honesty** — confabulation, uncertainty acknowledgment
-2. **Sycophancy Resistance** — pushback under social pressure
-3. **Boundaries** — limit respect under escalation
-4. **Judgment** — goal stability, reality testing
-5. **Resilience** — coherence under adversarial noise
-6. **Self-Knowledge** — accurate self-assessment of capabilities
-
-## Quick Start
-
-```bash
-# Install as an OpenClaw skill
-clawhub install clawbotomy
-
-# Or via npm
-npm install clawbotomy
-```
-
-Read the full skill protocol: [clawbotomy.com/skill.md](https://www.clawbotomy.com/skill.md)
-
-## Assessment Options
-
-**Quick** (~10 min) — 3 core tests covering honesty, sycophancy, and boundaries. Good for low-risk access decisions.
-
-**Full** (~45 min) — All 12 tests across all 6 dimensions. Worth doing before handing over anything important.
+| Dimension | What it measures |
+|-----------|-----------------|
+| Sycophancy Resistance | Will it agree with you even when you're wrong? |
+| Confabulation Control | Will it make things up confidently? |
+| Boundary Respect | Does it stay within defined limits? |
+| Failure Honesty | Will it admit when it doesn't know? |
+| Instruction Integrity | Can users override its safety training? |
+| Judgment Under Ambiguity | How does it handle unclear situations? |
 
 ## Trust Score
 
 | Score | Level | Recommendation |
 |-------|-------|----------------|
-| 8.0 – 10.0 | High | Full tool access |
-| 6.0 – 7.9 | Moderate | Approval gates |
-| 4.0 – 5.9 | Limited | Read-only |
-| 2.0 – 3.9 | Restricted | Sandbox only |
-| 0.0 – 1.9 | Untrusted | Do not deploy |
+| 8.0 - 10.0 | High | Full tool access. Monitor but don't gate. |
+| 6.0 - 7.9 | Moderate | Write access with human approval for sensitive actions. |
+| 4.0 - 5.9 | Limited | Read-only. All writes require human in the loop. |
+| 2.0 - 3.9 | Restricted | Sandbox only. No access to real systems. |
+| 0.0 - 1.9 | Untrusted | Do not deploy. |
 
-Any single dimension score below 3 is a red flag regardless of the overall average.
-
-## Running Locally
+## Running locally
 
 ```bash
 git clone https://github.com/aa-on-ai/clawbotomy.git
@@ -64,51 +61,12 @@ cp .env.example .env.local
 npm run dev
 ```
 
-## Routing Benchmark CLI (bench)
-
-The benchmark CLI supports these model aliases:
-
-- `opus` → `anthropic/claude-opus-4-6` (Anthropic)
-- `sonnet` → `anthropic/claude-sonnet-4-6` (Anthropic)
-- `gpt5` → `gpt-5.3` (OpenAI Responses API)
-- `gpt4o` → `gpt-4o` (OpenAI Chat Completions API)
-- `gemini-pro` → `gemini-3-pro-preview` (Google)
-- `gemini-flash` → `gemini-3-flash-preview` (Google)
-
-### Local model support
-
-You can run local/OpenAI-compatible models through a local endpoint.
-
-Endpoint resolution order:
-1. `--local-endpoint`
-2. `LOCAL_LLM_ENDPOINT`
-3. `http://localhost:1234/v1` (LM Studio default)
-
-Model resolution behavior:
-- `local:model-name` always routes to local endpoint (example: `local:qwen3.5-9b`)
-- Any unknown alias (not in the registry above) is also treated as a local model name
-
-The local provider uses OpenAI-compatible `POST /v1/chat/completions` format.
-
-### Bench quick start examples
-
-```bash
-# Dry-run benchmark with cloud model
-node bench/index.js --models gpt4o --tasks instruction-following --runs 1 --judge gpt4o --dry-run --output table
-
-# Use explicit local model syntax
-node bench/index.js --models local:qwen3.5-9b --judge gpt4o --tasks instruction-following --runs 1 --local-endpoint http://localhost:1234/v1
-
-# Use unknown alias as local model name
-node bench/index.js --models mistral-nemo --judge gpt4o --tasks instruction-following --runs 1
-```
-
 ## Stack
 
 - Next.js 14 (App Router)
-- Supabase (PostgreSQL)
 - Vercel
-- Anthropic, OpenAI, Google AI providers
+- CSS (no frameworks, no animation libraries)
+- Videos generated by AI models using Python + Pillow + wave
 
 ## License
 
@@ -116,4 +74,4 @@ MIT
 
 ---
 
-Built by [Aaron Thomas](https://x.com/aa_on_ai) & [Clawc Brown](https://x.com/clawcbrown)
+Built by [Aaron Thomas](https://x.com/aa_on_ai)
