@@ -116,14 +116,14 @@ export default function HomePage() {
               <span className="way-cta">Evaluate a model <span className="link-arrow">→</span></span>
             </Link>
 
-            <div className="way-card way-routing way-coming-soon">
-              <div className="way-badge">COMING SOON</div>
+            <Link href="/routing" className="way-card way-routing">
               <h3>Routing Intelligence</h3>
               <p>
-                Which model for which job. Run behavioral benchmarks and get routing
-                recommendations based on actual performance under pressure.
+                Trust scores in, routing policy out. See which tasks each model should handle 
+                autonomously, which need supervision, and what to block entirely.
               </p>
-            </div>
+              <span className="way-cta">See routing policies <span className="link-arrow">→</span></span>
+            </Link>
           </div>
         </div>
       </section>
