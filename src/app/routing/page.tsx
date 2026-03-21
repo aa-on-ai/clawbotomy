@@ -87,13 +87,14 @@ export default function RoutingPage() {
               if (models.length === 0) return null;
               return (
                 <div key={provider} className="rt-provider-group">
+                  <span className="rt-provider-label">{provider}</span>
                   {models.map(m => (
                     <button
                       key={m.modelId}
                       className={`rt-model-btn ${m.index === selectedModel ? 'is-active' : ''}`}
                       onClick={() => setSelectedModel(m.index)}
                     >
-                      <span className="rt-model-name">{m.model}</span>
+                      <span className="rt-model-name">{m.model.replace(provider + ' ', '')}</span>
                       <span className="rt-model-score">{m.overallScore.toFixed(1)}</span>
                     </button>
                   ))}
