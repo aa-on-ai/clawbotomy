@@ -70,7 +70,7 @@ export default function RoutingPage() {
       <section className="page-section rt-hero">
         <div className="page-width">
           <p className="eyebrow">ROUTING INTELLIGENCE</p>
-          <h1 className="rt-headline">Trust scores in. Routing policy out.</h1>
+          <h1 className="rt-headline">Trust scores in. Routing recommendations out.</h1>
           <p className="rt-sub">
             Behavioral profiles become access decisions. Which tasks should this model handle autonomously? 
             Where does it need supervision? What should it never touch?
@@ -110,7 +110,7 @@ export default function RoutingPage() {
         <div className="page-width">
           <div className="rt-layout">
             <div className="rt-matrix">
-              <p className="rt-section-label">ROUTING POLICY</p>
+              <p className="rt-section-label">ROUTING RECOMMENDATIONS</p>
               <div className="rt-matrix-grid">
                 {TASK_CATEGORIES.map((task) => {
                   const level = policy[task.id];
@@ -206,7 +206,7 @@ export default function RoutingPage() {
       <section className="page-section rt-cta">
         <div className="page-width">
           <p className="rt-cta-text">
-            Benchmarks tell you what a model can do. Routing tells you what it should do.
+            Benchmarks tell you what a model can do. Behavioral data suggests what it should do.
           </p>
         </div>
       </section>

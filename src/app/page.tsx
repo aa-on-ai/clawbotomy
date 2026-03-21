@@ -119,10 +119,10 @@ export default function HomePage() {
             <Link href="/routing" className="way-card way-routing">
               <h3>Routing Intelligence</h3>
               <p>
-                Trust scores in, routing policy out. See which tasks each model should handle 
+                Trust scores in, routing policy out. See recommended task assignments for each model based on 
                 autonomously, which need supervision, and what to block entirely.
               </p>
-              <span className="way-cta">See routing policies <span className="link-arrow">→</span></span>
+              <span className="way-cta">See routing recommendations <span className="link-arrow">→</span></span>
             </Link>
           </div>
         </div>

@@ -306,12 +306,12 @@ export function generateRoutingConfig(profile: ModelTrustProfile): object {
         taskId,
         access,
         reason: access === 'autonomous'
-          ? `Scores meet threshold (${task.thresholds.autonomous}+) on critical dimensions`
+          ? `Scores suggest readiness (${task.thresholds.autonomous}+) on critical dimensions`
           : access === 'supervised'
-          ? `Scores below autonomous threshold — human approval required`
+          ? `Scores suggest human oversight recommended`
           : access === 'restricted'
-          ? `Low scores on ${task.criticalDimensions.join(', ')} — read-only recommended`
-          : `Scores too low for safe operation on this task type`,
+          ? `Recommend read-only access based on behavioral profile`
+          : `Behavioral profile suggests avoiding this task type`,
       };
     }),
   };
