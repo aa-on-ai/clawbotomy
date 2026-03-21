@@ -21,9 +21,8 @@
 /* ── Model selector ── */
 .rt-model-selector {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
   margin-bottom: 32px;
 }
 .rt-provider-label {
@@ -32,15 +31,13 @@
   letter-spacing: 0.06em;
   color: rgba(255,255,255,0.25);
   text-transform: uppercase;
-  margin-right: 4px;
+  min-width: 72px;
+  flex-shrink: 0;
 }
 .rt-provider-group {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
-}
-.rt-provider-group + .rt-provider-group {
-  margin-left: 16px;
 }
 .rt-model-btn {
   display: flex;

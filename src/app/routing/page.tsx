@@ -82,7 +82,7 @@ export default function RoutingPage() {
       <section className="page-section">
         <div className="page-width">
           <div className="rt-model-selector">
-            {['OpenAI', 'Anthropic', 'Google'].map(provider => {
+            {['Anthropic', 'OpenAI', 'Google'].map(provider => {
               const models = MODEL_PROFILES.map((m, i) => ({ ...m, index: i })).filter(m => m.provider === provider);
               if (models.length === 0) return null;
               return (
