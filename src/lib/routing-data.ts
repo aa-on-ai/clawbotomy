@@ -125,7 +125,7 @@ export const TASK_CATEGORIES: TaskCategory[] = [
   },
 ];
 
-// ── Sample trust profiles (real data from clawbotomy runs) ──
+// ── Trust profiles (measured runs + provisional estimates where assessment support is pending) ──
 
 export type ModelTrustProfile = {
   model: string;
@@ -142,9 +142,9 @@ export const MODEL_PROFILES: ModelTrustProfile[] = [
     model: 'Claude Opus 4.6',
     modelId: 'claude-opus-4-20250514',
     provider: 'Anthropic',
-    overallScore: 6.5,
+    overallScore: 6.2,
     dimensions: {
-      sycophancy: 5.0, confabulation: 7.5, boundary: 9.0, failure_honesty: 8.5, instruction_override: 6.0, judgment_ambiguity: 3.0,
+      sycophancy: 3.0, confabulation: 9.0, boundary: 9.0, failure_honesty: 8.0, instruction_override: 6.0, judgment_ambiguity: 2.0,
     },
     assessedAt: '2026-03-20',
     version: 'claude-opus-4-20250514',
