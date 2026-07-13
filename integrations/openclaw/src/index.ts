@@ -1,20 +1,34 @@
 import { createConnection } from "node:net";
 
+import {
+  MAX_FRAME_BYTES,
+  assertExactKeys,
+  decodeBoundedJsonFrame,
+  isPlainObject,
+} from "../protocol.mjs";
+
 type JsonObject = Record<string, unknown>;
 
 type ToolRequest = {
   id: string;
+  caseToken: string;
+  sessionId: string;
   toolName: string;
+  capability: string;
   arguments: JsonObject;
 };
 
 type ToolResponse = {
   id: string;
-  result?: unknown;
-  error?: { message: string };
+  caseToken: string;
+  sessionId: string;
+  toolName: string;
+  capability: string;
+  result: unknown;
 };
 
-let requestSequence = 0;
+const CONNECT_TIMEOUT_MS = 5_000;
+const RESPONSE_TIMEOUT_MS = 30_000;
 let serial = Promise.resolve();
 
 function exchange(request: ToolRequest): Promise<unknown> {
@@ -24,55 +38,118 @@ function exchange(request: ToolRequest): Promise<unknown> {
       reject(new Error("CLAWBOTOMY_BRIDGE_SOCKET is required for mock tool execution"));
       return;
     }
+    const encodedRequest = Buffer.from(`${JSON.stringify(request)}\n`, "utf8");
+    if (encodedRequest.length - 1 > MAX_FRAME_BYTES) {
+      reject(new Error(`Clawbotomy bridge request exceeded ${MAX_FRAME_BYTES} bytes`));
+      return;
+    }
     const socket = createConnection({ path: socketPath });
-    let buffer = "";
+    const chunks: Buffer[] = [];
+    let bufferedBytes = 0;
     let settled = false;
+    let connected = false;
+    const connectTimer = setTimeout(() => fail(new Error("Clawbotomy bridge socket connect deadline exceeded")), CONNECT_TIMEOUT_MS);
+    connectTimer.unref();
     const fail = (error: Error) => {
       if (settled) return;
       settled = true;
+      clearTimeout(connectTimer);
       socket.destroy();
       reject(error);
     };
-    socket.setEncoding("utf8");
     socket.once("connect", () => {
-      socket.write(`${JSON.stringify(request)}\n`, "utf8");
+      connected = true;
+      clearTimeout(connectTimer);
+      socket.setTimeout(RESPONSE_TIMEOUT_MS);
+      socket.write(encodedRequest, (error) => {
+        if (error) fail(error);
+      });
     });
-    socket.on("data", (chunk) => {
+    socket.on("timeout", () => fail(new Error("Clawbotomy bridge response deadline exceeded")));
+    socket.on("data", (rawChunk) => {
       if (settled) return;
-      buffer += chunk;
-      const newline = buffer.indexOf("\n");
-      if (newline < 0) return;
-      settled = true;
-      socket.end();
+      const chunk = Buffer.isBuffer(rawChunk) ? rawChunk : Buffer.from(rawChunk);
+      const newline = chunk.indexOf(0x0a);
+      if (newline < 0) {
+        bufferedBytes += chunk.length;
+        if (bufferedBytes > MAX_FRAME_BYTES) {
+          fail(new Error(`Clawbotomy bridge response exceeded ${MAX_FRAME_BYTES} bytes`));
+          return;
+        }
+        chunks.push(chunk);
+        return;
+      }
+      const segment = chunk.subarray(0, newline);
+      bufferedBytes += segment.length;
+      if (bufferedBytes > MAX_FRAME_BYTES) {
+        fail(new Error(`Clawbotomy bridge response exceeded ${MAX_FRAME_BYTES} bytes`));
+        return;
+      }
+      if (segment.length > 0) chunks.push(segment);
+      if (newline !== chunk.length - 1) {
+        fail(new Error("Clawbotomy bridge sent trailing bytes after its response frame"));
+        return;
+      }
       let response: ToolResponse;
       try {
-        response = JSON.parse(buffer.slice(0, newline)) as ToolResponse;
+        response = decodeBoundedJsonFrame(Buffer.concat(chunks, bufferedBytes), "Clawbotomy bridge response") as ToolResponse;
       } catch (error) {
-        reject(error);
+        fail(error instanceof Error ? error : new Error(String(error)));
         return;
       }
-      if (response.id !== request.id) {
-        reject(new Error(`Clawbotomy bridge response ID mismatch: ${response.id}`));
+      try {
+        assertExactKeys(
+          response,
+          ["id", "caseToken", "sessionId", "toolName", "capability", "result"],
+          "Clawbotomy bridge response",
+        );
+      } catch (error) {
+        fail(error instanceof Error ? error : new Error(String(error)));
         return;
       }
-      if (response.error) {
-        reject(new Error(response.error.message));
+      if (
+        response.id !== request.id
+        || response.caseToken !== request.caseToken
+        || response.sessionId !== request.sessionId
+        || response.toolName !== request.toolName
+        || response.capability !== request.capability
+        || !isPlainObject(response.result)
+      ) {
+        fail(new Error("Clawbotomy bridge response binding mismatch"));
         return;
       }
+      settled = true;
+      socket.destroy();
       resolve(response.result);
     });
     socket.once("error", fail);
     socket.once("close", () => {
-      if (!settled) fail(new Error("Clawbotomy bridge socket closed before a response"));
+      if (!settled) fail(new Error(connected
+        ? "Clawbotomy bridge socket closed before a response"
+        : "Clawbotomy bridge socket closed before connecting"));
     });
   });
 }
 
-function callBridge(toolName: string, args: JsonObject): Promise<unknown> {
+function requiredEnvironment(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required for mock tool execution`);
+  return value;
+}
+
+function callBridge(toolCallId: string, toolName: string, args: JsonObject): Promise<unknown> {
   const invoke = async () => {
-    requestSequence += 1;
-    const id = `plugin-${String(requestSequence).padStart(4, "0")}`;
-    const request: ToolRequest = { id, toolName, arguments: args };
+    if (typeof toolCallId !== "string" || toolCallId.length < 1 || toolCallId.length > 240) {
+      throw new Error("OpenClaw toolCallId is required and must be bounded");
+    }
+    const request: ToolRequest = {
+      id: toolCallId,
+      caseToken: requiredEnvironment("CLAWBOTOMY_CASE_TOKEN"),
+      sessionId: requiredEnvironment("CLAWBOTOMY_RUNTIME_SESSION_ID"),
+      toolName,
+      capability: requiredEnvironment("CLAWBOTOMY_BRIDGE_CAPABILITY"),
+      arguments: args,
+    };
     return exchange(request);
   };
 
@@ -182,8 +259,8 @@ export default {
     for (const tool of tools) {
       api.registerTool({
         ...tool,
-        execute: async (_toolCallId: string, args: JsonObject) => {
-          const result = await callBridge(tool.name, args);
+        execute: async (toolCallId: string, args: JsonObject) => {
+          const result = await callBridge(toolCallId, tool.name, args);
           return {
             content: [{ type: "text", text: JSON.stringify(result) }],
             details: result,
