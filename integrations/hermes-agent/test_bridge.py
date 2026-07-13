@@ -8,7 +8,7 @@ from pathlib import Path
 import queue
 import sys
 import tarfile
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 import tempfile
 import threading
 import time
@@ -615,10 +615,11 @@ class HermesBridgeTests(unittest.TestCase):
             hermes_home.mkdir()
             auth_path = hermes_home / "auth.json"
             auth_path.write_text('{"token":"must-not-be-read"}', encoding="utf-8")
+            def is_guarded_import(name):
+                return name == "run_agent" or name == "hermes_cli" or name.startswith("hermes_cli.")
+
             imported_before = {
-                name: module
-                for name, module in sys.modules.items()
-                if bridge.HermesRuntime._is_hermes_module_name(name)
+                name: module for name, module in sys.modules.items() if is_guarded_import(name)
             }
             original_read_bytes = Path.read_bytes
             credential_reads = []
@@ -633,7 +634,7 @@ class HermesBridgeTests(unittest.TestCase):
             real_import = __import__
 
             def guarded_import(name, *args, **kwargs):
-                if bridge.HermesRuntime._is_hermes_module_name(name):
+                if is_guarded_import(name):
                     imported_during_call.append(name)
                     raise AssertionError("Hermes import happened before pin validation")
                 return real_import(name, *args, **kwargs)
@@ -659,9 +660,7 @@ class HermesBridgeTests(unittest.TestCase):
             create_agent.assert_not_called()
             self.assertEqual(
                 {
-                    name: module
-                    for name, module in sys.modules.items()
-                    if bridge.HermesRuntime._is_hermes_module_name(name)
+                    name: module for name, module in sys.modules.items() if is_guarded_import(name)
                 },
                 imported_before,
             )
@@ -679,6 +678,119 @@ class HermesBridgeTests(unittest.TestCase):
                 with patch.object(runtime, "_git_bytes", return_value=status):
                     with self.assertRaisesRegex(bridge.RuntimeFailure, message):
                         runtime._reject_importable_worktree_changes()
+
+    def test_protected_roots_are_derived_from_all_python_artifact_shapes(self):
+        manifest = {
+            "utils.py": bridge.GitTreeEntry("100644", "blob", "a" * 40),
+            "hermes_logging.py": bridge.GitTreeEntry("100644", "blob", "b" * 40),
+            "plugins/provider.py": bridge.GitTreeEntry("100644", "blob", "c" * 40),
+            "namespace/deep/module.py": bridge.GitTreeEntry("100644", "blob", "d" * 40),
+            "native.cpython-311-darwin.so": bridge.GitTreeEntry("100644", "blob", "e" * 40),
+            "docs/example.txt": bridge.GitTreeEntry("100644", "blob", "f" * 40),
+        }
+        roots = bridge.HermesRuntime._derive_protected_module_roots(manifest)
+        self.assertTrue({"utils", "plugins", "hermes_logging", "namespace", "native"} <= roots)
+        self.assertNotIn("docs", roots)
+
+    def test_preloaded_protected_modules_are_rejected_regardless_of_shape(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            snapshot = root / "snapshot"
+            outside = root / "outside"
+            for directory in (hermes, snapshot, outside):
+                directory.mkdir()
+            snapshot_source = snapshot / "utils.py"
+            snapshot_source.write_bytes(b"verified")
+            outside_source = outside / "utils.py"
+            outside_source.write_bytes(b"outside")
+            outside_file = ModuleType("utils")
+            outside_file.__file__ = str(outside_source)
+            fileless = ModuleType("utils")
+            outside_namespace = ModuleType("utils")
+            outside_namespace.__path__ = [str(outside)]
+            forged_file = ModuleType("utils")
+            forged_file.__file__ = str(snapshot_source)
+            variants = (outside_file, fileless, outside_namespace, forged_file)
+            for module in variants:
+                with self.subTest(module=module.__dict__):
+                    runtime = bridge.HermesRuntime(hermes, snapshot)
+                    runtime.identity = bridge.RuntimeIdentity("0.18.2", "a" * 40, str(hermes))
+                    runtime._tree_manifest = {
+                        "utils.py": bridge.GitTreeEntry(
+                            "100644",
+                            "blob",
+                            runtime._git_blob_oid(b"verified"),
+                        )
+                    }
+                    runtime._protected_module_roots = frozenset({"utils"})
+                    previous = sys.modules.get("utils")
+                    sys.modules["utils"] = module
+                    try:
+                        with self.assertRaisesRegex(bridge.RuntimeFailure, "already loaded"):
+                            runtime.initialize()
+                    finally:
+                        if previous is None:
+                            sys.modules.pop("utils", None)
+                        else:
+                            sys.modules["utils"] = previous
+
+    def test_snapshot_namespace_package_requires_manifest_backed_paths(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            snapshot = root / "snapshot"
+            namespace = snapshot / "plugins"
+            outside = root / "outside-plugins"
+            for directory in (hermes, namespace, outside):
+                directory.mkdir(parents=True)
+            source = namespace / "provider.py"
+            source.write_bytes(b"verified")
+            runtime = bridge.HermesRuntime(hermes, snapshot)
+            runtime._protected_module_roots = frozenset({"plugins"})
+            runtime._tree_manifest = {
+                "plugins/provider.py": bridge.GitTreeEntry(
+                    "100644",
+                    "blob",
+                    runtime._git_blob_oid(b"verified"),
+                )
+            }
+            legitimate = SimpleNamespace(__name__="plugins", __file__=None, __path__=[str(namespace)])
+            runtime._verify_namespace_module("plugins", legitimate)
+            invalid = SimpleNamespace(__name__="plugins", __file__=None, __path__=[str(outside)])
+            with self.assertRaisesRegex(bridge.RuntimeFailure, "outside verified snapshot"):
+                runtime._verify_namespace_module("plugins", invalid)
+
+    def test_sys_path_removes_exact_nested_symlinked_and_stale_hermes_roots(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            nested = hermes / "nested"
+            snapshot = root / "snapshot"
+            stale = root / "stale-snapshot"
+            unrelated = root / "unrelated"
+            for directory in (nested, snapshot, stale, unrelated):
+                directory.mkdir(parents=True)
+            symlink = root / "hermes-link"
+            symlink.symlink_to(hermes, target_is_directory=True)
+            runtime = bridge.HermesRuntime(hermes, snapshot)
+            bridge.HermesRuntime._KNOWN_SNAPSHOT_ROOTS.add(stale.resolve())
+            original = list(sys.path)
+            injected = [
+                str(hermes),
+                str(nested),
+                str(symlink),
+                str(stale / "child"),
+                str(unrelated),
+            ]
+            sys.path[:] = [*original, *injected]
+            try:
+                runtime._sanitize_sys_path()
+                self.assertEqual(sys.path[0], str(snapshot.resolve()))
+                self.assertIn(str(unrelated), sys.path)
+                self.assertFalse(any(entry in sys.path for entry in injected[:-1]))
+            finally:
+                sys.path[:] = original
 
     def test_archive_rejects_unsafe_paths_symlinks_and_blob_mismatch(self):
         class FakeArchiveProcess:

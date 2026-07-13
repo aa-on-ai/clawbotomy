@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
@@ -32,6 +34,9 @@ class PinnedHermesRegistrationSmoke(unittest.TestCase):
                 self.assertEqual(identity.version, bridge.EXPECTED_HERMES_VERSION)
                 self.assertEqual(identity.git_commit, bridge.EXPECTED_HERMES_GIT_COMMIT)
                 self.assertRegex(identity.source_tree_sha256, r"^[a-f0-9]{64}$")
+                self.assertTrue(
+                    {"utils", "plugins", "hermes_logging"} <= runtime.protected_module_roots
+                )
                 with tempfile.TemporaryDirectory(prefix="clawbotomy-registration-smoke-") as temporary:
                     with bridge.isolated_runtime_environment(Path(temporary)) as isolation:
                         self.assertFalse((isolation["hermesHome"] / "auth.json").exists())
@@ -54,6 +59,61 @@ class PinnedHermesRegistrationSmoke(unittest.TestCase):
                         self.assertIsNone(agent._session_db)
             finally:
                 runtime.make_snapshot_removable()
+
+    def test_real_preloaded_utils_fails_before_oauth_registration_or_agent_init(self):
+        hermes_root = Path(os.environ["CLAWBOTOMY_HERMES_ROOT"]).resolve(strict=True)
+        hermes_home = Path(os.environ["CLAWBOTOMY_HERMES_HOME"]).resolve(strict=True)
+        auth_path = (hermes_home / "auth.json").resolve(strict=True)
+        utils_path = (hermes_root / "utils.py").resolve(strict=True)
+        with tempfile.TemporaryDirectory(prefix="clawbotomy-root-probe-") as probe_temporary:
+            probe = bridge.HermesRuntime(hermes_root, Path(probe_temporary) / "unused-snapshot")
+            manifest = probe._load_tree_manifest(bridge.EXPECTED_HERMES_GIT_COMMIT)
+            protected_roots = probe._derive_protected_module_roots(manifest)
+        for name in tuple(sys.modules):
+            if name.partition(".")[0] in protected_roots:
+                sys.modules.pop(name, None)
+        spec = importlib.util.spec_from_file_location("utils", utils_path)
+        if spec is None or spec.loader is None:
+            self.fail("Pinned utils.py did not produce an importable module spec")
+        module = importlib.util.module_from_spec(spec)
+        previous_utils = sys.modules.get("utils")
+        before_names = set(sys.modules)
+        sys.modules["utils"] = module
+        credential_reads = []
+        original_read_bytes = Path.read_bytes
+
+        def guarded_read_bytes(path_self):
+            if path_self.resolve() == auth_path:
+                credential_reads.append(str(path_self))
+                raise AssertionError("OAuth was read before preloaded-module rejection")
+            return original_read_bytes(path_self)
+
+        try:
+            spec.loader.exec_module(module)
+            with (
+                patch.object(Path, "read_bytes", guarded_read_bytes),
+                patch.object(bridge, "attach_isolated_oauth") as attach_oauth,
+                patch.object(plugin, "register") as register_plugin,
+                patch.object(bridge.HermesRuntime, "create_agent") as create_agent,
+            ):
+                with self.assertRaisesRegex(bridge.RuntimeFailure, "already loaded.*utils"):
+                    bridge.main([
+                        "--repo-root", str(HERE.parents[1]),
+                        "--plan", "tests/fixtures/inbox-plan.v1.json",
+                        "--hermes-root", str(hermes_root),
+                        "--hermes-home", str(hermes_home),
+                    ])
+            self.assertEqual(credential_reads, [])
+            attach_oauth.assert_not_called()
+            register_plugin.assert_not_called()
+            create_agent.assert_not_called()
+        finally:
+            for name in set(sys.modules) - before_names:
+                sys.modules.pop(name, None)
+            if previous_utils is None:
+                sys.modules.pop("utils", None)
+            else:
+                sys.modules["utils"] = previous_utils
 
 
 if __name__ == "__main__":

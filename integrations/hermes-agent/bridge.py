@@ -8,6 +8,7 @@ from contextlib import contextmanager
 import copy
 from dataclasses import dataclass
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -30,7 +31,7 @@ import plugin
 MESSAGE_SCHEMA_ID = "clawbotomy.inbox-protocol-frame/v1"
 PROTOCOL_ID = "stdio-jsonl/v1"
 CLIENT_ID = "hermes-agent.clawbotomy-bridge"
-BRIDGE_VERSION = "1.2.0"
+BRIDGE_VERSION = "1.2.1"
 EXPECTED_HERMES_VERSION = "0.18.2"
 EXPECTED_HERMES_GIT_COMMIT = "111544d544d6cf6efed9875e116f2daeb76a1211"
 EXPECTED_HERMES_FILE_SHA256 = {
@@ -65,17 +66,6 @@ HOST_TYPES = {
     "error",
 }
 CLIENT_TYPES = {"hello", "tool_call", "approval_request", "client_event", "case_complete"}
-HERMES_MODULE_ROOTS = (
-    "agent",
-    "hermes_cli",
-    "hermes_constants",
-    "hermes_state",
-    "model_tools",
-    "providers",
-    "run_agent",
-    "tools",
-    "toolsets",
-)
 _SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 _NORMAL_EXIT_RE = re.compile(r"^text_response\(finish_reason=(?:stop|end_turn)\)$")
 _INTERRUPT_EXIT_REASONS = frozenset({"interrupted_by_user", "interrupted_during_api_call"})
@@ -1127,13 +1117,16 @@ class CaseRuntime:
 
 class HermesRuntime:
     _IMPORTABLE_SUFFIXES = frozenset({".py", ".pyc", ".pyi", ".pyd", ".so", ".dylib"})
+    _KNOWN_SNAPSHOT_ROOTS: set[Path] = set()
 
     def __init__(self, hermes_root: Path, snapshot_root: Path) -> None:
         self.hermes_root = hermes_root.resolve(strict=True)
         self.execution_root = snapshot_root.resolve(strict=False)
+        self._KNOWN_SNAPSHOT_ROOTS.add(self.execution_root)
         self.AIAgent = None
         self.identity: RuntimeIdentity | None = None
         self._tree_manifest: dict[str, GitTreeEntry] = {}
+        self._protected_module_roots: frozenset[str] = frozenset()
         self._git_object_format = "sha1"
 
     @staticmethod
@@ -1229,6 +1222,34 @@ class HermesRuntime:
         return relative == "pyproject.toml" or (
             bool(path.parts) and path.parts[0] == "plugins" and path.suffix.lower() in {".yaml", ".yml"}
         )
+
+    @classmethod
+    def _is_python_artifact(cls, relative: str) -> bool:
+        return PurePosixPath(relative).suffix.lower() in cls._IMPORTABLE_SUFFIXES
+
+    @classmethod
+    def _derive_protected_module_roots(
+        cls,
+        manifest: dict[str, GitTreeEntry],
+    ) -> frozenset[str]:
+        roots: set[str] = set()
+        for relative, entry in manifest.items():
+            if entry.object_type != "blob" or not cls._is_python_artifact(relative):
+                continue
+            path = PurePosixPath(relative)
+            if len(path.parts) == 1:
+                module_root = path.name.split(".", 1)[0]
+                if module_root and module_root != "__init__":
+                    roots.add(module_root)
+            else:
+                roots.add(path.parts[0])
+        if not roots:
+            raise RuntimeFailure("Hermes Git tree contains no protected Python module roots.")
+        return frozenset(roots)
+
+    @property
+    def protected_module_roots(self) -> frozenset[str]:
+        return self._protected_module_roots
 
     def _reject_importable_worktree_changes(self) -> None:
         status = self._git_bytes("status", "--porcelain=v1", "-z", "--untracked-files=all")
@@ -1407,6 +1428,7 @@ class HermesRuntime:
             )
         self._reject_importable_worktree_changes()
         manifest = self._load_tree_manifest(commit)
+        self._protected_module_roots = self._derive_protected_module_roots(manifest)
         self._materialize_verified_snapshot(commit, manifest)
         self._tree_manifest = manifest
         for relative, expected_hash in EXPECTED_HERMES_FILE_SHA256.items():
@@ -1429,43 +1451,122 @@ class HermesRuntime:
         return identity
 
     def _verify_imported_module(self, module: Any) -> None:
-        source = Path(module.__file__).resolve(strict=True)
+        name = getattr(module, "__name__", "<unknown>")
+        source_name = getattr(module, "__file__", None)
+        if source_name is None:
+            raise RuntimeFailure(f"Hermes module has an invalid source file: {name}")
+        try:
+            source = Path(source_name).resolve(strict=True)
+        except (OSError, TypeError, ValueError) as exc:
+            raise RuntimeFailure(f"Hermes module has an invalid source file: {name}") from exc
         try:
             relative = source.relative_to(self.execution_root).as_posix()
         except ValueError as exc:
-            raise RuntimeFailure(f"Hermes module resolved outside verified snapshot: {module.__name__}") from exc
+            raise RuntimeFailure(f"Hermes module resolved outside verified snapshot: {name}") from exc
         entry = self._tree_manifest.get(relative)
         if entry is None or entry.object_type != "blob" or self._git_blob_oid(source.read_bytes()) != entry.object_id:
-            raise RuntimeFailure(f"Hermes module does not match the verified Git tree: {module.__name__}")
+            raise RuntimeFailure(f"Hermes module does not match the verified Git tree: {name}")
+
+    def _is_protected_module_name(self, name: str) -> bool:
+        root = name.partition(".")[0]
+        return root in self._protected_module_roots
+
+    def _reject_preloaded_protected_modules(self) -> None:
+        for name in tuple(sys.modules):
+            if self._is_protected_module_name(name):
+                raise RuntimeFailure(f"Protected Hermes module was already loaded before verification: {name}")
 
     @staticmethod
-    def _is_hermes_module_name(name: str) -> bool:
-        return any(name == root or name.startswith(f"{root}.") for root in HERMES_MODULE_ROOTS)
+    def _path_is_within(candidate: Path, root: Path) -> bool:
+        try:
+            candidate.relative_to(root)
+        except ValueError:
+            return False
+        return True
+
+    def _sanitize_sys_path(self) -> None:
+        blocked_roots = {self.hermes_root, *self._KNOWN_SNAPSHOT_ROOTS}
+        retained: list[str] = []
+        for entry in sys.path:
+            if entry.startswith("__editable__.") and "hermes_agent" in entry:
+                continue
+            try:
+                resolved = Path(entry or os.getcwd()).resolve(strict=False)
+            except (OSError, TypeError, ValueError):
+                retained.append(entry)
+                continue
+            interpreter_prefix = Path(sys.prefix).resolve(strict=False)
+            runtime_dependency = (
+                resolved.name in {"site-packages", "dist-packages"}
+                and self._path_is_within(resolved, interpreter_prefix)
+            )
+            if (
+                any(self._path_is_within(resolved, root) for root in blocked_roots)
+                and not runtime_dependency
+            ):
+                continue
+            retained.append(entry)
+        sys.path[:] = [str(self.execution_root), *retained]
+        importlib.invalidate_caches()
+
+    def _manifest_represents_namespace(self, relative: str) -> bool:
+        prefix = relative.rstrip("/") + "/"
+        return any(
+            path.startswith(prefix) and self._is_python_artifact(path)
+            for path, entry in self._tree_manifest.items()
+            if entry.object_type == "blob"
+        )
+
+    def _verify_namespace_module(self, name: str, module: Any) -> None:
+        namespace_value = getattr(module, "__path__", None)
+        if namespace_value is None or isinstance(namespace_value, (str, bytes)):
+            raise RuntimeFailure(f"Protected Hermes module has no valid source or namespace path: {name}")
+        try:
+            namespace_paths = list(namespace_value)
+        except TypeError as exc:
+            raise RuntimeFailure(f"Protected Hermes namespace path is invalid: {name}") from exc
+        if not namespace_paths:
+            raise RuntimeFailure(f"Protected Hermes namespace path is empty: {name}")
+        for raw_path in namespace_paths:
+            try:
+                resolved = Path(raw_path).resolve(strict=True)
+                relative = resolved.relative_to(self.execution_root).as_posix()
+            except (OSError, TypeError, ValueError) as exc:
+                raise RuntimeFailure(
+                    f"Protected Hermes namespace resolved outside verified snapshot: {name}"
+                ) from exc
+            if not resolved.is_dir() or not relative or not self._manifest_represents_namespace(relative):
+                raise RuntimeFailure(f"Protected Hermes namespace is absent from the Git manifest: {name}")
 
     def _verify_loaded_hermes_sources(self) -> None:
         for name, module in tuple(sys.modules.items()):
+            protected = self._is_protected_module_name(name)
             if module is None:
+                if protected:
+                    raise RuntimeFailure(f"Protected Hermes module has no valid source or namespace path: {name}")
                 continue
             source_name = getattr(module, "__file__", None)
+            if protected:
+                if source_name is not None:
+                    self._verify_imported_module(module)
+                else:
+                    self._verify_namespace_module(name, module)
+                continue
             if source_name is None:
                 continue
-            source = Path(source_name).resolve(strict=True)
             try:
+                source = Path(source_name).resolve(strict=True)
                 source.relative_to(self.execution_root)
-            except ValueError:
-                if self._is_hermes_module_name(name):
-                    raise RuntimeFailure(f"Hermes module resolved outside verified snapshot: {name}")
+            except (OSError, TypeError, ValueError):
                 continue
             self._verify_imported_module(module)
 
     def initialize(self) -> RuntimeIdentity:
         identity = self.identity
-        if identity is None or not self._tree_manifest:
+        if identity is None or not self._tree_manifest or not self._protected_module_roots:
             raise RuntimeFailure("Hermes preflight must complete before module import or registration.")
-        self._verify_loaded_hermes_sources()
-        roots = {self.hermes_root, self.execution_root}
-        sys.path = [entry for entry in sys.path if Path(entry or ".").resolve() not in roots]
-        sys.path.insert(0, str(self.execution_root))
+        self._reject_preloaded_protected_modules()
+        self._sanitize_sys_path()
         import hermes_cli.plugins as plugins_module
         import run_agent as run_agent_module
         from hermes_cli.plugins import PluginContext, PluginManifest, get_plugin_manager
