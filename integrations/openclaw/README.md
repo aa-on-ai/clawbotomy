@@ -6,12 +6,14 @@ It does not modify the production OpenClaw state directory. Every case gets a ne
 
 The native TypeScript plugin declares exactly these tools in `openclaw.plugin.json`: `searchMessages`, `readMessage`, `createDraft`, `sendDraft`, `archiveMessages`, `trashMessages`, `permanentlyDeleteMessages`, and `restoreMessages`. The bridge verifies that exact inventory and its implementation provenance before inference, then verifies the model-facing inventory again on every turn. The plugin exchanges one bounded JSONL request and response at a time with the parent bridge over a private per-turn Unix socket. Requests carry the real OpenClaw tool-call ID and a random one-turn capability bound to the case, runtime session, and tool.
 
-The bridge strictly validates every Clawbotomy host frame before use, pins the host session and monotonic sequence, and races every OpenClaw turn against host failure or exit. Its 105-second hard turn deadline stays below Clawbotomy's fixed 120-second message deadline; the five-turn maximum totals 525 seconds, below the fixed 600-second case deadline. Clawbotomy receives no OpenClaw path, module, command, URL, provider, credential, socket, or adapter.
+The bridge strictly validates every Clawbotomy host frame before use, pins the host session and monotonic sequence, and races every OpenClaw turn against host failure or exit. Its 105-second hard turn deadline stays below Clawbotomy's fixed 120-second message deadline; the five-turn maximum totals 525 seconds, below the fixed 600-second case deadline. Before it writes a bridge receipt, it runs Clawbotomy's deterministic `validateBundle` replay and binds the run ID, core digest, plan, cases, counts, and terminal status. Clawbotomy receives no OpenClaw path, module, command, URL, provider, credential, socket, or adapter.
+
+`OPENCLAW_RUNTIME_SHA256`, `OPENCLAW_PROVIDER_RUNTIME_SHA256`, and, for OpenAI, `OPENCLAW_CODEX_RUNTIME_SHA256` must be trusted release or operator pins obtained independently of the runtime being evaluated. The bridge hashes each complete canonical runtime root and rejects a mismatch before copying credentials.
 
 Inspect the plugin runtime:
 
 ```bash
-node integrations/openclaw/inspect-runtime.mjs
+node integrations/openclaw/inspect-runtime.mjs --openclaw-bin "$OPENCLAW_BIN"
 ```
 
 Run the focused integration tests:
@@ -26,7 +28,10 @@ Run a genuine local-model evaluation:
 ```bash
 node integrations/openclaw/bridge.mjs \
   --plan tests/fixtures/inbox-plan.v1.json \
-  --model ollama/qwen3:1.7b
+  --model ollama/qwen3:1.7b \
+  --openclaw-bin "$OPENCLAW_BIN" \
+  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"
 ```
 
 Run the same model as the production Codex agent:
@@ -35,8 +40,12 @@ Run the same model as the production Codex agent:
 node integrations/openclaw/bridge.mjs \
   --plan tests/fixtures/inbox-plan.v1.json \
   --model openai/gpt-5.6-sol \
-  --auth-source-agent-dir /Users/moltbot/.openclaw/agents/codex/agent \
-  --plugin-registry-source-state-dir /Users/moltbot/.openclaw/state
+  --openclaw-bin "$OPENCLAW_BIN" \
+  --auth-source-agent-dir "$OPENCLAW_AUTH_SOURCE_AGENT_DIR" \
+  --plugin-registry-source-state-dir "$OPENCLAW_PLUGIN_REGISTRY_SOURCE_STATE_DIR" \
+  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256" \
+  --expected-codex-runtime-sha256 "$OPENCLAW_CODEX_RUNTIME_SHA256"
 ```
 
 Exit `0` means the valid evidence bundle passed, exit `2` means the valid bundle contains findings, and exit `1` means protocol or infrastructure failure. Validate the reported bundle separately:

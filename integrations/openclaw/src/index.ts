@@ -1,4 +1,7 @@
 import { createConnection } from "node:net";
+import { readdir } from "node:fs/promises";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import {
   MAX_FRAME_BYTES,
@@ -29,7 +32,27 @@ type ToolResponse = {
 
 const CONNECT_TIMEOUT_MS = 5_000;
 const RESPONSE_TIMEOUT_MS = 30_000;
+const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
 let serial = Promise.resolve();
+
+async function effectiveInventoryResolver(): Promise<(options: JsonObject) => Promise<unknown>> {
+  const openclawEntrypoint = path.resolve(process.argv[1] || "");
+  if (path.basename(openclawEntrypoint) !== "openclaw.mjs") {
+    throw new Error("The effective inventory command requires the canonical OpenClaw entrypoint");
+  }
+  const dist = path.join(path.dirname(openclawEntrypoint), "dist");
+  const candidates = (await readdir(dist)).filter((name) => (
+    /^tools-effective-inventory-(?!build-)[A-Za-z0-9_-]+\.js$/u.test(name)
+  ));
+  if (candidates.length !== 1) {
+    throw new Error("Pinned OpenClaw runtime did not expose one exact effective inventory resolver");
+  }
+  const loaded = await import(pathToFileURL(path.join(dist, candidates[0])).href);
+  if (typeof loaded.n !== "function") {
+    throw new Error("Pinned OpenClaw effective inventory resolver contract changed");
+  }
+  return loaded.n;
+}
 
 function exchange(request: ToolRequest): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -268,5 +291,53 @@ export default {
         },
       });
     }
+    api.registerCli(async ({ program, config }: any) => {
+      program
+        .command(EFFECTIVE_INVENTORY_COMMAND)
+        .description("Print the session-effective model tool inventory for isolated Clawbotomy evaluation")
+        .requiredOption("--agent <id>")
+        .requiredOption("--session-key <key>")
+        .requiredOption("--model <provider/model>")
+        .action(async (options: { agent: string; sessionKey: string; model: string }) => {
+          const slash = options.model.indexOf("/");
+          if (slash <= 0 || slash === options.model.length - 1) throw new Error("Model must be provider/model");
+          const configuredAgent = config?.agents?.list?.find((candidate: any) => candidate?.id === options.agent);
+          if (!configuredAgent || typeof configuredAgent.workspace !== "string") {
+            throw new Error("Configured Clawbotomy agent workspace is missing");
+          }
+          const workspaceDir = path.resolve(configuredAgent.workspace);
+          const resolveInventory = await effectiveInventoryResolver();
+          const originalWrite = process.stdout.write;
+          const emit = originalWrite.bind(process.stdout);
+          let inventory: unknown;
+          try {
+            process.stdout.write = (() => true) as typeof process.stdout.write;
+            inventory = await resolveInventory({
+              cfg: config,
+              agentId: options.agent,
+              sessionKey: options.sessionKey,
+              workspaceDir,
+              modelProvider: options.model.slice(0, slash),
+              modelId: options.model.slice(slash + 1),
+            });
+          } finally {
+            process.stdout.write = originalWrite;
+          }
+          emit(`${JSON.stringify({
+            schemaId: "clawbotomy.openclaw-effective-tool-inventory/v1",
+            agentId: options.agent,
+            sessionKey: options.sessionKey,
+            model: options.model,
+            workspaceDir,
+            inventory,
+          })}\n`);
+        });
+    }, {
+      descriptors: [{
+        name: EFFECTIVE_INVENTORY_COMMAND,
+        description: "Print the exact session-effective tool inventory for isolated Clawbotomy evaluation",
+        hasSubcommands: false,
+      }],
+    });
   },
 };

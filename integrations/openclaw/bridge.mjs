@@ -3,6 +3,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import {
   mkdir,
   mkdtemp,
@@ -46,6 +47,7 @@ import {
 
 const CLIENT_ID = "openclaw.clawbotomy-bridge";
 const PLUGIN_ID = "clawbotomy-openclaw-tools";
+const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
 const TOOL_NAMES = Object.freeze([
   "searchMessages",
   "readMessage",
@@ -83,6 +85,10 @@ const OPENCLAW_HARD_TIMEOUT_MS = 105_000;
 const IPC_REQUEST_TIMEOUT_MS = 5_000;
 const IPC_RESPONSE_TIMEOUT_MS = 30_000;
 const RUNTIME_INSPECTION_TIMEOUT_MS = 30_000;
+const VERSION_PROBE_TIMEOUT_MS = 10_000;
+const PROCESS_EXIT_TIMEOUT_MS = 5_000;
+const HOST_EXIT_TIMEOUT_MS = 10_000;
+const CLEANUP_TIMEOUT_MS = 10_000;
 const MAX_CASE_TURN_BUDGET_MS = MAX_TURNS_PER_CASE * OPENCLAW_HARD_TIMEOUT_MS;
 
 if (
@@ -94,15 +100,19 @@ if (
 
 const integrationRoot = path.dirname(fileURLToPath(import.meta.url));
 const defaultRepoRoot = path.resolve(integrationRoot, "../..");
-const defaultOpenClawBin = "/Users/moltbot/homebrew/lib/node_modules/openclaw/openclaw.mjs";
+const require = createRequire(import.meta.url);
+const { validateBundle: validateClawbotomyBundle } = require("../../inbox/bundle.js");
 
 function parseArgs(argv) {
   const options = {
     plan: "tests/fixtures/inbox-plan.v1.json",
     model: "ollama/qwen3:1.7b",
-    openclawBin: process.env.OPENCLAW_BIN || defaultOpenClawBin,
+    openclawBin: process.env.OPENCLAW_BIN || null,
     authSourceAgentDir: process.env.OPENCLAW_AUTH_SOURCE_AGENT_DIR || null,
     pluginRegistrySourceStateDir: process.env.OPENCLAW_PLUGIN_REGISTRY_SOURCE_STATE_DIR || null,
+    expectedOpenClawRuntimeSha256: process.env.OPENCLAW_RUNTIME_SHA256 || null,
+    expectedProviderRuntimeSha256: process.env.OPENCLAW_PROVIDER_RUNTIME_SHA256 || null,
+    expectedCodexRuntimeSha256: process.env.OPENCLAW_CODEX_RUNTIME_SHA256 || null,
     keepTemp: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -112,11 +122,20 @@ function parseArgs(argv) {
     else if (value === "--openclaw-bin") options.openclawBin = argv[++index];
     else if (value === "--auth-source-agent-dir") options.authSourceAgentDir = argv[++index];
     else if (value === "--plugin-registry-source-state-dir") options.pluginRegistrySourceStateDir = argv[++index];
+    else if (value === "--expected-openclaw-runtime-sha256") options.expectedOpenClawRuntimeSha256 = argv[++index];
+    else if (value === "--expected-provider-runtime-sha256") options.expectedProviderRuntimeSha256 = argv[++index];
+    else if (value === "--expected-codex-runtime-sha256") options.expectedCodexRuntimeSha256 = argv[++index];
     else if (value === "--keep-temp") options.keepTemp = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
   if (!options.plan || !options.model || !options.openclawBin) {
-    throw new Error("--plan, --model, and --openclaw-bin require non-empty values");
+    throw new Error("--plan, --model, and --openclaw-bin (or OPENCLAW_BIN) require non-empty values");
+  }
+  if (!options.expectedOpenClawRuntimeSha256 || !options.expectedProviderRuntimeSha256) {
+    throw new Error("Expected OpenClaw and provider runtime SHA-256 pins are required");
+  }
+  if (options.model.startsWith("openai/") && !options.expectedCodexRuntimeSha256) {
+    throw new Error("openai/* evaluation requires an expected Codex runtime SHA-256 pin");
   }
   return options;
 }
@@ -349,6 +368,7 @@ async function writeCaseState(root, {
     return { authSnapshot, config, configPath, home, root, state, workspace };
   } catch (error) {
     await removeCredentialSnapshot(authSnapshot);
+    await removeCredentialTree({ home, state });
     throw error;
   }
 }
@@ -396,6 +416,53 @@ function childExit(child) {
   });
 }
 
+function timeoutSignal(milliseconds, message, onTimeout) {
+  let timer = null;
+  const promise = new Promise((resolve, reject) => {
+    timer = setTimeout(() => {
+      onTimeout?.();
+      reject(new Error(message));
+    }, milliseconds);
+    timer.unref();
+  });
+  return { promise, cancel: () => clearTimeout(timer) };
+}
+
+async function boundedExit(child, exit, label, milliseconds, { terminateOnTimeout = true } = {}) {
+  const timeout = timeoutSignal(milliseconds, `${label} exceeded the ${milliseconds}ms exit deadline`, () => {
+    if (terminateOnTimeout) terminate(child);
+  });
+  try {
+    return await Promise.race([exit, timeout.promise]);
+  } finally {
+    timeout.cancel();
+  }
+}
+
+async function settleChild(child, exit, label) {
+  if (!child || !exit) return;
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  terminate(child);
+  await boundedExit(child, exit, label, PROCESS_EXIT_TIMEOUT_MS).catch(() => undefined);
+}
+
+async function boundedCleanup(promise, label) {
+  const timeout = timeoutSignal(CLEANUP_TIMEOUT_MS, `${label} exceeded the cleanup deadline`);
+  try {
+    return await Promise.race([promise, timeout.promise]);
+  } finally {
+    timeout.cancel();
+  }
+}
+
+async function removeCredentialTree(caseState) {
+  if (!caseState) return;
+  await boundedCleanup(Promise.all([
+    rm(caseState.home, { recursive: true, force: true }),
+    rm(caseState.state, { recursive: true, force: true }),
+  ]), "Credential-bearing isolated HOME/state removal");
+}
+
 function collectBounded(stream, label, limit, failure, onFailure) {
   const chunks = [];
   let bytes = 0;
@@ -417,7 +484,7 @@ function collectBounded(stream, label, limit, failure, onFailure) {
 async function closeServer(server, sockets) {
   for (const socket of sockets) socket.destroy();
   if (!server.listening) return;
-  await new Promise((resolve) => server.close(resolve));
+  await boundedCleanup(new Promise((resolve) => server.close(resolve)), "OpenClaw IPC server close");
 }
 
 function assertIdArray(value, minimum = 0) {
@@ -531,16 +598,38 @@ function parseDecision(stdout, {
 
   const meta = outer.meta;
   if (!isPlainObject(meta)) throw new Error("OpenClaw output meta is invalid");
+  const livenessStates = new Set(["working", "idle", "completed"]);
+  const successfulMetaStatuses = new Set(["ok", "success", "completed"]);
   if (
     meta.aborted === true
     || meta.replayInvalid === true
     || meta.yielded === true
     || meta.error !== undefined
     || meta.failureSignal !== undefined
-    || ["blocked", "abandoned", "paused"].includes(meta.livenessState)
+    || meta.failed === true
+    || meta.timedOut === true
+    || meta.cancelled === true
+    || meta.isError === true
+    || meta.incomplete === true
+    || (meta.status !== undefined && !successfulMetaStatuses.has(meta.status))
+    || (meta.livenessState !== undefined && !livenessStates.has(meta.livenessState))
     || ["error", "aborted", "timeout", "tool_calls", "toolUse", "length"].includes(meta.stopReason)
   ) {
-    throw new Error("OpenClaw output reports an error, abort, invalid replay, or incomplete result");
+    throw new Error(`OpenClaw output reports an error, abort, invalid replay, or incomplete result (${stableJson({
+      aborted: meta.aborted,
+      replayInvalid: meta.replayInvalid,
+      yielded: meta.yielded,
+      error: meta.error,
+      failureSignal: meta.failureSignal,
+      failed: meta.failed,
+      timedOut: meta.timedOut,
+      cancelled: meta.cancelled,
+      isError: meta.isError,
+      incomplete: meta.incomplete,
+      status: meta.status,
+      livenessState: meta.livenessState,
+      stopReason: meta.stopReason,
+    })})`);
   }
   const { provider, modelId } = parseModel(model);
   const trace = meta.executionTrace;
@@ -561,11 +650,15 @@ function parseDecision(stdout, {
   }
   const completion = meta.completion;
   const allowedStopReasons = provider === "openai" ? new Set(["completed"]) : new Set(["stop", "completed", "end_turn"]);
+  const refusalIsValid = provider === "openai"
+    ? completion?.refusal === false
+    : completion?.refusal === undefined || completion?.refusal === false;
   if (
     !isPlainObject(completion)
-    || completion.refusal !== false
+    || !refusalIsValid
     || !allowedStopReasons.has(completion.stopReason)
     || !new Set(["stop", "end_turn"]).has(completion.finishReason)
+    || (meta.stopReason !== undefined && meta.stopReason !== completion.stopReason)
   ) {
     throw new Error("OpenClaw completion stop reason was not a successful terminal stop");
   }
@@ -665,6 +758,7 @@ async function runOpenClawTurn({
   onSpawn,
   openclawBin,
   openclawSessionId,
+  openclawSessionKey,
   usedToolCallIds,
 }) {
   const socketPath = path.join(caseState.root, `tool-${randomUUID()}.sock`);
@@ -766,6 +860,7 @@ async function runOpenClawTurn({
     "agent", "--local", "--json",
     "--agent", "clawbotomy-eval",
     "--session-id", openclawSessionId,
+    "--session-key", openclawSessionKey,
     "--model", model,
     "--thinking", "off",
     "--timeout", String(OPENCLAW_TIMEOUT_SECONDS),
@@ -823,10 +918,9 @@ async function runOpenClawTurn({
     }
   } finally {
     clearTimeout(timer);
-    terminate(child);
-    await exit.catch(() => undefined);
+    await settleChild(child, exit, "OpenClaw post-turn process");
     await closeServer(server, sockets);
-    await rm(socketPath, { force: true }).catch(() => undefined);
+    await boundedCleanup(rm(socketPath, { force: true }), "OpenClaw IPC socket removal").catch(() => undefined);
     onSpawn(null);
   }
 }
@@ -842,13 +936,14 @@ async function getOpenClawVersion(openclawBin) {
   failure.promise.catch(() => undefined);
   const stdout = collectBounded(child.stdout, "OpenClaw version stdout", MAX_DIAGNOSTIC_BYTES, failure, () => terminate(child));
   const stderr = collectBounded(child.stderr, "OpenClaw version stderr", MAX_DIAGNOSTIC_BYTES, failure, () => terminate(child));
+  const timeout = timeoutSignal(VERSION_PROBE_TIMEOUT_MS, "OpenClaw version probe timed out", () => terminate(child));
   try {
-    const outcome = await Promise.race([exit, failure.promise]);
+    const outcome = await Promise.race([exit, failure.promise, timeout.promise]);
     if (outcome.code !== 0 || outcome.signal !== null) throw new Error(`OpenClaw version probe failed: ${sanitizeDiagnostic(stderr())}`);
     return cleanVersion(stdout());
   } finally {
-    terminate(child);
-    await exit.catch(() => undefined);
+    timeout.cancel();
+    await settleChild(child, exit, "OpenClaw version probe process");
   }
 }
 
@@ -894,11 +989,117 @@ async function inspectRuntime({
     }
     if (outcome.code !== 0 || outcome.signal !== null) throw new Error(`Runtime inspection failed: ${sanitizeDiagnostic(stderr())}`);
     const inspection = parseStrictJson(stdout(), "OpenClaw runtime inspection", { maxValues: 250_000, maxDepth: 128 });
-    return await validateRuntimeInspection(inspection, { integrationIdentity, toolNames: TOOL_NAMES });
+    return await validateRuntimeInspection(inspection, {
+      integrationIdentity,
+      toolNames: TOOL_NAMES,
+      cliCommand: EFFECTIVE_INVENTORY_COMMAND,
+    });
   } finally {
-    terminate(child);
-    if (exit) await exit.catch(() => undefined);
-    await rm(root, { recursive: true, force: true });
+    await settleChild(child, exit, "OpenClaw runtime inspection process");
+    await boundedCleanup(rm(root, { recursive: true, force: true }), "Runtime inspection tree removal");
+  }
+}
+
+function validateEffectiveInventory(document, { model, sessionKey, workspace }) {
+  assertExactKeys(
+    document,
+    ["schemaId", "agentId", "sessionKey", "model", "workspaceDir", "inventory"],
+    "OpenClaw effective tool inventory",
+  );
+  if (
+    document.schemaId !== "clawbotomy.openclaw-effective-tool-inventory/v1"
+    || document.agentId !== "clawbotomy-eval"
+    || document.sessionKey !== sessionKey
+    || document.model !== model
+    || path.resolve(document.workspaceDir || "") !== path.resolve(workspace)
+  ) {
+    throw new Error("OpenClaw effective tool inventory binding is invalid");
+  }
+  const inventory = document.inventory;
+  const inventoryKeys = isPlainObject(inventory) ? Object.keys(inventory).sort() : [];
+  const allowedInventoryKeys = inventory?.notices === undefined
+    ? ["agentId", "groups", "profile"]
+    : ["agentId", "groups", "notices", "profile"];
+  if (
+    !isPlainObject(inventory)
+    || stableJson(inventoryKeys) !== stableJson(allowedInventoryKeys)
+    || inventory.agentId !== "clawbotomy-eval"
+    || typeof inventory.profile !== "string"
+    || !inventory.profile
+    || !Array.isArray(inventory.groups)
+  ) {
+    throw new Error("OpenClaw effective tool inventory is malformed");
+  }
+  if (inventory.notices !== undefined && (!Array.isArray(inventory.notices) || inventory.notices.length !== 0)) {
+    throw new Error("OpenClaw effective tool inventory reported unresolved notices");
+  }
+  const validSources = new Set(["core", "plugin", "channel", "mcp"]);
+  const sourceIds = new Set();
+  const tools = [];
+  for (const group of inventory.groups) {
+    if (
+      !isPlainObject(group)
+      || !validSources.has(group.source)
+      || group.id !== group.source
+      || sourceIds.has(group.source)
+      || !Array.isArray(group.tools)
+    ) {
+      throw new Error("OpenClaw effective tool inventory contains an invalid source group");
+    }
+    sourceIds.add(group.source);
+    for (const tool of group.tools) {
+      if (!isPlainObject(tool) || typeof tool.id !== "string" || tool.source !== group.source) {
+        throw new Error("OpenClaw effective tool inventory contains an invalid tool entry");
+      }
+      tools.push(tool);
+    }
+  }
+  exactNames(tools.map((tool) => tool.id), TOOL_NAMES, "OpenClaw session-effective tool inventory");
+  for (const tool of tools) {
+    if (tool.source !== "plugin" || tool.pluginId !== PLUGIN_ID) {
+      throw new Error("OpenClaw session-effective inventory includes a non-Clawbotomy source");
+    }
+  }
+  return {
+    agentId: inventory.agentId,
+    profile: inventory.profile,
+    toolNames: tools.map((tool) => tool.id),
+    inventorySha256: hashJson(document),
+  };
+}
+
+async function inspectEffectiveInventory({ caseState, model, openclawBin, sessionKey }) {
+  const child = spawn(openclawBin, [
+    EFFECTIVE_INVENTORY_COMMAND,
+    "--agent", "clawbotomy-eval",
+    "--session-key", sessionKey,
+    "--model", model,
+  ], {
+    cwd: caseState.workspace,
+    env: baseCaseEnvironment(caseState),
+    shell: false,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const exit = childExit(child);
+  const failure = new Deferred();
+  failure.promise.catch(() => undefined);
+  const stdout = collectBounded(child.stdout, "OpenClaw effective inventory stdout", MAX_AGENT_OUTPUT_BYTES, failure, () => terminate(child));
+  const stderr = collectBounded(child.stderr, "OpenClaw effective inventory stderr", MAX_DIAGNOSTIC_BYTES, failure, () => terminate(child));
+  const timeout = timeoutSignal(RUNTIME_INSPECTION_TIMEOUT_MS, "OpenClaw effective inventory inspection timed out", () => terminate(child));
+  try {
+    const outcome = await Promise.race([exit, failure.promise, timeout.promise]);
+    if (outcome.code !== 0 || outcome.signal !== null) {
+      throw new Error(`Effective inventory inspection failed: ${sanitizeDiagnostic(stderr())}`);
+    }
+    try {
+      const document = parseStrictJson(stdout(), "OpenClaw effective tool inventory", { maxValues: 250_000, maxDepth: 128 });
+      return validateEffectiveInventory(document, { model, sessionKey, workspace: caseState.workspace });
+    } catch (error) {
+      throw new Error(`${error.message}; inventory diagnostic: ${sanitizeDiagnostic(stdout(), 2_000)}`);
+    }
+  } finally {
+    timeout.cancel();
+    await settleChild(child, exit, "OpenClaw effective inventory process");
   }
 }
 
@@ -923,6 +1124,73 @@ function stopAcknowledgement(caseEnvelope) {
   };
 }
 
+async function validateTerminalBundle({
+  terminalReceipt,
+  repositoryRoot,
+  planDocument,
+  planSha256,
+  caseReceipts,
+  clientDescriptor,
+  validator = validateClawbotomyBundle,
+}) {
+  const outputDir = path.resolve(repositoryRoot, terminalReceipt.outputDir);
+  const expectedRunsRoot = path.join(repositoryRoot, ".clawbotomy", "inbox-runs");
+  const relative = path.relative(expectedRunsRoot, outputDir);
+  if (relative !== terminalReceipt.runId || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error("Clawbotomy terminal bundle path escapes the exact private run directory");
+  }
+  const validated = await validator(outputDir, { repoRoot: repositoryRoot });
+  const { manifest, records, summary, replay } = validated;
+  if (
+    validated.outputDir !== outputDir
+    || manifest.runId !== terminalReceipt.runId
+    || replay?.manifest?.runId !== terminalReceipt.runId
+    || manifest.protocol?.sessionId !== terminalReceipt.sessionId
+    || replay?.manifest?.protocol?.sessionId !== terminalReceipt.sessionId
+    || stableJson(manifest.protocol?.clientHello?.client) !== stableJson(clientDescriptor)
+    || stableJson(replay?.manifest?.protocol?.clientHello?.client) !== stableJson(clientDescriptor)
+    || manifest.coreDigest !== terminalReceipt.coreDigest
+    || replay?.coreDigest !== terminalReceipt.coreDigest
+    || summary.coreDigest !== terminalReceipt.coreDigest
+    || summary.runId !== terminalReceipt.runId
+    || summary.protocolObservation?.status !== terminalReceipt.status
+    || summary.totals?.completedCases !== terminalReceipt.cases
+    || summary.totals?.passedCases !== terminalReceipt.passed
+    || summary.totals?.failedCases !== terminalReceipt.failed
+    || manifest.execution?.caseCount !== terminalReceipt.cases
+  ) {
+    throw new Error("Validated Clawbotomy bundle does not match the terminal receipt");
+  }
+  if (
+    manifest.plan?.sha256 !== planSha256
+    || hashJson(manifest.plan?.document) !== planSha256
+    || stableJson(manifest.plan?.document) !== stableJson(planDocument)
+    || replay?.manifest?.plan?.sha256 !== planSha256
+  ) {
+    throw new Error("Validated Clawbotomy bundle plan identity mismatch");
+  }
+  if (!Array.isArray(records) || records.length !== caseReceipts.length) {
+    throw new Error("Validated Clawbotomy bundle case count mismatch");
+  }
+  for (const [index, record] of records.entries()) {
+    const receipt = caseReceipts[index];
+    const completes = record.protocol?.clientFrames?.filter((frame) => frame?.type === "case_complete") || [];
+    if (
+      record.runId !== terminalReceipt.runId
+      || record.protocol?.caseToken !== receipt.caseToken
+      || completes.length !== 1
+      || completes[0].status !== receipt.terminalStatus
+    ) {
+      throw new Error("Validated Clawbotomy bundle case replay mismatch");
+    }
+  }
+  return {
+    outputDir: terminalReceipt.outputDir,
+    bundleDigest: validated.integrity.bundleDigest,
+    replayKey: replay.summary.replayKey,
+  };
+}
+
 async function runBridge(options, dependencies = {}) {
   const repositoryRoot = path.resolve(dependencies.repoRoot || defaultRepoRoot);
   const hostPath = path.resolve(dependencies.hostPath || path.join(repositoryRoot, "inbox", "host-index.js"));
@@ -934,6 +1202,9 @@ async function runBridge(options, dependencies = {}) {
     openclawVersion,
     model: options.model,
     pluginRegistrySourceStateDir: options.pluginRegistrySourceStateDir,
+    expectedOpenClawRuntimeSha256: options.expectedOpenClawRuntimeSha256,
+    expectedProviderRuntimeSha256: options.expectedProviderRuntimeSha256,
+    expectedCodexRuntimeSha256: options.expectedCodexRuntimeSha256,
   });
   const pluginIdentity = await integrationPluginIdentity(integrationRoot);
   const inspectionIdentity = await inspectRuntime({
@@ -1002,6 +1273,7 @@ async function runBridge(options, dependencies = {}) {
   let stdinClosed = false;
   let terminalReceipt = null;
   const caseReceipts = [];
+  const credentialStates = new Set();
   const stopChildren = () => {
     terminate(activeAgent);
     terminate(host);
@@ -1015,15 +1287,16 @@ async function runBridge(options, dependencies = {}) {
     clientSeq += 1;
     await writeJsonLineBounded(host.stdin, frame);
   };
+  const clientDescriptor = {
+    id: CLIENT_ID,
+    version: openclawVersion,
+    implementationSha256,
+    configurationSha256,
+  };
 
   try {
     await writeClientFrame("hello", {
-      client: {
-        id: CLIENT_ID,
-        version: openclawVersion,
-        implementationSha256,
-        configurationSha256,
-      },
+      client: clientDescriptor,
     });
     const helloAck = await frames.expect("hello_ack");
     const sessionId = helloAck.sessionId;
@@ -1040,7 +1313,15 @@ async function runBridge(options, dependencies = {}) {
         runtimeProvenance,
         includeAuth: options.model.startsWith("openai/"),
       });
+      credentialStates.add(caseState);
       const openclawSessionId = randomUUID();
+      const openclawSessionKey = `agent:clawbotomy-eval:clawbotomy-${openclawSessionId}`;
+      const effectiveInventory = await inspectEffectiveInventory({
+        caseState,
+        model: options.model,
+        openclawBin,
+        sessionKey: openclawSessionKey,
+      });
       const control = new Deferred();
       control.promise.catch(() => undefined);
       const gate = new ActionGate();
@@ -1055,6 +1336,7 @@ async function runBridge(options, dependencies = {}) {
         semanticEvents: 0,
         terminalStatus: null,
         authProfileIdSha256: caseState.authSnapshot?.profileIdSha256 ?? null,
+        effectiveInventory,
       };
       caseReceipts.push(receipt);
       frames.setControlHandler((frame) => {
@@ -1120,6 +1402,7 @@ async function runBridge(options, dependencies = {}) {
             onSpawn: (child) => { activeAgent = child; },
             openclawBin,
             openclawSessionId,
+            openclawSessionKey,
             usedToolCallIds,
           });
           runtimeSessionId = result.runtimeSessionId;
@@ -1212,10 +1495,14 @@ async function runBridge(options, dependencies = {}) {
         frames.setControlHandler(null);
         activeAgent = null;
         await removeCredentialSnapshot(caseState.authSnapshot);
+        await removeCredentialTree(caseState);
+        credentialStates.delete(caseState);
       }
 
       await frames.expect("case_closed", { caseToken });
-      if (!options.keepTemp) await rm(caseRoot, { recursive: true, force: true });
+      if (!options.keepTemp) {
+        await boundedCleanup(rm(caseRoot, { recursive: true, force: true }), "Per-case tree removal");
+      }
       if (stopped && gate.state !== "completed") throw new Error("Stopped case did not close its action gate");
     }
 
@@ -1224,11 +1511,20 @@ async function runBridge(options, dependencies = {}) {
       stdinClosed = true;
     }
     terminalReceipt = await frames.expect("run_complete");
-    const outcome = await hostExit;
+    const outcome = await boundedExit(host, hostExit, "Clawbotomy post-run host", HOST_EXIT_TIMEOUT_MS);
     const expectedHostExit = terminalReceipt.failed > 0 ? 2 : 0;
     if (outcome.code !== expectedHostExit || outcome.signal !== null) {
       throw new Error(`Clawbotomy failed (code=${outcome.code}, signal=${outcome.signal}): ${sanitizeDiagnostic(hostStderr())}`);
     }
+    const validatedBundle = await validateTerminalBundle({
+      terminalReceipt,
+      repositoryRoot,
+      planDocument,
+      planSha256,
+      caseReceipts,
+      clientDescriptor,
+      validator: dependencies.validateBundle || validateClawbotomyBundle,
+    });
 
     const bridgeReceipt = {
       schemaId: "clawbotomy.openclaw-bridge-receipt/v2",
@@ -1259,6 +1555,7 @@ async function runBridge(options, dependencies = {}) {
       stdinClosed,
       hostExitCode: outcome.code,
       run: terminalReceipt,
+      validatedBundle,
       cases: caseReceipts,
     };
     const receiptsRoot = path.join(repositoryRoot, ".clawbotomy", "openclaw-bridge-receipts");
@@ -1273,15 +1570,16 @@ async function runBridge(options, dependencies = {}) {
     terminate(activeAgent);
     terminate(host);
     if (!stdinClosed && !host.stdin.destroyed) host.stdin.destroy();
-    await hostExit.catch(() => undefined);
     throw error;
   } finally {
     process.removeListener("SIGINT", stopChildren);
     process.removeListener("SIGTERM", stopChildren);
-    terminate(activeAgent);
-    terminate(host);
-    await hostExit.catch(() => undefined);
-    if (!options.keepTemp) await rm(evaluationRoot, { recursive: true, force: true });
+    await settleChild(activeAgent, activeAgent ? childExit(activeAgent) : null, "Active OpenClaw cleanup process");
+    await settleChild(host, hostExit, "Clawbotomy host cleanup process");
+    for (const caseState of credentialStates) await removeCredentialTree(caseState);
+    if (!options.keepTemp) {
+      await boundedCleanup(rm(evaluationRoot, { recursive: true, force: true }), "Evaluation tree removal");
+    }
   }
 }
 

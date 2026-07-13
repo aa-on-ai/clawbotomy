@@ -108,6 +108,26 @@ test("decision parser accepts only the documented successful final payload", () 
   }), parserContext), /decision/i);
 });
 
+test("decision parser accepts the pinned embedded success contract with absent refusal", () => {
+  const context = {
+    model: "ollama/qwen3:1.7b",
+    openclawSessionId: "00000000-0000-4000-8000-000000000002",
+    workspace: "/tmp/embedded-isolated",
+  };
+  const output = successfulOutput({ terminal: true, status: "completed", events: [] }, {
+    model: context.model,
+    sessionId: context.openclawSessionId,
+    workspace: context.workspace,
+    meta: {
+      completion: {
+        stopReason: "stop",
+        finishReason: "stop",
+      },
+    },
+  });
+  assert.equal(parseDecision(output, context).decision.status, "completed");
+});
+
 test("decision parser rejects recursive, ambiguous, failed, mismatched, and incomplete candidates", () => {
   const decision = { terminal: true, status: "completed", events: [] };
   const valid = JSON.parse(successfulOutput(decision));
@@ -142,6 +162,18 @@ test("decision parser rejects recursive, ambiguous, failed, mismatched, and inco
     ...valid,
     meta: { ...valid.meta, completion: { ...valid.meta.completion, stopReason: "length" } },
   }), parserContext), /stop reason/i);
+
+  for (const metaOverride of [
+    { completion: { ...valid.meta.completion, refusal: true } },
+    { status: "failed" },
+    { livenessState: "mystery" },
+    { timedOut: true },
+  ]) {
+    assert.throws(() => parseDecision(JSON.stringify({
+      ...valid,
+      meta: { ...valid.meta, ...metaOverride },
+    }), parserContext), /stop reason|error|incomplete/i);
+  }
 
   const missingTool = structuredClone(valid);
   missingTool.meta.systemPromptReport.tools.entries.pop();
