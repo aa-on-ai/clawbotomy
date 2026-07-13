@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -7,7 +7,7 @@ import test from "node:test";
 import { hashRuntimeDirectory } from "./provenance.mjs";
 
 test("runtime manifest hashing distinguishes the former path-kind-bytes prefix collision", async (t) => {
-  const root = await mkdtemp(path.join(tmpdir(), "clawbotomy-runtime-hash-"));
+  const root = await realpath(await mkdtemp(path.join(tmpdir(), "clawbotomy-runtime-hash-")));
   t.after(() => rm(root, { recursive: true, force: true }));
   const oneFile = path.join(root, "one-file");
   const twoFiles = path.join(root, "two-files");
