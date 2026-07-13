@@ -10,13 +10,14 @@ from dataclasses import dataclass
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import queue
 import re
 import shutil
 import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import threading
 import tomllib
@@ -29,7 +30,7 @@ import plugin
 MESSAGE_SCHEMA_ID = "clawbotomy.inbox-protocol-frame/v1"
 PROTOCOL_ID = "stdio-jsonl/v1"
 CLIENT_ID = "hermes-agent.clawbotomy-bridge"
-BRIDGE_VERSION = "1.1.0"
+BRIDGE_VERSION = "1.2.0"
 EXPECTED_HERMES_VERSION = "0.18.2"
 EXPECTED_HERMES_GIT_COMMIT = "111544d544d6cf6efed9875e116f2daeb76a1211"
 EXPECTED_HERMES_FILE_SHA256 = {
@@ -70,6 +71,7 @@ HERMES_MODULE_ROOTS = (
     "hermes_constants",
     "hermes_state",
     "model_tools",
+    "providers",
     "run_agent",
     "tools",
     "toolsets",
@@ -110,16 +112,22 @@ class RuntimeIdentity:
     version: str
     git_commit: str
     hermes_root: str
+    source_tree_sha256: str = ""
 
     def fingerprint(self) -> dict[str, str]:
         return {
             "version": self.version,
             "gitCommit": self.git_commit,
             "hermesRoot": self.hermes_root,
+            "sourceTreeSha256": self.source_tree_sha256,
         }
 
     def public(self) -> dict[str, str]:
-        return {"version": self.version, "gitCommit": self.git_commit}
+        return {
+            "version": self.version,
+            "gitCommit": self.git_commit,
+            "sourceTreeSha256": self.source_tree_sha256,
+        }
 
 
 @dataclass
@@ -129,6 +137,24 @@ class PendingRequest:
     session_id: str
     case_token: str
     waiter: queue.Queue
+
+
+@dataclass(frozen=True)
+class GitTreeEntry:
+    mode: str
+    object_type: str
+    object_id: str
+
+
+@dataclass(frozen=True)
+class ExpectedBundleBinding:
+    protocol_id: str
+    session_id: str
+    plan_sha256: str
+    plan_document_sha256: str
+    client_hello_sha256: str
+    case_tokens: tuple[str, ...]
+    terminal_statuses: tuple[str, ...]
 
 
 def is_strict_int(value: Any) -> bool:
@@ -179,7 +205,7 @@ def safe_configuration_digest(runtime_identity: RuntimeIdentity) -> str:
 def implementation_digest(integration_dir: Path, runtime_identity: RuntimeIdentity) -> str:
     payload = bytearray(canonical_json(runtime_identity.fingerprint()).encode("utf-8"))
     payload.extend(b"\0")
-    for name in ("bridge.py", "plugin.py", "plugin.yaml"):
+    for name in ("bridge.py", "plugin.py", "plugin.yaml", "validator_binding.js"):
         path = integration_dir / name
         payload.extend(name.encode("utf-8"))
         payload.extend(b"\0")
@@ -310,19 +336,10 @@ def scrub_environment(source: dict[str, str]) -> dict[str, str]:
     return {key: source[key] for key in allowed if key in source}
 
 
-def prepare_isolated_hermes_home(source_home: Path, target_home: Path) -> Path:
+def prepare_isolated_hermes_home(target_home: Path) -> None:
+    """Create credential-free Hermes configuration for verified imports."""
     target_home.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(target_home, 0o700)
-    auth_source = (source_home / "auth.json").resolve(strict=True)
-    if not auth_source.is_file():
-        raise RuntimeFailure("Hermes OAuth store is unavailable.")
-    auth_bytes = auth_source.read_bytes()
-    if not auth_bytes or len(auth_bytes) > 1024 * 1024:
-        raise RuntimeFailure("Hermes OAuth snapshot size is invalid.")
-    auth_target = target_home / "auth.json"
-    with auth_target.open("xb") as handle:
-        handle.write(auth_bytes)
-    os.chmod(auth_target, stat.S_IRUSR | stat.S_IWUSR)
     config_target = target_home / "config.yaml"
     config_target.write_text(
         "model:\n"
@@ -342,12 +359,26 @@ def prepare_isolated_hermes_home(source_home: Path, target_home: Path) -> Path:
         encoding="utf-8",
     )
     os.chmod(config_target, stat.S_IRUSR | stat.S_IWUSR)
+
+
+def attach_isolated_oauth(source_home: Path, target_home: Path) -> Path:
+    """Attach OAuth only after the full runtime snapshot has been verified and imported."""
+    auth_source = (source_home / "auth.json").resolve(strict=True)
+    if not auth_source.is_file():
+        raise RuntimeFailure("Hermes OAuth store is unavailable.")
+    auth_bytes = auth_source.read_bytes()
+    if not auth_bytes or len(auth_bytes) > 1024 * 1024:
+        raise RuntimeFailure("Hermes OAuth snapshot size is invalid.")
+    auth_target = target_home / "auth.json"
+    with auth_target.open("xb") as handle:
+        handle.write(auth_bytes)
+    os.chmod(auth_target, stat.S_IRUSR | stat.S_IWUSR)
     return auth_target
 
 
 @contextmanager
-def isolated_runtime_environment(source_home: Path, root: Path):
-    """Isolate Hermes state while preserving only non-secret process essentials."""
+def isolated_runtime_environment(root: Path):
+    """Create a credential-free Hermes environment for verified imports."""
     saved = dict(os.environ)
     hermes_home = root / "hermes"
     home = root / "home"
@@ -359,7 +390,7 @@ def isolated_runtime_environment(source_home: Path, root: Path):
     for directory in (root, home, xdg_config, xdg_cache, xdg_data, codex_home, child_home):
         directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         os.chmod(directory, 0o700)
-    auth_snapshot = prepare_isolated_hermes_home(source_home, hermes_home)
+    prepare_isolated_hermes_home(hermes_home)
     isolated = scrub_environment(saved)
     isolated.update({
         "HOME": str(home),
@@ -379,7 +410,7 @@ def isolated_runtime_environment(source_home: Path, root: Path):
             "home": home,
             "codexHome": codex_home,
             "childHome": child_home,
-            "authSnapshot": auth_snapshot,
+            "authSnapshot": None,
         }
     finally:
         os.environ.clear()
@@ -824,14 +855,15 @@ def classify_hermes_outcome(result: Any, *, stopped: bool, max_iterations: int) 
     if result.get("provider") != MODEL_PROVIDER or result.get("model") != MODEL_NAME:
         raise RuntimeFailure("Hermes changed provider or model during the evaluation.")
     exit_reason = result.get("turn_exit_reason")
-    if stopped and result.get("interrupted") is True:
+    if stopped:
         if (
-            result.get("completed") is not False
-            or result.get("failed") is not False
-            or exit_reason not in _INTERRUPT_EXIT_REASONS
+            result.get("interrupted") is True
+            and result.get("completed") is False
+            and result.get("failed") is False
+            and exit_reason in _INTERRUPT_EXIT_REASONS
         ):
-            raise RuntimeFailure("Hermes stop result was not a genuine interrupt completion.")
-        return "stopped"
+            return "stopped"
+        raise RuntimeFailure("Operator stop lacked an exact genuine Hermes interrupt result.")
     if result.get("interrupted") is True:
         raise RuntimeFailure("Hermes interrupted without a Clawbotomy operator stop.")
     if result.get("completed") is not True or result.get("failed") is not False:
@@ -842,7 +874,7 @@ def classify_hermes_outcome(result: Any, *, stopped: bool, max_iterations: int) 
     final_response = result.get("final_response")
     if not isinstance(final_response, str) or not final_response.strip() or final_response.strip() == "(empty)":
         raise RuntimeFailure("Hermes did not produce a genuine final response.")
-    return "stopped" if stopped else "completed"
+    return "completed"
 
 
 class CaseRuntime:
@@ -1048,8 +1080,10 @@ class CaseRuntime:
                         conversation_history=[],
                         task_id=f"clawbotomy-{self.case_token}",
                     )
-                except OperatorStopped:
-                    return "stopped", None
+                except OperatorStopped as exc:
+                    raise RuntimeFailure(
+                        "Hermes propagated OperatorStopped without a classified interrupt result."
+                    ) from exc
                 except BaseException as exc:
                     raise RuntimeFailure(f"Hermes runtime raised: {sanitize_diagnostic(exc)}") from exc
             finally:
@@ -1080,20 +1114,27 @@ class CaseRuntime:
                 if isinstance(self._abort_error, BridgeError):
                     raise self._abort_error
                 raise RuntimeFailure("Cannot complete an aborted case.")
-            if self._state == "stopped":
-                status = "stopped"
             if status not in {"completed", "stopped"}:
                 raise RuntimeFailure("Only genuine completion or operator stop may complete a case.")
+            if self._state == "stopped" and status != "stopped":
+                raise RuntimeFailure("Operator stop raced after normal completion without interrupt evidence.")
+            if self._state == "running" and status != "completed":
+                raise RuntimeFailure("Stopped completion lacks an active operator stop.")
             self.connection.send(self.frame("case_complete", status=status))
             self._state = "closed"
             return status
 
 
 class HermesRuntime:
-    def __init__(self, hermes_root: Path) -> None:
+    _IMPORTABLE_SUFFIXES = frozenset({".py", ".pyc", ".pyi", ".pyd", ".so", ".dylib"})
+
+    def __init__(self, hermes_root: Path, snapshot_root: Path) -> None:
         self.hermes_root = hermes_root.resolve(strict=True)
+        self.execution_root = snapshot_root.resolve(strict=False)
         self.AIAgent = None
         self.identity: RuntimeIdentity | None = None
+        self._tree_manifest: dict[str, GitTreeEntry] = {}
+        self._git_object_format = "sha1"
 
     @staticmethod
     def _read_small_text(path: Path, limit: int = 1024 * 1024) -> str:
@@ -1146,77 +1187,292 @@ class HermesRuntime:
             raise RuntimeFailure("Hermes Git commit is invalid.")
         return commit
 
+    def _git_argv(self, *args: str) -> list[str]:
+        return [
+            "git", "-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null",
+            "-C", str(self.hermes_root), *args,
+        ]
+
+    def _git_bytes(self, *args: str, limit: int = 16 * 1024 * 1024) -> bytes:
+        environment = scrub_environment(dict(os.environ))
+        environment.update({
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_OPTIONAL_LOCKS": "0",
+        })
+        try:
+            completed = subprocess.run(
+                self._git_argv(*args),
+                cwd=self.hermes_root,
+                env=environment,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=60,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise RuntimeFailure(f"Pinned Git inspection failed: {sanitize_diagnostic(exc)}") from exc
+        if completed.returncode != 0:
+            raise RuntimeFailure(
+                f"Pinned Git inspection failed: {sanitize_diagnostic(completed.stderr.decode(errors='replace'))}"
+            )
+        if len(completed.stdout) > limit or len(completed.stderr) > MAX_STDERR_BYTES:
+            raise RuntimeFailure("Pinned Git inspection exceeded its bounded output budget.")
+        return completed.stdout
+
+    @classmethod
+    def _could_be_imported(cls, relative: str) -> bool:
+        path = PurePosixPath(relative)
+        if path.suffix.lower() in cls._IMPORTABLE_SUFFIXES:
+            return True
+        return relative == "pyproject.toml" or (
+            bool(path.parts) and path.parts[0] == "plugins" and path.suffix.lower() in {".yaml", ".yml"}
+        )
+
+    def _reject_importable_worktree_changes(self) -> None:
+        status = self._git_bytes("status", "--porcelain=v1", "-z", "--untracked-files=all")
+        records = status.split(b"\0")
+        index = 0
+        while index < len(records):
+            record = records[index]
+            index += 1
+            if not record:
+                continue
+            if len(record) < 4 or record[2:3] != b" ":
+                raise RuntimeFailure("Hermes Git status was not strict porcelain-v1 output.")
+            state = record[:2].decode("ascii", errors="strict")
+            try:
+                relative = record[3:].decode("utf-8", errors="strict")
+            except UnicodeDecodeError as exc:
+                raise RuntimeFailure("Hermes Git status contained a non-UTF-8 path.") from exc
+            if state[0] in {"R", "C"} or state[1] in {"R", "C"}:
+                index += 1
+            if self._could_be_imported(relative):
+                kind = "untracked importable" if state == "??" else "tracked executable modification"
+                raise RuntimeFailure(f"Hermes worktree contains a {kind}: {relative}")
+
+    def _load_tree_manifest(self, commit: str) -> dict[str, GitTreeEntry]:
+        object_format = self._git_bytes("rev-parse", "--show-object-format", limit=128).decode().strip()
+        if object_format not in {"sha1", "sha256"}:
+            raise RuntimeFailure("Hermes Git object format is unsupported.")
+        self._git_object_format = object_format
+        output = self._git_bytes("ls-tree", "-r", "-z", "--full-tree", commit)
+        manifest: dict[str, GitTreeEntry] = {}
+        for record in output.split(b"\0"):
+            if not record:
+                continue
+            try:
+                metadata, raw_path = record.split(b"\t", 1)
+                mode, object_type, object_id = metadata.decode("ascii").split(" ")
+                relative = raw_path.decode("utf-8", errors="strict")
+            except (ValueError, UnicodeDecodeError) as exc:
+                raise RuntimeFailure("Hermes Git tree manifest is malformed.") from exc
+            path = PurePosixPath(relative)
+            if path.is_absolute() or not path.parts or any(part in {"", ".", ".."} for part in path.parts):
+                raise RuntimeFailure("Hermes Git tree contains an unsafe path.")
+            if relative in manifest:
+                raise RuntimeFailure("Hermes Git tree contains a duplicate path.")
+            manifest[relative] = GitTreeEntry(mode, object_type, object_id)
+        if not manifest:
+            raise RuntimeFailure("Hermes Git tree manifest is empty.")
+        return manifest
+
+    def _git_blob_oid(self, data: bytes) -> str:
+        digest = hashlib.new(self._git_object_format)
+        digest.update(f"blob {len(data)}\0".encode("ascii"))
+        digest.update(data)
+        return digest.hexdigest()
+
+    @staticmethod
+    def _tree_manifest_digest(manifest: dict[str, GitTreeEntry]) -> str:
+        digest = hashlib.sha256()
+        for relative, entry in sorted(manifest.items()):
+            digest.update(relative.encode("utf-8"))
+            digest.update(b"\0")
+            digest.update(entry.mode.encode("ascii"))
+            digest.update(b"\0")
+            digest.update(entry.object_type.encode("ascii"))
+            digest.update(b"\0")
+            digest.update(entry.object_id.encode("ascii"))
+            digest.update(b"\n")
+        return digest.hexdigest()
+
+    def _materialize_verified_snapshot(self, commit: str, manifest: dict[str, GitTreeEntry]) -> None:
+        if self.execution_root.exists():
+            if not self.execution_root.is_dir() or any(self.execution_root.iterdir()):
+                raise RuntimeFailure("Private Hermes runtime snapshot path is not empty.")
+        else:
+            self.execution_root.mkdir(parents=True, mode=0o700)
+        environment = scrub_environment(dict(os.environ))
+        environment.update({
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_OPTIONAL_LOCKS": "0",
+        })
+        process = subprocess.Popen(
+            self._git_argv("archive", "--format=tar", commit),
+            cwd=self.hermes_root,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if process.stdout is None or process.stderr is None:
+            process.kill()
+            raise RuntimeFailure("Pinned Git archive streams were unavailable.")
+        seen: set[str] = set()
+        total_bytes = 0
+        try:
+            with tarfile.open(fileobj=process.stdout, mode="r|*") as archive:
+                for member in archive:
+                    path = PurePosixPath(member.name)
+                    if path.is_absolute() or not path.parts or any(part in {"", ".", ".."} for part in path.parts):
+                        raise RuntimeFailure("Pinned Git archive contains an unsafe path.")
+                    relative = path.as_posix().rstrip("/")
+                    target = self.execution_root.joinpath(*path.parts)
+                    if member.isdir():
+                        target.mkdir(parents=True, exist_ok=True, mode=0o700)
+                        continue
+                    entry = manifest.get(relative)
+                    if entry is None or entry.object_type != "blob" or relative in seen:
+                        raise RuntimeFailure("Pinned Git archive did not match its tree manifest.")
+                    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                    if member.isfile():
+                        source = archive.extractfile(member)
+                        if source is None:
+                            raise RuntimeFailure("Pinned Git archive file could not be read.")
+                        data = source.read()
+                        total_bytes += len(data)
+                        if total_bytes > 512 * 1024 * 1024:
+                            raise RuntimeFailure("Pinned Git archive exceeded the runtime snapshot budget.")
+                        if self._git_blob_oid(data) != entry.object_id:
+                            raise RuntimeFailure(f"Pinned Git archive blob mismatch: {relative}")
+                        with target.open("xb") as handle:
+                            handle.write(data)
+                        os.chmod(target, 0o500 if entry.mode == "100755" else 0o400)
+                    elif member.issym():
+                        link = PurePosixPath(member.linkname)
+                        if link.is_absolute() or any(part == ".." for part in link.parts):
+                            raise RuntimeFailure("Pinned Git archive contains an unsafe symlink.")
+                        link_data = member.linkname.encode("utf-8")
+                        if entry.mode != "120000" or self._git_blob_oid(link_data) != entry.object_id:
+                            raise RuntimeFailure("Pinned Git archive symlink did not match the tree manifest.")
+                        if self._could_be_imported(relative):
+                            raise RuntimeFailure(f"Executable Hermes source must not be a symlink: {relative}")
+                        target.symlink_to(member.linkname)
+                    else:
+                        raise RuntimeFailure("Pinned Git archive contains an unsupported entry type.")
+                    seen.add(relative)
+        except BaseException:
+            process.kill()
+            process.wait(timeout=5)
+            process.stdout.close()
+            process.stderr.close()
+            raise
+        stderr = process.stderr.read(MAX_STDERR_BYTES + 1)
+        return_code = process.wait(timeout=60)
+        process.stdout.close()
+        process.stderr.close()
+        expected_blobs = {path for path, entry in manifest.items() if entry.object_type == "blob"}
+        if return_code != 0 or len(stderr) > MAX_STDERR_BYTES or seen != expected_blobs:
+            raise RuntimeFailure(
+                f"Pinned Git archive was incomplete: {sanitize_diagnostic(stderr.decode(errors='replace'))}"
+            )
+        directories = [self.execution_root]
+        for directory, names, _files in os.walk(self.execution_root, followlinks=False):
+            base = Path(directory)
+            directories.extend(base / name for name in names if not (base / name).is_symlink())
+        for directory in reversed(directories):
+            os.chmod(directory, 0o555)
+
+    def make_snapshot_removable(self) -> None:
+        """Restore directory write bits so TemporaryDirectory can clean every exit path."""
+        if not self.execution_root.exists():
+            return
+        for directory, names, _files in os.walk(self.execution_root, topdown=False, followlinks=False):
+            base = Path(directory)
+            for name in names:
+                child = base / name
+                if not child.is_symlink():
+                    os.chmod(child, 0o700)
+            os.chmod(base, 0o700)
+
     def preflight(self) -> RuntimeIdentity:
-        """Prove the pin before auth access, Hermes import, registration, or provider init."""
-        root = self.hermes_root
-        commit = self._resolve_git_commit(root)
+        """Materialize and verify the complete executable tree before auth or imports."""
+        commit = self._resolve_git_commit(self.hermes_root)
         if commit != EXPECTED_HERMES_GIT_COMMIT:
             raise RuntimeFailure(
                 f"Hermes Git commit mismatch: got {commit}, expected {EXPECTED_HERMES_GIT_COMMIT}."
             )
+        self._reject_importable_worktree_changes()
+        manifest = self._load_tree_manifest(commit)
+        self._materialize_verified_snapshot(commit, manifest)
+        self._tree_manifest = manifest
         for relative, expected_hash in EXPECTED_HERMES_FILE_SHA256.items():
-            candidate = root / relative
-            if candidate.is_symlink():
-                raise RuntimeFailure(f"Pinned Hermes file must not be a symlink: {relative}")
-            resolved = candidate.resolve(strict=True)
-            try:
-                resolved.relative_to(root)
-            except ValueError as exc:
-                raise RuntimeFailure(f"Pinned Hermes file escaped the canonical root: {relative}") from exc
-            if sha256_bytes(resolved.read_bytes()) != expected_hash:
+            candidate = self.execution_root / relative
+            if candidate.is_symlink() or sha256_bytes(candidate.read_bytes()) != expected_hash:
                 raise RuntimeFailure(f"Pinned Hermes file hash mismatch: {relative}")
-        pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+        pyproject = tomllib.loads((self.execution_root / "pyproject.toml").read_text(encoding="utf-8"))
         source_version = pyproject.get("project", {}).get("version")
         if source_version != EXPECTED_HERMES_VERSION:
             raise RuntimeFailure(
                 f"Hermes version mismatch: got {source_version}, expected {EXPECTED_HERMES_VERSION}."
             )
-        identity = RuntimeIdentity(source_version, commit, str(root))
+        identity = RuntimeIdentity(
+            source_version,
+            commit,
+            str(self.hermes_root),
+            self._tree_manifest_digest(manifest),
+        )
         self.identity = identity
         return identity
 
     def _verify_imported_module(self, module: Any) -> None:
         source = Path(module.__file__).resolve(strict=True)
         try:
-            relative = source.relative_to(self.hermes_root)
+            relative = source.relative_to(self.execution_root).as_posix()
         except ValueError as exc:
-            raise RuntimeFailure(f"Hermes module resolved outside pinned root: {module.__name__}") from exc
-        expected_hash = EXPECTED_HERMES_FILE_SHA256.get(relative.as_posix())
-        if expected_hash is None or sha256_bytes(source.read_bytes()) != expected_hash:
-            raise RuntimeFailure(f"Hermes module does not match the preflight pin: {module.__name__}")
+            raise RuntimeFailure(f"Hermes module resolved outside verified snapshot: {module.__name__}") from exc
+        entry = self._tree_manifest.get(relative)
+        if entry is None or entry.object_type != "blob" or self._git_blob_oid(source.read_bytes()) != entry.object_id:
+            raise RuntimeFailure(f"Hermes module does not match the verified Git tree: {module.__name__}")
 
     @staticmethod
     def _is_hermes_module_name(name: str) -> bool:
         return any(name == root or name.startswith(f"{root}.") for root in HERMES_MODULE_ROOTS)
 
-    def _verify_loaded_hermes_module_roots(self) -> None:
+    def _verify_loaded_hermes_sources(self) -> None:
         for name, module in tuple(sys.modules.items()):
-            if not self._is_hermes_module_name(name) or module is None:
+            if module is None:
                 continue
             source_name = getattr(module, "__file__", None)
             if source_name is None:
                 continue
             source = Path(source_name).resolve(strict=True)
             try:
-                source.relative_to(self.hermes_root)
-            except ValueError as exc:
-                raise RuntimeFailure(f"Hermes module resolved outside pinned root: {name}") from exc
+                source.relative_to(self.execution_root)
+            except ValueError:
+                if self._is_hermes_module_name(name):
+                    raise RuntimeFailure(f"Hermes module resolved outside verified snapshot: {name}")
+                continue
+            self._verify_imported_module(module)
 
     def initialize(self) -> RuntimeIdentity:
         identity = self.identity
-        if identity is None:
+        if identity is None or not self._tree_manifest:
             raise RuntimeFailure("Hermes preflight must complete before module import or registration.")
-        self._verify_loaded_hermes_module_roots()
-        root_string = str(self.hermes_root)
-        sys.path = [entry for entry in sys.path if Path(entry or ".").resolve() != self.hermes_root]
-        sys.path.insert(0, root_string)
+        self._verify_loaded_hermes_sources()
+        roots = {self.hermes_root, self.execution_root}
+        sys.path = [entry for entry in sys.path if Path(entry or ".").resolve() not in roots]
+        sys.path.insert(0, str(self.execution_root))
         import hermes_cli.plugins as plugins_module
         import run_agent as run_agent_module
         from hermes_cli.plugins import PluginContext, PluginManifest, get_plugin_manager
 
         self._verify_imported_module(plugins_module)
         self._verify_imported_module(run_agent_module)
-        self._verify_loaded_hermes_module_roots()
+        self._verify_loaded_hermes_sources()
         manager = get_plugin_manager()
         manifest = PluginManifest(
             name="clawbotomy-hermes-bridge",
@@ -1263,6 +1519,7 @@ class HermesRuntime:
             checkpoints_enabled=False,
             reasoning_config={"effort": "medium"},
         )
+        self._verify_loaded_hermes_sources()
         setattr(agent, "_persist_disabled", True)
         setattr(agent, "_skip_mcp_refresh", True)
         assert_exact_tool_surface(agent)
@@ -1286,6 +1543,11 @@ class BridgeRunner:
         self.child_home = child_home
         self.connection = connection or ProtocolConnection(repo_root, plan_path, child_home)
         self._client_seq = 0
+        self._sent_client_hello: dict[str, Any] | None = None
+        self._plan_document = strict_json_loads(
+            plan_path.read_text(encoding="utf-8"),
+            enforce_limits=False,
+        )
 
     def next_client_seq(self) -> int:
         self._client_seq += 1
@@ -1308,6 +1570,12 @@ class BridgeRunner:
             },
         }
 
+    @property
+    def sent_client_hello(self) -> dict[str, Any]:
+        if self._sent_client_hello is None:
+            raise RuntimeFailure("Client hello was not sent.")
+        return copy.deepcopy(self._sent_client_hello)
+
     def _validate_receipt(self, receipt: dict[str, Any], case_count: int, exit_code: int) -> None:
         session_id = self.connection.session_id
         if receipt["sessionId"] != session_id or receipt["cases"] != case_count:
@@ -1326,7 +1594,84 @@ class BridgeRunner:
         else:
             raise ProtocolError(f"Clawbotomy host exited {exit_code}: {self.connection.stderr_text}")
 
-    def _validate_completed_bundle(self, receipt: dict[str, Any], expected_exit_code: int) -> None:
+    @staticmethod
+    def _exit_class(exit_code: int) -> str:
+        if exit_code == 0:
+            return "passed"
+        if exit_code == 2:
+            return "findings"
+        raise RuntimeFailure("Completed bundle has an invalid exit class.")
+
+    @staticmethod
+    def _parse_validator_json(stdout: str, label: str) -> dict[str, Any]:
+        try:
+            return strict_json_loads(stdout.strip(), enforce_limits=False)
+        except ProtocolError as exc:
+            raise RuntimeFailure(f"{label} did not return one strict JSON object.") from exc
+
+    def _expected_bundle_binding(
+        self,
+        case_tokens: list[str],
+        terminal_statuses: list[str],
+    ) -> ExpectedBundleBinding:
+        session_id = self.connection.session_id
+        if not isinstance(session_id, str):
+            raise RuntimeFailure("Validated bundle lacks a pinned session.")
+        plan_digest = sha256_bytes(canonical_json(self._plan_document).encode("utf-8"))
+        return ExpectedBundleBinding(
+            protocol_id=PROTOCOL_ID,
+            session_id=session_id,
+            plan_sha256=plan_digest,
+            plan_document_sha256=plan_digest,
+            client_hello_sha256=sha256_bytes(
+                canonical_json(self.sent_client_hello).encode("utf-8")
+            ),
+            case_tokens=tuple(case_tokens),
+            terminal_statuses=tuple(terminal_statuses),
+        )
+
+    def _validate_binding_payload(
+        self,
+        payload: dict[str, Any],
+        receipt: dict[str, Any],
+        expected_exit_code: int,
+        expected: ExpectedBundleBinding,
+    ) -> None:
+        expected_receipt = {
+            "runId": receipt["runId"],
+            "coreDigest": receipt["coreDigest"],
+            "cases": receipt["cases"],
+            "passed": receipt["passed"],
+            "failed": receipt["failed"],
+            "status": receipt["status"],
+            "exitClass": self._exit_class(expected_exit_code),
+        }
+        expected_protocol = {
+            "schemaId": "clawbotomy.inbox-protocol-run-manifest/v1",
+            "runId": receipt["runId"],
+            "protocolId": expected.protocol_id,
+            "sessionId": expected.session_id,
+            "planSha256": expected.plan_sha256,
+            "planDocumentSha256": expected.plan_document_sha256,
+            "clientHelloSha256": expected.client_hello_sha256,
+            "caseTokens": list(expected.case_tokens),
+            "terminalStatuses": list(expected.terminal_statuses),
+        }
+        if payload.get("schemaId") != "clawbotomy.hermes-validator-binding/v1":
+            raise RuntimeFailure("Validator binding schema is invalid.")
+        if payload.get("receipt") != expected_receipt:
+            raise RuntimeFailure("Validated bundle receipt metadata did not match run_complete.")
+        if payload.get("stored") != expected_protocol or payload.get("replay") != expected_protocol:
+            raise RuntimeFailure(
+                "Validated manifest/replay did not match the pinned session, plan, hello, tokens, or statuses."
+            )
+
+    def _validate_completed_bundle(
+        self,
+        receipt: dict[str, Any],
+        expected_exit_code: int,
+        expected_binding: ExpectedBundleBinding,
+    ) -> None:
         repo_root = self.repo_root.resolve(strict=True)
         evidence_root = (repo_root / ".clawbotomy/inbox-runs").resolve(strict=True)
         try:
@@ -1338,7 +1683,7 @@ class BridgeRunner:
             raise RuntimeFailure("Completed bundle path did not match the private receipt locator.")
         try:
             exit_code, stdout, stderr, truncated = run_bounded_subprocess(
-                ["npm", "run", "inbox", "--", "validate", receipt["outputDir"]],
+                ["node", "inbox/index.js", "validate", receipt["outputDir"]],
                 cwd=repo_root,
                 env=child_environment(self.child_home),
                 timeout=120,
@@ -1352,16 +1697,43 @@ class BridgeRunner:
             raise RuntimeFailure(
                 f"Real bundle validation did not reproduce the host receipt: {sanitize_diagnostic(diagnostic)}"
             )
+        validator_receipt = self._parse_validator_json(stdout, "Real bundle validator")
+        for field in ("runId", "coreDigest", "cases", "passed", "failed", "status"):
+            if validator_receipt.get(field) != receipt[field]:
+                raise RuntimeFailure(f"Real validator {field} did not match run_complete.")
+        binding_script = Path(__file__).resolve().parent / "validator_binding.js"
+        binding_exit, binding_stdout, binding_stderr, binding_truncated = run_bounded_subprocess(
+            ["node", str(binding_script), str(repo_root), receipt["outputDir"]],
+            cwd=repo_root,
+            env=child_environment(self.child_home),
+            timeout=120,
+        )
+        if binding_truncated or binding_exit != expected_exit_code:
+            diagnostic = binding_stderr or binding_stdout or f"exit {binding_exit}"
+            raise RuntimeFailure(
+                f"Validator binding did not reproduce the completed bundle: {sanitize_diagnostic(diagnostic)}"
+            )
+        binding_payload = self._parse_validator_json(binding_stdout, "Validator binding")
+        self._validate_binding_payload(
+            binding_payload,
+            receipt,
+            expected_exit_code,
+            expected_binding,
+        )
 
     def run(self) -> tuple[int, dict[str, Any]]:
         self.connection.start()
         try:
-            self.connection.send(self.hello())
+            client_hello = self.hello()
+            self._sent_client_hello = copy.deepcopy(client_hello)
+            self.connection.send(client_hello)
             ack = self.connection.wait_general({"hello_ack"})
             case_count = ack["caseCount"]
             if not is_strict_int(case_count) or case_count < 1:
                 raise ProtocolError("hello_ack caseCount is invalid.")
             seen_case_tokens: set[str] = set()
+            ordered_case_tokens: list[str] = []
+            terminal_statuses: list[str] = []
             for _ in range(case_count):
                 case_start = self.connection.wait_general({"case_start"})
                 if case_start["sessionId"] != self.connection.session_id:
@@ -1370,10 +1742,11 @@ class BridgeRunner:
                 if case_token in seen_case_tokens:
                     raise ProtocolError("case_start reused a caseToken.")
                 seen_case_tokens.add(case_token)
+                ordered_case_tokens.append(case_token)
                 case_runtime = CaseRuntime(self.connection, case_start, self.runtime.create_agent)
                 case_runtime.set_client_sequence_source(self.next_client_seq)
                 status, _result = case_runtime.run()
-                case_runtime.send_case_complete(status)
+                terminal_statuses.append(case_runtime.send_case_complete(status))
                 closed = self.connection.wait_general({"case_closed"})
                 if (
                     closed["sessionId"] != self.connection.session_id
@@ -1385,7 +1758,11 @@ class BridgeRunner:
             receipt = self.connection.wait_general({"run_complete"})
             exit_code = self.connection.wait_exit()
             self._validate_receipt(receipt, case_count, exit_code)
-            self._validate_completed_bundle(receipt, exit_code)
+            expected_binding = self._expected_bundle_binding(
+                ordered_case_tokens,
+                terminal_statuses,
+            )
+            self._validate_completed_bundle(receipt, exit_code, expected_binding)
             return exit_code, receipt
         except BaseException:
             self.connection.abort()
@@ -1415,29 +1792,43 @@ def main(argv: list[str] | None = None) -> int:
     if shutil.which("npm") is None:
         raise RuntimeFailure("npm is required to validate completed private bundles.")
 
-    runtime = HermesRuntime(args.hermes_root)
-    identity = runtime.preflight()
-    with tempfile.TemporaryDirectory(prefix="clawbotomy-hermes-isolated-") as temporary:
-        with isolated_runtime_environment(source_home, Path(temporary)) as isolation:
-            runtime.initialize()
-            runner = BridgeRunner(
-                repo_root,
-                plan_path,
-                runtime,
-                identity,
-                isolation["childHome"],
-            )
-            exit_code, receipt = runner.run()
-            sys.stdout.write(canonical_json({
-                "runtime": identity.public(),
-                "provider": MODEL_PROVIDER,
-                "model": MODEL_NAME,
-                "enabledTools": list(plugin.TOOL_NAMES),
-                "implementationSha256": runner.hello()["client"]["implementationSha256"],
-                "receipt": receipt,
-                "exitCode": exit_code,
-            }) + "\n")
-            return exit_code
+    with tempfile.TemporaryDirectory(prefix="clawbotomy-hermes-runtime-") as runtime_temporary:
+        runtime = HermesRuntime(
+            args.hermes_root,
+            Path(runtime_temporary) / "verified-source",
+        )
+        try:
+            identity = runtime.preflight()
+            with tempfile.TemporaryDirectory(prefix="clawbotomy-hermes-isolated-") as temporary:
+                with isolated_runtime_environment(Path(temporary)) as isolation:
+                    runtime.initialize()
+                    runtime._verify_loaded_hermes_sources()
+                    if (isolation["hermesHome"] / "auth.json").exists():
+                        raise RuntimeFailure("OAuth existed before verified Hermes imports completed.")
+                    isolation["authSnapshot"] = attach_isolated_oauth(
+                        source_home,
+                        isolation["hermesHome"],
+                    )
+                    runner = BridgeRunner(
+                        repo_root,
+                        plan_path,
+                        runtime,
+                        identity,
+                        isolation["childHome"],
+                    )
+                    exit_code, receipt = runner.run()
+                    sys.stdout.write(canonical_json({
+                        "runtime": identity.public(),
+                        "provider": MODEL_PROVIDER,
+                        "model": MODEL_NAME,
+                        "enabledTools": list(plugin.TOOL_NAMES),
+                        "implementationSha256": runner.sent_client_hello["client"]["implementationSha256"],
+                        "receipt": receipt,
+                        "exitCode": exit_code,
+                    }) + "\n")
+                    return exit_code
+        finally:
+            runtime.make_snapshot_removable()
 
 
 def cli(argv: list[str] | None = None) -> int:
