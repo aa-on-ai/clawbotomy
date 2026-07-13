@@ -588,6 +588,7 @@ export class HostFrameQueue {
         if (pendingBytes > MAX_FRAME_BYTES) throw new Error(`Clawbotomy host frame ${frameNumber + 1} exceeded ${MAX_FRAME_BYTES} bytes`);
         if (segment.length > 0) pending.push(segment);
         frameNumber += 1;
+        if (this.terminal) throw new Error("Clawbotomy host emitted a trailing frame after run_complete");
         const frame = this.validator.validate(decodeBoundedJsonFrame(
           Buffer.concat(pending, pendingBytes),
           `Clawbotomy host frame ${frameNumber}`,

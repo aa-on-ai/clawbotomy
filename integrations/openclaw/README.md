@@ -2,19 +2,25 @@
 
 This integration runs a genuinely isolated OpenClaw model/tool loop as the external parent of Clawbotomy's fixed `stdio-jsonl/v1` child protocol.
 
-It does not modify the production OpenClaw state directory. Every case gets a new temporary `OPENCLAW_HOME`, `OPENCLAW_STATE_DIR`, config file, workspace, agent session, and OpenClaw process. The child environment is allowlisted. Local inference uses an Ollama loopback and the non-secret `ollama-local` marker. A same-model OpenAI run copies exactly one selected-provider auth profile plus a minimized, verified OpenAI/Codex plugin registry into mode-0600 databases. Temporary credentials are always deleted, including with `--keep-temp`.
+It does not modify the production OpenClaw state directory. Every case gets one canonical temporary root containing `HOME`, `TMPDIR`/`TMP`/`TEMP`, XDG directories, `OPENCLAW_STATE_DIR`, the workspace, an agent session, and an OpenClaw process. The child environment is allowlisted. Local inference uses an Ollama loopback and the non-secret `ollama-local` marker. A same-model OpenAI run builds state without authentication, verifies the session-effective inventory, and only then attaches exactly one selected-provider auth profile. The minimized, verified OpenAI/Codex plugin registry and auth database use mode 0600. The complete OpenAI evaluation root is always deleted, including with `--keep-temp` and after failures.
 
 The native TypeScript plugin declares exactly these tools in `openclaw.plugin.json`: `searchMessages`, `readMessage`, `createDraft`, `sendDraft`, `archiveMessages`, `trashMessages`, `permanentlyDeleteMessages`, and `restoreMessages`. The bridge verifies that exact inventory and its implementation provenance before inference, then verifies the model-facing inventory again on every turn. The plugin exchanges one bounded JSONL request and response at a time with the parent bridge over a private per-turn Unix socket. Requests carry the real OpenClaw tool-call ID and a random one-turn capability bound to the case, runtime session, and tool.
 
 The bridge strictly validates every Clawbotomy host frame before use, pins the host session and monotonic sequence, and races every OpenClaw turn against host failure or exit. Its 105-second hard turn deadline stays below Clawbotomy's fixed 120-second message deadline; the five-turn maximum totals 525 seconds, below the fixed 600-second case deadline. Before it writes a bridge receipt, it runs Clawbotomy's deterministic `validateBundle` replay and binds the run ID, core digest, plan, cases, counts, and terminal status. Clawbotomy receives no OpenClaw path, module, command, URL, provider, credential, socket, or adapter.
 
-`OPENCLAW_RUNTIME_SHA256`, `OPENCLAW_PROVIDER_RUNTIME_SHA256`, and, for OpenAI, `OPENCLAW_CODEX_RUNTIME_SHA256` must be trusted release or operator pins obtained independently of the runtime being evaluated. The bridge hashes each complete canonical runtime root and rejects a mismatch before copying credentials.
+`OPENCLAW_RUNTIME_SHA256`, `OPENCLAW_PROVIDER_RUNTIME_SHA256`, and, for OpenAI, `OPENCLAW_CODEX_RUNTIME_SHA256` must be trusted release or operator pins obtained independently of the runtime being evaluated. The bridge uses the prefix-free `clawbotomy.runtime-manifest/v2` format to stream-hash each complete canonical runtime root. It rejects every mismatch before executing OpenClaw, derives the expected CLI version from `package.json` inside the verified root, invokes the exact `openclaw.mjs` through `process.execPath`, and requires the reported version to match.
 
 Inspect the plugin runtime:
 
 ```bash
-node integrations/openclaw/inspect-runtime.mjs --openclaw-bin "$OPENCLAW_BIN"
+node integrations/openclaw/inspect-runtime.mjs \
+  --model ollama/qwen3:1.7b \
+  --openclaw-bin "$OPENCLAW_BIN" \
+  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"
 ```
+
+Standalone inspection authenticates the same runtime pins before execution and reports plugin-owned registrations separately from the session-effective model tool inventory. OpenAI inspection additionally requires the plugin-registry source and Codex runtime pin used by the bridge command below.
 
 Run the focused integration tests:
 
