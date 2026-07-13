@@ -439,14 +439,17 @@ export function InboxPreflightPlanner() {
                 <code>{serializedPlan}</code>
               </pre>
               <div className={styles.runnerCommand}>
-                <h4>Run the reference check locally</h4>
+                <h4>Smoke-test the plan with a reference control</h4>
                 <p>
                   Move the downloaded plan into your checkout, then run the bundled agent against
-                  a fresh synthetic Inbox. This does not inspect the configuration reference above.
+                  a fresh synthetic Inbox. This checks the plan and runner, not your configured agent.
                 </p>
                 <pre tabIndex={0} aria-label="Command to run the downloaded plan with the bounded reference agent">
                   <code>{runnerCommand}</code>
                 </pre>
+                <p>
+                  Ready for your runtime? <a href="/evaluate">Choose the OpenClaw or Hermes adapter.</a>
+                </p>
               </div>
             </section>
           </div>

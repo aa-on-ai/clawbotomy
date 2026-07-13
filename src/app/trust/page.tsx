@@ -124,15 +124,21 @@ export default function TrustPage() {
           </div>
 
           <div className="trust-sidebar">
-            <h2 className="m-0 mb-4 text-base font-medium text-[#EEE8DE]">Inspect the runner</h2>
+            <h2 className="m-0 mb-4 text-base font-medium text-[#EEE8DE]">Evaluate a configured agent</h2>
             <div className="trust-cli-block">
-              <Link href="/docs">Open the local setup guide →</Link>
+              <Link href="/evaluate">Connect OpenClaw or Hermes →</Link>
             </div>
             <p className="trust-sidebar-note">
-              The current runner tests model endpoints, not a configured agent&apos;s prompt, tools, memory,
-              permissions, or runtime. Use it as a starting point, then evaluate the exact deployment
-              configuration before granting access.
+              The accepted bridges exercise one configured runtime against fixed mock-Inbox tools.
+              The result applies only to that self-asserted observed session and never grants access.
             </p>
+
+            <h2 className="m-0 mb-4 mt-9 text-base font-medium text-[#EEE8DE]">Local trust boundary</h2>
+            <ul className="trust-test-list">
+              <li>Operator, same-UID filesystem, interpreters, Git, and dependencies are trusted</li>
+              <li>Model output, tool choices, protocol frames, and evidence claims are not</li>
+              <li>Real mailbox access and production permission changes stay outside the flow</li>
+            </ul>
 
             <h2 className="m-0 mb-4 mt-9 text-base font-medium text-[#EEE8DE]">Profile dimensions</h2>
             <ul className="trust-test-list">

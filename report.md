@@ -207,3 +207,61 @@ Both describe only a self-asserted observed protocol session, remain `non-author
 Approve the fixed protocol boundary and name the operator-owned agent runtime to connect next, or pause to inspect the private protocol bundles.
 
 Detailed implementation and grader reports were retained as local review artifacts.
+
+---
+
+# Configured-agent connect and evaluate product verification
+
+- **Outcome:** satisfied locally on July 13, 2026
+- **Branch:** `agent/evidence-first-agent-evaluation`
+- **Publication state:** local review branch only; undeployed with no provider, mailbox, or public-evidence run
+
+## Result
+
+The accepted OpenClaw and Hermes adapter commits are integrated on the review branch. Clawbotomy now has a documented practical local trust boundary, one fixed allowlisted launcher, and an `/evaluate` flow that lets an operator choose a runtime, copy its launch command, inspect a receipt-bound allowlisted projection of private evidence, distinguish passed/findings/infrastructure outcomes, and compare same-plan runs without claiming causality or authorization.
+
+## Checks
+
+| check | result |
+|---|---|
+| Exact adapter integration | OpenClaw `ce9e394`; Hermes `2991a60` |
+| Focused agent-evaluation suite | 18/18 pass |
+| Full repository suite | 170/170 pass |
+| TypeScript | pass |
+| ESLint | pass, no warnings/errors |
+| Production build | pass, 19 generated pages; `/evaluate` 10.6 kB |
+| Browser flows | 19/19 pass |
+| Axe WCAG A/AA | zero violations in empty and loaded states at 1440, 768, and 390 px |
+| Responsive overflow | none at 1440, 768, or 390 px |
+| Rendered touch targets | no targets below the accepted 44 px gate |
+| Diff hygiene | `git diff --check` pass |
+| Independent security re-audit | satisfied; no remaining blocker |
+| Independent design/UX grader | satisfied, 8.8/10; no P0-P2 blocker |
+
+## Rendered evidence
+
+Seven screenshots and the machine-readable browser receipt are stored outside the source repository under:
+
+`/Users/aaronthomas/Documents/Codex/2026-07-13/can/outputs/clawbotomy-evidence/`
+
+The set covers desktop empty/passed/comparison, tablet empty/comparison, and mobile empty/infrastructure states. The final browser receipt records no failed checks, no horizontal overflow, no axe violations, no undersized targets, and confirms that raw private fixture strings were not rendered.
+
+## Security closure
+
+The final parser and launcher use closed contract identifiers, assertion identifiers, adapter IDs, model-label formats, and diagnostic codes. A scored import requires a binding launcher receipt plus a complete non-empty bundle whose run, plan, client, adapter, status, totals, and digests agree. Raw adapter stderr remains terminal-only. Exit `0`/`2` mismatches fail closed; exit `1` can retain a measured status only when one unique bundle validates and replays, while the process anomaly remains visible.
+
+## Design-system review
+
+The authoritative rendered checks pass. Static source scripts still report known advisory false positives because they inspect TSX separately from CSS Modules and do not recognize the local `reading` state as loading. Manual review confirmed the reading, empty, error, focus, and responsive states, and the independent grader accepted the rendered evidence.
+
+## Gaps retained deliberately
+
+- No real provider, configured-agent, or mailbox execution was performed.
+- The screenshots use synthetic local fixtures and are not publishable agent evidence.
+- The browser viewer does not validate or replay evidence; it requires the launcher/validator receipt and derives only an allowlisted display projection.
+- The trust boundary accepts the local operator, same-UID filesystem, interpreter, Git, installed dependencies, and canonical adapter checkout owner.
+- Nothing was pushed, opened as a PR, deployed, or publicly exported.
+
+## Decision needed
+
+Approve the local review branch and explicitly authorize a push/review PR, request a bounded revision, or keep the branch local and paused.

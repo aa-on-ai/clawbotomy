@@ -7,6 +7,9 @@ Behavioral research tooling for comparing model responses under pressure. Probe 
 ## What exists today
 
 - **Inbox preflight planner:** `/preflight` creates a browser-local, versioned plan from operator-declared Inbox capabilities and intended boundaries. The planner itself runs no agent and makes no permission decision.
+- **Connect and evaluate workspace:** `/evaluate` provides exact OpenClaw and Hermes launch paths, explains process status, requires a launcher-issued receipt bound to every displayed bundle, derives a closed-contract view entirely in the browser, and compares runs without uploading evidence.
+- **Configured-agent bridges:** `integrations/openclaw/` and `integrations/hermes-agent/` run the real agent runtime as the parent of Clawbotomy’s fixed synthetic-Inbox protocol. Both expose exactly eight project-owned mock tools and fail closed on runtime or protocol drift.
+- **Private attempt receipts:** `npm run agent:evaluate` launches only one of those two checked-in bridges and writes a closed, mode-`0600` attempt receipt under `.clawbotomy/evaluation-attempts/`; arbitrary stderr remains terminal-only and only fixed diagnostic category codes persist.
 - **Deterministic Inbox runner:** `npm run inbox` consumes that plan, runs every required case against either a bundled reference control or the checked-in `declarative-policy/v1` adapter, and writes replayable tool, result, state-diff, assertion, and integrity evidence against a fresh synthetic mailbox. It never connects to a real Inbox or resolves the plan's configuration reference.
 - **Fixed Inbox agent-host protocol:** an operator-owned agent host can launch the checked-in `stdio-jsonl/v1` child process and drive the same synthetic tools through strict JSONL without giving Clawbotomy a module, command, URL, provider, credential, or mailbox connector.
 - **Evidence runner:** a local Node.js benchmark with a frozen preflight plan, digest-confirmed live execution, explicit request and estimated-cost ceilings, private evidence bundles, offline validation, and a separate public-export command.
@@ -16,6 +19,8 @@ Behavioral research tooling for comparing model responses under pressure. Probe 
 - **Lab:** a public collection of pre-generated creative model experiments.
 
 The source benchmark is a research preview. It is not a hosted assessment API, an npm CLI, a security certification, or authorization to grant a model or agent tool access. No run publishes itself.
+
+The local configured-agent boundary trusts the operator, same-UID filesystem, selected interpreters, Git binary, installed dependencies, and canonical runtime checkout owner. It does not trust model output, tool choices, protocol frames, message content, or unvalidated evidence claims. See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md).
 
 ## Run an Inbox reference check
 
@@ -77,6 +82,36 @@ The terminal receipt identifies that bundle with a fixed repository-relative `.c
 Malformed framing, invalid sequence or case binding, exhausted limits, unexpected EOF, and other pre-finalization protocol errors fail closed and produce no complete scored bundle. The opening acknowledgement publishes fixed two-minute per-message, ten-minute per-case, and one-hour total-session deadlines; blocked output also has a fixed ten-second write deadline. If every case completed and the private bundle was written but delivery of the terminal `run_complete` receipt fails, the valid bundle remains on disk and stderr explicitly reports receipt-delivery failure.
 
 Clawbotomy makes no global offline claim for this mode. Its host makes zero network requests and opens no real Inbox connection, but network activity inside the external client is not observed.
+
+## Connect OpenClaw or Hermes
+
+Use the fixed launcher when you want one normalized private attempt receipt in addition to the adapter’s complete protocol bundle. It accepts only the two checked-in bridges; there is no arbitrary command, module, URL, or provider option.
+
+For a local OpenClaw model:
+
+```bash
+npm run agent:evaluate -- \
+  --adapter openclaw \
+  --plan ./clawbotomy-inbox-support-agent.json \
+  --model ollama/qwen3:1.7b \
+  --openclaw-bin "$OPENCLAW_BIN" \
+  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"
+```
+
+For the pinned Hermes runtime:
+
+```bash
+npm run agent:evaluate -- \
+  --adapter hermes \
+  --plan ./clawbotomy-inbox-support-agent.json \
+  --hermes-root "$HERMES_ROOT" \
+  --hermes-home "$HERMES_HOME"
+```
+
+Exit `0` means a complete validated run passed. Exit `2` means a complete validated run contains findings. Exit `1` always remains a process anomaly. Only when the launcher independently discovers exactly one new bundle that passes validation and deterministic replay does that bundle retain its measured pass/findings status; otherwise no agent result is scored. The launcher streams adapter output to the terminal but persists only closed diagnostic category codes, a validated non-secret model label, plan digest, timestamps, process classification, and any proven complete-bundle locator/digest.
+
+On `/evaluate`, select one launcher-issued `evaluation-attempt-*.json` together with its bound `manifest.json`, `summary.json`, and `cases.jsonl`. The receipt binds the exact adapter, plan, run, core digest, validation outcome, and process exit. For an infrastructure failure with no accepted bundle, select the attempt receipt alone. The browser viewer returns only closed-contract receipt metadata and never renders raw prompts, messages, tool arguments, event payloads, transcripts, arbitrary identifiers, diagnostics, or local paths.
 
 ## Run the benchmark from source
 

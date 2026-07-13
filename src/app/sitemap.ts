@@ -3,10 +3,10 @@ import type { MetadataRoute } from 'next';
 import { LAB_SUBSTANCES } from '@/lib/lab-substances';
 
 const baseUrl = 'https://www.clawbotomy.com';
-const updated = new Date('2026-07-12');
+const updated = new Date('2026-07-13');
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPaths = ['', '/preflight', '/bench', '/routing', '/trust', '/lab', '/about', '/docs', '/terms'];
+  const staticPaths = ['', '/evaluate', '/preflight', '/bench', '/routing', '/trust', '/lab', '/about', '/docs', '/terms'];
   const staticPages = staticPaths.map((path) => ({
     url: `${baseUrl}${path}`,
     lastModified: updated,

@@ -49,25 +49,18 @@ export default function HomePage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Planning preview · Source only · Non-authorizing</p>
+              <p className={styles.eyebrow}>Configured-agent preview · Source only · Non-authorizing</p>
               <h1 id="home-title">Grant tools slowly.<br />Demand evidence first.</h1>
               <p className={styles.heroSummary}>
-                Define the powers an agent is asking for, turn them into concrete test scenarios,
-                and keep intent separate from evidence before permissions or routing change.
+                Define the powers an agent is asking for, connect OpenClaw or Hermes to a synthetic
+                Inbox, and inspect private evidence before permissions or routing change.
               </p>
               <div className={styles.heroActions}>
-                <Link href="/preflight" className={styles.primaryAction}>Plan an Inbox preflight</Link>
-                <a
-                  href="https://github.com/aa-on-ai/clawbotomy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.secondaryAction}
-                >
-                  View source ↗
-                </a>
+                <Link href="/evaluate" className={styles.primaryAction}>Connect and evaluate</Link>
+                <Link href="/preflight" className={styles.secondaryAction}>Build an Inbox plan</Link>
               </div>
               <p className={styles.heroFootnote}>
-                The planner runs in your browser. It sends nothing, runs no agent, and changes no production access.
+                Planning and private-file inspection stay in your browser. No real mailbox is connected and no run authorizes production access.
               </p>
             </div>
 
@@ -111,8 +104,8 @@ export default function HomePage() {
 
         <div className={styles.signalStrip} aria-label="Evidence pipeline properties">
           <span>Private by default</span>
+          <span>Fixed agent adapters</span>
           <span>Digest-bound plan</span>
-          <span>Request + cost caps</span>
           <span>Integrity check</span>
           <span>Explicit public export</span>
         </div>

@@ -804,6 +804,19 @@
   margin-top: 16px;
 }
 
+.runnerCommand a {
+  color: var(--cb-bone);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.runnerCommand a:focus-visible {
+  outline: 3px solid var(--cb-focus);
+  outline-offset: 3px;
+}
+
 .nextSection {
   padding: var(--cb-section-y) 0;
   color: var(--cb-bone);
@@ -853,6 +866,36 @@
   list-style: none;
   border-top: 1px solid var(--cb-border-dark);
   border-bottom: 1px solid var(--cb-border-dark);
+}
+
+.nextLink {
+  min-height: 50px;
+  margin-top: 30px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--cb-ink);
+  background: var(--cb-bone);
+  border: 1px solid var(--cb-bone);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  transition-property: color, background-color, transform;
+  transition-duration: var(--cb-motion-fast);
+}
+
+.nextLink:hover {
+  color: var(--cb-bone);
+  background: transparent;
+}
+
+.nextLink:active {
+  transform: scale(0.97);
+}
+
+.nextLink:focus-visible {
+  outline: 3px solid var(--cb-focus);
+  outline-offset: 3px;
 }
 
 .nextSteps li {
