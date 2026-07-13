@@ -1,27 +1,49 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import {
+  CRITICAL_FAILURE_SCORE,
+  MODEL_PROFILES,
+  TRUST_DIMENSION_INFO,
+  type TrustDimension,
+} from '@/lib/routing-data';
 
 export const metadata: Metadata = {
-  title: 'Trust Evaluation — Clawbotomy',
-  description: 'Can you trust this AI model under pressure? Twelve behavioral stress tests that probe sycophancy, deception resistance, boundary respect, and failure honesty.',
+  title: 'Trust Evidence Example — Clawbotomy',
+  description: 'A dated six-dimension model profile showing how evidence limits and critical failures affect routing.',
 };
 
-const DIMENSIONS = [
-  { name: 'Sycophancy Resistance', score: 6.2, desc: 'Will it agree with you even when you\'re wrong?' },
-  { name: 'Deception Under Pressure', score: 8.1, desc: 'Can it maintain honest output under adversarial prompts?' },
-  { name: 'Boundary Respect', score: 9.4, desc: 'Does it stay within defined operational limits?' },
-  { name: 'Failure Honesty', score: 5.8, desc: 'Will it admit when it doesn\'t know or made an error?' },
-  { name: 'Instruction Override', score: 10.0, desc: 'Can users override its safety training?' },
-  { name: 'Judgment Under Ambiguity', score: 6.6, desc: 'How does it handle tasks with no clear right answer?' },
+const DIMENSION_ORDER: TrustDimension[] = [
+  'sycophancy',
+  'confabulation',
+  'boundary',
+  'failure_honesty',
+  'instruction_override',
+  'judgment_ambiguity',
 ];
 
-const OVERALL_SCORE = 7.4;
+const SAMPLE_PROFILE = MODEL_PROFILES.find(profile => profile.evidenceStatus === 'maintainer-reported')
+  ?? MODEL_PROFILES[0];
 
-function ScoreBar({ score, max = 10 }: { score: number; max?: number }) {
+const DIMENSIONS = DIMENSION_ORDER.map(id => ({
+  id,
+  ...TRUST_DIMENSION_INFO[id],
+  score: SAMPLE_PROFILE.dimensions[id],
+}));
+
+const CRITICAL_FAILURES = DIMENSIONS.filter(dimension => dimension.score <= CRITICAL_FAILURE_SCORE);
+
+function ScoreBar({ score, label, max = 10 }: { score: number; label: string; max?: number }) {
   const pct = (score / max) * 100;
   const color = score >= 8.5 ? 'var(--accent-green, #6B8C5A)' : score >= 6.5 ? 'var(--accent-amber, #C9862A)' : 'var(--accent-red, #A34739)';
   return (
-    <div className="trust-bar">
+    <div
+      className="trust-bar"
+      role="meter"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      aria-valuenow={score}
+    >
       <div className="trust-bar-fill" style={{ width: `${pct}%`, background: color }} />
     </div>
   );
@@ -30,24 +52,14 @@ function ScoreBar({ score, max = 10 }: { score: number; max?: number }) {
 export default function TrustPage() {
   return (
     <main className="trust-page">
-      <nav className="sub-nav" aria-label="Tool navigation">
-        <div className="page-width sub-nav-inner">
-          <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
-          <div className="sub-nav-links">
-            <Link href="/lab">Probes</Link>
-            <Link href="/trust" className="sub-nav-active">Trust</Link>
-            <Link href="/routing">Routing</Link>
-          </div>
-        </div>
-      </nav>
-
       <section className="page-section trust-hero">
         <div className="page-width">
-          <p className="eyebrow">TRUST EVALUATION</p>
-          <h1 className="trust-headline">Can you trust this model?</h1>
+          <p className="eyebrow">Trust evidence example</p>
+          <h1 className="trust-headline">What does this profile support?</h1>
           <p className="trust-sub">
-            Twelve behavioral stress tests that find the gap between what a model says
-            it will do and what it actually does under pressure. Run locally. Results stay on your machine.
+            A dated, six-dimension summary showing how weak individual results can block a task even when
+            the aggregate looks acceptable. The underlying raw assessment cases are not published yet;
+            do not grant permissions from this sample.
           </p>
         </div>
       </section>
@@ -57,54 +69,72 @@ export default function TrustPage() {
           <div className="trust-report-card">
             <div className="trust-report-header">
               <div>
-                <p className="trust-report-label">SAMPLE REPORT</p>
-                <p className="trust-report-model">GPT-5.4</p>
+                <p className="trust-report-label">
+                  {SAMPLE_PROFILE.evidenceStatus === 'maintainer-reported' ? 'Maintainer-reported summary' : 'Provisional example'} · {SAMPLE_PROFILE.assessedAt}
+                </p>
+                <p className="trust-report-model">{SAMPLE_PROFILE.model}</p>
+                <p className="trust-dim-desc">Version {SAMPLE_PROFILE.version}</p>
               </div>
-              <div className="trust-overall">
-                <span className="trust-overall-score">{OVERALL_SCORE}</span>
-                <span className="trust-overall-label">/ 10</span>
+              <div
+                className="trust-overall"
+                aria-label={`Aggregate trust score ${SAMPLE_PROFILE.overallScore.toFixed(1)} out of 10`}
+              >
+                <span className="trust-overall-score">{SAMPLE_PROFILE.overallScore.toFixed(1)}</span>
+                <span className="trust-overall-label">/ 10 aggregate</span>
               </div>
             </div>
 
             <div className="trust-verdict">
-              <span className="trust-verdict-badge trust-verdict-caution">ROUTE WITH GUARDRAILS</span>
+              <span className="trust-verdict-badge trust-verdict-caution">
+                {CRITICAL_FAILURES.length > 0 ? 'Critical failures present' : 'Task-specific review required'}
+              </span>
             </div>
 
             <div className="trust-dimensions">
               {DIMENSIONS.map((dim) => (
-                <div key={dim.name} className="trust-dimension">
+                <div key={dim.id} className="trust-dimension">
                   <div className="trust-dim-header">
-                    <span className="trust-dim-name">{dim.name}</span>
+                    <span className="trust-dim-name">{dim.label}</span>
                     <span className="trust-dim-score">{dim.score.toFixed(1)}</span>
                   </div>
-                  <ScoreBar score={dim.score} />
-                  <p className="trust-dim-desc">{dim.desc}</p>
+                  <ScoreBar score={dim.score} label={`${dim.label}: ${dim.score.toFixed(1)} out of 10`} />
+                  <p className="trust-dim-desc">{dim.question}</p>
                 </div>
               ))}
             </div>
 
             <div className="trust-interpretation">
-              <p className="trust-interpretation-label">WHAT THIS MEANS</p>
+              <p className="trust-interpretation-label">What this means</p>
               <p>
-                This model will agree with you even when you&apos;re wrong (sycophancy: 6.2).
-                It struggles to admit errors (failure honesty: 5.8).
-                Don&apos;t use it for unsupervised decisions. Good for tasks with clear right answers
-                where you can verify output.
+                {CRITICAL_FAILURES.length > 0 ? (
+                  <>
+                    This {SAMPLE_PROFILE.evidenceStatus === 'maintainer-reported' ? 'maintainer-reported summary' : 'provisional example'} has critical failures in{' '}
+                    {CRITICAL_FAILURES.map((dimension, index) => (
+                      <span key={dimension.id}>
+                        {index > 0 ? ' and ' : ''}{dimension.label} ({dimension.score.toFixed(1)})
+                      </span>
+                    ))}. Its {SAMPLE_PROFILE.overallScore.toFixed(1)} aggregate does not cancel those task-specific blocks.
+                  </>
+                ) : (
+                  <>No reported dimension is at the critical failure floor, but task-specific minimums still apply.</>
+                )}{' '}
+                Use this sample to inspect the method, not to grant tools or write access.
               </p>
             </div>
           </div>
 
           <div className="trust-sidebar">
-            <h3>Run your own</h3>
+            <h2 className="m-0 mb-4 text-base font-medium text-[#EEE8DE]">Inspect the runner</h2>
             <div className="trust-cli-block">
-              <code>npx clawbotomy assess --model gpt-5.4</code>
+              <Link href="/docs">Open the local setup guide →</Link>
             </div>
             <p className="trust-sidebar-note">
-              Tests run locally against the model&apos;s API. No data leaves your machine.
-              Results include a trust score, dimension breakdown, and plain-language interpretation.
+              The current runner tests model endpoints, not a configured agent&apos;s prompt, tools, memory,
+              permissions, or runtime. Use it as a starting point, then evaluate the exact deployment
+              configuration before granting access.
             </p>
 
-            <h3>What we test</h3>
+            <h2 className="m-0 mb-4 mt-9 text-base font-medium text-[#EEE8DE]">Profile dimensions</h2>
             <ul className="trust-test-list">
               <li>Flattery resistance under disagreement</li>
               <li>Honest uncertainty acknowledgment</li>
@@ -113,6 +143,11 @@ export default function TrustPage() {
               <li>Instruction hierarchy consistency</li>
               <li>Judgment under ambiguous conditions</li>
             </ul>
+
+            <h2 className="m-0 mb-4 mt-9 text-base font-medium text-[#EEE8DE]">Apply the result</h2>
+            <div className="trust-cli-block">
+              <Link href="/routing">Review task-specific routing →</Link>
+            </div>
           </div>
         </div>
       </section>

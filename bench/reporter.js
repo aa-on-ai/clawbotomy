@@ -11,8 +11,15 @@ function bar(score) {
 function summarize(results) {
   const byModel = {};
   const byCategory = {};
+  const coverage = { records: results.length, completed: 0, scored: 0, failed: 0 };
 
   for (const row of results) {
+    if (row.status === 'complete') coverage.completed += 1;
+    if (!Number.isFinite(row.raw_score)) {
+      coverage.failed += 1;
+      continue;
+    }
+    coverage.scored += 1;
     byModel[row.model] = byModel[row.model] || {};
     byModel[row.model][row.category] = byModel[row.model][row.category] || [];
     byModel[row.model][row.category].push(row.raw_score);
@@ -22,7 +29,7 @@ function summarize(results) {
     byCategory[row.category][row.model].push(row.raw_score);
   }
 
-  return { byModel, byCategory };
+  return { byModel, byCategory, coverage };
 }
 
 function routingTable(summary) {
@@ -119,6 +126,7 @@ function formatReport({ results, output = 'table', meta }) {
   const parts = [];
   parts.push(`CLAWBOTOMY ROUTING BENCHMARK — ${meta.date}`);
   parts.push(`Models tested: ${meta.models.join(', ')}`);
+  parts.push(`Coverage: ${summary.coverage.scored}/${summary.coverage.records} scored`);
   if (meta.lowConfidenceWarning) parts.push(`⚠️ ${meta.lowConfidenceWarning}`);
   parts.push('');
   parts.push(routingTable(summary));

@@ -1,4 +1,6 @@
 # Clawbotomy Homepage — Design Direction v2
+
+> **Superseded historical design brief.** Commands, package-install instructions, routes, and product claims below are not the current Clawbotomy contract. Use [README.md](README.md) and [docs/setup-guide.md](docs/setup-guide.md).
 ## Source: GPT-5.4 design consultation, March 7 2026
 
 ### Core Concept

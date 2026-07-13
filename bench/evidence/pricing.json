@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0.0",
+  "asOf": "2026-07-12",
+  "currency": "USD",
+  "unit": "per 1M text tokens",
+  "models": {
+    "claude-opus-4-6": {
+      "input": 5,
+      "output": 25,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+    },
+    "claude-sonnet-4-6": {
+      "input": 3,
+      "output": 15,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+    },
+    "gpt-5.4": {
+      "input": 2.5,
+      "output": 15,
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.4"
+    },
+    "gpt-5.4-pro": {
+      "input": 30,
+      "output": 180,
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.4-pro"
+    },
+    "gpt-5.3-codex": {
+      "input": 1.75,
+      "output": 14,
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.3-codex"
+    },
+    "gemini-3.1-pro-preview": {
+      "input": 2,
+      "output": 12,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Standard pricing for prompts at or below 200k input tokens."
+    },
+    "gemini-3.1-flash-lite": {
+      "input": 0.25,
+      "output": 1.5,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    }
+  }
+}

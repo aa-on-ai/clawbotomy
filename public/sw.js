@@ -1,5 +1,5 @@
-const CACHE_NAME = 'clawbotomy-v1';
-const STATIC_ASSETS = ['/', '/sessions'];
+const CACHE_NAME = 'clawbotomy-v3';
+const STATIC_ASSETS = ['/'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -20,14 +20,25 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Skip non-GET and API requests
-  if (request.method !== 'GET' || request.url.includes('/api/')) return;
+  const url = new URL(request.url);
+
+  // Evidence and API responses must remain network-authoritative. The public
+  // bundle already has its own integrity map; a stale service-worker copy can
+  // otherwise make the registry and its files disagree.
+  if (
+    request.method !== 'GET' ||
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/evidence/')
+  ) return;
 
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
         return response;
       })
       .catch(() => caches.match(request))

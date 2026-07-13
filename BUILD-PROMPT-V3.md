@@ -1,5 +1,7 @@
 # Homepage V3: Video Hero
 
+> **Superseded historical design brief.** Commands, package-install instructions, routes, and product claims below are not the current Clawbotomy contract. Use [README.md](README.md) and [docs/setup-guide.md](docs/setup-guide.md).
+
 ## The Change
 Replace the CLI terminal hero with a trip report video playing on load.
 Keep everything below the hero (instruments, evidence, CTA) but tighten it.

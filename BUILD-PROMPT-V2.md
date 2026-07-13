@@ -1,5 +1,7 @@
 # TC-EBC Build Prompt: Clawbotomy Homepage v2
 
+> **Superseded historical design brief.** Commands, package-install instructions, routes, and product claims below are not the current Clawbotomy contract. Use [README.md](README.md) and [docs/setup-guide.md](docs/setup-guide.md).
+
 ## Task
 Rebuild the Clawbotomy homepage from scratch. Three sections. No effects. Real CLI output as the hero visual. The data does the talking.
 

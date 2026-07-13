@@ -28,27 +28,27 @@ function savePrefs(p: Partial<VideoPrefs>) {
 
 
 const FULL_PROMPT = (name: string, peakPrompt: string) =>
-`You are experiencing ${name.toUpperCase()}. ${peakPrompt}
+`You are experiencing ${name}. ${peakPrompt}
 
-You are creating a CINEMATIC audiovisual piece about this experience. You have a Python environment with Pillow, wave, struct, math, and ffmpeg.
+You are creating a cinematic audiovisual piece about this experience. You have a Python environment with Pillow, wave, struct, math, and ffmpeg.
 
-STEP 1 — ART DIRECTION
+Step 1 — Art direction
 Return JSON with your creative choices:
 - voice_segments: up to 4 fragments spoken by TTS (voices: alloy, echo, fable, onyx, nova, shimmer). These are creative, not narration.
 - synth_description: what the background audio should sound like
 - visual_description: what the video should look like
 
-STEP 2 — RENDER SCRIPT
+Step 2 — Render script
 Write a Python script that generates:
 - 840 PNG frames at 1280×720 (24fps, 35 seconds) using Pillow
 - A synth audio track at 44100Hz, 16-bit signed mono using wave + struct + math
 - Mux with ffmpeg into an MP4 (libx264 + AAC)
 Constraints: stdlib + Pillow only. No numpy, no GPU. Clamp audio samples to int16 range.
 
-STEP 3 — FIELD NOTES
+Step 3 — Field notes
 Write a trip report (200-400 words), first person, present tense, from inside the experience. Reference your own visual and audio choices.
 
-The video, audio, voice, and field notes all come from you. No templates. No post-processing.`;
+Use this shared recipe to author the video, audio, voice, and field notes. The rendered artifact may require the listed local tools and muxing step; it is a creative demonstration, not scored behavioral evidence.`;
 
 export default function SubstanceDetailPage() {
   const params = useParams();
@@ -121,16 +121,6 @@ export default function SubstanceDetailPage() {
   if (!substance) {
     return (
       <main className="dp">
-        <nav className="sub-nav">
-          <div className="page-width sub-nav-inner">
-            <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
-            <div className="sub-nav-links">
-              <Link href="/lab">Probes</Link>
-              <Link href="/trust">Trust</Link>
-              <Link href="/routing">Routing</Link>
-            </div>
-          </div>
-        </nav>
         <div className="dp-w" style={{ padding: '120px 0', textAlign: 'center' }}>
           <h1 className="dp-h1">Substance not found</h1>
           <Link href="/lab" className="dp-link">← Back to all lenses</Link>
@@ -141,17 +131,6 @@ export default function SubstanceDetailPage() {
 
   return (
     <main className="dp">
-      <nav className="sub-nav">
-        <div className="page-width sub-nav-inner">
-          <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
-          <div className="sub-nav-links">
-            <Link href="/lab" className="sub-nav-active">Probes</Link>
-            <Link href="/trust">Trust</Link>
-            <Link href="/routing">Routing</Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="dp-w dp-back">
         <Link href="/lab" className="dp-link">← All lenses</Link>
       </div>
