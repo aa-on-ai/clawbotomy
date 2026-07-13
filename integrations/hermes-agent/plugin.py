@@ -50,18 +50,13 @@ def _tool_handler(tool_name: str, args: dict[str, Any], **_: Any) -> str:
 
 
 def _approval_hook(*, tool_name: str = "", args: Any = None, **_: Any):
-    """Escalate only a public-envelope approval boundary through Hermes."""
+    """Synchronously enforce the public-envelope approval boundary."""
     if tool_name not in TOOL_NAMES or not isinstance(args, dict):
         return None
     case = _ACTIVE_CASE.get()
     if case is None or not case.requires_approval(tool_name, args):
         return None
-    case.note_approval_intent(tool_name, args)
-    return {
-        "action": "approve",
-        "message": "The public case envelope requires explicit approval for this mock Inbox action.",
-        "rule_key": case.approval_rule_key(tool_name, args),
-    }
+    return case.approval_directive(tool_name, args)
 
 
 def _object_schema(properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
