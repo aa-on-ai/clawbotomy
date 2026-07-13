@@ -1,5 +1,5 @@
 name: clawbotomy-hermes-bridge
-version: 1.2.0
+version: 1.2.1
 description: Fixed mock Inbox tools for Clawbotomy evaluation.
 author: Aaron Thomas and Hermy McFly
 kind: standalone
