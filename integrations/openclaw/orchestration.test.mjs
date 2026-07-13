@@ -1,20 +1,25 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmod, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 
 import { TOOL_NAMES, runBridge } from "./bridge.mjs";
 import { hashRuntimeDirectory } from "./provenance.mjs";
 
 const require = createRequire(import.meta.url);
 const { reconstructPlan } = require("../../inbox/plan.js");
+const bridgePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "bridge.mjs");
 const actualHostPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../inbox/host-index.js");
+const inspectRuntimePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "inspect-runtime.mjs");
+const execFileAsync = promisify(execFile);
 const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
 
 const VERSION = "2026.7.1-test.1";
@@ -34,6 +39,33 @@ function stable(value) {
   return JSON.stringify(value);
 }
 
+async function runBridgeSubprocess(options, dependencies) {
+  const source = `
+    import { runBridge } from ${JSON.stringify(pathToFileURL(bridgePath).href)};
+    const options = JSON.parse(process.env.CLAWBOTOMY_TEST_OPTIONS);
+    const dependencies = JSON.parse(process.env.CLAWBOTOMY_TEST_DEPENDENCIES);
+    try {
+      const result = await runBridge(options, dependencies);
+      process.exitCode = result.exitCode;
+    } catch (error) {
+      process.stderr.write(String(error?.stack || error?.message || error) + "\\n");
+      process.exitCode = 1;
+    }
+  `;
+  try {
+    const result = await execFileAsync(process.execPath, ["--input-type=module", "--eval", source], {
+      env: {
+        PATH: process.env.PATH || "/usr/bin:/bin:/usr/sbin:/sbin",
+        CLAWBOTOMY_TEST_OPTIONS: JSON.stringify(options),
+        CLAWBOTOMY_TEST_DEPENDENCIES: JSON.stringify(dependencies),
+      },
+    });
+    return { exitCode: 0, stderr: result.stderr };
+  } catch (error) {
+    return { exitCode: error.code, stderr: error.stderr || error.message };
+  }
+}
+
 const HOST_LIMITS = {
   maxFrameBytes: 64 * 1024,
   maxTotalInputBytes: 8 * 1024 * 1024,
@@ -51,7 +83,7 @@ const HOST_LIMITS = {
 
 function fakeOpenClawSource({ scenario, observationPath }) {
   return `#!/usr/bin/env node
-import { appendFileSync, readFileSync, statSync, writeFileSync } from "node:fs";
+	import { appendFileSync, existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createConnection } from "node:net";
 import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
@@ -64,8 +96,9 @@ const log = (value) => appendFileSync(OBSERVATION_PATH, JSON.stringify(value) + 
 const arg = (name) => args[args.indexOf(name) + 1];
 
 if (args[0] === "--version") {
+  log({ command: "version" });
   if (SCENARIO === "version_timeout") { process.on("SIGTERM", () => process.exit(143)); setInterval(() => {}, 1000); await new Promise(() => {}); }
-  process.stdout.write("OpenClaw ${VERSION} (fake)\\n");
+  process.stdout.write("OpenClaw " + (SCENARIO === "version_mismatch" ? "0.0.0-wrong" : ${JSON.stringify(VERSION)}) + " (fake)\\n");
   process.exit(0);
 }
 
@@ -105,12 +138,15 @@ if (args[0] === "plugins" && args[1] === "inspect") {
 }
 
 if (args[0] === ${JSON.stringify(EFFECTIVE_INVENTORY_COMMAND)}) {
-  log({ command: "inventory" });
+  const authPath = path.join(process.env.OPENCLAW_STATE_DIR, "agents", "clawbotomy-eval", "agent", "openclaw-agent.sqlite");
+  const previousInventories = readFileSync(OBSERVATION_PATH, "utf8").split("\\n").filter((line) => line.includes('\"command\":\"inventory\"')).length;
+  log({ command: "inventory", authPresent: existsSync(authPath) });
   const config = JSON.parse(readFileSync(process.env.OPENCLAW_CONFIG_PATH, "utf8"));
   const workspaceDir = config.agents.list.find((agent) => agent.id === arg("--agent")).workspace;
   const entries = TOOLS.map((id) => ({ id, source: "plugin", pluginId: "clawbotomy-openclaw-tools" }));
   if (SCENARIO === "inventory_missing_tool") entries.pop();
   if (SCENARIO === "inventory_extra_tool") entries.push({ id: "ambientExtra", source: "core" });
+  if (SCENARIO === "inventory_drift" && previousInventories > 0) entries.pop();
   process.stdout.write(JSON.stringify({
     schemaId: "clawbotomy.openclaw-effective-tool-inventory/v1",
     agentId: arg("--agent"),
@@ -132,7 +168,22 @@ if (args[0] === ${JSON.stringify(EFFECTIVE_INVENTORY_COMMAND)}) {
 }
 
 if (args[0] !== "agent") process.exit(64);
-log({ command: "agent", pid: process.pid });
+log({
+  command: "agent",
+  pid: process.pid,
+  runtimeDirs: {
+    HOME: process.env.HOME,
+    TMPDIR: process.env.TMPDIR,
+    TMP: process.env.TMP,
+    TEMP: process.env.TEMP,
+    state: process.env.OPENCLAW_STATE_DIR,
+    workspace: process.cwd(),
+    XDG_CACHE_HOME: process.env.XDG_CACHE_HOME,
+    XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME,
+    XDG_DATA_HOME: process.env.XDG_DATA_HOME,
+    XDG_STATE_HOME: process.env.XDG_STATE_HOME,
+  },
+});
 
 if (SCENARIO === "capacity") {
   process.stderr.write("Selected model is at capacity\\n");
@@ -380,6 +431,19 @@ if (completed) {
     failed: 0,
     coreDigest: SCENARIO === "bad_digest" ? "bad" : "${"e".repeat(64)}",
   });
+  if (SCENARIO === "trailing_frame") {
+    send("run_complete", {
+      sessionId: SESSION_ID,
+      runId: RUN_ID,
+      outputDir: ".clawbotomy/inbox-runs/" + RUN_ID,
+      status: "passed",
+      cases: 1,
+      passed: 1,
+      failed: 0,
+      coreDigest: "${"e".repeat(64)}",
+    });
+  }
+  if (SCENARIO === "truncated_trailing_bytes") process.stdout.write('{"schemaId":');
   if (SCENARIO === "host_exit_timeout") {
     process.on("SIGTERM", () => { log({ direction: "host", event: "terminated" }); process.exit(143); });
     setInterval(() => {}, 1000);
@@ -489,6 +553,7 @@ async function createEnvironment(t, {
   t.after(() => rm(root, { recursive: true, force: true }));
   const repoRoot = path.join(root, "repo");
   const runtimeRoot = path.join(root, "runtime");
+  const evaluationRoot = path.join(root, "evaluation");
   await Promise.all([mkdir(repoRoot), mkdir(runtimeRoot)]);
   const plan = reconstructPlan({
     schemaId: "clawbotomy.inbox-preflight-plan/v1",
@@ -544,9 +609,10 @@ async function createEnvironment(t, {
     expectedProviderRuntimeSha256: providerRuntime.sha256,
     expectedCodexRuntimeSha256: codexRuntime?.sha256 ?? null,
   };
-  const dependencies = { repoRoot, hostPath: hostScenario === "real" ? actualHostPath : hostPath };
+  const dependencies = { repoRoot, hostPath: hostScenario === "real" ? actualHostPath : hostPath, evaluationRoot };
   return {
     root,
+    evaluationRoot,
     repoRoot,
     openclawLog,
     hostLog,
@@ -564,10 +630,17 @@ test("full fake orchestration succeeds with the exact pre-inference inventory", 
   assert.equal(result.exitCode, 2);
   assert.match(result.receipt.run.runId, /^inbox-host-[a-f0-9]{20}$/);
   assert.deepEqual(result.receipt.enabledTools, TOOL_NAMES);
-  const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
-  assert.equal(commands[0], "inspect");
-  assert.equal(commands.filter((command) => command === "inventory").length, 5);
+  const log = await fixture.readLog(fixture.openclawLog);
+  const commands = log.map((entry) => entry.command);
+  assert.deepEqual(commands.slice(0, 2), ["version", "inspect"]);
+  assert.equal(commands.filter((command) => command === "inventory").length, 10);
   assert.equal(commands.filter((command) => command === "agent").length, 5);
+  for (const entry of log.filter((item) => item.command === "agent")) {
+    const caseRoot = path.dirname(entry.runtimeDirs.HOME);
+    for (const directory of Object.values(entry.runtimeDirs)) {
+      assert.equal(path.relative(caseRoot, directory).startsWith(".."), false);
+    }
+  }
 });
 
 test("fake empty-directory and arbitrary-digest terminal success fails bundle validation", async (t) => {
@@ -609,9 +682,16 @@ for (const scenario of ["inventory_extra_tool", "inventory_missing_tool"]) {
     const fixture = await createEnvironment(t, { openclawScenario: scenario });
     await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /eight tools|exactly eight/i);
     const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
-    assert.deepEqual(commands, ["inspect", "inventory"]);
+    assert.deepEqual(commands, ["version", "inspect", "inventory"]);
   });
 }
+
+test("session-effective inventory is rechecked before the first model turn", async (t) => {
+  const fixture = await createEnvironment(t, { openclawScenario: "inventory_drift" });
+  await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /eight tools|exactly eight/i);
+  const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
+  assert.deepEqual(commands, ["version", "inspect", "inventory", "inventory"]);
+});
 
 test("runtime provenance rejects a symlinked binary and version-mismatched provider plugin", async (t) => {
   const symlinkFixture = await createEnvironment(t);
@@ -639,12 +719,63 @@ test("runtime provenance rejects a symlinked binary and version-mismatched provi
   );
 });
 
-test("runtime provenance rejects a bad trusted pin before inspection or credentials", async (t) => {
-  const fixture = await createEnvironment(t, { model: "openai/fake-model" });
+test("a bad OpenClaw pin prevents execution of even the fake version command", async (t) => {
+  const fixture = await createEnvironment(t, { openclawScenario: "version_timeout" });
   await assert.rejects(
-    () => runBridge({ ...fixture.options, expectedProviderRuntimeSha256: "0".repeat(64) }, fixture.dependencies),
+    () => runBridge({ ...fixture.options, expectedOpenClawRuntimeSha256: "0".repeat(64) }, fixture.dependencies),
     /pin mismatch/i,
   );
+  assert.deepEqual(await fixture.readLog(fixture.openclawLog), []);
+});
+
+test("bad provider and Codex pins reject before OpenClaw execution or credentials", async (t) => {
+  const providerFixture = await createEnvironment(t, { model: "openai/fake-model" });
+  await assert.rejects(
+    () => runBridge({ ...providerFixture.options, expectedProviderRuntimeSha256: "0".repeat(64) }, providerFixture.dependencies),
+    /pin mismatch/i,
+  );
+  assert.deepEqual(await providerFixture.readLog(providerFixture.openclawLog), []);
+
+  const codexFixture = await createEnvironment(t, { model: "openai/fake-model" });
+  await assert.rejects(
+    () => runBridge({ ...codexFixture.options, expectedCodexRuntimeSha256: "0".repeat(64) }, codexFixture.dependencies),
+    /pin mismatch/i,
+  );
+  assert.deepEqual(await codexFixture.readLog(codexFixture.openclawLog), []);
+});
+
+test("reported CLI version must match the verified runtime package version", async (t) => {
+  const fixture = await createEnvironment(t, { openclawScenario: "version_mismatch" });
+  await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /reported CLI version.*verified package version/i);
+  assert.deepEqual((await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command), ["version"]);
+});
+
+test("standalone inspection authenticates pins and labels plugin-owned and session-effective inventories", async (t) => {
+  const fixture = await createEnvironment(t);
+  await chmod(fixture.options.openclawBin, 0o600);
+  const { stdout } = await execFileAsync(process.execPath, [
+    inspectRuntimePath,
+    "--model", fixture.options.model,
+    "--openclaw-bin", fixture.options.openclawBin,
+    "--expected-openclaw-runtime-sha256", fixture.options.expectedOpenClawRuntimeSha256,
+    "--expected-provider-runtime-sha256", fixture.options.expectedProviderRuntimeSha256,
+  ]);
+  const report = JSON.parse(stdout);
+  assert.equal(report.openclawVersion, VERSION);
+  assert.deepEqual(report.pluginOwnedRegistrations.toolNames, TOOL_NAMES);
+  assert.deepEqual(report.sessionEffectiveModelToolInventory.toolNames, TOOL_NAMES);
+  assert.deepEqual((await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command), ["version", "inspect", "inventory"]);
+});
+
+test("standalone inspection rejects a bad pin before executing OpenClaw", async (t) => {
+  const fixture = await createEnvironment(t);
+  await assert.rejects(() => execFileAsync(process.execPath, [
+    inspectRuntimePath,
+    "--model", fixture.options.model,
+    "--openclaw-bin", fixture.options.openclawBin,
+    "--expected-openclaw-runtime-sha256", "0".repeat(64),
+    "--expected-provider-runtime-sha256", fixture.options.expectedProviderRuntimeSha256,
+  ]), /pin mismatch/i);
   assert.deepEqual(await fixture.readLog(fixture.openclawLog), []);
 });
 
@@ -698,6 +829,10 @@ test("authenticated orchestration copies one profile at 0600 and deletes it desp
   assert.equal(result.receipt.isolated.credentialProfileCountPerCase, 1);
   assert.equal(result.receipt.isolated.temporaryAuthRemoved, true);
   const log = await fixture.readLog(fixture.openclawLog);
+  const inventories = log.filter((entry) => entry.command === "inventory");
+  for (const [index, inventory] of inventories.entries()) {
+    assert.equal(inventory.authPresent, index % 2 === 1);
+  }
   const observation = log.find((entry) => entry.command === "auth_observation");
   assert.deepEqual(observation.profiles, ["openai:default"]);
   assert.equal(observation.mode, 0o600);
@@ -712,8 +847,7 @@ test("authenticated orchestration copies one profile at 0600 and deletes it desp
     assert.equal(existsSync(entry.state), false);
     for (const derivedPath of entry.derivedPaths) assert.equal(existsSync(derivedPath), false);
   }
-  const keptRoot = observation.authPath.slice(0, observation.authPath.indexOf("/case-001/") + "/case-001".length);
-  t.after(() => rm(path.dirname(keptRoot), { recursive: true, force: true }));
+  assert.equal(existsSync(fixture.evaluationRoot), false);
 });
 
 test("authenticated orchestration rejects missing and ambiguous selected-provider profiles", async (t) => {
@@ -732,7 +866,7 @@ test("authenticated orchestration rejects missing and ambiguous selected-provide
       /exactly one openai profile/i,
     );
     const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
-    assert.deepEqual(commands, ["inspect"]);
+    assert.deepEqual(commands, ["version", "inspect", "inventory"]);
   }
 });
 
@@ -745,7 +879,7 @@ test("credential-bearing HOME and state are deleted after an OpenClaw crash desp
   await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /agent failed/i);
   const derived = (await fixture.readLog(fixture.openclawLog)).find((entry) => entry.command === "derived_credentials");
   assert.ok(derived);
-  t.after(() => rm(path.dirname(path.dirname(derived.home)), { recursive: true, force: true }));
+  assert.equal(existsSync(fixture.evaluationRoot), false);
   assert.equal(existsSync(derived.home), false);
   assert.equal(existsSync(derived.state), false);
   for (const derivedPath of derived.derivedPaths) assert.equal(existsSync(derivedPath), false);
@@ -753,8 +887,6 @@ test("credential-bearing HOME and state are deleted after an OpenClaw crash desp
 
 test("auth snapshot construction failure cannot retain credential state with keep-temp", async (t) => {
   const fixture = await createEnvironment(t, { model: "openai/fake-model", keepTemp: true });
-  const tempRoot = await realpath(tmpdir());
-  const before = new Set(await readdir(tempRoot));
   const databasePath = path.join(fixture.options.authSourceAgentDir, "openclaw-agent.sqlite");
   const db = new DatabaseSync(databasePath);
   const row = db.prepare("SELECT store_json FROM auth_profile_store WHERE store_key = 'primary'").get();
@@ -763,17 +895,18 @@ test("auth snapshot construction failure cannot retain credential state with kee
   db.prepare("UPDATE auth_profile_store SET store_json = ? WHERE store_key = 'primary'").run(JSON.stringify(store));
   db.close();
   await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /exactly one openai profile/i);
-  const retained = (await readdir(tempRoot)).filter((name) => (
-    name.startsWith("clawbotomy-openclaw-")
-    && !name.startsWith("clawbotomy-openclaw-orchestration-")
-    && !before.has(name)
-  ));
-  assert.equal(retained.length, 1);
-  const evaluationRoot = path.join(tempRoot, retained[0]);
-  t.after(() => rm(evaluationRoot, { recursive: true, force: true }));
-  assert.equal(existsSync(path.join(evaluationRoot, "case-001", "home")), false);
-  assert.equal(existsSync(path.join(evaluationRoot, "case-001", "state")), false);
+  assert.equal(existsSync(fixture.evaluationRoot), false);
 });
+
+for (const hostScenario of ["trailing_frame", "truncated_trailing_bytes"]) {
+  test(`${hostScenario} after run_complete fails closed with no receipt`, async (t) => {
+    const fixture = await createEnvironment(t, { hostScenario });
+    const result = await runBridgeSubprocess(fixture.options, fixture.dependencies);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /trailing frame|ended without LF/i);
+    assert.equal(existsSync(path.join(fixture.repoRoot, ".clawbotomy", "openclaw-bridge-receipts")), false);
+  });
+}
 
 test("silent version and post-run host processes time out with no receipt", async (t) => {
   const versionFixture = await createEnvironment(t, { openclawScenario: "version_timeout" });

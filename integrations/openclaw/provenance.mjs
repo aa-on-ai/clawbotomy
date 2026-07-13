@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, rmSync } from "node:fs";
+import { chmodSync, constants, existsSync, rmSync } from "node:fs";
 import {
   chmod,
   lstat,
   mkdir,
+  open,
   readFile,
   readlink,
   readdir,
@@ -21,7 +22,10 @@ import {
 } from "./protocol.mjs";
 
 const MAX_RUNTIME_FILES = 100_000;
+const MAX_RUNTIME_FILE_BYTES = 256 * 1024 * 1024;
 const MAX_RUNTIME_BYTES = 1024 * 1024 * 1024;
+const RUNTIME_HASH_CHUNK_BYTES = 64 * 1024;
+const RUNTIME_MANIFEST_SCHEMA = "clawbotomy.runtime-manifest/v2";
 const EXPECTED_PACKAGES = Object.freeze({
   openai: "@openclaw/openai-provider",
   codex: "@openclaw/codex",
@@ -58,15 +62,63 @@ function assertInside(root, candidate, label) {
 
 export async function hashRegularFile(filePath, label = "file") {
   const canonical = await canonicalPath(filePath, label, "file");
-  return { path: canonical, sha256: sha256(await readFile(canonical)) };
+  const expected = await lstat(canonical);
+  const handle = await open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const before = await handle.stat();
+    if (!before.isFile() || !sameFileIdentity(expected, before)) throw new Error(`${label} changed before hashing: ${canonical}`);
+    if (!Number.isSafeInteger(before.size) || before.size < 0 || before.size > MAX_RUNTIME_FILE_BYTES) {
+      throw new Error(`${label} exceeds ${MAX_RUNTIME_FILE_BYTES} bytes: ${canonical}`);
+    }
+    const hash = createHash("sha256");
+    const buffer = Buffer.allocUnsafe(RUNTIME_HASH_CHUNK_BYTES);
+    let position = 0;
+    while (position < before.size) {
+      const length = Math.min(buffer.length, before.size - position);
+      const { bytesRead } = await handle.read(buffer, 0, length, position);
+      if (bytesRead <= 0) throw new Error(`${label} ended during hashing: ${canonical}`);
+      hash.update(buffer.subarray(0, bytesRead));
+      position += bytesRead;
+    }
+    const after = await handle.stat();
+    const current = await lstat(canonical);
+    if (
+      !sameFileIdentity(before, after)
+      || !sameFileIdentity(after, current)
+      || after.size !== before.size
+      || after.mtimeMs !== before.mtimeMs
+      || after.ctimeMs !== before.ctimeMs
+      || !current.isFile()
+    ) {
+      throw new Error(`${label} changed during hashing: ${canonical}`);
+    }
+    return { path: canonical, sha256: hash.digest("hex") };
+  } finally {
+    await handle.close();
+  }
+}
+
+function compareEntryNames(left, right) {
+  if (left.name < right.name) return -1;
+  if (left.name > right.name) return 1;
+  return 0;
+}
+
+function runtimeRelativePath(root, candidate) {
+  return path.relative(root, candidate).split(path.sep).join("/");
+}
+
+function sameFileIdentity(left, right) {
+  return left.dev === right.dev && left.ino === right.ino;
 }
 
 async function collectRuntimeFiles(root, directory, files, allowedExternalSymlinks) {
   const entries = await readdir(directory, { withFileTypes: true });
-  entries.sort((left, right) => left.name.localeCompare(right.name));
+  entries.sort(compareEntryNames);
   for (const entry of entries) {
     const candidate = path.join(directory, entry.name);
-    if (entry.isSymbolicLink()) {
+    const initialStats = await lstat(candidate);
+    if (initialStats.isSymbolicLink()) {
       const link = await readlink(candidate);
       const target = path.resolve(path.dirname(candidate), link);
       const relativeTarget = path.relative(root, target);
@@ -83,17 +135,74 @@ async function collectRuntimeFiles(root, directory, files, allowedExternalSymlin
       if (!targetStats || (!targetStats.isFile() && !targetStats.isDirectory())) {
         throw new Error(`Runtime symbolic link must target a verified file or directory: ${candidate}`);
       }
-      files.push({ path: candidate, kind: "symlink", target: recordedTarget });
+      const finalStats = await lstat(candidate);
+      if (!finalStats.isSymbolicLink() || !sameFileIdentity(initialStats, finalStats)) {
+        throw new Error(`Runtime symbolic link changed during verification: ${candidate}`);
+      }
+      files.push({ path: candidate, kind: "symlink", link, targetIdentity: recordedTarget, stats: initialStats });
       if (files.length > MAX_RUNTIME_FILES) throw new Error(`Plugin runtime contains more than ${MAX_RUNTIME_FILES} files`);
       continue;
     }
-    if (entry.isDirectory()) {
+    if (initialStats.isDirectory()) {
       await collectRuntimeFiles(root, candidate, files, allowedExternalSymlinks);
+      const finalStats = await lstat(candidate);
+      if (!finalStats.isDirectory() || !sameFileIdentity(initialStats, finalStats)) {
+        throw new Error(`Runtime directory changed during verification: ${candidate}`);
+      }
       continue;
     }
-    if (!entry.isFile()) throw new Error(`Plugin runtime contains an unsupported filesystem entry: ${candidate}`);
-    files.push({ path: candidate, kind: "file" });
+    if (!initialStats.isFile()) throw new Error(`Plugin runtime contains an unsupported filesystem entry: ${candidate}`);
+    files.push({ path: candidate, kind: "file", stats: initialStats });
     if (files.length > MAX_RUNTIME_FILES) throw new Error(`Plugin runtime contains more than ${MAX_RUNTIME_FILES} files`);
+  }
+}
+
+function updateLengthPrefixedRecord(hash, record) {
+  const bytes = Buffer.from(stableJson(record), "utf8");
+  const prefix = Buffer.alloc(8);
+  prefix.writeBigUInt64BE(BigInt(bytes.length));
+  hash.update(prefix);
+  hash.update(bytes);
+}
+
+async function hashRuntimeFile(entry, label, totalBytes) {
+  const handle = await open(entry.path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const before = await handle.stat();
+    if (!before.isFile() || !sameFileIdentity(entry.stats, before)) {
+      throw new Error(`${label} file changed before hashing: ${entry.path}`);
+    }
+    if (!Number.isSafeInteger(before.size) || before.size < 0 || before.size > MAX_RUNTIME_FILE_BYTES) {
+      throw new Error(`${label} file exceeds ${MAX_RUNTIME_FILE_BYTES} bytes: ${entry.path}`);
+    }
+    if (totalBytes + before.size > MAX_RUNTIME_BYTES) {
+      throw new Error(`${label} exceeds ${MAX_RUNTIME_BYTES} verified bytes`);
+    }
+    const contentHash = createHash("sha256");
+    const buffer = Buffer.allocUnsafe(RUNTIME_HASH_CHUNK_BYTES);
+    let position = 0;
+    while (position < before.size) {
+      const length = Math.min(buffer.length, before.size - position);
+      const { bytesRead } = await handle.read(buffer, 0, length, position);
+      if (bytesRead <= 0) throw new Error(`${label} file ended during hashing: ${entry.path}`);
+      contentHash.update(buffer.subarray(0, bytesRead));
+      position += bytesRead;
+    }
+    const after = await handle.stat();
+    const current = await lstat(entry.path);
+    if (
+      !sameFileIdentity(before, after)
+      || !sameFileIdentity(after, current)
+      || after.size !== before.size
+      || after.mtimeMs !== before.mtimeMs
+      || after.ctimeMs !== before.ctimeMs
+      || !current.isFile()
+    ) {
+      throw new Error(`${label} file changed during hashing: ${entry.path}`);
+    }
+    return { byteLength: before.size, sha256: contentHash.digest("hex") };
+  } finally {
+    await handle.close();
   }
 }
 
@@ -102,23 +211,57 @@ export async function hashRuntimeDirectory(directory, label = "runtime", { allow
   const files = [];
   await collectRuntimeFiles(canonical, canonical, files, allowedExternalSymlinks);
   const hash = createHash("sha256");
+  hash.update(`${RUNTIME_MANIFEST_SCHEMA}\n`, "utf8");
   let totalBytes = 0;
   for (const entry of files) {
-    const bytes = entry.kind === "file" ? await readFile(entry.path) : Buffer.from(entry.target, "utf8");
-    totalBytes += bytes.length;
-    if (totalBytes > MAX_RUNTIME_BYTES) throw new Error(`${label} exceeds ${MAX_RUNTIME_BYTES} verified bytes`);
-    hash.update(path.relative(canonical, entry.path));
-    hash.update("\0");
-    hash.update(entry.kind);
-    hash.update("\0");
-    hash.update(bytes);
-    hash.update("\0");
+    let record;
+    if (entry.kind === "file") {
+      const content = await hashRuntimeFile(entry, label, totalBytes);
+      totalBytes += content.byteLength;
+      record = {
+        path: runtimeRelativePath(canonical, entry.path),
+        kind: "file",
+        byteLength: content.byteLength,
+        sha256: content.sha256,
+        symlinkTarget: null,
+      };
+    } else {
+      const byteLength = Buffer.byteLength(entry.link, "utf8");
+      if (byteLength > MAX_RUNTIME_FILE_BYTES) {
+        throw new Error(`${label} symbolic-link target exceeds ${MAX_RUNTIME_FILE_BYTES} bytes: ${entry.path}`);
+      }
+      if (totalBytes + byteLength > MAX_RUNTIME_BYTES) {
+        throw new Error(`${label} exceeds ${MAX_RUNTIME_BYTES} verified bytes`);
+      }
+      const current = await lstat(entry.path);
+      const link = await readlink(entry.path);
+      const finalStats = await lstat(entry.path);
+      if (
+        !current.isSymbolicLink()
+        || !finalStats.isSymbolicLink()
+        || !sameFileIdentity(entry.stats, current)
+        || !sameFileIdentity(current, finalStats)
+        || link !== entry.link
+      ) {
+        throw new Error(`${label} symbolic link changed during hashing: ${entry.path}`);
+      }
+      totalBytes += byteLength;
+      record = {
+        path: runtimeRelativePath(canonical, entry.path),
+        kind: "symlink",
+        byteLength,
+        sha256: sha256(entry.link),
+        symlinkTarget: entry.targetIdentity,
+      };
+    }
+    updateLengthPrefixedRecord(hash, record);
   }
   return {
     path: canonical,
     sha256: hash.digest("hex"),
     fileCount: files.length,
     bytes: totalBytes,
+    manifestSchema: RUNTIME_MANIFEST_SCHEMA,
   };
 }
 
@@ -256,12 +399,12 @@ async function verifyPluginEntry(entry, {
     runtimeSha256: runtime.sha256,
     runtimeFileCount: runtime.fileCount,
     runtimeBytes: runtime.bytes,
+    runtimeManifestSchema: runtime.manifestSchema,
   };
 }
 
 export async function loadRuntimeProvenance({
   openclawBin,
-  openclawVersion,
   model,
   pluginRegistrySourceStateDir,
   expectedOpenClawRuntimeSha256,
@@ -273,21 +416,27 @@ export async function loadRuntimeProvenance({
   if (binary.path !== path.join(openclawRoot, "openclaw.mjs")) {
     throw new Error("OpenClaw binary must be the exact canonical openclaw.mjs entrypoint");
   }
-  const openclawPackage = parseStrictJson(
-    await readFile(path.join(openclawRoot, "package.json"), "utf8"),
-    "OpenClaw package.json",
-    { maxValues: 250_000, maxDepth: 128 },
-  );
-  if (openclawPackage.name !== "openclaw" || openclawPackage.version !== openclawVersion) {
-    throw new Error("OpenClaw runtime root package identity does not match the active binary version");
-  }
-  const openclawRuntime = await hashRuntimeDirectory(openclawRoot, "complete OpenClaw runtime");
   if (!/^[a-f0-9]{64}$/.test(expectedOpenClawRuntimeSha256 || "")) {
     throw new Error("An expected complete OpenClaw runtime SHA-256 pin is required");
   }
+  const openclawRuntime = await hashRuntimeDirectory(openclawRoot, "complete OpenClaw runtime");
   if (openclawRuntime.sha256 !== expectedOpenClawRuntimeSha256) {
     throw new Error("Complete OpenClaw runtime SHA-256 pin mismatch");
   }
+  const packageJsonPath = path.join(openclawRoot, "package.json");
+  const openclawPackageIdentity = await hashRegularFile(packageJsonPath, "OpenClaw package.json");
+  if (openclawPackageIdentity.path !== packageJsonPath) {
+    throw new Error("OpenClaw package.json must be the exact canonical runtime-root path");
+  }
+  const openclawPackage = parseStrictJson(
+    await readFile(openclawPackageIdentity.path, "utf8"),
+    "OpenClaw package.json",
+    { maxValues: 250_000, maxDepth: 128 },
+  );
+  if (openclawPackage.name !== "openclaw" || typeof openclawPackage.version !== "string" || !openclawPackage.version) {
+    throw new Error("OpenClaw runtime root package identity is invalid");
+  }
+  const openclawVersion = openclawPackage.version;
   const { provider } = parseModel(model);
   let expectedPluginIds;
   let registrySnapshot = null;
@@ -363,6 +512,8 @@ export async function loadRuntimeProvenance({
         runtimeSha256: openclawRuntime.sha256,
         runtimeFileCount: openclawRuntime.fileCount,
         runtimeBytes: openclawRuntime.bytes,
+        runtimeManifestSchema: openclawRuntime.manifestSchema,
+        packageJsonSha256: openclawPackageIdentity.sha256,
       },
       plugins: identities,
     },

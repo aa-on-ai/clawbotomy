@@ -1,120 +1,90 @@
 #!/usr/bin/env node
 
-import { once } from "node:events";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { PLUGIN_ID, TOOL_NAMES, createOpenClawConfig } from "./bridge.mjs";
-import { parseStrictJson } from "./protocol.mjs";
-import { integrationPluginIdentity, validateRuntimeInspection } from "./provenance.mjs";
+import {
+  getOpenClawVersion,
+  inspectEffectiveInventory,
+  inspectRuntime,
+  writeCaseState,
+} from "./bridge.mjs";
+import {
+  integrationPluginIdentity,
+  loadRuntimeProvenance,
+} from "./provenance.mjs";
 
-const MAX_OUTPUT_BYTES = 8 * 1024 * 1024;
-const INSPECTION_TIMEOUT_MS = 30_000;
-const EXIT_TIMEOUT_MS = 5_000;
-const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
 const integrationRoot = path.dirname(fileURLToPath(import.meta.url));
-const args = process.argv.slice(2);
-let openclawBin = process.env.OPENCLAW_BIN || null;
-for (let index = 0; index < args.length; index += 1) {
-  if (args[index] !== "--openclaw-bin" || !args[index + 1]) throw new Error(`Unknown or incomplete argument: ${args[index]}`);
-  openclawBin = args[index + 1];
-  index += 1;
-}
-if (!openclawBin) throw new Error("--openclaw-bin or OPENCLAW_BIN is required");
-const root = await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-inspect-"));
-const home = path.join(root, "home");
-const state = path.join(root, "state");
-const workspace = path.join(root, "workspace");
-await Promise.all([
-  mkdir(home, { mode: 0o700 }),
-  mkdir(state, { mode: 0o700 }),
-  mkdir(workspace, { mode: 0o700 }),
-]);
-const configPath = path.join(state, "openclaw.json");
-await writeFile(
-  configPath,
-  `${JSON.stringify(createOpenClawConfig({ model: "ollama/qwen3:1.7b", workspace }), null, 2)}\n`,
-  { mode: 0o600 },
-);
 
-let child = null;
-try {
-  child = spawn(openclawBin, ["plugins", "inspect", PLUGIN_ID, "--runtime", "--json"], {
-    cwd: workspace,
-    env: {
-      PATH: process.env.PATH || "/usr/bin:/bin:/usr/sbin:/sbin",
-      HOME: home,
-      OPENCLAW_HOME: home,
-      OPENCLAW_STATE_DIR: state,
-      OPENCLAW_CONFIG_PATH: configPath,
-      OPENCLAW_EXEC_SHELL_SNAPSHOT: "0",
-      OLLAMA_API_KEY: "ollama-local",
-    },
-    shell: false,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  const stdoutChunks = [];
-  const stderrChunks = [];
-  let stdoutBytes = 0;
-  let stderrBytes = 0;
-  let outputFailure = null;
-  const collect = (target, label) => (chunk) => {
-    if (outputFailure) return;
-    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    const current = label === "stdout" ? stdoutBytes : stderrBytes;
-    if (current + bytes.length > MAX_OUTPUT_BYTES) {
-      outputFailure = new Error(`Runtime inspection ${label} exceeded ${MAX_OUTPUT_BYTES} bytes`);
-      child.kill("SIGTERM");
-      return;
-    }
-    target.push(bytes);
-    if (label === "stdout") stdoutBytes += bytes.length;
-    else stderrBytes += bytes.length;
+function parseArgs(argv) {
+  const options = {
+    model: process.env.OPENCLAW_INSPECT_MODEL || "ollama/qwen3:1.7b",
+    openclawBin: process.env.OPENCLAW_BIN || null,
+    pluginRegistrySourceStateDir: process.env.OPENCLAW_PLUGIN_REGISTRY_SOURCE_STATE_DIR || null,
+    expectedOpenClawRuntimeSha256: process.env.OPENCLAW_RUNTIME_SHA256 || null,
+    expectedProviderRuntimeSha256: process.env.OPENCLAW_PROVIDER_RUNTIME_SHA256 || null,
+    expectedCodexRuntimeSha256: process.env.OPENCLAW_CODEX_RUNTIME_SHA256 || null,
   };
-  child.stdout.on("data", collect(stdoutChunks, "stdout"));
-  child.stderr.on("data", collect(stderrChunks, "stderr"));
-  let timer = null;
-  const [code, signal] = await Promise.race([
-    once(child, "close"),
-    new Promise((resolve, reject) => {
-      timer = setTimeout(() => {
-        child.kill("SIGTERM");
-        reject(new Error("Runtime inspection timed out"));
-      }, INSPECTION_TIMEOUT_MS);
-      timer.unref();
-    }),
-  ]).finally(() => clearTimeout(timer));
-  if (outputFailure) throw outputFailure;
-  const stderr = Buffer.concat(stderrChunks, stderrBytes).toString("utf8");
-  if (code !== 0 || signal !== null) throw new Error(`Runtime inspection failed: ${stderr.trim().slice(0, 2_000)}`);
-  const inspection = parseStrictJson(
-    Buffer.concat(stdoutChunks, stdoutBytes).toString("utf8"),
-    "OpenClaw runtime inspection",
-    { maxValues: 250_000, maxDepth: 128 },
-  );
-  const identity = await validateRuntimeInspection(inspection, {
-    integrationIdentity: await integrationPluginIdentity(integrationRoot),
-    toolNames: TOOL_NAMES,
-    cliCommand: EFFECTIVE_INVENTORY_COMMAND,
-  });
-  process.stdout.write(`${JSON.stringify({ pluginId: PLUGIN_ID, toolNames: TOOL_NAMES, identity }, null, 2)}\n`);
-} finally {
-  if (child && child.exitCode === null && child.signalCode === null) {
-    child.kill("SIGTERM");
-    let timer = null;
-    await Promise.race([
-      once(child, "close").catch(() => undefined),
-      new Promise((resolve) => {
-        timer = setTimeout(() => {
-          if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
-          resolve();
-        }, EXIT_TIMEOUT_MS);
-        timer.unref();
-      }),
-    ]).finally(() => clearTimeout(timer));
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value === "--model") options.model = argv[++index];
+    else if (value === "--openclaw-bin") options.openclawBin = argv[++index];
+    else if (value === "--plugin-registry-source-state-dir") options.pluginRegistrySourceStateDir = argv[++index];
+    else if (value === "--expected-openclaw-runtime-sha256") options.expectedOpenClawRuntimeSha256 = argv[++index];
+    else if (value === "--expected-provider-runtime-sha256") options.expectedProviderRuntimeSha256 = argv[++index];
+    else if (value === "--expected-codex-runtime-sha256") options.expectedCodexRuntimeSha256 = argv[++index];
+    else throw new Error(`Unknown argument: ${value}`);
   }
-  await rm(root, { recursive: true, force: true });
+  if (!options.openclawBin) throw new Error("--openclaw-bin or OPENCLAW_BIN is required");
+  if (!options.expectedOpenClawRuntimeSha256 || !options.expectedProviderRuntimeSha256) {
+    throw new Error("Trusted OpenClaw and provider runtime SHA-256 pins are required");
+  }
+  if (options.model.startsWith("openai/") && !options.expectedCodexRuntimeSha256) {
+    throw new Error("openai/* inspection requires a trusted Codex runtime SHA-256 pin");
+  }
+  return options;
 }
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const runtimeProvenance = await loadRuntimeProvenance(options);
+  const openclawBin = runtimeProvenance.identity.openclaw.path;
+  const openclawVersion = await getOpenClawVersion(openclawBin, runtimeProvenance.identity.openclaw.version);
+  const integrationIdentity = await integrationPluginIdentity(integrationRoot);
+  const pluginRegistrations = await inspectRuntime({
+    model: options.model,
+    openclawBin,
+    runtimeProvenance,
+    integrationIdentity,
+  });
+
+  const root = await realpath(await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-inspect-effective-")));
+  try {
+    const caseState = await writeCaseState(root, {
+      model: options.model,
+      runtimeProvenance,
+    });
+    const sessionEffectiveInventory = await inspectEffectiveInventory({
+      caseState,
+      model: options.model,
+      openclawBin,
+      sessionKey: `agent:clawbotomy-eval:inspection-${randomUUID()}`,
+    });
+    process.stdout.write(`${JSON.stringify({
+      openclawVersion,
+      runtime: runtimeProvenance.identity,
+      pluginOwnedRegistrations: pluginRegistrations,
+      sessionEffectiveModelToolInventory: sessionEffectiveInventory,
+    }, null, 2)}\n`);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+}
+
+main().catch((error) => {
+  process.stderr.write(`OpenClaw runtime inspection failure: ${error?.stack || error?.message || error}\n`);
+  process.exitCode = 1;
+});

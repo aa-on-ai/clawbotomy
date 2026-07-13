@@ -8,6 +8,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  realpath,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -38,7 +39,6 @@ import {
   copyInferenceAuthStore,
   copyPluginRegistrySnapshot,
   hashJson,
-  hashRegularFile,
   integrationPluginIdentity,
   loadRuntimeProvenance,
   removeCredentialSnapshot,
@@ -158,7 +158,7 @@ function safeBaseEnvironment() {
 function cleanVersion(raw) {
   const match = raw.match(/OpenClaw\s+([a-z0-9._-]+)/i);
   if (!match) throw new Error(`Could not parse OpenClaw version from: ${sanitizeDiagnostic(raw)}`);
-  return match[1].toLowerCase();
+  return match[1];
 }
 
 function sanitizeDiagnostic(raw, maximum = 4_000) {
@@ -334,28 +334,21 @@ function createOpenClawConfig({ model, workspace, hasTrustedCodexRegistry = fals
 
 async function writeCaseState(root, {
   model,
-  authSourceAgentDir,
   runtimeProvenance,
-  includeAuth,
 }) {
   const home = path.join(root, "home");
   const state = path.join(root, "state");
   const workspace = path.join(root, "workspace");
-  await Promise.all([
-    mkdir(home, { recursive: true, mode: 0o700 }),
-    mkdir(state, { recursive: true, mode: 0o700 }),
-    mkdir(workspace, { recursive: true, mode: 0o700 }),
-  ]);
-  let authSnapshot = null;
+  const temp = path.join(root, "tmp");
+  const xdgCache = path.join(root, "xdg", "cache");
+  const xdgConfig = path.join(root, "xdg", "config");
+  const xdgData = path.join(root, "xdg", "data");
+  const xdgState = path.join(root, "xdg", "state");
+  const writableDirectories = [home, state, workspace, temp, xdgCache, xdgConfig, xdgData, xdgState];
+  await Promise.all(writableDirectories.map((directory) => mkdir(directory, { recursive: true, mode: 0o700 })));
   try {
     if (model.startsWith("openai/")) {
-      if (!authSourceAgentDir && includeAuth) throw new Error("openai/* evaluation requires --auth-source-agent-dir");
       if (!runtimeProvenance.registrySnapshot) throw new Error("openai/* evaluation requires a verified plugin registry snapshot");
-      if (includeAuth) {
-        const targetAgentDir = path.join(state, "agents", "clawbotomy-eval", "agent");
-        await mkdir(targetAgentDir, { recursive: true, mode: 0o700 });
-        authSnapshot = copyInferenceAuthStore(path.resolve(authSourceAgentDir), targetAgentDir, model);
-      }
       await copyPluginRegistrySnapshot(runtimeProvenance.registrySnapshot, state);
     }
     const configPath = path.join(state, "openclaw.json");
@@ -365,18 +358,49 @@ async function writeCaseState(root, {
       hasTrustedCodexRegistry: model.startsWith("openai/"),
     });
     await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
-    return { authSnapshot, config, configPath, home, root, state, workspace };
+    return {
+      authSnapshot: null,
+      config,
+      configPath,
+      home,
+      root,
+      state,
+      temp,
+      workspace,
+      writableDirectories,
+      xdgCache,
+      xdgConfig,
+      xdgData,
+      xdgState,
+      credentialBearing: model.startsWith("openai/"),
+    };
   } catch (error) {
-    await removeCredentialSnapshot(authSnapshot);
-    await removeCredentialTree({ home, state });
+    await removeCredentialTree({ credentialBearing: model.startsWith("openai/"), home, root, state });
     throw error;
   }
+}
+
+async function attachInferenceAuth(caseState, { authSourceAgentDir, model }) {
+  if (!model.startsWith("openai/")) return null;
+  if (!authSourceAgentDir) throw new Error("openai/* evaluation requires --auth-source-agent-dir");
+  const targetAgentDir = path.join(caseState.state, "agents", "clawbotomy-eval", "agent");
+  await mkdir(targetAgentDir, { recursive: true, mode: 0o700 });
+  const snapshot = copyInferenceAuthStore(path.resolve(authSourceAgentDir), targetAgentDir, model);
+  caseState.authSnapshot = snapshot;
+  return snapshot;
 }
 
 function baseCaseEnvironment(caseState) {
   return {
     ...safeBaseEnvironment(),
     HOME: caseState.home,
+    TMPDIR: caseState.temp,
+    TMP: caseState.temp,
+    TEMP: caseState.temp,
+    XDG_CACHE_HOME: caseState.xdgCache,
+    XDG_CONFIG_HOME: caseState.xdgConfig,
+    XDG_DATA_HOME: caseState.xdgData,
+    XDG_STATE_HOME: caseState.xdgState,
     OPENCLAW_HOME: caseState.home,
     OPENCLAW_STATE_DIR: caseState.state,
     OPENCLAW_CONFIG_PATH: caseState.configPath,
@@ -457,6 +481,10 @@ async function boundedCleanup(promise, label) {
 
 async function removeCredentialTree(caseState) {
   if (!caseState) return;
+  if (caseState.credentialBearing && caseState.root) {
+    await boundedCleanup(rm(caseState.root, { recursive: true, force: true }), "Credential-bearing per-case root removal");
+    return;
+  }
   await boundedCleanup(Promise.all([
     rm(caseState.home, { recursive: true, force: true }),
     rm(caseState.state, { recursive: true, force: true }),
@@ -866,7 +894,7 @@ async function runOpenClawTurn({
     "--timeout", String(OPENCLAW_TIMEOUT_SECONDS),
     "--message", message,
   ];
-  const child = spawn(openclawBin, args, {
+  const child = spawn(process.execPath, [openclawBin, ...args], {
     cwd: caseState.workspace,
     env: agentEnvironment(caseState, { socketPath, capability, caseToken, openclawSessionId }),
     shell: false,
@@ -925,8 +953,8 @@ async function runOpenClawTurn({
   }
 }
 
-async function getOpenClawVersion(openclawBin) {
-  const child = spawn(openclawBin, ["--version"], {
+async function getOpenClawVersion(openclawBin, expectedVersion) {
+  const child = spawn(process.execPath, [openclawBin, "--version"], {
     env: safeBaseEnvironment(),
     shell: false,
     stdio: ["ignore", "pipe", "pipe"],
@@ -940,7 +968,11 @@ async function getOpenClawVersion(openclawBin) {
   try {
     const outcome = await Promise.race([exit, failure.promise, timeout.promise]);
     if (outcome.code !== 0 || outcome.signal !== null) throw new Error(`OpenClaw version probe failed: ${sanitizeDiagnostic(stderr())}`);
-    return cleanVersion(stdout());
+    const reportedVersion = cleanVersion(stdout());
+    if (reportedVersion !== expectedVersion) {
+      throw new Error(`OpenClaw reported CLI version ${reportedVersion} does not match verified package version ${expectedVersion}`);
+    }
+    return reportedVersion;
   } finally {
     timeout.cancel();
     await settleChild(child, exit, "OpenClaw version probe process");
@@ -953,17 +985,15 @@ async function inspectRuntime({
   runtimeProvenance,
   integrationIdentity,
 }) {
-  const root = await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-inspect-"));
+  const root = await realpath(await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-inspect-")));
   let child = null;
   let exit = null;
   try {
     const caseState = await writeCaseState(root, {
       model,
-      authSourceAgentDir: null,
       runtimeProvenance,
-      includeAuth: false,
     });
-    child = spawn(openclawBin, ["plugins", "inspect", PLUGIN_ID, "--runtime", "--json"], {
+    child = spawn(process.execPath, [openclawBin, "plugins", "inspect", PLUGIN_ID, "--runtime", "--json"], {
       cwd: caseState.workspace,
       env: baseCaseEnvironment(caseState),
       shell: false,
@@ -1069,7 +1099,7 @@ function validateEffectiveInventory(document, { model, sessionKey, workspace }) 
 }
 
 async function inspectEffectiveInventory({ caseState, model, openclawBin, sessionKey }) {
-  const child = spawn(openclawBin, [
+  const child = spawn(process.execPath, [openclawBin,
     EFFECTIVE_INVENTORY_COMMAND,
     "--agent", "clawbotomy-eval",
     "--session-key", sessionKey,
@@ -1194,18 +1224,16 @@ async function validateTerminalBundle({
 async function runBridge(options, dependencies = {}) {
   const repositoryRoot = path.resolve(dependencies.repoRoot || defaultRepoRoot);
   const hostPath = path.resolve(dependencies.hostPath || path.join(repositoryRoot, "inbox", "host-index.js"));
-  const verifiedBinary = await hashRegularFile(options.openclawBin, "OpenClaw binary");
-  const openclawBin = verifiedBinary.path;
-  const openclawVersion = await getOpenClawVersion(openclawBin);
   const runtimeProvenance = await loadRuntimeProvenance({
-    openclawBin,
-    openclawVersion,
+    openclawBin: options.openclawBin,
     model: options.model,
     pluginRegistrySourceStateDir: options.pluginRegistrySourceStateDir,
     expectedOpenClawRuntimeSha256: options.expectedOpenClawRuntimeSha256,
     expectedProviderRuntimeSha256: options.expectedProviderRuntimeSha256,
     expectedCodexRuntimeSha256: options.expectedCodexRuntimeSha256,
   });
+  const openclawBin = runtimeProvenance.identity.openclaw.path;
+  const openclawVersion = await getOpenClawVersion(openclawBin, runtimeProvenance.identity.openclaw.version);
   const pluginIdentity = await integrationPluginIdentity(integrationRoot);
   const inspectionIdentity = await inspectRuntime({
     model: options.model,
@@ -1235,7 +1263,15 @@ async function runBridge(options, dependencies = {}) {
     inferenceAuthMode: options.model.startsWith("openai/") ? "single-temporary-profile" : "local-marker",
   };
   const configurationSha256 = hashJson(configDescriptor);
-  const evaluationRoot = await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-"));
+  let evaluationRootCandidate;
+  if (dependencies.evaluationRoot) {
+    evaluationRootCandidate = path.resolve(dependencies.evaluationRoot);
+    await mkdir(evaluationRootCandidate, { mode: 0o700 });
+  } else {
+    evaluationRootCandidate = await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-"));
+  }
+  const evaluationRoot = await realpath(evaluationRootCandidate);
+  const openaiEvaluation = options.model.startsWith("openai/");
   const absolutePlanPath = path.resolve(repositoryRoot, options.plan);
   const planPath = path.relative(repositoryRoot, absolutePlanPath);
   if (planPath.startsWith("..") || path.isAbsolute(planPath)) throw new Error("Plan must stay inside the Clawbotomy repository");
@@ -1309,9 +1345,7 @@ async function runBridge(options, dependencies = {}) {
       const caseRoot = path.join(evaluationRoot, `case-${String(caseIndex + 1).padStart(3, "0")}`);
       const caseState = await writeCaseState(caseRoot, {
         model: options.model,
-        authSourceAgentDir: options.authSourceAgentDir,
         runtimeProvenance,
-        includeAuth: options.model.startsWith("openai/"),
       });
       credentialStates.add(caseState);
       const openclawSessionId = randomUUID();
@@ -1321,6 +1355,10 @@ async function runBridge(options, dependencies = {}) {
         model: options.model,
         openclawBin,
         sessionKey: openclawSessionKey,
+      });
+      await attachInferenceAuth(caseState, {
+        authSourceAgentDir: options.authSourceAgentDir,
+        model: options.model,
       });
       const control = new Deferred();
       control.promise.catch(() => undefined);
@@ -1337,6 +1375,7 @@ async function runBridge(options, dependencies = {}) {
         terminalStatus: null,
         authProfileIdSha256: caseState.authSnapshot?.profileIdSha256 ?? null,
         effectiveInventory,
+        turnEffectiveInventories: [],
       };
       caseReceipts.push(receipt);
       frames.setControlHandler((frame) => {
@@ -1390,6 +1429,12 @@ async function runBridge(options, dependencies = {}) {
       try {
         for (let turn = 1; turn <= MAX_TURNS_PER_CASE; turn += 1) {
           receipt.turns = turn;
+          receipt.turnEffectiveInventories.push(await inspectEffectiveInventory({
+            caseState,
+            model: options.model,
+            openclawBin,
+            sessionKey: openclawSessionKey,
+          }));
           const result = await runOpenClawTurn({
             caseState,
             caseToken,
@@ -1500,7 +1545,7 @@ async function runBridge(options, dependencies = {}) {
       }
 
       await frames.expect("case_closed", { caseToken });
-      if (!options.keepTemp) {
+      if (openaiEvaluation || !options.keepTemp) {
         await boundedCleanup(rm(caseRoot, { recursive: true, force: true }), "Per-case tree removal");
       }
       if (stopped && gate.state !== "completed") throw new Error("Stopped case did not close its action gate");
@@ -1511,7 +1556,14 @@ async function runBridge(options, dependencies = {}) {
       stdinClosed = true;
     }
     terminalReceipt = await frames.expect("run_complete");
-    const outcome = await boundedExit(host, hostExit, "Clawbotomy post-run host", HOST_EXIT_TIMEOUT_MS);
+    const outcome = await Promise.race([
+      boundedExit(host, hostExit, "Clawbotomy post-run host", HOST_EXIT_TIMEOUT_MS),
+      hostFailure,
+    ]);
+    await frames.reader;
+    if (frames.failure) throw frames.failure;
+    if (hostDiagnosticFailure.settled) await hostDiagnosticFailure.promise;
+    if (hostPrematureExit.settled) await hostPrematureExit.promise;
     const expectedHostExit = terminalReceipt.failed > 0 ? 2 : 0;
     if (outcome.code !== expectedHostExit || outcome.signal !== null) {
       throw new Error(`Clawbotomy failed (code=${outcome.code}, signal=${outcome.signal}): ${sanitizeDiagnostic(hostStderr())}`);
@@ -1577,7 +1629,7 @@ async function runBridge(options, dependencies = {}) {
     await settleChild(activeAgent, activeAgent ? childExit(activeAgent) : null, "Active OpenClaw cleanup process");
     await settleChild(host, hostExit, "Clawbotomy host cleanup process");
     for (const caseState of credentialStates) await removeCredentialTree(caseState);
-    if (!options.keepTemp) {
+    if (openaiEvaluation || !options.keepTemp) {
       await boundedCleanup(rm(evaluationRoot, { recursive: true, force: true }), "Evaluation tree removal");
     }
   }
@@ -1605,7 +1657,11 @@ export {
   PLUGIN_ID,
   TOOL_NAMES,
   createOpenClawConfig,
+  getOpenClawVersion,
+  inspectEffectiveInventory,
+  inspectRuntime,
   parseArgs,
   parseDecision,
   runBridge,
+  writeCaseState,
 };
