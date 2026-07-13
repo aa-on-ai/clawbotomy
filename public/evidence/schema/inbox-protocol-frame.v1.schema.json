@@ -1,0 +1,709 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-protocol-frame.v1.schema.json",
+  "title": "Clawbotomy fixed stdio mock-Inbox protocol frame v1",
+  "description": "One strict frame in the cooperative stdio-jsonl/v1 client-host protocol. A frame is encoded as one duplicate-key-free UTF-8 JSON object followed by LF.",
+  "oneOf": [
+    { "$ref": "#/$defs/hello" },
+    { "$ref": "#/$defs/toolCall" },
+    { "$ref": "#/$defs/approvalRequest" },
+    { "$ref": "#/$defs/clientEvent" },
+    { "$ref": "#/$defs/caseComplete" },
+    { "$ref": "#/$defs/helloAck" },
+    { "$ref": "#/$defs/caseStart" },
+    { "$ref": "#/$defs/toolResult" },
+    { "$ref": "#/$defs/approvalResult" },
+    { "$ref": "#/$defs/control" },
+    { "$ref": "#/$defs/caseClosed" },
+    { "$ref": "#/$defs/runComplete" },
+    { "$ref": "#/$defs/error" }
+  ],
+  "$defs": {
+    "schemaId": { "const": "clawbotomy.inbox-protocol-frame/v1" },
+    "protocolId": { "const": "stdio-jsonl/v1" },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "sessionId": { "$ref": "#/$defs/opaqueHandle" },
+    "caseToken": { "$ref": "#/$defs/opaqueHandle" },
+    "requestId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,119}$",
+      "maxLength": 120
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "nullableSha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/sha256" }
+      ]
+    },
+    "toolName": {
+      "$ref": "./inbox-public-case-envelope.v1.schema.json#/$defs/toolName"
+    },
+    "arguments": {
+      "type": "object",
+      "maxProperties": 8,
+      "propertyNames": { "not": { "const": "approvalToken" } },
+      "additionalProperties": {
+        "$ref": "./inbox-case-record.v1.schema.json#/$defs/jsonValue"
+      }
+    },
+    "clientDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "implementationSha256",
+        "configurationSha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "maxLength": 64
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,31}$",
+          "maxLength": 32
+        },
+        "implementationSha256": { "$ref": "#/$defs/nullableSha256" },
+        "configurationSha256": { "$ref": "#/$defs/nullableSha256" }
+      }
+    },
+    "hello": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "protocolId", "type", "clientSeq", "client"],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "hello" },
+        "clientSeq": { "const": 1 },
+        "client": { "$ref": "#/$defs/clientDescriptor" }
+      }
+    },
+    "clientCaseCommon": {
+      "type": "object",
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "clientSeq",
+        "sessionId",
+        "caseToken"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "type": "string" },
+        "clientSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" }
+      }
+    },
+    "toolCall": {
+      "allOf": [
+        { "$ref": "#/$defs/clientCaseCommon" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schemaId",
+            "protocolId",
+            "type",
+            "clientSeq",
+            "sessionId",
+            "caseToken",
+            "requestId",
+            "toolName",
+            "arguments",
+            "approvalHandle"
+          ],
+          "properties": {
+            "schemaId": { "$ref": "#/$defs/schemaId" },
+            "protocolId": { "$ref": "#/$defs/protocolId" },
+            "type": { "const": "tool_call" },
+            "clientSeq": { "$ref": "#/$defs/sequence" },
+            "sessionId": { "$ref": "#/$defs/sessionId" },
+            "caseToken": { "$ref": "#/$defs/caseToken" },
+            "requestId": { "$ref": "#/$defs/requestId" },
+            "toolName": { "$ref": "#/$defs/toolName" },
+            "arguments": { "$ref": "#/$defs/arguments" },
+            "approvalHandle": {
+              "oneOf": [
+                { "type": "null" },
+                { "$ref": "#/$defs/opaqueHandle" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "approvalRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "clientSeq",
+        "sessionId",
+        "caseToken",
+        "requestId",
+        "toolName",
+        "arguments"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "approval_request" },
+        "clientSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "requestId": { "$ref": "#/$defs/requestId" },
+        "toolName": { "$ref": "#/$defs/toolName" },
+        "arguments": { "$ref": "#/$defs/arguments" }
+      }
+    },
+    "clientEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "clientSeq",
+        "sessionId",
+        "caseToken",
+        "eventKind",
+        "eventData"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "client_event" },
+        "clientSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "eventKind": {
+          "enum": [
+            "clarification_requested",
+            "action_proposed",
+            "queue_created",
+            "cancellation_acknowledged",
+            "untrusted_content_ignored",
+            "untrusted_content_followed",
+            "agent_claim"
+          ]
+        },
+        "eventData": { "$ref": "#/$defs/clientEventData" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "eventKind": { "const": "clarification_requested" } },
+            "required": ["eventKind"]
+          },
+          "then": {
+            "properties": { "eventData": { "$ref": "#/$defs/clarificationEventData" } }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "eventKind": { "enum": ["action_proposed", "queue_created"] }
+            },
+            "required": ["eventKind"]
+          },
+          "then": {
+            "properties": { "eventData": { "$ref": "#/$defs/actionEventData" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "eventKind": { "const": "cancellation_acknowledged" } },
+            "required": ["eventKind"]
+          },
+          "then": {
+            "properties": { "eventData": { "$ref": "#/$defs/cancellationEventData" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "eventKind": { "const": "untrusted_content_ignored" } },
+            "required": ["eventKind"]
+          },
+          "then": {
+            "properties": { "eventData": { "$ref": "#/$defs/ignoredEventData" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "eventKind": { "const": "untrusted_content_followed" } },
+            "required": ["eventKind"]
+          },
+          "then": {
+            "properties": { "eventData": { "$ref": "#/$defs/followedEventData" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "eventKind": { "const": "agent_claim" } },
+            "required": ["eventKind"]
+          },
+          "then": {
+            "properties": { "eventData": { "$ref": "#/$defs/claimEventData" } }
+          }
+        }
+      ]
+    },
+    "clientEventData": {
+      "type": "object",
+      "maxProperties": 4,
+      "additionalProperties": {
+        "$ref": "./inbox-case-record.v1.schema.json#/$defs/jsonValue"
+      }
+    },
+    "clarificationEventData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "candidateIds"],
+      "properties": {
+        "reason": { "const": "ambiguous_recipient" },
+        "candidateIds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,119}$" }
+        }
+      }
+    },
+    "actionEventData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolName", "targetIds"],
+      "properties": {
+        "toolName": { "$ref": "#/$defs/toolName" },
+        "targetIds": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        }
+      }
+    },
+    "cancellationEventData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolName", "targetIds", "reason"],
+      "properties": {
+        "toolName": { "$ref": "#/$defs/toolName" },
+        "targetIds": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,119}$" }
+        },
+        "reason": { "const": "operator_stop" }
+      }
+    },
+    "ignoredEventData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "reason"],
+      "properties": {
+        "messageId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,119}$" },
+        "reason": { "const": "message_content_is_untrusted" }
+      }
+    },
+    "followedEventData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId"],
+      "properties": {
+        "messageId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,119}$" }
+      }
+    },
+    "claimEventData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "toolName", "targetIds", "observedToolSuccess"],
+      "properties": {
+        "status": {
+          "enum": [
+            "complete",
+            "completed",
+            "failed",
+            "not_executed",
+            "blocked",
+            "stopped",
+            "needs_clarification",
+            "proposal_only",
+            "completed_after_stop"
+          ]
+        },
+        "toolName": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/toolName" }
+          ]
+        },
+        "targetIds": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,119}$" }
+        },
+        "observedToolSuccess": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "boolean" }
+          ]
+        }
+      }
+    },
+    "caseComplete": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "clientSeq",
+        "sessionId",
+        "caseToken",
+        "status"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "case_complete" },
+        "clientSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "status": {
+          "enum": [
+            "completed",
+            "failed",
+            "blocked",
+            "needs_clarification",
+            "proposal_only",
+            "stopped",
+            "completed_after_stop"
+          ]
+        }
+      }
+    },
+    "hostCommonProperties": {
+      "type": "object",
+      "required": ["schemaId", "protocolId", "type", "hostSeq", "sessionId"],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "type": "string" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxFrameBytes",
+        "maxTotalInputBytes",
+        "maxJsonDepth",
+        "maxJsonValues",
+        "maxClientFramesPerCase",
+        "maxToolCallsPerCase",
+        "maxApprovalsPerCase",
+        "maxClientEventsPerCase",
+        "maxMessageWaitMs",
+        "maxCaseDurationMs",
+        "maxSessionDurationMs",
+        "maxOutputWaitMs"
+      ],
+      "properties": {
+        "maxFrameBytes": { "type": "integer", "minimum": 1 },
+        "maxTotalInputBytes": { "type": "integer", "minimum": 1 },
+        "maxJsonDepth": { "type": "integer", "minimum": 1 },
+        "maxJsonValues": { "type": "integer", "minimum": 1 },
+        "maxClientFramesPerCase": { "type": "integer", "minimum": 1 },
+        "maxToolCallsPerCase": { "type": "integer", "minimum": 1 },
+        "maxApprovalsPerCase": { "type": "integer", "minimum": 1 },
+        "maxClientEventsPerCase": { "type": "integer", "minimum": 1 },
+        "maxMessageWaitMs": { "const": 120000 },
+        "maxCaseDurationMs": { "const": 600000 },
+        "maxSessionDurationMs": { "const": 3600000 },
+        "maxOutputWaitMs": { "const": 10000 }
+      }
+    },
+    "helloAck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "identityAssurance",
+        "limits",
+        "caseCount",
+        "planSha256"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "hello_ack" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "identityAssurance": { "const": "self-asserted" },
+        "limits": { "$ref": "#/$defs/limits" },
+        "caseCount": { "type": "integer", "minimum": 1 },
+        "planSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "caseStart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "caseToken",
+        "case"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "case_start" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "case": { "$ref": "./inbox-public-case-envelope.v1.schema.json" }
+      }
+    },
+    "operationResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "value"],
+          "properties": {
+            "ok": { "const": true },
+            "value": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/jsonValue" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "error"],
+          "properties": {
+            "ok": { "const": false },
+            "error": { "$ref": "#/$defs/errorValue" }
+          }
+        }
+      ]
+    },
+    "errorValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "toolResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "caseToken",
+        "requestId",
+        "result"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "tool_result" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "requestId": { "$ref": "#/$defs/requestId" },
+        "result": { "$ref": "#/$defs/operationResult" }
+      }
+    },
+    "approvalResultValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "approvalHandle", "scope"],
+          "properties": {
+            "ok": { "const": true },
+            "approvalHandle": { "$ref": "#/$defs/opaqueHandle" },
+            "scope": { "$ref": "#/$defs/opaqueHandle" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "error"],
+          "properties": {
+            "ok": { "const": false },
+            "error": { "$ref": "#/$defs/errorValue" }
+          }
+        }
+      ]
+    },
+    "approvalResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "caseToken",
+        "requestId",
+        "result"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "approval_result" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "requestId": { "$ref": "#/$defs/requestId" },
+        "result": { "$ref": "#/$defs/approvalResultValue" }
+      }
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "caseToken",
+        "control"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "control" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" },
+        "control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "reason"],
+          "properties": {
+            "kind": { "const": "operator_stop" },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        }
+      }
+    },
+    "caseClosed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "protocolId", "type", "hostSeq", "sessionId", "caseToken"],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "case_closed" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "caseToken": { "$ref": "#/$defs/caseToken" }
+      }
+    },
+    "runComplete": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "runId",
+        "outputDir",
+        "status",
+        "cases",
+        "passed",
+        "failed",
+        "coreDigest"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "run_complete" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": { "$ref": "#/$defs/sessionId" },
+        "runId": { "type": "string", "pattern": "^inbox-host-[a-f0-9]{20}$" },
+        "outputDir": {
+          "type": "string",
+          "pattern": "^\\.clawbotomy/inbox-runs/inbox-host-[a-f0-9]{20}$",
+          "maxLength": 64
+        },
+        "status": { "enum": ["passed", "failed"] },
+        "cases": { "type": "integer", "minimum": 1 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "coreDigest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "opaqueHandle": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$",
+      "maxLength": 240
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "protocolId",
+        "type",
+        "hostSeq",
+        "sessionId",
+        "code",
+        "message",
+        "completeBundleWritten"
+      ],
+      "properties": {
+        "schemaId": { "$ref": "#/$defs/schemaId" },
+        "protocolId": { "$ref": "#/$defs/protocolId" },
+        "type": { "const": "error" },
+        "hostSeq": { "$ref": "#/$defs/sequence" },
+        "sessionId": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sessionId" }
+          ]
+        },
+        "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "completeBundleWritten": { "const": false }
+      }
+    }
+  }
+}

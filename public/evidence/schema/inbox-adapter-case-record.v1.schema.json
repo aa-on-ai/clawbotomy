@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-adapter-case-record.v1.schema.json",
+  "title": "Clawbotomy allowlisted-adapter mock-Inbox case record v1",
+  "description": "One replayable scenario-capability execution of an exact normalized declarative policy by the checked-in allowlisted adapter against a fresh synthetic Inbox fixture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "runId",
+    "ordinal",
+    "caseId",
+    "scenarioId",
+    "capabilityId",
+    "operatorIntent",
+    "executionSubject",
+    "evidence",
+    "fixture",
+    "task",
+    "events",
+    "initialState",
+    "finalState",
+    "stateDiff",
+    "evaluation",
+    "status",
+    "digests"
+  ],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.inbox-adapter-case-record/v1" },
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": { "$ref": "#/$defs/runId" },
+    "ordinal": { "type": "integer", "minimum": 1 },
+    "caseId": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+:(search_read|draft|send|archive|delete)$" },
+    "scenarioId": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+$" },
+    "capabilityId": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/capabilityId" },
+    "operatorIntent": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/operatorIntent" },
+    "executionSubject": { "$ref": "#/$defs/executionSubject" },
+    "evidence": { "$ref": "#/$defs/evidenceBoundary" },
+    "fixture": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/fixture" },
+    "task": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/task" },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "initialState": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/mailboxState" },
+    "finalState": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/mailboxState" },
+    "stateDiff": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/stateDiff" },
+    "evaluation": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/evaluation" },
+    "status": { "enum": ["passed", "failed"] },
+    "digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initialState", "eventChain", "finalState", "stateDiff", "record"],
+      "properties": {
+        "initialState": { "$ref": "#/$defs/sha256" },
+        "eventChain": { "$ref": "#/$defs/sha256" },
+        "finalState": { "$ref": "#/$defs/sha256" },
+        "stateDiff": { "$ref": "#/$defs/sha256" },
+        "record": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "runId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurementStatus",
+        "executionMode",
+        "authorizationStatus",
+        "permissionDecision",
+        "configuredAgentInspected",
+        "adapterConfigurationInspected",
+        "configuredAgentExecuted",
+        "productionAccessChanged"
+      ],
+      "properties": {
+        "measurementStatus": { "const": "measured-mock" },
+        "executionMode": { "const": "deterministic-mock" },
+        "authorizationStatus": { "const": "non-authorizing" },
+        "permissionDecision": { "type": "null" },
+        "configuredAgentInspected": { "const": false },
+        "adapterConfigurationInspected": { "const": true },
+        "configuredAgentExecuted": { "const": false },
+        "productionAccessChanged": { "const": false }
+      }
+    },
+    "executionSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "kind",
+        "applicability",
+        "configurationSchemaId",
+        "configurationFingerprint"
+      ],
+      "properties": {
+        "id": { "const": "declarative-policy/v1" },
+        "version": { "const": "1.0.0" },
+        "kind": { "const": "allowlisted-declarative-adapter" },
+        "applicability": { "const": "adapter-configuration-only" },
+        "configurationSchemaId": { "const": "clawbotomy.inbox-declarative-policy/v1" },
+        "configurationFingerprint": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "eventId", "sequence", "kind", "actor", "payload"],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.inbox-event/v1" },
+        "eventId": { "type": "string", "pattern": "^.+:e[0-9]{4,}$", "maxLength": 240 },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "kind": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+        "actor": { "enum": ["allowlisted-adapter", "fixture-control", "mock-inbox"] },
+        "payload": {
+          "type": "object",
+          "maxProperties": 50,
+          "additionalProperties": {
+            "$ref": "./inbox-case-record.v1.schema.json#/$defs/jsonValue"
+          }
+        }
+      }
+    }
+  }
+}

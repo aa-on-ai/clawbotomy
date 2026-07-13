@@ -1,12 +1,11 @@
 {
-  "name": "CLAWBOTOMY",
-  "short_name": "CLAWBOTOMY",
-  "description": "Behavioral observation under altered prompting conditions",
+  "name": "Clawbotomy",
+  "short_name": "Clawbotomy",
+  "description": "Evidence-first benchmark planning and reviewable permission boundaries for AI agents",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#0a0a0f",
-  "orientation": "portrait-primary",
+  "background_color": "#161311",
+  "theme_color": "#161311",
   "icons": [
     {
       "src": "/icon-192.png",
