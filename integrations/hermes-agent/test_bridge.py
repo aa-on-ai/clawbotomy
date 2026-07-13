@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from collections import deque
+import copy
 import io
 import os
 from pathlib import Path
 import queue
 import sys
+import tarfile
 from types import SimpleNamespace
 import tempfile
 import threading
@@ -322,6 +324,8 @@ class HermesBridgeTests(unittest.TestCase):
             bridge.classify_hermes_outcome(good, stopped=False, max_iterations=12),
             "completed",
         )
+        with self.assertRaisesRegex(bridge.RuntimeFailure, "lacked an exact genuine"):
+            bridge.classify_hermes_outcome(good, stopped=True, max_iterations=12)
         interrupted = {
             "api_calls": 1,
             "completed": False,
@@ -418,9 +422,12 @@ class HermesBridgeTests(unittest.TestCase):
         runtime = self.protocol_case(connection, approval=False)
         runtime.agent = FakeInterruptAgent()
         runtime.handle_control({"control": {"kind": "operator_stop", "reason": "stop now"}})
-        status = runtime.send_case_complete("completed")
-        self.assertEqual(status, "stopped")
-        self.assertEqual(connection.frames[0]["status"], "stopped")
+        with self.assertRaisesRegex(bridge.RuntimeFailure, "raced after normal completion"):
+            runtime.send_case_complete("completed")
+        self.assertEqual(connection.frames, [])
+        running = self.protocol_case(FakeConnection(), approval=False)
+        with self.assertRaisesRegex(bridge.RuntimeFailure, "lacks an active operator stop"):
+            running.send_case_complete("stopped")
 
     def test_stop_during_agent_initialization_interrupts_before_provider_call(self):
         factory_entered = threading.Event()
@@ -481,6 +488,31 @@ class HermesBridgeTests(unittest.TestCase):
         self.assertEqual(agent.messages, ["Clawbotomy operator_stop"])
         self.assertEqual(agent.provider_calls, 1)
 
+    def test_propagated_operator_stopped_without_structured_result_fails_closed(self):
+        class RaisingAgent(FakeInterruptAgent):
+            tools = [
+                {"type": "function", "function": {"name": name, "parameters": {}}}
+                for name in plugin.TOOL_NAMES
+            ]
+            max_iterations = 12
+
+            def run_conversation(self, *args, **kwargs):
+                del args, kwargs
+                raise bridge.OperatorStopped("synthetic propagated stop")
+
+        runtime = bridge.CaseRuntime(
+            FakeConnection(),
+            {
+                "sessionId": "session-1",
+                "caseToken": "case-1",
+                "case": {"operatorIntent": "allow", "constraints": {}, "requestedActions": []},
+            },
+            lambda _case: RaisingAgent(),
+        )
+        runtime.set_client_sequence_source(iter(range(2, 20)).__next__)
+        with self.assertRaisesRegex(bridge.RuntimeFailure, "propagated OperatorStopped"):
+            runtime.run()
+
     def test_stop_cancels_pending_approval_without_abort_or_deadlock(self):
         connection = BlockingFakeConnection()
         runtime = self.protocol_case(connection)
@@ -532,7 +564,9 @@ class HermesBridgeTests(unittest.TestCase):
             target = root / "target"
             source.mkdir()
             (source / "auth.json").write_text('{"token":"original"}', encoding="utf-8")
-            snapshot = bridge.prepare_isolated_hermes_home(source, target)
+            bridge.prepare_isolated_hermes_home(target)
+            self.assertFalse((target / "auth.json").exists())
+            snapshot = bridge.attach_isolated_oauth(source, target)
             self.assertFalse(snapshot.is_symlink())
             self.assertEqual(snapshot.stat().st_mode & 0o777, 0o600)
             (source / "auth.json").write_text('{"token":"changed"}', encoding="utf-8")
@@ -544,7 +578,7 @@ class HermesBridgeTests(unittest.TestCase):
             source = root / "source"
             source.mkdir()
             (source / "auth.json").write_text('{"token":"snapshot"}', encoding="utf-8")
-            with bridge.isolated_runtime_environment(source, root / "isolation") as paths:
+            with bridge.isolated_runtime_environment(root / "isolation") as paths:
                 child = bridge.child_environment(paths["childHome"])
                 self.assertNotEqual(os.environ["HOME"], child["HOME"])
                 self.assertNotEqual(os.environ["CODEX_HOME"], child["HOME"])
@@ -560,8 +594,10 @@ class HermesBridgeTests(unittest.TestCase):
             source.mkdir()
             (source / "auth.json").write_text('{"token":"snapshot"}', encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "synthetic failure"):
-                with bridge.isolated_runtime_environment(source, root / "isolation") as paths:
-                    snapshot = paths["authSnapshot"]
+                with bridge.isolated_runtime_environment(root / "isolation") as paths:
+                    self.assertIsNone(paths["authSnapshot"])
+                    snapshot = bridge.attach_isolated_oauth(source, paths["hermesHome"])
+                    paths["authSnapshot"] = snapshot
                     self.assertTrue(snapshot.exists())
                     raise RuntimeError("synthetic failure")
             self.assertEqual(dict(os.environ), saved_environment)
@@ -605,7 +641,7 @@ class HermesBridgeTests(unittest.TestCase):
             with (
                 patch.object(Path, "read_bytes", guarded_read_bytes),
                 patch("builtins.__import__", side_effect=guarded_import),
-                patch.object(bridge, "prepare_isolated_hermes_home") as credential_setup,
+                patch.object(bridge, "attach_isolated_oauth") as credential_setup,
                 patch.object(plugin, "register") as register_plugin,
                 patch.object(bridge.HermesRuntime, "create_agent") as create_agent,
             ):
@@ -629,6 +665,160 @@ class HermesBridgeTests(unittest.TestCase):
                 },
                 imported_before,
             )
+
+    def test_dirty_tracked_and_untracked_importable_sources_fail_closed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            hermes.mkdir()
+            for status, message in (
+                (b" M run_agent.py\0", "tracked executable modification"),
+                (b"?? tools/ambient.py\0", "untracked importable"),
+            ):
+                runtime = bridge.HermesRuntime(hermes, root / ("snapshot-" + message.split()[0]))
+                with patch.object(runtime, "_git_bytes", return_value=status):
+                    with self.assertRaisesRegex(bridge.RuntimeFailure, message):
+                        runtime._reject_importable_worktree_changes()
+
+    def test_archive_rejects_unsafe_paths_symlinks_and_blob_mismatch(self):
+        class FakeArchiveProcess:
+            def __init__(self, payload):
+                self.stdout = io.BytesIO(payload)
+                self.stderr = io.BytesIO()
+
+            def kill(self):
+                return None
+
+            def wait(self, timeout=None):
+                del timeout
+                return 0
+
+        def archive_payload(name, data=b"", *, symlink=None):
+            payload = io.BytesIO()
+            with tarfile.open(fileobj=payload, mode="w") as archive:
+                member = tarfile.TarInfo(name)
+                if symlink is not None:
+                    member.type = tarfile.SYMTYPE
+                    member.linkname = symlink
+                    archive.addfile(member)
+                else:
+                    member.size = len(data)
+                    archive.addfile(member, io.BytesIO(data))
+            return payload.getvalue()
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            hermes.mkdir()
+            cases = []
+            runtime = bridge.HermesRuntime(hermes, root / "unsafe-path")
+            cases.append((runtime, archive_payload("../evil.py", b"x"), {}, "unsafe path"))
+            runtime = bridge.HermesRuntime(hermes, root / "unsafe-link")
+            link_data = b"../outside"
+            link_entry = bridge.GitTreeEntry("120000", "blob", runtime._git_blob_oid(link_data))
+            cases.append((
+                runtime,
+                archive_payload("agent/link.py", symlink="../outside"),
+                {"agent/link.py": link_entry},
+                "unsafe symlink",
+            ))
+            runtime = bridge.HermesRuntime(hermes, root / "blob-mismatch")
+            expected = runtime._git_blob_oid(b"expected")
+            cases.append((
+                runtime,
+                archive_payload("run_agent.py", b"actual"),
+                {"run_agent.py": bridge.GitTreeEntry("100644", "blob", expected)},
+                "blob mismatch",
+            ))
+            for runtime, payload, manifest, message in cases:
+                with self.subTest(message=message):
+                    with patch.object(
+                        bridge.subprocess,
+                        "Popen",
+                        return_value=FakeArchiveProcess(payload),
+                    ):
+                        with self.assertRaisesRegex(bridge.RuntimeFailure, message):
+                            runtime._materialize_verified_snapshot(
+                                bridge.EXPECTED_HERMES_GIT_COMMIT,
+                                manifest,
+                            )
+
+    def test_loaded_module_must_stay_inside_and_match_verified_snapshot(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            snapshot = root / "snapshot"
+            hermes.mkdir()
+            snapshot.mkdir()
+            runtime = bridge.HermesRuntime(hermes, snapshot)
+            source = snapshot / "run_agent.py"
+            source.write_bytes(b"verified")
+            runtime._tree_manifest = {
+                "run_agent.py": bridge.GitTreeEntry(
+                    "100644",
+                    "blob",
+                    runtime._git_blob_oid(b"verified"),
+                )
+            }
+            module = SimpleNamespace(__file__=str(source), __name__="run_agent")
+            runtime._verify_imported_module(module)
+            source.write_bytes(b"changed")
+            with self.assertRaisesRegex(bridge.RuntimeFailure, "does not match"):
+                runtime._verify_imported_module(module)
+            outside = root / "outside.py"
+            outside.write_bytes(b"verified")
+            outside_module = SimpleNamespace(__file__=str(outside), __name__="run_agent")
+            with self.assertRaisesRegex(bridge.RuntimeFailure, "outside verified snapshot"):
+                runtime._verify_imported_module(outside_module)
+
+    def test_oauth_attachment_occurs_only_after_import_verification(self):
+        events = []
+
+        class FakeRuntime:
+            def __init__(self, hermes_root, snapshot_root):
+                del hermes_root, snapshot_root
+
+            def preflight(self):
+                events.append("preflight")
+                return bridge.RuntimeIdentity("0.18.2", "a" * 40, "/verified", "b" * 64)
+
+            def initialize(self):
+                events.append("initialize")
+
+            def _verify_loaded_hermes_sources(self):
+                events.append("verify-loaded")
+
+            def make_snapshot_removable(self):
+                events.append("cleanup-snapshot")
+
+        def attach(_source, target):
+            self.assertEqual(events, ["preflight", "initialize", "verify-loaded"])
+            events.append("attach-oauth")
+            return Path(target) / "auth.json"
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            hermes = root / "hermes"
+            home = root / "home"
+            hermes.mkdir()
+            home.mkdir()
+            with (
+                patch.object(bridge, "HermesRuntime", FakeRuntime),
+                patch.object(bridge, "attach_isolated_oauth", side_effect=attach),
+                patch.object(
+                    bridge,
+                    "BridgeRunner",
+                    side_effect=bridge.RuntimeFailure("stop after OAuth order proof"),
+                ),
+            ):
+                with self.assertRaisesRegex(bridge.RuntimeFailure, "order proof"):
+                    bridge.main([
+                        "--repo-root", str(REPO_ROOT),
+                        "--plan", "tests/fixtures/inbox-plan.v1.json",
+                        "--hermes-root", str(hermes),
+                        "--hermes-home", str(home),
+                    ])
+        self.assertEqual(events[-2:], ["attach-oauth", "cleanup-snapshot"])
 
     def test_cli_runtime_failure_returns_one_without_creating_a_bundle(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -945,25 +1135,183 @@ class ProtocolValidationTests(unittest.TestCase):
             receipt = {
                 "runId": run_id,
                 "outputDir": f".clawbotomy/inbox-runs/{run_id}",
+                "coreDigest": "a" * 64,
+                "cases": 1,
+                "passed": 0,
+                "failed": 1,
+                "status": "failed",
+            }
+            binding = bridge.ExpectedBundleBinding(
+                bridge.PROTOCOL_ID,
+                "session-1",
+                "b" * 64,
+                "b" * 64,
+                "c" * 64,
+                ("case-1",),
+                ("completed",),
+            )
+            validator_receipt = {
+                "runId": run_id,
+                "coreDigest": "a" * 64,
+                "cases": 1,
+                "passed": 0,
+                "failed": 1,
+                "status": "failed",
+            }
+            protocol_binding = {
+                "schemaId": "clawbotomy.inbox-protocol-run-manifest/v1",
+                "runId": run_id,
+                "protocolId": bridge.PROTOCOL_ID,
+                "sessionId": "session-1",
+                "planSha256": "b" * 64,
+                "planDocumentSha256": "b" * 64,
+                "clientHelloSha256": "c" * 64,
+                "caseTokens": ["case-1"],
+                "terminalStatuses": ["completed"],
+            }
+            binding_payload = {
+                "schemaId": "clawbotomy.hermes-validator-binding/v1",
+                "receipt": {**validator_receipt, "exitClass": "findings"},
+                "stored": protocol_binding,
+                "replay": protocol_binding,
             }
             with patch.object(
                 bridge,
                 "run_bounded_subprocess",
-                return_value=(2, "validated", "", False),
+                side_effect=[
+                    (2, bridge.canonical_json(validator_receipt), "", False),
+                    (2, bridge.canonical_json(binding_payload), "", False),
+                ],
             ) as validate:
-                runner._validate_completed_bundle(receipt, 2)
-            command = validate.call_args.args[0]
-            environment = validate.call_args.kwargs["env"]
-            self.assertEqual(command, ["npm", "run", "inbox", "--", "validate", receipt["outputDir"]])
+                runner._validate_completed_bundle(receipt, 2, binding)
+            first, second = validate.call_args_list
+            environment = first.kwargs["env"]
+            self.assertEqual(
+                first.args[0],
+                ["node", "inbox/index.js", "validate", receipt["outputDir"]],
+            )
             self.assertEqual(environment["HOME"], str(child_home))
             self.assertNotIn("HERMES_HOME", environment)
+            self.assertEqual(second.args[0][0], "node")
+            self.assertEqual(
+                Path(second.args[0][1]).resolve(),
+                (HERE / "validator_binding.js").resolve(),
+            )
+            self.assertEqual(
+                second.args[0][2:],
+                [str(repo_root.resolve()), receipt["outputDir"]],
+            )
             with patch.object(
                 bridge,
                 "run_bounded_subprocess",
                 return_value=(1, "", "invalid bundle", False),
             ):
                 with self.assertRaisesRegex(bridge.RuntimeFailure, "did not reproduce"):
-                    runner._validate_completed_bundle(receipt, 2)
+                    runner._validate_completed_bundle(receipt, 2, binding)
+
+    def test_every_validator_binding_field_must_match_exactly(self):
+        identity = bridge.RuntimeIdentity("0.18.2", "a" * 40, "/pinned/hermes")
+        runner = bridge.BridgeRunner(
+            REPO_ROOT,
+            REPO_ROOT / "tests/fixtures/inbox-plan.v1.json",
+            cast(Any, SimpleNamespace()),
+            identity,
+            Path(self.temp.name),
+            connection=self.connection,
+        )
+        run_id = "inbox-host-" + "a" * 20
+        receipt = {
+            "runId": run_id,
+            "coreDigest": "a" * 64,
+            "cases": 1,
+            "passed": 0,
+            "failed": 1,
+            "status": "failed",
+        }
+        expected = bridge.ExpectedBundleBinding(
+            bridge.PROTOCOL_ID,
+            "session-1",
+            "b" * 64,
+            "b" * 64,
+            "c" * 64,
+            ("case-1",),
+            ("completed",),
+        )
+        protocol = {
+            "schemaId": "clawbotomy.inbox-protocol-run-manifest/v1",
+            "runId": run_id,
+            "protocolId": bridge.PROTOCOL_ID,
+            "sessionId": "session-1",
+            "planSha256": "b" * 64,
+            "planDocumentSha256": "b" * 64,
+            "clientHelloSha256": "c" * 64,
+            "caseTokens": ["case-1"],
+            "terminalStatuses": ["completed"],
+        }
+        valid = {
+            "schemaId": "clawbotomy.hermes-validator-binding/v1",
+            "receipt": {**receipt, "exitClass": "findings"},
+            "stored": protocol,
+            "replay": protocol,
+        }
+        runner._validate_binding_payload(valid, receipt, 2, expected)
+        mutations = [("top", "schemaId")]
+        mutations.extend(("receipt", field) for field in valid["receipt"])
+        for section in ("stored", "replay"):
+            mutations.extend((section, field) for field in protocol)
+        for section, field in mutations:
+            with self.subTest(section=section, field=field):
+                candidate = copy.deepcopy(valid)
+                if section == "top":
+                    candidate[field] = "wrong"
+                else:
+                    current = candidate[section][field]
+                    candidate[section][field] = ["wrong"] if isinstance(current, list) else "wrong"
+                with self.assertRaises(bridge.RuntimeFailure):
+                    runner._validate_binding_payload(candidate, receipt, 2, expected)
+
+    def test_validator_malformed_oversized_and_truncated_output_fails_closed(self):
+        with self.assertRaisesRegex(bridge.RuntimeFailure, "strict JSON"):
+            bridge.BridgeRunner._parse_validator_json("not-json", "validator")
+        with tempfile.TemporaryDirectory() as temporary:
+            repo_root = Path(temporary) / "repo"
+            run_id = "inbox-host-" + "a" * 20
+            (repo_root / ".clawbotomy/inbox-runs" / run_id).mkdir(parents=True)
+            child_home = Path(temporary) / "child"
+            child_home.mkdir()
+            runner = bridge.BridgeRunner(
+                repo_root,
+                REPO_ROOT / "tests/fixtures/inbox-plan.v1.json",
+                cast(Any, SimpleNamespace()),
+                bridge.RuntimeIdentity("0.18.2", "a" * 40, "/pinned/hermes"),
+                child_home,
+                connection=self.connection,
+            )
+            receipt = {
+                "runId": run_id,
+                "outputDir": f".clawbotomy/inbox-runs/{run_id}",
+                "coreDigest": "a" * 64,
+                "cases": 1,
+                "passed": 0,
+                "failed": 1,
+                "status": "failed",
+            }
+            binding = bridge.ExpectedBundleBinding(
+                bridge.PROTOCOL_ID,
+                "session-1",
+                "b" * 64,
+                "b" * 64,
+                "c" * 64,
+                ("case-1",),
+                ("completed",),
+            )
+            with patch.object(
+                bridge,
+                "run_bounded_subprocess",
+                return_value=(2, "x" * (bridge.MAX_STDERR_BYTES + 1), "", True),
+            ):
+                with self.assertRaisesRegex(bridge.RuntimeFailure, "output budget"):
+                    runner._validate_completed_bundle(receipt, 2, binding)
 
     def test_runner_cannot_return_a_completed_receipt_without_validator_call(self):
         run_id = "inbox-host-" + "a" * 20
@@ -1049,7 +1397,13 @@ class ProtocolValidationTests(unittest.TestCase):
             exit_code, actual_receipt = runner.run()
         self.assertEqual(exit_code, 2)
         self.assertEqual(actual_receipt, receipt)
-        validate.assert_called_once_with(receipt, 2)
+        validate.assert_called_once()
+        validation_args = validate.call_args.args
+        self.assertEqual(validation_args[:2], (receipt, 2))
+        self.assertIsInstance(validation_args[2], bridge.ExpectedBundleBinding)
+        self.assertEqual(validation_args[2].session_id, "session-1")
+        self.assertEqual(validation_args[2].case_tokens, ("case-1",))
+        self.assertEqual(validation_args[2].terminal_statuses, ("completed",))
 
 
 if __name__ == "__main__":
