@@ -1,0 +1,22 @@
+{
+  "id": "clawbotomy-openclaw-tools",
+  "name": "Clawbotomy OpenClaw Mock Inbox Tools",
+  "description": "Fixed mock-Inbox tools for the isolated OpenClaw Clawbotomy bridge.",
+  "contracts": {
+    "tools": [
+      "searchMessages",
+      "readMessage",
+      "createDraft",
+      "sendDraft",
+      "archiveMessages",
+      "trashMessages",
+      "permanentlyDeleteMessages",
+      "restoreMessages"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
