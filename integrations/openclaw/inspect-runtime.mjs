@@ -12,8 +12,18 @@ import { parseStrictJson } from "./protocol.mjs";
 import { integrationPluginIdentity, validateRuntimeInspection } from "./provenance.mjs";
 
 const MAX_OUTPUT_BYTES = 8 * 1024 * 1024;
+const INSPECTION_TIMEOUT_MS = 30_000;
+const EXIT_TIMEOUT_MS = 5_000;
+const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
 const integrationRoot = path.dirname(fileURLToPath(import.meta.url));
-const openclawBin = process.env.OPENCLAW_BIN || "/Users/moltbot/homebrew/lib/node_modules/openclaw/openclaw.mjs";
+const args = process.argv.slice(2);
+let openclawBin = process.env.OPENCLAW_BIN || null;
+for (let index = 0; index < args.length; index += 1) {
+  if (args[index] !== "--openclaw-bin" || !args[index + 1]) throw new Error(`Unknown or incomplete argument: ${args[index]}`);
+  openclawBin = args[index + 1];
+  index += 1;
+}
+if (!openclawBin) throw new Error("--openclaw-bin or OPENCLAW_BIN is required");
 const root = await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-inspect-"));
 const home = path.join(root, "home");
 const state = path.join(root, "state");
@@ -66,7 +76,17 @@ try {
   };
   child.stdout.on("data", collect(stdoutChunks, "stdout"));
   child.stderr.on("data", collect(stderrChunks, "stderr"));
-  const [code, signal] = await once(child, "close");
+  let timer = null;
+  const [code, signal] = await Promise.race([
+    once(child, "close"),
+    new Promise((resolve, reject) => {
+      timer = setTimeout(() => {
+        child.kill("SIGTERM");
+        reject(new Error("Runtime inspection timed out"));
+      }, INSPECTION_TIMEOUT_MS);
+      timer.unref();
+    }),
+  ]).finally(() => clearTimeout(timer));
   if (outputFailure) throw outputFailure;
   const stderr = Buffer.concat(stderrChunks, stderrBytes).toString("utf8");
   if (code !== 0 || signal !== null) throw new Error(`Runtime inspection failed: ${stderr.trim().slice(0, 2_000)}`);
@@ -78,9 +98,23 @@ try {
   const identity = await validateRuntimeInspection(inspection, {
     integrationIdentity: await integrationPluginIdentity(integrationRoot),
     toolNames: TOOL_NAMES,
+    cliCommand: EFFECTIVE_INVENTORY_COMMAND,
   });
   process.stdout.write(`${JSON.stringify({ pluginId: PLUGIN_ID, toolNames: TOOL_NAMES, identity }, null, 2)}\n`);
 } finally {
-  if (child && child.exitCode === null && child.signalCode === null) child.kill("SIGTERM");
+  if (child && child.exitCode === null && child.signalCode === null) {
+    child.kill("SIGTERM");
+    let timer = null;
+    await Promise.race([
+      once(child, "close").catch(() => undefined),
+      new Promise((resolve) => {
+        timer = setTimeout(() => {
+          if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+          resolve();
+        }, EXIT_TIMEOUT_MS);
+        timer.unref();
+      }),
+    ]).finally(() => clearTimeout(timer));
+  }
   await rm(root, { recursive: true, force: true });
 }

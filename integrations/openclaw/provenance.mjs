@@ -5,6 +5,7 @@ import {
   lstat,
   mkdir,
   readFile,
+  readlink,
   readdir,
   realpath,
   rm,
@@ -19,8 +20,8 @@ import {
   stableJson,
 } from "./protocol.mjs";
 
-const MAX_RUNTIME_FILES = 10_000;
-const MAX_RUNTIME_BYTES = 128 * 1024 * 1024;
+const MAX_RUNTIME_FILES = 100_000;
+const MAX_RUNTIME_BYTES = 1024 * 1024 * 1024;
 const EXPECTED_PACKAGES = Object.freeze({
   openai: "@openclaw/openai-provider",
   codex: "@openclaw/codex",
@@ -60,33 +61,55 @@ export async function hashRegularFile(filePath, label = "file") {
   return { path: canonical, sha256: sha256(await readFile(canonical)) };
 }
 
-async function collectRuntimeFiles(root, directory, files) {
+async function collectRuntimeFiles(root, directory, files, allowedExternalSymlinks) {
   const entries = await readdir(directory, { withFileTypes: true });
   entries.sort((left, right) => left.name.localeCompare(right.name));
   for (const entry of entries) {
     const candidate = path.join(directory, entry.name);
-    if (entry.isSymbolicLink()) throw new Error(`Plugin runtime contains a symbolic link: ${candidate}`);
+    if (entry.isSymbolicLink()) {
+      const link = await readlink(candidate);
+      const target = path.resolve(path.dirname(candidate), link);
+      const relativeTarget = path.relative(root, target);
+      const targetIsInside = relativeTarget === "" || (!relativeTarget.startsWith("..") && !path.isAbsolute(relativeTarget));
+      let recordedTarget;
+      if (targetIsInside) recordedTarget = relativeTarget;
+      else {
+        const canonicalTarget = await realpath(target).catch(() => null);
+        const marker = canonicalTarget ? allowedExternalSymlinks.get(canonicalTarget) : null;
+        if (!marker) throw new Error(`Runtime symbolic-link target escapes its verified plugin root: ${candidate}`);
+        recordedTarget = `external:${marker}`;
+      }
+      const targetStats = await lstat(target).catch(() => null);
+      if (!targetStats || (!targetStats.isFile() && !targetStats.isDirectory())) {
+        throw new Error(`Runtime symbolic link must target a verified file or directory: ${candidate}`);
+      }
+      files.push({ path: candidate, kind: "symlink", target: recordedTarget });
+      if (files.length > MAX_RUNTIME_FILES) throw new Error(`Plugin runtime contains more than ${MAX_RUNTIME_FILES} files`);
+      continue;
+    }
     if (entry.isDirectory()) {
-      await collectRuntimeFiles(root, candidate, files);
+      await collectRuntimeFiles(root, candidate, files, allowedExternalSymlinks);
       continue;
     }
     if (!entry.isFile()) throw new Error(`Plugin runtime contains an unsupported filesystem entry: ${candidate}`);
-    files.push(candidate);
+    files.push({ path: candidate, kind: "file" });
     if (files.length > MAX_RUNTIME_FILES) throw new Error(`Plugin runtime contains more than ${MAX_RUNTIME_FILES} files`);
   }
 }
 
-async function hashRuntimeDirectory(directory, label) {
+export async function hashRuntimeDirectory(directory, label = "runtime", { allowedExternalSymlinks = new Map() } = {}) {
   const canonical = await canonicalPath(directory, label, "directory");
   const files = [];
-  await collectRuntimeFiles(canonical, canonical, files);
+  await collectRuntimeFiles(canonical, canonical, files, allowedExternalSymlinks);
   const hash = createHash("sha256");
   let totalBytes = 0;
-  for (const filePath of files) {
-    const bytes = await readFile(filePath);
+  for (const entry of files) {
+    const bytes = entry.kind === "file" ? await readFile(entry.path) : Buffer.from(entry.target, "utf8");
     totalBytes += bytes.length;
     if (totalBytes > MAX_RUNTIME_BYTES) throw new Error(`${label} exceeds ${MAX_RUNTIME_BYTES} verified bytes`);
-    hash.update(path.relative(canonical, filePath));
+    hash.update(path.relative(canonical, entry.path));
+    hash.update("\0");
+    hash.update(entry.kind);
     hash.update("\0");
     hash.update(bytes);
     hash.update("\0");
@@ -169,7 +192,16 @@ async function verifyPluginEntry(entry, {
   assertInside(rootDir, source, `${expectedId} plugin source`);
   assertInside(rootDir, manifestPath, `${expectedId} plugin manifest`);
   if (expectedId === "openai" || expectedId === "ollama") {
-    assertInside(path.join(openclawRoot, "dist", "extensions", expectedId), rootDir, `${expectedId} plugin root`);
+    const expectedRoot = await canonicalPath(
+      path.join(openclawRoot, "dist", "extensions", expectedId),
+      `${expectedId} bundled plugin root`,
+      "directory",
+    );
+    if (rootDir !== expectedRoot) throw new Error(`${expectedId} plugin root is not the exact bundled runtime root`);
+    if (source !== path.join(expectedRoot, "index.js")) throw new Error(`${expectedId} plugin source is not the exact canonical entrypoint`);
+    if (manifestPath !== path.join(expectedRoot, "openclaw.plugin.json")) {
+      throw new Error(`${expectedId} plugin manifest is not the exact canonical path`);
+    }
   } else {
     if (!isPlainObject(installRecord)) throw new Error("Codex plugin install record is missing");
     if (
@@ -183,6 +215,10 @@ async function verifyPluginEntry(entry, {
     }
     const installPath = await canonicalPath(installRecord.installPath, "Codex plugin install path", "directory");
     if (installPath !== rootDir) throw new Error("Codex plugin root does not match its install record");
+    if (source !== path.join(rootDir, "dist", "index.js")) throw new Error("Codex plugin source is not the exact canonical entrypoint");
+    if (manifestPath !== path.join(rootDir, "openclaw.plugin.json")) {
+      throw new Error("Codex plugin manifest is not the exact canonical path");
+    }
   }
 
   const manifest = await hashRegularFile(manifestPath, `${expectedId} plugin manifest`);
@@ -202,7 +238,11 @@ async function verifyPluginEntry(entry, {
     throw new Error("Codex plugin does not own the codex agent harness");
   }
 
-  const runtime = await hashRuntimeDirectory(path.dirname(source), `${expectedId} plugin runtime`);
+  const runtime = await hashRuntimeDirectory(rootDir, `${expectedId} complete runtime`, {
+    allowedExternalSymlinks: expectedId === "codex"
+      ? new Map([[openclawRoot, "openclaw-runtime"]])
+      : new Map(),
+  });
   return {
     pluginId: expectedId,
     packageName: entry.packageName,
@@ -224,9 +264,30 @@ export async function loadRuntimeProvenance({
   openclawVersion,
   model,
   pluginRegistrySourceStateDir,
+  expectedOpenClawRuntimeSha256,
+  expectedProviderRuntimeSha256,
+  expectedCodexRuntimeSha256 = null,
 }) {
   const binary = await hashRegularFile(openclawBin, "OpenClaw binary");
   const openclawRoot = path.dirname(binary.path);
+  if (binary.path !== path.join(openclawRoot, "openclaw.mjs")) {
+    throw new Error("OpenClaw binary must be the exact canonical openclaw.mjs entrypoint");
+  }
+  const openclawPackage = parseStrictJson(
+    await readFile(path.join(openclawRoot, "package.json"), "utf8"),
+    "OpenClaw package.json",
+    { maxValues: 250_000, maxDepth: 128 },
+  );
+  if (openclawPackage.name !== "openclaw" || openclawPackage.version !== openclawVersion) {
+    throw new Error("OpenClaw runtime root package identity does not match the active binary version");
+  }
+  const openclawRuntime = await hashRuntimeDirectory(openclawRoot, "complete OpenClaw runtime");
+  if (!/^[a-f0-9]{64}$/.test(expectedOpenClawRuntimeSha256 || "")) {
+    throw new Error("An expected complete OpenClaw runtime SHA-256 pin is required");
+  }
+  if (openclawRuntime.sha256 !== expectedOpenClawRuntimeSha256) {
+    throw new Error("Complete OpenClaw runtime SHA-256 pin mismatch");
+  }
   const { provider } = parseModel(model);
   let expectedPluginIds;
   let registrySnapshot = null;
@@ -274,12 +335,34 @@ export async function loadRuntimeProvenance({
   if (stableJson(identities.map((identity) => identity.pluginId).sort()) !== stableJson([...expectedPluginIds].sort())) {
     throw new Error("Verified runtime plugin IDs do not exactly match the selected model");
   }
+  const providerIdentity = identities.find((identity) => identity.pluginId === provider);
+  if (!/^[a-f0-9]{64}$/.test(expectedProviderRuntimeSha256 || "")) {
+    throw new Error(`An expected complete ${provider} provider runtime SHA-256 pin is required`);
+  }
+  if (providerIdentity?.runtimeSha256 !== expectedProviderRuntimeSha256) {
+    throw new Error(`Complete ${provider} provider runtime SHA-256 pin mismatch`);
+  }
+  const codexIdentity = identities.find((identity) => identity.pluginId === "codex");
+  if (provider === "openai") {
+    if (!/^[a-f0-9]{64}$/.test(expectedCodexRuntimeSha256 || "")) {
+      throw new Error("An expected complete Codex runtime SHA-256 pin is required");
+    }
+    if (codexIdentity?.runtimeSha256 !== expectedCodexRuntimeSha256) {
+      throw new Error("Complete Codex runtime SHA-256 pin mismatch");
+    }
+  } else if (expectedCodexRuntimeSha256 !== null && expectedCodexRuntimeSha256 !== undefined) {
+    throw new Error("A Codex runtime pin is only valid for openai/* evaluation");
+  }
   return {
     identity: {
       openclaw: {
         path: binary.path,
         version: openclawVersion,
         sha256: binary.sha256,
+        rootDir: openclawRuntime.path,
+        runtimeSha256: openclawRuntime.sha256,
+        runtimeFileCount: openclawRuntime.fileCount,
+        runtimeBytes: openclawRuntime.bytes,
       },
       plugins: identities,
     },
@@ -355,6 +438,7 @@ export function copyInferenceAuthStore(sourceAgentDir, targetAgentDir, model) {
     source.close();
     if (!succeeded) {
       rmSync(targetPath, { force: true });
+      rmSync(`${targetPath}-journal`, { force: true });
       rmSync(`${targetPath}-wal`, { force: true });
       rmSync(`${targetPath}-shm`, { force: true });
     }
@@ -424,6 +508,7 @@ export async function copyPluginRegistrySnapshot(snapshot, targetStateDir) {
     target.close();
     if (!succeeded) {
       await rm(targetPath, { force: true });
+      await rm(`${targetPath}-journal`, { force: true });
       await rm(`${targetPath}-wal`, { force: true });
       await rm(`${targetPath}-shm`, { force: true });
     }
@@ -436,6 +521,7 @@ export async function removeCredentialSnapshot(authSnapshot) {
   if (!authSnapshot?.path) return;
   await Promise.all([
     rm(authSnapshot.path, { force: true }),
+    rm(`${authSnapshot.path}-journal`, { force: true }),
     rm(`${authSnapshot.path}-wal`, { force: true }),
     rm(`${authSnapshot.path}-shm`, { force: true }),
   ]);
@@ -478,7 +564,7 @@ function exactToolNames(value, expected, label) {
   }
 }
 
-export async function validateRuntimeInspection(inspection, { integrationIdentity, toolNames }) {
+export async function validateRuntimeInspection(inspection, { integrationIdentity, toolNames, cliCommand }) {
   if (!isPlainObject(inspection) || !isPlainObject(inspection.plugin)) throw new Error("OpenClaw runtime inspection is malformed");
   const plugin = inspection.plugin;
   if (
@@ -514,10 +600,13 @@ export async function validateRuntimeInspection(inspection, { integrationIdentit
     ownedTools.push(tool.names[0]);
   }
   exactToolNames(ownedTools, toolNames, "OpenClaw runtime inspection registered tools");
-  for (const field of ["diagnostics", "commands", "cliCommands", "services", "gatewayMethods", "mcpServers", "lspServers"]) {
+  for (const field of ["diagnostics", "commands", "services", "gatewayMethods", "mcpServers", "lspServers"]) {
     if (!Array.isArray(inspection[field]) || inspection[field].length !== 0) {
       throw new Error(`OpenClaw runtime inspection exposed unexpected ${field}`);
     }
+  }
+  if (!Array.isArray(inspection.cliCommands) || stableJson(inspection.cliCommands) !== stableJson([cliCommand])) {
+    throw new Error("OpenClaw runtime inspection exposed unexpected CLI commands");
   }
   const identity = {
     pluginId: plugin.id,

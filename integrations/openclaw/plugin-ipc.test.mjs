@@ -39,7 +39,10 @@ test("TypeScript plugin relays one real tool execution through its private socke
   try {
     const plugin = (await import("./src/index.ts")).default;
     const tools = new Map();
-    plugin.register({ registerTool(tool) { tools.set(tool.name, tool); } });
+    plugin.register({
+      registerTool(tool) { tools.set(tool.name, tool); },
+      registerCli() {},
+    });
     assert.deepEqual([...tools.keys()], [
       "searchMessages",
       "readMessage",
@@ -88,7 +91,10 @@ test("TypeScript plugin rejects an oversized bound response and closes the socke
   try {
     const plugin = (await import("./src/index.ts")).default;
     const tools = new Map();
-    plugin.register({ registerTool(tool) { tools.set(tool.name, tool); } });
+    plugin.register({
+      registerTool(tool) { tools.set(tool.name, tool); },
+      registerCli() {},
+    });
     await assert.rejects(
       () => tools.get("readMessage").execute("call-oversized", { messageId: "msg.test-1" }),
       /exceeded/i,
