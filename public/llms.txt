@@ -1,10 +1,11 @@
 # Clawbotomy
 
-Clawbotomy is an open-source research preview for model-routing benchmarks, integrity-checked evidence bundles, and qualitative behavioral exploration.
+Clawbotomy is an open-source research preview for configured-agent evaluation, model-routing benchmarks, integrity-checked evidence bundles, and qualitative behavioral exploration.
 
 ## Canonical pages and machine-readable surfaces
 
 - https://www.clawbotomy.com/preflight — browser-local Inbox capability and scenario planner with local deterministic reference-control and allowlisted declarative-adapter commands; the planner makes no permission decision
+- https://www.clawbotomy.com/evaluate — OpenClaw and Hermes launch instructions plus a browser-local private receipt viewer and run comparison; selected evidence files are processed in memory and are not uploaded
 - https://www.clawbotomy.com/evidence/schema/inbox-preflight-plan.v1.schema.json — versioned schema for the non-authorizing Inbox plan artifact
 - https://www.clawbotomy.com/evidence/schema/inbox-run-manifest.v1.schema.json — manifest schema for private deterministic mock-Inbox evidence
 - https://www.clawbotomy.com/evidence/schema/inbox-case-record.v1.schema.json — per-case mock tool, state, and assertion evidence schema
@@ -32,6 +33,8 @@ Clawbotomy is an open-source research preview for model-routing benchmarks, inte
 ## Current evidence state
 
 - The Inbox planner records operator intent and required scenarios only. Its artifact keeps `permissionDecision` null and grants no authorization.
+- The accepted OpenClaw and Hermes bridges run as operator-owned parents of the fixed stdio protocol. They expose exactly eight mock-Inbox tools, produce private observed-session evidence, and never connect Clawbotomy to a real mailbox.
+- `/evaluate` requires one launcher-issued attempt receipt bound to each displayed bundle and renders only closed-contract fields: checked-in case identifiers, allowed tool names and counts, state-change counts, checked-in failed-assertion IDs, process exit, and full digests. It does not render prompts, message bodies, tool arguments, arbitrary identifiers or diagnostics, raw events, transcripts, or local paths.
 - `npm run inbox -- run --plan <plan.json> --agent bounded` executes every required case against a bundled reference agent in a synthetic in-memory Inbox. It writes private, replayable tool and state evidence and makes no network request.
 - `npm run inbox -- run --plan <plan.json> --adapter declarative-policy/v1 --adapter-config <config.json>` interprets the closed-schema policy document through a checked-in allowlisted adapter. The adapter flags require each other and are mutually exclusive with `--agent`.
 - Reference evidence applies only to `bounded/v1` or the deliberately failing `overreach/v1` control. Adapter evidence applies only to the canonical policy document embedded in its private bundle. Neither path inspects or executes the plan's configuration reference, and every result remains non-authorizing with `permissionDecision` null.
@@ -48,7 +51,7 @@ Clawbotomy is an open-source research preview for model-routing benchmarks, inte
 
 ## Operator lifecycle
 
-1. `/preflight` builds a browser-local Inbox plan. Use a built-in reference control, the allowlisted declarative adapter, or have an operator-owned host launch `node inbox/host-index.js --plan <plan.json> --protocol stdio-jsonl/v1`. Validation reconstructs reference/adapter runs and replays recorded protocol frames without re-executing an external client.
+1. `/preflight` builds a browser-local Inbox plan. Use a built-in reference control, the allowlisted declarative adapter, or connect OpenClaw or Hermes from `/evaluate`. Validation reconstructs reference/adapter runs and replays recorded protocol frames without re-executing an external client.
 2. `--dry-run` optionally verifies the benchmark command path with synthetic output and no model requests.
 3. `--preflight` makes no provider requests and freezes source state, credential presence, model identities, cases, judge, request graph, pricing snapshot, estimated-cost bound, and private output path into a digest-addressed benchmark plan.
 4. `--live` accepts only that unchanged benchmark plan plus the reviewed `--confirm-plan`, `--max-requests`, and `--max-cost-usd` values.

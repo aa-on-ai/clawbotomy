@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import styles from './site-chrome.module.css';
 
 const links = [
-  { href: '/preflight', label: 'Plan' },
+  { href: '/evaluate', label: 'Evaluate' },
   { href: '/bench', label: 'Evidence' },
   { href: '/trust', label: 'Trust' },
   { href: '/routing', label: 'Routing' },

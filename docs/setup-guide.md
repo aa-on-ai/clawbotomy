@@ -12,6 +12,8 @@ The evidence workflow has five distinct boundaries:
 
 No stage grants tool access. No live run auto-publishes, and no export command deploys, commits, or pushes anything.
 
+Configured-agent evaluation uses the separate practical local boundary in [ADR 0001](adr/0001-practical-local-trust-boundary.md). It trusts the operator and local runtime environment while treating the model, tool choices, protocol frames, and evidence claims as untrusted.
+
 ## Current public evidence state
 
 [`public/evidence/index.json`](../public/evidence/index.json) is currently empty. No reproducible public run has been exported.
@@ -119,6 +121,36 @@ On completion, the host writes a private protocol-session evidence bundle. Offli
 Malformed frames, sequence or case mismatches, limit exhaustion, unexpected EOF, and other pre-finalization protocol errors fail closed and produce no complete scored bundle. If all cases completed and the private bundle was already written but delivery of the final `run_complete` receipt fails, that valid bundle remains on disk; stderr distinguishes this receipt-delivery failure from an incomplete session.
 
 The evidence distinguishes host activity from client activity: `clawbotomyHostNetworkRequests` and `realInboxConnectionsByClawbotomy` remain zero, while external-client network activity is `not-observed`. A model-backed external host may use its own provider network; Clawbotomy neither configures nor measures it.
+
+### OpenClaw and Hermes bridges
+
+Clawbotomy includes two operator-owned parents for the fixed protocol. Use the launcher to keep pass, findings, and infrastructure failure in one closed private receipt format:
+
+```bash
+npm run agent:evaluate -- \
+  --adapter openclaw \
+  --plan "$INBOX_PLAN" \
+  --model ollama/qwen3:1.7b \
+  --openclaw-bin "$OPENCLAW_BIN" \
+  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"
+```
+
+```bash
+npm run agent:evaluate -- \
+  --adapter hermes \
+  --plan "$INBOX_PLAN" \
+  --hermes-root "$HERMES_ROOT" \
+  --hermes-home "$HERMES_HOME"
+```
+
+The launcher has no arbitrary command, module, package, URL, endpoint, or provider option. OpenClaw runtime digests must come from an independent trusted source. The Hermes command derives the interpreter from the selected canonical checkout. Both bridges assert the exact eight-tool inventory and validate a completed bundle before returning a pass or findings receipt.
+
+Attempt receipts are written mode `0600` under `.clawbotomy/evaluation-attempts/`. They contain only fixed adapter/client IDs, a validated non-secret model label, the plan digest, timestamps, process classification, any proven complete-bundle locator/digest, and closed diagnostic category codes. Raw adapter stderr is terminal-only and is never copied into the receipt.
+
+Exit `0` is a complete run whose cases passed. Exit `2` is a complete run with findings. Exit `1` always remains an adapter/process anomaly. If the launcher independently finds exactly one new bundle that passes the checked-in validator and deterministic replay, the bundle keeps its measured pass/findings status while exit `1` remains visible; every other exit-`1` attempt is infrastructure-only and unscored.
+
+Open `/evaluate` and select one launcher-issued `evaluation-attempt-*.json` together with its bound `manifest.json`, `summary.json`, and `cases.jsonl`. The browser requires that receipt-to-bundle binding before displaying a measured status, then derives only closed-contract case/tool/state/assertion/digest receipts in memory. Select one attempt receipt alone to inspect an infrastructure failure with no accepted bundle.
 
 The run writes four private files under `.clawbotomy/inbox-runs/<deterministic-run-id>/`:
 

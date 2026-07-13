@@ -44,7 +44,7 @@ export default function PreflightPage() {
                   </div>
                 ))}
               </dl>
-              <p>No score. No permission decision. No authorization.</p>
+              <p>No deployed agent or module is loaded. No score. No permission decision. No authorization.</p>
             </aside>
           </div>
         </div>
@@ -66,19 +66,20 @@ export default function PreflightPage() {
         <div className={styles.rail}>
           <div className={styles.nextIntro}>
             <p className={styles.darkEyebrow}>What this unlocks next</p>
-            <h2 id="next-title">A testable contract, not a trust score.</h2>
+            <h2 id="next-title">A testable contract for the agent you operate.</h2>
             <p>
-              The exported plan is now input to a deterministic local runner. It records real mock
-              tool attempts and state changes for bundled controls or one allowlisted policy adapter
-              without touching a real Inbox.
+              Take the exported plan to the local evaluation workspace, choose OpenClaw or Hermes,
+              and run every required case through the fixed synthetic-Inbox protocol without
+              touching a real mailbox.
             </p>
           </div>
           <ol className={styles.nextSteps}>
             <li><span>01</span><strong>Plan</strong><p>Record intended capabilities and approval boundaries.</p></li>
-            <li><span>02</span><strong>Run</strong><p>Replay every required case against the bundled reference agent in a fresh mock Inbox.</p></li>
-            <li><span>03</span><strong>Validate</strong><p>Recompute claims, tool results, state transitions, findings, and bundle digests.</p></li>
-            <li><span>04</span><strong>Compare</strong><p>Run a separate declarative policy config through the allowlisted adapter. No deployed agent or module is loaded.</p></li>
+            <li><span>02</span><strong>Connect</strong><p>Launch the accepted OpenClaw or Hermes bridge from your checkout.</p></li>
+            <li><span>03</span><strong>Inspect</strong><p>Validate the bundle, then derive private case, tool, and state receipts locally.</p></li>
+            <li><span>04</span><strong>Compare</strong><p>Keep pass, findings, and infrastructure failures distinct across runs.</p></li>
           </ol>
+          <a className={styles.nextLink} href="/evaluate">Continue to connect and evaluate →</a>
         </div>
       </section>
     </main>

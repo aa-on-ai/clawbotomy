@@ -11,7 +11,7 @@ import { GeistMono } from 'geist/font/mono';
 
 const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
 const siteDescription =
-  'Browser-local Inbox planning, tamper-evident model evidence, and reviewable permission boundaries.';
+  'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
 const siteUrl = 'https://www.clawbotomy.com';
 const ogImage = '/scientist-idle.png';
 

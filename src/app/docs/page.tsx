@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Documentation — Clawbotomy',
-  description: 'How to freeze, authorize, validate, and optionally export a Clawbotomy evidence bundle locally.',
+  description: 'How to connect OpenClaw or Hermes, validate private agent evidence, and run Clawbotomy benchmark workflows locally.',
 };
 
 const workflowCommands = [
@@ -72,6 +72,31 @@ npm run inbox -- summarize "$INBOX_BUNDLE"`,
   },
 ];
 
+const agentCommands = [
+  {
+    label: 'Evaluate a local OpenClaw model',
+    command: `npm run agent:evaluate -- \\
+  --adapter openclaw \\
+  --plan ./clawbotomy-inbox-support-agent.json \\
+  --model ollama/qwen3:1.7b \\
+  --openclaw-bin "$OPENCLAW_BIN" \\
+  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \\
+  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"`,
+  },
+  {
+    label: 'Evaluate the pinned Hermes runtime',
+    command: `npm run agent:evaluate -- \\
+  --adapter hermes \\
+  --plan ./clawbotomy-inbox-support-agent.json \\
+  --hermes-root "$HERMES_ROOT" \\
+  --hermes-home "$HERMES_HOME"`,
+  },
+  {
+    label: 'Validate the completed protocol bundle',
+    command: `npm run inbox -- validate .clawbotomy/inbox-runs/<runId>`,
+  },
+];
+
 const steps = [
   {
     title: 'Clone and install',
@@ -97,9 +122,14 @@ const steps = [
 
 const currentSurfaces = [
   {
+    name: '/evaluate',
+    status: 'Configured-agent workspace',
+    description: 'Connects the accepted OpenClaw or Hermes bridge, explains pass/findings/infrastructure status, and derives a safe local-only view from private files selected by the operator.',
+  },
+  {
     name: '/preflight',
-    status: 'Plan + local mock runs',
-    description: 'Records intended Inbox capabilities, then feeds deterministic reference controls or one allowlisted policy adapter with real mock tool and state evidence. The deployed agent remains uninspected and no permission decision exists.',
+    status: 'Browser-local plan',
+    description: 'Records intended Inbox capabilities and required scenarios before any agent runs. The exported plan remains non-authorizing and makes no permission decision.',
   },
   {
     name: '/bench',
@@ -137,10 +167,36 @@ export default function DocsPage() {
           Documentation
         </h1>
         <p className="text-content-secondary font-mono text-sm max-w-2xl mx-auto leading-relaxed">
-          Plan intended Inbox powers in the browser, then run bundled reference controls or one
-          allowlisted declarative policy against the mock Inbox. Neither path executes a deployed agent.
+          Plan intended Inbox powers in the browser, then run OpenClaw, Hermes, or a fixed reference
+          control against the same synthetic Inbox. Every result remains private and non-authorizing.
         </p>
       </header>
+
+      <section className="mb-16" aria-labelledby="configured-agent-run">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 id="configured-agent-run" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
+            Configured-agent run
+          </h2>
+          <div className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+        <div className="glow-card rounded-xl p-5 md:p-6 space-y-4">
+          <p className="text-content-secondary font-mono text-sm leading-relaxed">
+            Start at <a className="text-content-primary underline underline-offset-4" href="/evaluate">/evaluate</a>. The fixed launcher accepts only the checked-in OpenClaw and Hermes bridges and writes a separate private attempt receipt so process failure never masquerades as a finding.
+          </p>
+          {agentCommands.map((item) => (
+            <div key={item.label} className="space-y-2">
+              <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
+              <pre className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary">
+                <code>{item.command}</code>
+              </pre>
+            </div>
+          ))}
+          <p className="text-content-muted font-mono text-xs leading-relaxed">
+            Exit 0 is passed. Exit 2 is a complete run with findings. Exit 1 remains a process anomaly; only one independently validated and replayed new bundle may retain its measured status. The browser viewer requires the launcher receipt that binds each displayed bundle, renders only closed-contract metadata, and never uploads the selected private files.
+          </p>
+        </div>
+      </section>
 
       <section className="mb-16" aria-labelledby="inbox-reference-run">
         <div className="flex items-center gap-4 mb-8">
@@ -164,7 +220,8 @@ export default function DocsPage() {
           ))}
           <p className="text-content-muted font-mono text-xs leading-relaxed">
             Bounded and overreach remain reference-only controls. Adapter evidence applies only to
-            the exact embedded policy document. Every path is non-authorizing and leaves production access unchanged.
+            the exact embedded policy document. Neither path executes a deployed agent. Every path
+            is non-authorizing and leaves production access unchanged.
           </p>
         </div>
       </section>
