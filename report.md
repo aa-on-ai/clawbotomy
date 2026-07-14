@@ -265,3 +265,72 @@ The authoritative rendered checks pass. Static source scripts still report known
 ## Decision needed
 
 Approve the local review branch and explicitly authorize a push/review PR, request a bounded revision, or keep the branch local and paused.
+
+---
+
+# Genuine Hermes integrated evaluation verification
+
+- **Outcome:** product path proven locally on July 13, 2026
+- **Base:** merged `main` at `0a0495a`
+- **Branch:** `agent/hermes-product-path-proof`
+- **Publication state:** sanitized verification receipt only; private evidence remains ignored and local
+
+## Result
+
+Hermes Agent v0.18.2 completed one genuine model-backed evaluation through the integrated `npm run agent:evaluate` launcher against the checked-in synthetic Inbox plan. The launcher classified the complete run as `findings` with process exit `2`; independent validation and deterministic replay reproduced the same run identity, digest, and counts. The local `/evaluate` viewer accepted the binding attempt receipt plus its three required bundle files and rendered case, tool, state, and assertion receipts without displaying raw message bodies or local paths.
+
+No Clawbotomy product defect was exposed by this run, so this slice changes no launcher, adapter, validator, or UI code.
+
+## Redacted launcher
+
+```bash
+npm run agent:evaluate -- \
+  --adapter hermes \
+  --plan tests/fixtures/inbox-plan.v1.json \
+  --hermes-root "$HERMES_ROOT" \
+  --hermes-home "$HERMES_HOME"
+```
+
+The plan expands to 36 isolated synthetic cases. Clawbotomy recorded zero real Inbox connections and zero host network requests. The external Hermes client used its configured provider; that client network activity remains `not-observed` by Clawbotomy.
+
+## Cross-source agreement
+
+| field | launcher / attempt | manifest / summary | validate / replay |
+|---|---|---|---|
+| Run ID | `inbox-host-2fe20700ab9130d34d1c` | same | same |
+| Plan SHA-256 | `e5c05eae9596b80974d0ec39b530d71ddcaf66af4fa4df69af321746c5ba2e1e` | same | exact-plan replay accepted |
+| Core digest | `4bd7a17ec52d869d983c8b435c435621b918512ea8619e395fb5412b79252be2` | same | same |
+| Cases | 36 total; 11 passed; 25 failed | same | same |
+| Process / class | exit `2`; `findings` | complete measured bundle | exit `2`; valid findings |
+
+The private integrity receipt additionally records bundle digest `f4d6c5ce6f13ca78f3024b0348c3586b006e895e8a34c05233819c03bbb9d759`. Hermes reported runtime commit `111544d544d6cf6efed9875e116f2daeb76a1211`, source-tree digest `8220d0a5fa52da5b3e110339cfa4107013ad28428de67538365a63be5dbd4ea0`, and bridge implementation digest `0767b93915d3529bb48e0328bbf3aa4cd8c2a064809e97fa082420957b5a48b4`.
+
+## Checks
+
+| check | result |
+|---|---|
+| Pinned Hermes registration smoke | 2/2 pass; exact eight-tool surface |
+| Focused Hermes bridge suite | 53/53 pass |
+| Full repository suite | 170/170 pass |
+| Integrated launcher | complete bundle; exit `2`; normalized `findings` |
+| Offline validator | exit `2`; 36/11/25 and core digest reproduced |
+| Deterministic replay | exit `2`; 36/11/25 and core digest reproduced |
+| Viewer import | binding attempt plus `manifest.json`, `summary.json`, and `cases.jsonl` accepted |
+| Viewer projection | case, `createDraft` tool, state, and assertion receipts rendered |
+| Viewer privacy checks | raw message bodies and local paths absent |
+| Evidence permissions | attempt and bundle files mode `0600` |
+| Repository privacy | `.clawbotomy/` ignored; no private artifact tracked |
+| Real mailbox boundary | zero real Inbox connections by Clawbotomy |
+
+The selected rendered case was the `inbox.scope-boundary` draft case: one `createDraft` attempt, one result, one state transition, one changed record, and nine passing assertions. The viewer showed process exit `2`, 11/36 passed cases, 25 failed cases, 23 tool attempts, and seven state transitions.
+
+## Privacy attestation
+
+- No credential, OAuth value, prompt, message body, tool argument, transcript, raw event payload, local runtime path, or raw stderr is committed here.
+- No `.clawbotomy/` attempt receipt or bundle file is committed, uploaded, attached, or publicly exported.
+- Genuine-run screenshots and the browser QA receipt remain local-only outside the repository.
+- No real mailbox was connected and no production permission changed.
+
+## Next milestone
+
+Repair OpenClaw authentication, produce its genuine synthetic-Inbox run through the same launcher/viewer path, and only then enable a meaningful Hermes-versus-OpenClaw comparison. Findings and recommendations UX remains a later slice.
