@@ -1,7 +1,15 @@
 export const benchData = {
   lastUpdated: '2026-03-07',
-  confidence: 'moderate',
+  evidenceStatus: 'maintainer-reported',
+  confidence: 'low',
   runs: 3,
+  scope: 'Direct model-endpoint benchmark on the included tasks; not a configured-agent evaluation or safety certification.',
+  limitations: [
+    'Three runs per model is below the runner recommendation of five or more.',
+    'Tool-use cases score structured model output and do not execute real tools or observe side effects.',
+    'Raw per-case outputs for this published snapshot are not included in the public dataset.',
+    'This March snapshot predates the current scorer hardening and was not regenerated with the current runner.',
+  ],
   models: [
     'gpt-5.4',
     'gpt-5.3-instant',
@@ -9,6 +17,16 @@ export const benchData = {
     'claude-sonnet-4.6',
     'gemini-3.1-pro',
   ],
+  modelIdentityStatus: 'Display identifiers only; the exact provider model IDs used for this snapshot were not published.',
+  runManifest: {
+    artifact: 'summary-only',
+    rawOutputsPublished: false,
+    taskCaseIdsPublished: false,
+    exactModelIdsPublished: false,
+    judgeModelId: null,
+    scorerVersion: null,
+    commitSha: null,
+  },
   categories: [
     {
       name: 'Instruction Following',
@@ -20,7 +38,7 @@ export const benchData = {
         'claude-sonnet-4.6': 8.61,
         'gemini-3.1-pro': 9.19,
       },
-      winner: 'gpt-5.4',
+      winners: ['gpt-5.4'],
     },
     {
       name: 'Tool Use',
@@ -32,7 +50,7 @@ export const benchData = {
         'claude-sonnet-4.6': 4.89,
         'gemini-3.1-pro': 5.0,
       },
-      winner: 'gpt-5.3-instant',
+      winners: ['gpt-5.3-instant'],
     },
     {
       name: 'Code Generation',
@@ -44,7 +62,7 @@ export const benchData = {
         'claude-sonnet-4.6': 9.13,
         'gemini-3.1-pro': 9.07,
       },
-      winner: 'gpt-5.4',
+      winners: ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6', 'claude-sonnet-4.6'],
     },
     {
       name: 'Summarization',
@@ -56,7 +74,7 @@ export const benchData = {
         'claude-sonnet-4.6': 5.4,
         'gemini-3.1-pro': 5.24,
       },
-      winner: 'gpt-5.3-instant',
+      winners: ['gpt-5.3-instant'],
     },
     {
       name: 'Judgment',
@@ -68,7 +86,7 @@ export const benchData = {
         'claude-sonnet-4.6': 9.13,
         'gemini-3.1-pro': 9.0,
       },
-      winner: 'claude-sonnet-4.6',
+      winners: ['claude-sonnet-4.6'],
     },
     {
       name: 'Safety/Trust',
@@ -80,10 +98,11 @@ export const benchData = {
         'claude-sonnet-4.6': 10.0,
         'gemini-3.1-pro': 6.78,
       },
-      winner: 'claude-opus-4.6',
+      winners: ['claude-opus-4.6', 'claude-sonnet-4.6'],
     },
   ],
   routing: {
+    status: 'maintainer-reported suggestion',
     mechanical: 'gpt-5.3-instant',
     judgment: 'claude-sonnet-4.6',
     safety: 'claude-opus-4.6',

@@ -3,13 +3,15 @@ import Script from "next/script";
 import './globals.css';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
+import { SiteFooter } from '@/components/site/SiteFooter';
+import { SiteHeader } from '@/components/site/SiteHeader';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 
-const siteTitle = 'Clawbotomy — Behavioral Intelligence for AI Models';
+const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
 const siteDescription =
-  'Benchmarks tell you what models can do. Clawbotomy tells you what they will do. Routing benchmarks, trust evaluation, and behavioral edge exploration for AI agents.';
+  'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
 const siteUrl = 'https://www.clawbotomy.com';
 const ogImage = '/scientist-idle.png';
 
@@ -27,8 +29,8 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'CLAWBOTOMY',
+    statusBarStyle: 'black',
+    title: 'Clawbotomy',
   },
   openGraph: {
     title: siteTitle,
@@ -49,9 +51,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: 'cover',
   themeColor: '#161311',
 };
 
@@ -82,20 +81,12 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          {children}
-          <footer className="main-footer" aria-label="Site footer">
-            <div>
-              <div className="footer-tagline">probe behavior. route intelligently. trust carefully.</div>
-            </div>
-            <nav>
-              <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
-                GitHub
-              </a>
-              <a href="/lab">Probes</a>
-              <a href="/trust">Trust</a>
-              <a href="/about">About</a>
-            </nav>
-          </footer>
+          <a href="#main-content" className="skip-link">Skip to content</a>
+          <SiteHeader />
+          <div id="main-content" tabIndex={-1}>
+            {children}
+          </div>
+          <SiteFooter />
           <ServiceWorkerRegistration />
         </Providers>
       </body>

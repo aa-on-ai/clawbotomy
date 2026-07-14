@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/evidence-bundle.v1.schema.json",
+  "title": "Clawbotomy evidence bundle manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaId", "runId", "lifecycle", "evidence", "execution", "plan", "actual", "publication"],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.evidence-bundle/v1" },
+    "runId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$" },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "startedAt", "completedAt"],
+      "properties": {
+        "status": { "enum": ["complete", "incomplete", "failed", "cancelled"] },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["measurementStatus", "reproducibilityStatus", "reviewStatus", "authorizationStatus"],
+      "properties": {
+        "measurementStatus": { "enum": ["measured", "synthetic-test"] },
+        "reproducibilityStatus": { "enum": ["complete", "redacted", "incomplete"] },
+        "reviewStatus": { "enum": ["maintainer-self-reported", "independently-reviewed"] },
+        "authorizationStatus": { "const": "non-authorizing" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": { "mode": { "enum": ["live", "dry-run"] } }
+    },
+    "plan": { "$ref": "./benchmark-plan.v1.schema.json" },
+    "actual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheduledCases", "records", "completedCases", "scoredCases", "failedCases", "targetRequests", "judgeRequests"],
+      "properties": {
+        "scheduledCases": { "type": "integer", "minimum": 0 },
+        "records": { "type": "integer", "minimum": 0 },
+        "completedCases": { "type": "integer", "minimum": 0 },
+        "scoredCases": { "type": "integer", "minimum": 0 },
+        "failedCases": { "type": "integer", "minimum": 0 },
+        "targetRequests": { "type": "integer", "minimum": 0 },
+        "judgeRequests": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "publication": { "type": ["object", "null"] }
+  }
+}

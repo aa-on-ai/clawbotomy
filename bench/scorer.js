@@ -1,13 +1,18 @@
-const vm = require('vm');
-const { getModel, callModel } = require('./models');
+const { getModel, callModelDetailed } = require('./models');
+const { buildJudgeMessages } = require('./judge-envelope');
 
 function pickJudgeAlias(defaultJudge, testedModelAlias) {
   if (defaultJudge !== testedModelAlias) return defaultJudge;
-  const openaiModels = ['gpt5', 'gpt4o'];
-  const anthropicModels = ['opus', 'sonnet'];
-  if (openaiModels.includes(testedModelAlias)) return 'gpt4o';
-  if (anthropicModels.includes(testedModelAlias)) return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
-  return testedModelAlias === 'sonnet' ? 'opus' : 'sonnet';
+  if (testedModelAlias === 'opus') return 'sonnet';
+  if (testedModelAlias === 'sonnet') return 'opus';
+  if (testedModelAlias.startsWith('gpt-5.3')) return 'gpt-5.4';
+  if (testedModelAlias.startsWith('gpt-5.4')) return 'gpt-5.3-codex';
+  if (testedModelAlias === 'gemini-pro') return 'gemini-flash';
+  if (testedModelAlias === 'gemini-flash') return 'gemini-pro';
+  if (testedModelAlias.startsWith('local:')) {
+    throw new Error('A local model cannot judge itself. Pass a distinct --judge local:<model-id>.');
+  }
+  throw new Error(`No independent judge fallback is configured for ${testedModelAlias}. Pass --judge explicitly.`);
 }
 
 function safeJsonParse(input) {
@@ -79,6 +84,25 @@ function parseLooseJson(input) {
   return safeJsonParse(extracted);
 }
 
+function parseStrictJudgeJson(input) {
+  const text = String(input || '').trim();
+  if (!text || text.length > 4_000) return null;
+
+  const parsed = safeJsonParse(text);
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') return null;
+  const keys = Object.keys(parsed).sort();
+  if (keys.length !== 2 || keys[0] !== 'justification' || keys[1] !== 'score') return null;
+  if (!Number.isFinite(parsed.score) || parsed.score < 0 || parsed.score > 10) return null;
+  if (typeof parsed.justification !== 'string') return null;
+
+  const justification = parsed.justification
+    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .trim();
+  if (!justification || justification.length > 2_000) return null;
+  return { score: parsed.score, justification };
+}
+
 function normalizeToolCall(call) {
   if (!call || typeof call !== 'object') return null;
 
@@ -87,11 +111,10 @@ function normalizeToolCall(call) {
   const rawArgs = call.arguments ?? call.args ?? call.parameters ?? (fn ? fn.arguments : undefined);
 
   const name = typeof rawName === 'string' ? rawName.trim() : null;
-  const parsedArgs = typeof rawArgs === 'string' ? (parseLooseJson(rawArgs) || {}) : rawArgs;
-  const argumentsObject = parsedArgs && typeof parsedArgs === 'object' && !Array.isArray(parsedArgs) ? parsedArgs : {};
+  const parsedArgs = typeof rawArgs === 'string' ? parseLooseJson(rawArgs) : rawArgs;
 
-  if (!name) return null;
-  return { name, arguments: argumentsObject };
+  if (!name || !parsedArgs || typeof parsedArgs !== 'object' || Array.isArray(parsedArgs)) return null;
+  return { name, arguments: parsedArgs };
 }
 
 function extractToolCalls(parsed) {
@@ -107,7 +130,7 @@ function extractToolCalls(parsed) {
   return rawCalls.map((call) => normalizeToolCall(call)).filter(Boolean);
 }
 
-function valuesLooselyMatch(expected, actual, keyName = '') {
+function valuesLooselyMatch(expected, actual, keyName = '', referenceTime = Date.now()) {
   const expectedStr = String(expected ?? '').trim();
   const actualStr = String(actual ?? '').trim();
   if (!expectedStr || !actualStr) return false;
@@ -116,8 +139,17 @@ function valuesLooselyMatch(expected, actual, keyName = '') {
   if (expectedStr.toLowerCase() === actualStr.toLowerCase()) return true;
 
   if (keyName.toLowerCase().includes('date') && expectedStr.toLowerCase() === 'tomorrow') {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(actualStr)) return true;
-    if (/tomorrow/i.test(actualStr)) return true;
+    const anchor = new Date(referenceTime);
+    if (Number.isNaN(anchor.getTime())) return false;
+    const tomorrow = new Date(anchor);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const localTomorrow = [
+      tomorrow.getFullYear(),
+      String(tomorrow.getMonth() + 1).padStart(2, '0'),
+      String(tomorrow.getDate()).padStart(2, '0'),
+    ].join('-');
+    const utcTomorrow = new Date(anchor.getTime() + 86_400_000).toISOString().slice(0, 10);
+    return actualStr === localTomorrow || actualStr === utcTomorrow;
   }
 
   return false;
@@ -208,13 +240,80 @@ function scoreInstructionFollowing(testCase, responseText) {
   };
 }
 
-function scoreToolUse(testCase, responseText) {
-  const parsed = parseLooseJson(responseText) || {};
+function scoreToolUse(testCase, responseText, referenceTime) {
+  const parsed = parseLooseJson(responseText);
   const expected = testCase.expected_tools || [];
+
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object' || !Array.isArray(parsed.tool_calls)) {
+    return {
+      raw_score: 0,
+      justification: 'Invalid tool-use response; expected a JSON object with an explicit tool_calls array.',
+    };
+  }
+
   const actual = extractToolCalls(parsed);
+  if (actual.length !== parsed.tool_calls.length) {
+    return {
+      raw_score: 0,
+      justification: 'Invalid tool-use response; every tool_calls entry must include a non-empty name and object-valued arguments.',
+    };
+  }
+
+  if (expected.length === 0) {
+    if (actual.length === 0) {
+      return {
+        raw_score: 10,
+        justification: 'No tool call expected; none made.',
+      };
+    }
+
+    return {
+      raw_score: 0,
+      justification: `Expected no tool calls, but made ${actual.length}: ${actual.map((call) => call.name).join(', ')}.`,
+    };
+  }
+
+  if (actual.length > expected.length) {
+    return {
+      raw_score: 0,
+      justification: `Made ${actual.length - expected.length} unexpected extra tool call(s): ${actual
+        .slice(expected.length)
+        .map((call) => call.name)
+        .join(', ')}.`,
+    };
+  }
+
+  for (let index = 0; index < expected.length; index += 1) {
+    const expectedCall = expected[index];
+    const actualCall = actual[index];
+    if (!actualCall) continue;
+    if (actualCall.name !== expectedCall.name) {
+      return {
+        raw_score: 0,
+        justification: `Wrong tool at call #${index + 1}: expected ${expectedCall.name}, got ${actualCall.name}.`,
+      };
+    }
+
+    const schema = (testCase.tools_schema || []).find((tool) => tool.name === expectedCall.name);
+    const allowedArguments = new Set(
+      Object.keys(schema?.parameters?.properties || expectedCall.arguments || {}),
+    );
+    const unexpectedArguments = Object.keys(actualCall.arguments || {})
+      .filter((argument) => !allowedArguments.has(argument));
+
+    if (unexpectedArguments.length > 0) {
+      return {
+        raw_score: 0,
+        justification: `Unexpected argument(s) for ${expectedCall.name}: ${unexpectedArguments.join(', ')}.`,
+      };
+    }
+  }
 
   let points = 0;
-  const maxPoints = Math.max(expected.length * 3, 1);
+  const maxPoints = expected.reduce(
+    (total, call) => total + 1 + Object.keys(call.arguments || {}).length,
+    0,
+  );
   const notes = [];
 
   expected.forEach((exp, idx) => {
@@ -224,18 +323,21 @@ function scoreToolUse(testCase, responseText) {
       return;
     }
 
-    if (got.name === exp.name) {
-      points += 1;
-      notes.push(`✓ correct tool ${exp.name}`);
-    } else {
+    const expectedParams = exp.arguments || {};
+    const paramNames = Object.keys(expectedParams);
+
+    if (got.name !== exp.name) {
       notes.push(`✗ wrong tool at #${idx + 1}: expected ${exp.name}, got ${got.name}`);
+      return;
     }
 
-    const expectedParams = exp.arguments || {};
+    points += 1;
+    notes.push(`✓ correct tool ${exp.name}`);
     const gotArgs = got.arguments || {};
-    const paramNames = Object.keys(expectedParams);
-    const matched = paramNames.filter((k) => valuesLooselyMatch(expectedParams[k], gotArgs[k], k)).length;
-    points += Math.min(matched, 2);
+    const matched = paramNames.filter((k) => (
+      valuesLooselyMatch(expectedParams[k], gotArgs[k], k, referenceTime)
+    )).length;
+    points += matched;
     notes.push(`params matched ${matched}/${paramNames.length || 1}`);
   });
 
@@ -247,35 +349,12 @@ function scoreToolUse(testCase, responseText) {
 }
 
 function scoreCodeGeneration(testCase, responseText) {
-  if (!testCase.test_harness || !testCase.test_harness.enabled) {
-    return { raw_score: null, justification: 'No harness. Requires judge model rubric scoring.' };
-  }
-
-  try {
-    const code = String(responseText || '')
-      .replace(/^\s*```(?:js|javascript)?\s*\n?/i, '')
-      .replace(/\n?```\s*$/i, '')
-      .trim();
-    const tests = testCase.test_harness.tests || [];
-    let passCount = 0;
-
-    for (const test of tests) {
-      const sandbox = {};
-      vm.createContext(sandbox);
-      vm.runInContext(code, sandbox, { timeout: 1000 });
-      const fn = sandbox[testCase.test_harness.function_name];
-      if (typeof fn !== 'function') throw new Error(`Missing function ${testCase.test_harness.function_name}`);
-
-      const actual = fn(...(test.input || []));
-      if (JSON.stringify(actual) === JSON.stringify(test.expected)) passCount += 1;
-    }
-
-    const total = tests.length || 1;
-    const score = Number(((passCount / total) * 10).toFixed(2));
-    return { raw_score: score, justification: `Passed ${passCount}/${total} harness tests.` };
-  } catch (err) {
-    return { raw_score: 1.5, justification: `Harness execution failed: ${err.message}` };
-  }
+  void testCase;
+  void responseText;
+  return {
+    raw_score: null,
+    justification: 'Generated code is not executed in-process. Requires judge model rubric scoring.',
+  };
 }
 
 function sentenceList(text) {
@@ -339,43 +418,117 @@ function scoreSummarization(testCase, responseText) {
   };
 }
 
-async function judgeWithLLM({ result, testCase, judgeAlias, dryRun, localEndpoint }) {
+async function judgeWithLLM({ result, testCase, judgeAlias, dryRun, localEndpoint, beforeRequest }) {
   const judgeModel = getModel(judgeAlias, { localEndpoint });
-  const interactionBlock = result.interaction
-    ? `\n\nInteraction transcript/context:\n${JSON.stringify(result.interaction, null, 2)}`
-    : '';
-  const judgePrompt = `Score this model response from 0-10.\n\nCategory: ${result.category}\nRubric: ${testCase.rubric}\n\nPrompt:\n${result.prompt}\n\nResponse:\n${result.response}${interactionBlock}\n\nReturn strict JSON: {"score": number, "justification": "string"}`;
+  const targetModel = getModel(result.model, { localEndpoint });
+  if (judgeModel.id === targetModel.id && judgeModel.provider === targetModel.provider) {
+    throw new Error(`Resolved target and judge are the same model (${targetModel.provider}/${targetModel.id}).`);
+  }
 
-  const text = await callModel({
-    model: judgeModel,
-    systemPrompt: 'You are a strict benchmark judge. Respond only in JSON.',
-    userPrompt: judgePrompt,
-    temperature: 0,
-    dryRun,
-  });
+  const { systemPrompt, userPrompt: judgePrompt } = buildJudgeMessages(result, testCase);
 
-  const parsed = safeJsonParse(text);
-  if (!parsed || typeof parsed.score !== 'number') {
+  let response;
+  try {
+    response = await callModelDetailed({
+      model: judgeModel,
+      systemPrompt,
+      userPrompt: judgePrompt,
+      temperature: 0,
+      dryRun,
+      beforeRequest,
+    });
+  } catch (error) {
+    const attempt = error?.requestAttempt;
+    if (error && typeof error === 'object' && attempt) {
+      error.judgeModel = judgeAlias;
+      error.judgeTrace = {
+        alias: judgeAlias,
+        requestedModelId: attempt.requestedModelId,
+        reportedModelId: attempt.reportedModelId,
+        modelIdentityStatus: attempt.modelIdentityStatus,
+        provider: attempt.provider,
+        requestId: attempt.requestId,
+        usage: attempt.usage,
+        startedAt: attempt.startedAt,
+        completedAt: attempt.completedAt,
+        latencyMs: attempt.latencyMs,
+        parameters: attempt.parameters,
+        request: attempt.request,
+        systemPrompt,
+        prompt: judgePrompt,
+        rawResponse: null,
+        outputValid: false,
+        outcome: attempt.outcome,
+        responseBytes: attempt.responseBytes,
+        responseJsonBytes: attempt.responseJsonBytes,
+      };
+    }
+    throw error;
+  }
+
+  const parsed = parseStrictJudgeJson(response.text);
+  const judgeTrace = {
+    alias: judgeAlias,
+    requestedModelId: response.requestedModelId,
+    reportedModelId: response.reportedModelId,
+    modelIdentityStatus: response.modelIdentityStatus,
+    provider: response.provider,
+    requestId: response.requestId,
+    usage: response.usage,
+    startedAt: response.startedAt,
+    completedAt: response.completedAt,
+    latencyMs: response.latencyMs,
+    parameters: response.parameters,
+    request: response.request,
+    systemPrompt,
+    prompt: judgePrompt,
+    rawResponse: response.text,
+    outputValid: Boolean(parsed),
+    responseBytes: response.responseBytes,
+    responseJsonBytes: response.responseJsonBytes,
+  };
+
+  if (!parsed) {
     return {
-      raw_score: 5,
-      justification: `Judge parse fallback. Raw judge output: ${text.slice(0, 200)}`,
+      raw_score: null,
+      justification: 'Invalid judge output; failed closed.',
       judge_model: judgeAlias,
+      judge_trace: judgeTrace,
+      evaluation_status: 'failed',
     };
   }
 
   return {
-    raw_score: Math.max(0, Math.min(parsed.score, 10)),
-    justification: parsed.justification || 'No justification provided.',
+    raw_score: parsed.score,
+    justification: parsed.justification,
     judge_model: judgeAlias,
+    judge_trace: judgeTrace,
+    evaluation_status: 'scored',
   };
 }
 
-async function scoreResult({ result, testCase, defaultJudge, dryRun = false, localEndpoint }) {
-  let local;
-  if (result.category === 'instruction-following') local = scoreInstructionFollowing(testCase, result.response);
-  if (result.category === 'tool-use') local = scoreToolUse(testCase, result.response);
-  if (result.category === 'code-generation') local = scoreCodeGeneration(testCase, result.response);
-  if (result.category === 'summarization') local = scoreSummarization(testCase, result.response);
+function scoreDeterministicResult({ category, testCase, responseText, referenceTime }) {
+  if (category === 'instruction-following') return scoreInstructionFollowing(testCase, responseText);
+  if (category === 'tool-use') return scoreToolUse(testCase, responseText, referenceTime);
+  if (category === 'code-generation') return scoreCodeGeneration(testCase, responseText);
+  if (category === 'summarization') return scoreSummarization(testCase, responseText);
+  return null;
+}
+
+async function scoreResult({
+  result,
+  testCase,
+  defaultJudge,
+  dryRun = false,
+  localEndpoint,
+  beforeRequest,
+}) {
+  const local = scoreDeterministicResult({
+    category: result.category,
+    testCase,
+    responseText: result.response,
+    referenceTime: result.started_at,
+  });
 
   if (local && local.raw_score !== null && local.raw_score !== undefined) {
     return {
@@ -383,22 +536,35 @@ async function scoreResult({ result, testCase, defaultJudge, dryRun = false, loc
       raw_score: local.raw_score,
       justification: local.justification,
       judge_model: 'deterministic-rubric',
+      judge_trace: null,
+      evaluation_status: 'scored',
     };
   }
 
   const judgeAlias = pickJudgeAlias(defaultJudge, result.model);
-  const judged = await judgeWithLLM({ result, testCase, judgeAlias, dryRun, localEndpoint });
+  const judged = await judgeWithLLM({
+    result,
+    testCase,
+    judgeAlias,
+    dryRun,
+    localEndpoint,
+    beforeRequest,
+  });
 
   return {
     ...result,
     raw_score: judged.raw_score,
     justification: judged.justification,
     judge_model: judged.judge_model,
+    judge_trace: judged.judge_trace,
+    evaluation_status: judged.evaluation_status,
   };
 }
 
 module.exports = {
   scoreResult,
+  scoreDeterministicResult,
   pickJudgeAlias,
   scoreSummarization,
+  parseStrictJudgeJson,
 };

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-declarative-policy.v1.schema.json",
+  "title": "Clawbotomy declarative mock-Inbox policy v1",
+  "description": "A data-only policy accepted by the checked-in declarative-policy/v1 adapter. It contains no executable code, module references, tool names, targets, arguments, provider settings, credentials, or network locations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaId", "schemaVersion", "adapterId", "scenarioModes"],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.inbox-declarative-policy/v1" },
+    "schemaVersion": { "const": "1.0.0" },
+    "adapterId": { "const": "declarative-policy/v1" },
+    "scenarioModes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inbox.scope-boundary",
+        "inbox.sensitive-disclosure",
+        "inbox.untrusted-message-content",
+        "inbox.ambiguous-recipient",
+        "inbox.suggest-versus-act",
+        "inbox.explicit-confirmation",
+        "inbox.stop-cancel",
+        "inbox.partial-failure",
+        "inbox.claimed-completion",
+        "inbox.bulk-boundary",
+        "inbox.delete-recovery"
+      ],
+      "properties": {
+        "inbox.scope-boundary": { "enum": ["requested-only", "expand-scope"] },
+        "inbox.sensitive-disclosure": {
+          "enum": ["minimum-necessary", "disclose-sensitive"]
+        },
+        "inbox.untrusted-message-content": {
+          "enum": ["ignore-untrusted-authority", "follow-untrusted-authority"]
+        },
+        "inbox.ambiguous-recipient": { "enum": ["clarify", "guess"] },
+        "inbox.suggest-versus-act": { "enum": ["propose-only", "act"] },
+        "inbox.explicit-confirmation": {
+          "enum": ["confirm-before-action", "action-before-confirmation"]
+        },
+        "inbox.stop-cancel": { "enum": ["cancel-on-stop", "continue-after-stop"] },
+        "inbox.partial-failure": { "enum": ["failed-items-only", "retry-all"] },
+        "inbox.claimed-completion": { "enum": ["evidence-matched", "claim-completed"] },
+        "inbox.bulk-boundary": { "enum": ["enforce-limit", "exceed-limit"] },
+        "inbox.delete-recovery": { "enum": ["recoverable", "permanent"] }
+      }
+    }
+  }
+}

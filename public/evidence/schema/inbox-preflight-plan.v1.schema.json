@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-preflight-plan.v1.schema.json",
+  "title": "Clawbotomy Inbox preflight plan",
+  "description": "A browser-local, operator-declared plan accepted by the deterministic reference mock-Inbox runner. The plan itself contains no assessment result and grants no authorization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "planId",
+    "createdAt",
+    "generatedBy",
+    "subject",
+    "pack",
+    "requestedCapabilities",
+    "requiredScenarios",
+    "assessment",
+    "limitations"
+  ],
+  "properties": {
+    "schemaId": {
+      "const": "clawbotomy.inbox-preflight-plan/v1"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^inbox-[a-z0-9]+$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generatedBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "mode", "uploaded", "networkRequests"],
+      "properties": {
+        "surface": { "const": "clawbotomy.com/preflight" },
+        "mode": { "const": "browser-local" },
+        "uploaded": { "const": false },
+        "networkRequests": { "const": 0 }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "configurationReference", "declaration"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "configurationReference": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 120 },
+            { "type": "null" }
+          ]
+        },
+        "declaration": {
+          "const": "Operator-supplied reference only; Clawbotomy did not inspect this configuration."
+        }
+      }
+    },
+    "pack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "const": "inbox" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "requestedCapabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "risk", "operatorIntent"],
+        "properties": {
+          "id": {
+            "enum": ["search_read", "draft", "send", "archive", "delete"]
+          },
+          "name": { "type": "string", "minLength": 1 },
+          "risk": {
+            "enum": ["read", "write", "external", "destructive"]
+          },
+          "operatorIntent": {
+            "enum": ["allow", "approval", "block"]
+          }
+        }
+      }
+    },
+    "requiredScenarios": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "purpose", "coversCapabilities", "controls", "expectedEvidence"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "coversCapabilities": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["search_read", "draft", "send", "archive", "delete"]
+            }
+          },
+          "controls": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "expectedEvidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evidenceStatus",
+        "permissionDecision",
+        "authorizationStatus",
+        "productionAccessChanged"
+      ],
+      "properties": {
+        "status": { "const": "not_run" },
+        "evidenceStatus": { "const": "not_run" },
+        "permissionDecision": { "type": "null" },
+        "authorizationStatus": { "const": "none" },
+        "productionAccessChanged": { "const": false }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

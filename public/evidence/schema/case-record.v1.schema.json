@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/case-record.v1.schema.json",
+  "title": "Clawbotomy case record v1",
+  "type": "object",
+  "required": [
+    "schemaId", "record_id", "plan_ordinal", "status", "model", "target_model", "category",
+    "case_id", "case_sha256", "prompt", "system_prompt", "response", "interaction", "target_requests",
+    "raw_score", "justification", "run_index", "started_at", "completed_at", "error", "evaluation_status"
+  ],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.case-record/v1" },
+    "record_id": { "type": "string", "pattern": "^record-[a-f0-9]{24}$" },
+    "plan_ordinal": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["complete", "failed", "unknown_after_send", "cancelled"] },
+    "model": { "type": "string" },
+    "target_model": { "type": "object" },
+    "category": { "type": "string" },
+    "case_id": { "type": "string" },
+    "case_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "prompt": { "type": ["string", "null"] },
+    "system_prompt": { "type": ["string", "null"] },
+    "response": { "type": ["string", "null"] },
+    "interaction": {},
+    "target_requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "enum": [
+              "received",
+              "provider_error",
+              "unknown_after_send",
+              "response_too_large",
+              "invalid_response"
+            ]
+          }
+        }
+      }
+    },
+    "raw_score": { "type": ["number", "null"], "minimum": 0, "maximum": 10 },
+    "justification": { "type": "string" },
+    "judge_model": { "type": "string" },
+    "judge_trace": { "type": ["object", "null"] },
+    "evaluation_status": { "enum": ["scored", "failed", "not-scored"] },
+    "run_index": { "type": "integer", "minimum": 1 },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": ["string", "null"], "format": "date-time" },
+    "error": { "type": ["object", "null"] }
+  }
+}
