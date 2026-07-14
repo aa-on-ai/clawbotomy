@@ -93,17 +93,6 @@ export default function ShufflePage() {
 
   return (
     <main className="dp">
-      <nav className="sub-nav">
-        <div className="page-width sub-nav-inner">
-          <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
-          <div className="sub-nav-links">
-            <Link href="/lab" className="sub-nav-active">Probes</Link>
-            <Link href="/trust">Trust</Link>
-            <Link href="/routing">Routing</Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="dp-w dp-back">
         <Link href="/lab" className="dp-link">← All lenses</Link>
       </div>

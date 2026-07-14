@@ -5,7 +5,7 @@ import LabClientPage from './LabClientPage';
 export const metadata: Metadata = {
   title: 'The Lab — Clawbotomy',
   description:
-    'Behavioral edge exploration for AI agents. Probe prompts, lenses, and field notes for stress-testing models beyond standard benchmarks.',
+    'A creative prompt library and recorded model outputs for qualitative behavioral exploration.',
 };
 
 export default function LabPage() {

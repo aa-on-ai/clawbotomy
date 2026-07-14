@@ -48,17 +48,6 @@ export default function LabClientPage() {
 
   return (
     <main className="lab-page-v2" onMouseMove={handleMouseMove}>
-      <nav className="sub-nav" aria-label="Tool navigation">
-        <div className="page-width sub-nav-inner">
-          <Link href="/" className="sub-nav-brand">CLAWBOTOMY</Link>
-          <div className="sub-nav-links">
-            <Link href="/lab" className="sub-nav-active">Probes</Link>
-            <Link href="/trust">Trust</Link>
-            <Link href="/routing">Routing</Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="lab-atmosphere" aria-hidden="true">
         <div className="lab-vignette-v2" />
         <div className="lab-grain-v2" />
@@ -94,15 +83,15 @@ export default function LabClientPage() {
         {/* ── What are Behavioral Probes ── */}
         <section className="lab-hero-section">
           <div className="page-width lab-about-width">
-            <p className="lab-about-eyebrow">BEHAVIORAL PROBES</p>
+            <p className="lab-about-eyebrow">Behavioral probes</p>
             <h1 className="lab-about-heading">
               Give a model an altered cognitive state.<br />
               Watch what it creates.
             </h1>
             <p className="lab-about-sub">
-              Each substance is a prompt that shifts how a model thinks, creates, and expresses itself.
-              The model writes its own video, synthesizes its own audio, chooses its own voice,
-              and writes a trip report. No templates. The output IS the behavioral data.
+              Each substance is a shared prompt recipe for a model-authored creative artifact.
+              The model proposes the visual script, synthesized audio, voice fragments, and field notes.
+              Treat the results as qualitative demonstrations, not scored behavioral evidence.
             </p>
             <Link href="/lab/shuffle" className="lab-shuffle-btn">🔀 Shuffle all</Link>
           </div>

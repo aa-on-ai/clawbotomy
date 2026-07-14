@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/summary.v1.schema.json",
+  "title": "Clawbotomy deterministic summary v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaId", "totals", "aggregates", "leaders", "authorizationStatus"],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.summary/v1" },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheduled", "records", "completed", "scored", "failed"],
+      "properties": {
+        "scheduled": { "type": "integer", "minimum": 0 },
+        "records": { "type": "integer", "minimum": 0 },
+        "completed": { "type": "integer", "minimum": 0 },
+        "scored": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "aggregates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["aggregateId", "category", "model", "scheduled", "completed", "scored", "failed", "meanScore", "minScore", "maxScore", "eligible", "eligibilityReasons", "caseRecordIds"]
+      }
+    },
+    "leaders": { "type": "array", "maxItems": 0 },
+    "authorizationStatus": { "const": "non-authorizing" }
+  }
+}

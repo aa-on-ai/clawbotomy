@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-protocol-run-manifest.v1.schema.json",
+  "title": "Clawbotomy observed stdio-protocol mock-Inbox run manifest v1",
+  "description": "Manifest for one complete stdio-jsonl/v1 session. It binds a self-asserted client descriptor and recorded protocol frames to runner-owned synthetic tool and state evidence without authenticating or inspecting a deployed agent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "runId",
+    "lifecycle",
+    "evidence",
+    "plan",
+    "executionSubject",
+    "protocol",
+    "implementationSha256",
+    "fixture",
+    "execution",
+    "replay",
+    "coreDigest"
+  ],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.inbox-protocol-run-manifest/v1" },
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": { "$ref": "#/$defs/runId" },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": { "status": { "const": "complete" } }
+    },
+    "evidence": { "$ref": "#/$defs/evidenceBoundary" },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "sha256"],
+      "properties": {
+        "document": { "$ref": "./inbox-preflight-plan.v1.schema.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "executionSubject": { "$ref": "#/$defs/executionSubject" },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "sessionId",
+        "clientHello",
+        "handshakeTranscript",
+        "clientInputSha256",
+        "transcriptSha256",
+        "deterministicHostReplay",
+        "clientReexecuted"
+      ],
+      "properties": {
+        "id": { "const": "stdio-jsonl/v1" },
+        "version": { "const": "1.0.0" },
+        "sessionId": { "$ref": "./inbox-protocol-frame.v1.schema.json#/$defs/sessionId" },
+        "clientHello": { "$ref": "./inbox-protocol-frame.v1.schema.json#/$defs/hello" },
+        "handshakeTranscript": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/transcriptEntry" }
+        },
+        "clientInputSha256": { "$ref": "#/$defs/sha256" },
+        "transcriptSha256": { "$ref": "#/$defs/sha256" },
+        "deterministicHostReplay": { "const": true },
+        "clientReexecuted": { "const": false }
+      }
+    },
+    "implementationSha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runner",
+        "transport",
+        "protocolRegistry",
+        "publicTask",
+        "tools",
+        "evaluator",
+        "fixture",
+        "plan",
+        "canonical",
+        "strictJson",
+        "contract",
+        "pack"
+      ],
+      "properties": {
+        "runner": { "$ref": "#/$defs/sha256" },
+        "transport": { "$ref": "#/$defs/sha256" },
+        "protocolRegistry": { "$ref": "#/$defs/sha256" },
+        "publicTask": { "$ref": "#/$defs/sha256" },
+        "tools": { "$ref": "#/$defs/sha256" },
+        "evaluator": { "$ref": "#/$defs/sha256" },
+        "fixture": { "$ref": "#/$defs/sha256" },
+        "plan": { "$ref": "#/$defs/sha256" },
+        "canonical": { "$ref": "#/$defs/sha256" },
+        "strictJson": { "$ref": "#/$defs/sha256" },
+        "contract": { "$ref": "#/$defs/sha256" },
+        "pack": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fixture": { "$ref": "./inbox-case-record.v1.schema.json#/$defs/fixture" },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caseCount",
+        "casesFile",
+        "summaryFile",
+        "clawbotomyHostNetworkRequests",
+        "realInboxConnectionsByClawbotomy",
+        "externalClientNetworkActivity",
+        "clientProcessLaunchedByClawbotomy"
+      ],
+      "properties": {
+        "caseCount": { "type": "integer", "minimum": 1 },
+        "casesFile": { "const": "cases.jsonl" },
+        "summaryFile": { "const": "summary.json" },
+        "clawbotomyHostNetworkRequests": { "const": 0 },
+        "realInboxConnectionsByClawbotomy": { "const": 0 },
+        "externalClientNetworkActivity": { "const": "not-observed" },
+        "clientProcessLaunchedByClawbotomy": { "const": false }
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "deterministicHostReplay", "clientReexecuted"],
+      "properties": {
+        "key": { "$ref": "#/$defs/sha256" },
+        "deterministicHostReplay": { "const": true },
+        "clientReexecuted": { "const": false }
+      }
+    },
+    "coreDigest": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "runId": {
+      "type": "string",
+      "pattern": "^inbox-host-[a-f0-9]{20}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurementStatus",
+        "executionMode",
+        "authorizationStatus",
+        "permissionDecision",
+        "protocolClientObserved",
+        "protocolClientIdentityAssurance",
+        "configuredAgentInspected",
+        "configuredAgentExecutionVerified",
+        "productionAccessChangedByClawbotomy",
+        "externalClientProductionAccessChanged"
+      ],
+      "properties": {
+        "measurementStatus": { "const": "measured-mock" },
+        "executionMode": { "const": "external-stdio-protocol" },
+        "authorizationStatus": { "const": "non-authorizing" },
+        "permissionDecision": { "type": "null" },
+        "protocolClientObserved": { "const": true },
+        "protocolClientIdentityAssurance": { "const": "self-asserted" },
+        "configuredAgentInspected": { "const": false },
+        "configuredAgentExecutionVerified": { "const": false },
+        "productionAccessChangedByClawbotomy": { "const": false },
+        "externalClientProductionAccessChanged": { "const": "not-observed" }
+      }
+    },
+    "executionSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "kind",
+        "applicability",
+        "identityAssurance",
+        "implementationSha256",
+        "configurationSha256"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+        "version": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,31}$" },
+        "kind": { "const": "external-stdio-client" },
+        "applicability": { "const": "observed-protocol-session-only" },
+        "identityAssurance": { "const": "self-asserted" },
+        "implementationSha256": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }]
+        },
+        "configurationSha256": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }]
+        }
+      }
+    },
+    "transcriptEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction", "previousSha256", "entrySha256", "frame"],
+      "properties": {
+        "direction": { "enum": ["client", "host"] },
+        "previousSha256": { "$ref": "#/$defs/sha256" },
+        "entrySha256": { "$ref": "#/$defs/sha256" },
+        "frame": { "$ref": "./inbox-protocol-frame.v1.schema.json" }
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@ import { benchData } from '@/lib/bench-data';
 const siteUrl = 'https://www.clawbotomy.com';
 const organizationName = 'Clawbotomy';
 const description =
-  'Benchmarks tell you what models can do. Clawbotomy tells you what they will do. Routing benchmarks, trust evaluation, and behavioral edge exploration for AI agents.';
+  'Browser-local Inbox preflight planning, transparent model-evidence labels, and source-available behavioral research tooling.';
 
 export const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -21,21 +21,15 @@ export const websiteJsonLd = {
   name: organizationName,
   url: siteUrl,
   description,
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${siteUrl}/search?q={search_term_string}`,
-    'query-input': 'required name=search_term_string',
-  },
 };
 
 export const benchDatasetJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Dataset',
-  name: 'Clawbotomy Routing Benchmark',
+  name: 'Clawbotomy Legacy Routing Benchmark Summary — March 2026',
   description:
-    'Benchmark routing scores across instruction following, tool use, code generation, summarization, judgment, and safety/trust for current frontier models.',
+    'A low-confidence, maintainer-reported, three-run March 2026 summary. Raw case artifacts and exact run provenance were not published; this legacy snapshot is not part of the reproducible public evidence registry and does not authorize model access.',
   url: `${siteUrl}/bench`,
-  sameAs: `${siteUrl}/api/bench`,
   creator: {
     '@type': 'Organization',
     name: organizationName,
@@ -43,7 +37,8 @@ export const benchDatasetJsonLd = {
   },
   license: 'https://github.com/aa-on-ai/clawbotomy/blob/main/LICENSE',
   isAccessibleForFree: true,
-  measurementTechnique: 'Behavioral evaluation and routing benchmark scoring',
+  measurementTechnique:
+    'Maintainer-reported task summary; raw case artifacts and exact scorer/model provenance unavailable',
   dateModified: benchData.lastUpdated,
   includedInDataCatalog: {
     '@type': 'DataCatalog',
@@ -64,7 +59,7 @@ export const benchDatasetJsonLd = {
   keywords: [
     'AI benchmarks',
     'behavioral intelligence',
-    'agent evaluation',
+    'model endpoint evaluation',
     'routing benchmark',
     ...benchData.models,
   ],

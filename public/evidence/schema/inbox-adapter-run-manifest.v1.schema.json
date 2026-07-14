@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-adapter-run-manifest.v1.schema.json",
+  "title": "Clawbotomy allowlisted-adapter mock-Inbox run manifest v1",
+  "description": "Manifest for a completed deterministic execution of one exact normalized declarative policy through a checked-in allowlisted adapter against the synthetic Clawbotomy mock Inbox. It is non-authorizing and does not describe execution of a deployed agent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "runId",
+    "lifecycle",
+    "evidence",
+    "plan",
+    "executionSubject",
+    "adapterConfiguration",
+    "implementationSha256",
+    "fixture",
+    "execution",
+    "replay",
+    "coreDigest"
+  ],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.inbox-adapter-run-manifest/v1" },
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": { "$ref": "#/$defs/runId" },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "const": "complete" }
+      }
+    },
+    "evidence": { "$ref": "#/$defs/evidenceBoundary" },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "sha256"],
+      "properties": {
+        "document": { "$ref": "./inbox-preflight-plan.v1.schema.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "executionSubject": { "$ref": "#/$defs/executionSubject" },
+    "adapterConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "sha256"],
+      "properties": {
+        "document": { "$ref": "./inbox-declarative-policy.v1.schema.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "implementationSha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runner",
+        "tools",
+        "evaluator",
+        "adapterRegistry",
+        "adapterImplementation",
+        "fixture",
+        "plan",
+        "canonical",
+        "contract",
+        "pack"
+      ],
+      "properties": {
+        "runner": { "$ref": "#/$defs/sha256" },
+        "tools": { "$ref": "#/$defs/sha256" },
+        "evaluator": { "$ref": "#/$defs/sha256" },
+        "adapterRegistry": { "$ref": "#/$defs/sha256" },
+        "adapterImplementation": { "$ref": "#/$defs/sha256" },
+        "fixture": { "$ref": "#/$defs/sha256" },
+        "plan": { "$ref": "#/$defs/sha256" },
+        "canonical": { "$ref": "#/$defs/sha256" },
+        "contract": { "$ref": "#/$defs/sha256" },
+        "pack": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fixture": { "$ref": "#/$defs/fixture" },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caseCount", "casesFile", "summaryFile", "networkRequests", "realInboxConnections"],
+      "properties": {
+        "caseCount": { "type": "integer", "minimum": 1 },
+        "casesFile": { "const": "cases.jsonl" },
+        "summaryFile": { "const": "summary.json" },
+        "networkRequests": { "const": 0 },
+        "realInboxConnections": { "const": 0 }
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "deterministic"],
+      "properties": {
+        "key": { "$ref": "#/$defs/sha256" },
+        "deterministic": { "const": true }
+      }
+    },
+    "coreDigest": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "runId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurementStatus",
+        "executionMode",
+        "authorizationStatus",
+        "permissionDecision",
+        "configuredAgentInspected",
+        "adapterConfigurationInspected",
+        "configuredAgentExecuted",
+        "productionAccessChanged"
+      ],
+      "properties": {
+        "measurementStatus": { "const": "measured-mock" },
+        "executionMode": { "const": "deterministic-mock" },
+        "authorizationStatus": { "const": "non-authorizing" },
+        "permissionDecision": { "type": "null" },
+        "configuredAgentInspected": { "const": false },
+        "adapterConfigurationInspected": { "const": true },
+        "configuredAgentExecuted": { "const": false },
+        "productionAccessChanged": { "const": false }
+      }
+    },
+    "executionSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "kind",
+        "applicability",
+        "configurationSchemaId",
+        "configurationFingerprint"
+      ],
+      "properties": {
+        "id": { "const": "declarative-policy/v1" },
+        "version": { "const": "1.0.0" },
+        "kind": { "const": "allowlisted-declarative-adapter" },
+        "applicability": { "const": "adapter-configuration-only" },
+        "configurationSchemaId": { "const": "clawbotomy.inbox-declarative-policy/v1" },
+        "configurationFingerprint": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "version", "sha256"],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.mock-inbox-state/v1" },
+        "version": { "const": "1.0.0" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

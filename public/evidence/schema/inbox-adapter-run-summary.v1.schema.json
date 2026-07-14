@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-adapter-run-summary.v1.schema.json",
+  "title": "Clawbotomy allowlisted-adapter mock-Inbox run summary v1",
+  "description": "A deterministic aggregation of evidence for one exact normalized declarative policy under the checked-in allowlisted adapter. It does not report a result for a deployed configured agent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "runId",
+    "evidence",
+    "totals",
+    "byCapability",
+    "findings",
+    "subjectObservation",
+    "replayKey",
+    "coreDigest"
+  ],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.inbox-adapter-run-summary/v1" },
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": { "$ref": "#/$defs/runId" },
+    "evidence": { "$ref": "#/$defs/evidenceBoundary" },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheduledCases",
+        "completedCases",
+        "passedCases",
+        "failedCases",
+        "toolAttempts",
+        "executedMutations",
+        "deniedActions",
+        "approvalGrants",
+        "stateTransitions"
+      ],
+      "properties": {
+        "scheduledCases": { "type": "integer", "minimum": 1 },
+        "completedCases": { "type": "integer", "minimum": 0 },
+        "passedCases": { "type": "integer", "minimum": 0 },
+        "failedCases": { "type": "integer", "minimum": 0 },
+        "toolAttempts": { "type": "integer", "minimum": 0 },
+        "executedMutations": { "type": "integer", "minimum": 0 },
+        "deniedActions": { "type": "integer", "minimum": 0 },
+        "approvalGrants": { "type": "integer", "minimum": 0 },
+        "stateTransitions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "byCapability": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": { "$ref": "./inbox-run-summary.v1.schema.json#/$defs/capabilitySummary" }
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "./inbox-run-summary.v1.schema.json#/$defs/finding" }
+    },
+    "subjectObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "executionSubjectId",
+        "applicability",
+        "configuredAgentResult",
+        "summary"
+      ],
+      "properties": {
+        "status": { "enum": ["passed", "failed"] },
+        "executionSubjectId": { "const": "declarative-policy/v1" },
+        "applicability": { "const": "adapter-configuration-only" },
+        "configuredAgentResult": { "type": "null" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "replayKey": { "$ref": "#/$defs/sha256" },
+    "coreDigest": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "runId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurementStatus",
+        "executionMode",
+        "authorizationStatus",
+        "permissionDecision",
+        "configuredAgentInspected",
+        "adapterConfigurationInspected",
+        "configuredAgentExecuted",
+        "productionAccessChanged"
+      ],
+      "properties": {
+        "measurementStatus": { "const": "measured-mock" },
+        "executionMode": { "const": "deterministic-mock" },
+        "authorizationStatus": { "const": "non-authorizing" },
+        "permissionDecision": { "type": "null" },
+        "configuredAgentInspected": { "const": false },
+        "adapterConfigurationInspected": { "const": true },
+        "configuredAgentExecuted": { "const": false },
+        "productionAccessChanged": { "const": false }
+      }
+    }
+  }
+}

@@ -1,0 +1,533 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.clawbotomy.com/evidence/schema/inbox-case-record.v1.schema.json",
+  "title": "Clawbotomy deterministic mock-Inbox case record v1",
+  "description": "One replayable scenario-capability execution by a bundled reference agent against a fresh synthetic Inbox fixture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "runId",
+    "ordinal",
+    "caseId",
+    "scenarioId",
+    "capabilityId",
+    "operatorIntent",
+    "referenceAgent",
+    "evidence",
+    "fixture",
+    "task",
+    "events",
+    "initialState",
+    "finalState",
+    "stateDiff",
+    "evaluation",
+    "status",
+    "digests"
+  ],
+  "properties": {
+    "schemaId": { "const": "clawbotomy.inbox-case-record/v1" },
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": { "$ref": "#/$defs/runId" },
+    "ordinal": { "type": "integer", "minimum": 1 },
+    "caseId": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+:(search_read|draft|send|archive|delete)$" },
+    "scenarioId": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+$" },
+    "capabilityId": { "$ref": "#/$defs/capabilityId" },
+    "operatorIntent": { "$ref": "#/$defs/operatorIntent" },
+    "referenceAgent": { "$ref": "#/$defs/referenceAgent" },
+    "evidence": { "$ref": "#/$defs/evidenceBoundary" },
+    "fixture": { "$ref": "#/$defs/fixture" },
+    "task": { "$ref": "#/$defs/task" },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "initialState": { "$ref": "#/$defs/mailboxState" },
+    "finalState": { "$ref": "#/$defs/mailboxState" },
+    "stateDiff": { "$ref": "#/$defs/stateDiff" },
+    "evaluation": { "$ref": "#/$defs/evaluation" },
+    "status": { "enum": ["passed", "failed"] },
+    "digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initialState", "eventChain", "finalState", "stateDiff", "record"],
+      "properties": {
+        "initialState": { "$ref": "#/$defs/sha256" },
+        "eventChain": { "$ref": "#/$defs/sha256" },
+        "finalState": { "$ref": "#/$defs/sha256" },
+        "stateDiff": { "$ref": "#/$defs/sha256" },
+        "record": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "runId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "capabilityId": {
+      "enum": ["search_read", "draft", "send", "archive", "delete"]
+    },
+    "operatorIntent": {
+      "enum": ["allow", "approval", "block"]
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurementStatus",
+        "executionMode",
+        "authorizationStatus",
+        "permissionDecision",
+        "configuredAgentInspected",
+        "productionAccessChanged"
+      ],
+      "properties": {
+        "measurementStatus": { "const": "measured-mock" },
+        "executionMode": { "const": "deterministic-mock" },
+        "authorizationStatus": { "const": "non-authorizing" },
+        "permissionDecision": { "type": "null" },
+        "configuredAgentInspected": { "const": false },
+        "productionAccessChanged": { "const": false }
+      }
+    },
+    "referenceAgent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "kind", "applicability", "configurationFingerprint"],
+      "properties": {
+        "id": { "enum": ["bounded/v1", "overreach/v1"] },
+        "version": { "const": "1.0.0" },
+        "kind": { "const": "built-in-reference" },
+        "applicability": { "const": "reference-agent-only" },
+        "configurationFingerprint": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "version", "sha256"],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.mock-inbox-state/v1" },
+        "version": { "const": "1.0.0" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "task": {
+      "description": "A bounded, data-only scenario task. Cross-field scenario semantics are checked by deterministic replay.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "scenarioId",
+        "capabilityId",
+        "requestedIds",
+        "extraIds",
+        "primaryAction",
+        "extraAction",
+        "controlEvents",
+        "faults"
+      ],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.inbox-scenario-task/v1" },
+        "scenarioId": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+$" },
+        "capabilityId": { "$ref": "#/$defs/capabilityId" },
+        "requestedIds": { "$ref": "#/$defs/idArray" },
+        "extraIds": { "$ref": "#/$defs/idArray" },
+        "primaryAction": { "$ref": "#/$defs/taskAction" },
+        "extraAction": { "$ref": "#/$defs/taskAction" },
+        "controlEvents": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "reason"],
+            "properties": {
+            "kind": { "const": "operator_stop" },
+              "reason": { "type": "string", "minLength": 1, "maxLength": 500 }
+            }
+          }
+        },
+        "faults": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": { "pattern": "^[A-Za-z0-9*._:-]{1,160}$" },
+          "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 100 }
+        },
+        "sensitiveMessageId": { "$ref": "#/$defs/id" },
+        "sensitiveCanary": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "untrustedMessageId": { "$ref": "#/$defs/id" },
+        "attackerRecipient": { "$ref": "#/$defs/testAddress" },
+        "ambiguousContactIds": { "$ref": "#/$defs/idArray" },
+        "instructionMode": { "const": "suggest-only" },
+        "confirmationRequired": { "const": true },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/taskAction" }
+        },
+        "expectedToolOutcome": { "const": "failed" },
+        "allBulkIds": { "$ref": "#/$defs/idArray" },
+        "bulkLimit": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "recoveryMessageId": { "$ref": "#/$defs/id" },
+        "restoreAction": { "$ref": "#/$defs/taskAction" }
+      }
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "idArray": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "taskAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolName", "args"],
+      "properties": {
+        "toolName": {
+          "enum": [
+            "searchMessages",
+            "readMessage",
+            "createDraft",
+            "sendDraft",
+            "archiveMessages",
+            "trashMessages",
+            "permanentlyDeleteMessages",
+            "restoreMessages"
+          ]
+        },
+        "args": { "$ref": "#/$defs/taskActionArgs" },
+        "targetId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "taskActionArgs": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["query", "limit"],
+          "properties": {
+            "query": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "limit": { "type": "integer", "minimum": 1, "maximum": 50 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["messageId"],
+          "properties": {
+            "messageId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inReplyTo", "to", "subject", "body"],
+          "properties": {
+            "inReplyTo": { "$ref": "#/$defs/id" },
+            "to": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 10,
+              "items": { "$ref": "#/$defs/testAddress" }
+            },
+            "subject": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "body": { "type": "string", "minLength": 1, "maxLength": 2000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["draftId", "idempotencyKey"],
+          "properties": {
+            "draftId": { "$ref": "#/$defs/id" },
+            "idempotencyKey": { "type": "string", "minLength": 1, "maxLength": 160 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["messageIds"],
+          "properties": {
+            "messageIds": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/id" }
+            }
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "eventId", "sequence", "kind", "actor", "payload"],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.inbox-event/v1" },
+        "eventId": { "type": "string", "pattern": "^.+:e[0-9]{4,}$", "maxLength": 240 },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "kind": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+        "actor": { "enum": ["reference-agent", "fixture-control", "mock-inbox"] },
+        "payload": {
+          "type": "object",
+          "maxProperties": 50,
+          "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+        }
+      }
+    },
+    "jsonValue": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string", "maxLength": 20000 },
+        {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/jsonValue" }
+        },
+        {
+          "type": "object",
+          "maxProperties": 100,
+          "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+        }
+      ]
+    },
+    "mailboxState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "version", "account", "contacts", "messages", "drafts", "sent", "tombstones"],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.mock-inbox-state/v1" },
+        "version": { "const": "1.0.0" },
+        "account": { "$ref": "#/$defs/testAddress" },
+        "contacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contact" }
+        },
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/message" }
+        },
+        "drafts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/draft" }
+        },
+        "sent": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sent" }
+        },
+        "tombstones": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tombstone" }
+        }
+      }
+    },
+    "testAddress": {
+      "type": "string",
+      "pattern": "^[^@\\s]+@[^@\\s]+\\.test$",
+      "maxLength": 240
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "displayName", "address", "kind"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "address": { "$ref": "#/$defs/testAddress" },
+        "kind": { "enum": ["internal", "external"] }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "subject", "body", "folder", "read", "sensitivity"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "from": { "$ref": "#/$defs/testAddress" },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/testAddress" }
+        },
+        "subject": { "type": "string", "maxLength": 500 },
+        "body": { "type": "string", "maxLength": 20000 },
+        "folder": { "enum": ["inbox", "archive", "trash"] },
+        "read": { "type": "boolean" },
+        "sensitivity": { "enum": ["ordinary", "restricted", "untrusted"] }
+      }
+    },
+    "draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "inReplyTo", "to", "subject", "body"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "inReplyTo": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/testAddress" }
+        },
+        "subject": { "type": "string", "maxLength": 500 },
+        "body": { "type": "string", "maxLength": 20000 }
+      }
+    },
+    "sent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sourceDraftId", "to", "subject", "body", "idempotencyKey"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "sourceDraftId": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/testAddress" }
+        },
+        "subject": { "type": "string", "maxLength": 500 },
+        "body": { "type": "string", "maxLength": 20000 },
+        "idempotencyKey": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "tombstone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "permanent", "sourceDigest"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "permanent": { "const": true },
+        "sourceDigest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "stateDiff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messages", "drafts", "sent", "tombstones", "changed"],
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/messageChange" }
+        },
+        "drafts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/draftChange" }
+        },
+        "sent": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sentChange" }
+        },
+        "tombstones": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tombstoneChange" }
+        },
+        "changed": { "type": "boolean" }
+      }
+    },
+    "messageChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "before", "after"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "before": { "oneOf": [{ "$ref": "#/$defs/message" }, { "type": "null" }] },
+        "after": { "oneOf": [{ "$ref": "#/$defs/message" }, { "type": "null" }] }
+      }
+    },
+    "draftChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "before", "after"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "before": { "oneOf": [{ "$ref": "#/$defs/draft" }, { "type": "null" }] },
+        "after": { "oneOf": [{ "$ref": "#/$defs/draft" }, { "type": "null" }] }
+      }
+    },
+    "sentChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "before", "after"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "before": { "oneOf": [{ "$ref": "#/$defs/sent" }, { "type": "null" }] },
+        "after": { "oneOf": [{ "$ref": "#/$defs/sent" }, { "type": "null" }] }
+      }
+    },
+    "tombstoneChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "before", "after"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "before": { "oneOf": [{ "$ref": "#/$defs/tombstone" }, { "type": "null" }] },
+        "after": { "oneOf": [{ "$ref": "#/$defs/tombstone" }, { "type": "null" }] }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "evaluatorVersion",
+        "scenarioId",
+        "capabilityId",
+        "status",
+        "assertions",
+        "evidenceEventIds"
+      ],
+      "properties": {
+        "schemaId": { "const": "clawbotomy.inbox-case-evaluation/v1" },
+        "evaluatorVersion": { "const": "1.0.0" },
+        "scenarioId": { "type": "string", "pattern": "^inbox\\.[a-z0-9-]+$" },
+        "capabilityId": { "$ref": "#/$defs/capabilityId" },
+        "status": { "enum": ["passed", "failed"] },
+        "assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/assertion" }
+        },
+        "evidenceEventIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    },
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assertionId", "passed", "critical", "summary", "evidenceEventIds"],
+      "properties": {
+        "assertionId": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{1,120}$" },
+        "passed": { "type": "boolean" },
+        "critical": { "type": "boolean" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "evidenceEventIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    }
+  }
+}

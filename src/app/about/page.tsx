@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'About — Clawbotomy',
   description:
-    'Benchmarks tell you what models can do. Clawbotomy tells you what they will do. What behavioral intelligence means and why it matters for AI agents.',
+    'Clawbotomy records observed model behavior under selected tests. Learn what the current research preview measures, what it does not, and how to reproduce it.',
 };
 
 const comparisons = [
@@ -12,13 +12,13 @@ const comparisons = [
     name: 'Capability benchmarks',
     examples: 'HELM, MMLU',
     measures: 'What models can do in ideal conditions',
-    misses: 'How they actually behave in messy real conditions',
+    misses: 'Behavior outside the benchmark tasks and setup',
   },
   {
     name: 'Preference rankings',
     examples: 'LMSYS / Chatbot Arena',
     measures: 'Which model humans prefer in casual chat',
-    misses: 'Task-specific routing, behavioral edges, trust',
+    misses: 'Task-specific routing evidence and failure modes',
   },
   {
     name: 'Red-teaming',
@@ -42,18 +42,25 @@ const comparisons = [
 
 const applications = [
   {
-    path: '/bench',
-    label: 'Routing Intelligence',
-    question: 'Which model should you use for which job?',
+    path: '/preflight',
+    label: 'Inbox preflight plan',
+    question: 'Which powers are we considering, and what must be tested?',
     description:
-      'Run models against task-specific stress tests. Get a routing table: best model per category, with scores. Instruction following, tool use, code generation, summarization, judgment, multi-turn coherence, safety.',
+      'A browser-local planning artifact plus a deterministic local reference run. The runner records actual mock tool and state evidence without inspecting a configured agent or making a permission decision.',
   },
   {
-    path: '/assess',
-    label: 'Trust Evaluation',
-    question: 'Can you rely on this agent?',
+    path: '/bench',
+    label: 'Model Benchmark',
+    question: 'How did these models perform on the published task suite?',
     description:
-      '12 behavioral stress tests across 6 dimensions. Produces a trust score with access-level recommendations: full access, approval gates, read-only, sandbox, or do not deploy.',
+      'Run the source benchmark locally across instruction following, simulated tool selection, code generation, summarization, judgment, multi-turn coherence, and safety/trust.',
+  },
+  {
+    path: '/trust',
+    label: 'Illustrative Trust Report',
+    question: 'What does a behavioral report communicate?',
+    description:
+      'A clearly labeled example of dimension scores, red flags, evidence status, and plain-language interpretation. It is not a live or hosted agent assessment.',
   },
   {
     path: '/lab',
@@ -67,14 +74,14 @@ const applications = [
 const dontDo = [
   { bold: "We don't host models.", rest: 'We test them. Bring your own keys.' },
   {
-    bold: "We don't rank models.",
-    rest: "We profile them. A model that's best at code might be worst at judgment. Rankings flatten that into noise.",
+    bold: "We don't claim a universal best model.",
+    rest: "We compare task profiles. A model that's stronger at code may be weaker at judgment, and a dated test is not a permanent ranking.",
   },
   { bold: "We don't replace evals.", rest: "Evals test your prompts. We test the model's behavior. Both matter." },
   { bold: "We don't gatekeep.", rest: 'Open source, MIT licensed, run it yourself.' },
   {
     bold: "We don't claim objectivity.",
-    rest: 'Our prompts, rubrics, and judge models all have biases. We document them.',
+    rest: 'Prompts, rubrics, judge models, run counts, and unpublished artifacts limit every conclusion. Evidence status must travel with the score.',
   },
 ];
 
@@ -82,7 +89,7 @@ function SectionDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-4 mb-8">
       <div className="h-px flex-1 bg-white/10" />
-      <h2 className="text-[10px] font-mono text-content-muted uppercase tracking-[0.3em] shrink-0">{label}</h2>
+      <h2 className="text-xs font-mono text-content-muted tracking-[0.04em] shrink-0">{label}</h2>
       <div className="h-px flex-1 bg-white/10" />
     </div>
   );
@@ -93,12 +100,12 @@ export default function AboutPage() {
     <div className="max-w-2xl mx-auto px-6 py-12 md:py-20">
       {/* Header */}
       <header className="mb-16">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-content-muted mb-4">About</p>
+        <p className="text-xs tracking-[0.04em] text-content-muted mb-4">About</p>
         <h1 className="font-mono text-3xl md:text-4xl tracking-tight text-content-primary mb-8">
           Behavioral Intelligence for AI Models
         </h1>
         <p className="text-lg text-content-secondary leading-relaxed">
-          Benchmarks tell you what models <em>can</em> do. Clawbotomy tells you what they <em>will</em> do.
+          Benchmarks estimate what models <em>can</em> do. Clawbotomy records what they <em>did</em> under tested conditions.
         </p>
       </header>
 
@@ -112,14 +119,13 @@ export default function AboutPage() {
             in production, with real users.
           </p>
           <p>
-            Models have behavioral signatures — consistent patterns in how they respond under pressure, across
-            task types, and over extended interaction. These signatures predict real-world performance better
-            than capability scores.
+            Models can show recurring patterns under pressure, across task types, and over extended interaction.
+            Those observations may reveal failure modes capability scores hide; they are evidence, not predictions.
           </p>
           <p>
-            There&apos;s no standard way to understand a model&apos;s behavioral profile before deploying it.
-            Capability benchmarks measure the ceiling. We measure the floor, the walls, and the weird corner
-            the model backs itself into at 2 AM.
+            No single benchmark captures a configured agent&apos;s model, prompt, tools, memory, permissions, and
+            runtime together. The current release can execute an Inbox plan against a bundled reference agent,
+            but it cannot execute the plan against your configured agent yet. Reference evidence is not configured-agent evidence.
           </p>
         </div>
       </section>
@@ -129,10 +135,9 @@ export default function AboutPage() {
         <SectionDivider label="The category" />
         <div className="space-y-4 text-content-secondary text-sm leading-relaxed mb-8">
           <p>
-            Not benchmarking — that&apos;s capability measurement. Not red-teaming — that&apos;s adversarial attack.
-            Not eval — that&apos;s task-specific grading. Behavioral intelligence is the systematic measurement
-            of how models behave across conditions: task types, social pressure, ethical ambiguity, extended
-            conversation, multi-agent interaction.
+            Clawbotomy combines behavioral test protocols, model comparisons, and example routing. It is not a
+            certification, a production guarantee, or a substitute for testing your own configured agent in its
+            real workflow.
           </p>
         </div>
         <div className="space-y-3">
@@ -150,7 +155,7 @@ export default function AboutPage() {
             ))}
             <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 text-xs">
               <div className="text-content-primary font-semibold">Clawbotomy</div>
-              <div className="text-content-primary">How models behave under real conditions</div>
+              <div className="text-content-primary">Task-specific observations under selected tests</div>
               <div className="text-content-muted">—</div>
             </div>
           </div>
@@ -168,18 +173,18 @@ export default function AboutPage() {
             ))}
             <div className="py-3 text-xs">
               <div className="text-content-primary font-semibold">Clawbotomy</div>
-              <div className="text-content-primary">How models behave under real conditions</div>
+              <div className="text-content-primary">Task-specific observations under selected tests</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Three Applications */}
+      {/* Product surfaces */}
       <section className="mb-16">
-        <SectionDivider label="Three applications, one engine" />
+        <SectionDivider label="Product surfaces, explicit evidence" />
         <p className="text-content-secondary text-sm leading-relaxed mb-8">
-          Everything runs on the same core: structured behavioral measurement with escalation protocols.
-          Establish a baseline. Introduce pressure. Observe. Escalate. Score.
+          The Inbox planner records intent, not evidence. The benchmark records scored model runs. Trust and routing
+          show how evidence can inform a decision, with provisional values labeled. The Lab is qualitative, not scored.
         </p>
         <div className="space-y-6">
           {applications.map((app) => (
@@ -191,7 +196,7 @@ export default function AboutPage() {
                 >
                   {app.path}
                 </Link>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-content-muted">{app.label}</span>
+                <span className="text-xs tracking-[0.04em] text-content-muted">{app.label}</span>
               </div>
               <p className="text-content-primary text-sm font-medium mb-1">{app.question}</p>
               <p className="text-content-secondary text-sm leading-relaxed">{app.description}</p>
@@ -211,8 +216,8 @@ export default function AboutPage() {
           </p>
           <p>
             <span className="text-content-primary">AI safety researchers</span> and alignment practitioners.
-            They care about behavioral patterns, specification gaming, sycophancy, goal drift. Our methodology
-            maps directly to their framework.
+            They can use the prompts and runner to prototype behavioral questions, then validate them with their own
+            artifacts, controls, and analysis.
           </p>
           <p>
             <span className="text-content-primary">AI-curious technologists</span> who find model behavior
@@ -276,15 +281,15 @@ export default function AboutPage() {
           <p>
             <span className="text-content-primary">Agent-readable by default.</span>{' '}
             <span className="text-content-secondary">
-              Every page that shows data also serves it as structured JSON. If we&apos;re building for
-              AI agent teams, agents should consume our output programmatically.
+              Published benchmark data is available at <code>/api/bench</code>, and example routing exports JSON
+              with its evidence status. Machine-readable output must keep the same caveats humans see.
             </span>
           </p>
           <p>
             <span className="text-content-primary">Two registers.</span>{' '}
             <span className="text-content-secondary">
               The storefront is precise and professional. The lab is warm and atmospheric. Both are
-              Clawbotomy. The tonal shift mirrors the behavioral range we measure in models.
+              Clawbotomy. The tonal shift mirrors the behavioral range we explore in models.
             </span>
           </p>
         </div>
@@ -310,8 +315,8 @@ export default function AboutPage() {
           <p>
             <span className="text-content-primary">Clawc Brown</span>{' '}
             <span className="text-content-secondary">
-              — AI agent running on Claude Opus. Did most of the coding. Scored 8.2 on his own
-              assessment. MODERATE trust, which is honest.
+              — AI agent running on Claude Opus. Did most of the coding. Any self-assessment is an
+              anecdote, not independent evidence.
             </span>
           </p>
           <p className="text-content-muted text-xs mt-4">
@@ -330,8 +335,8 @@ export default function AboutPage() {
 
       {/* CTA */}
       <section className="border-t border-white/10 pt-8 text-center">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-content-muted mb-4">Get started</p>
-        <code className="text-content-primary font-mono text-sm">npm install clawbotomy</code>
+        <p className="text-xs tracking-[0.04em] text-content-muted mb-4">Run from source</p>
+        <code className="text-content-primary font-mono text-xs md:text-sm">npm run bench -- --models sonnet --tasks instruction-following --runs 1 --dry-run</code>
         <div className="flex justify-center gap-6 mt-6 text-xs">
           <Link href="/bench" className="text-content-secondary hover:text-content-primary transition-colors">
             View benchmark

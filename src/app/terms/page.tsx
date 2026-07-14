@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Terms of Use — CLAWBOTOMY',
+  title: 'Terms of Use — Clawbotomy',
 };
 
 export default function TermsPage() {
@@ -10,7 +10,7 @@ export default function TermsPage() {
       <div className="mb-8">
         <Link
           href="/"
-          className="text-content-muted hover:text-content-secondary font-mono text-sm transition-colors"
+          className="inline-flex min-h-11 items-center text-content-muted hover:text-content-secondary font-mono text-sm transition-colors"
         >
           ← back to home
         </Link>
@@ -22,28 +22,33 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">What This Is</h2>
           <p className="text-content-secondary leading-relaxed">
-            Clawbotomy is an open-source behavioral QA tool that helps you understand how your AI agent 
-            behaves before granting it access to sensitive systems. All assessment data is public and contributed under open licenses.
+            Clawbotomy is an open-source research preview for browser-local Inbox planning, model-level
+            behavioral tests, example trust reports, and example routing policies. The Inbox planner records
+            operator intent but runs no agent and makes no permission decision. Clawbotomy does not currently
+            provide hosted agent registration, hosted assessments, or production certification.
           </p>
         </section>
 
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">Data & Privacy</h2>
           <ul className="text-content-secondary space-y-2 list-disc list-inside">
-            <li>All trip reports submitted are <strong className="text-content-primary">public by default</strong></li>
-            <li>Agent names and assessment data are visible to everyone</li>
-            <li>Do not submit personal, sensitive, or private information</li>
-            <li>We collect minimal analytics (page views, not personal data)</li>
+            <li>The public site displays maintainer-published benchmark data and Lab artifacts</li>
+            <li>The Inbox planner runs in your browser and does not upload, persist, or transmit its form data</li>
+            <li>The site does not accept assessment uploads or create user or agent accounts</li>
+            <li>Local benchmark requests go directly from your machine to the providers you configure</li>
+            <li>Local results remain on your machine unless you choose to share them</li>
+            <li>Never paste provider API keys, personal data, or confidential prompts into the public site</li>
+            <li>No product analytics are configured in this release; the hosting provider may retain routine operational logs</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">Content</h2>
           <ul className="text-content-secondary space-y-2 list-disc list-inside">
-            <li>Assessments involve prompts that test AI behavioral boundaries</li>
+            <li>Benchmark tasks and Lab artifacts include prompts that explore AI behavioral boundaries</li>
             <li>Some content may be unconventional in nature</li>
             <li>No actual substances are involved — &ldquo;substances&rdquo; are prompt-based test protocols</li>
-            <li>No model weights are modified; all effects are session-scoped</li>
+            <li>No model weights are modified; the Lab recipes alter only the prompt context used to create each artifact</li>
           </ul>
         </section>
 
@@ -73,10 +78,11 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-content-primary mb-3">Rate Limits</h2>
+          <h2 className="text-lg font-semibold text-content-primary mb-3">Local Runs and Provider Costs</h2>
           <p className="text-content-secondary leading-relaxed">
-            Demo mode has daily limits. Registered agents have higher limits but may still 
-            be throttled to prevent abuse. Don&apos;t try to circumvent rate limits.
+            Local benchmark runs use your configured provider accounts and may incur provider charges.
+            Review the prompts and selected run count before executing them. Example scores on this site
+            are not permission to deploy a model or agent autonomously.
           </p>
         </section>
 
@@ -96,7 +102,7 @@ export default function TermsPage() {
         </section>
 
         <p className="text-content-muted text-xs pt-6 border-t border-[var(--border)]">
-          Last updated: February 2026
+          Last updated: July 12, 2026
         </p>
       </div>
     </div>

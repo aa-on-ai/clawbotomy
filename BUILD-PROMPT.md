@@ -1,5 +1,7 @@
 # TC-EBC Build Prompt: Clawbotomy Homepage Redesign
 
+> **Superseded historical design brief.** Commands, package-install instructions, routes, and product claims below are not the current Clawbotomy contract. Use [README.md](README.md) and [docs/setup-guide.md](docs/setup-guide.md).
+
 ## Task
 Rebuild the Clawbotomy homepage (`src/app/page.tsx` + `src/app/globals.css`) as a 4-section scroll narrative with animated topographic mesh, scroll-linked effects, and a "Behavioral Faultline" product visual. The page tells a story: models look fine → the surface cracks → hidden behavior is revealed → three ways to act.
 

@@ -2,150 +2,188 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { benchData } from '@/lib/bench-data';
+import { loadPublicEvidenceIndex } from '@/lib/public-evidence.server';
 import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
 
+import styles from './bench.module.css';
+
 export const metadata: Metadata = {
-  title: 'Routing Benchmark — Clawbotomy',
+  title: 'Evidence Registry & Legacy Benchmark — Clawbotomy',
   description:
-    'Routing benchmark scores across instruction following, tool use, code generation, summarization, judgment, and safety/trust for current frontier models.',
+    'Public Clawbotomy evidence bundles when available, plus a clearly separated maintainer-reported March 2026 legacy summary.',
 };
 
 const modelLabels: Record<string, string> = {
   'gpt-5.4': 'GPT-5.4',
-  'gpt-5.3-instant': 'GPT-5.3',
-  'claude-opus-4.6': 'Opus 4.6',
-  'claude-sonnet-4.6': 'Sonnet 4.6',
+  'gpt-5.3-instant': 'GPT-5.3 Instant',
+  'claude-opus-4.6': 'Claude Opus 4.6',
+  'claude-sonnet-4.6': 'Claude Sonnet 4.6',
   'gemini-3.1-pro': 'Gemini 3.1 Pro',
 };
 
-function getWinners(scores: Record<string, number>) {
-  const max = Math.max(...Object.values(scores));
-  return new Set(Object.entries(scores).filter(([, v]) => v === max).map(([k]) => k));
-}
-
-function ScoreBar({ score, winner }: { score: number; winner: boolean }) {
-  return (
-    <div className="space-y-1.5">
-      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${winner ? 'bg-content-primary' : 'bg-content-muted/70'}`}
-          style={{ width: `${score * 10}%` }}
-        />
-      </div>
-      <p className={`text-xs tabular-nums ${winner ? 'text-content-primary font-semibold' : 'text-content-secondary'}`}>
-        {score.toFixed(2)}
-      </p>
-    </div>
-  );
-}
-
-const summaryLine = 'GPT-5.4 leads instruction following, but GPT-5.3 outperforms it in tool use, summarization, and judgment — a meaningful routing split between the two. Claude models dominate safety/trust. Code generation is essentially tied across all models at 3 runs.';
-
 export default function BenchPage() {
-  const { models, categories, runs, lastUpdated, confidence } = benchData;
+  const registry = loadPublicEvidenceIndex();
+  const runs = registry.runs.slice().sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const { models, categories, runs: legacyRuns, lastUpdated, scope, limitations, modelIdentityStatus } = benchData;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
+    <main className={styles.page}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(benchDatasetJsonLd) }} />
 
-      <header className="mb-10 md:mb-12 space-y-5">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-content-muted">Routing Benchmark</p>
-        <h1 className="font-mono text-3xl md:text-5xl tracking-tight text-content-primary">/bench</h1>
-        <p className="max-w-3xl text-sm md:text-base leading-relaxed text-content-secondary">
-          Benchmark routing scores across core task categories. Each row is a task type, each column is a model,
-          bars represent normalized score strength. Run the benchmark locally with the{' '}
-          <a
-            href="https://github.com/aa-on-ai/clawbotomy#routing-benchmark-cli-bench"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-content-primary hover:text-content-secondary transition-colors"
-          >
-            clawbotomy bench CLI
-          </a>
-          .
-        </p>
-        <div className="text-xs text-content-muted space-y-1">
-          <p>Last updated: {lastUpdated} · {runs} run{runs > 1 ? 's' : ''} per model · Confidence: {confidence}</p>
-          <p>
-            Machine-readable data:{' '}
-            <a href="/api/bench" className="text-content-secondary hover:text-content-primary transition-colors font-mono">
-              /api/bench
-            </a>
-          </p>
+      <header className={styles.header}>
+        <div className={styles.rail}>
+          <p className={styles.eyebrow}>Evidence registry · Public v1</p>
+          <div className={styles.headerGrid}>
+            <h1>Public evidence starts with the bundle.</h1>
+            <p>
+              Rankings come later. A publishable run must first expose its frozen plan, exact identities,
+              constituent cases, failures, summary derivation, redaction state, and integrity digest.
+            </p>
+          </div>
+
+          <dl className={styles.registryStats}>
+            <div>
+              <dt>Published runs</dt>
+              <dd>{runs.length}</dd>
+            </div>
+            <div>
+              <dt>Latest run</dt>
+              <dd>{runs[0]?.runId || 'None'}</dd>
+            </div>
+            <div>
+              <dt>Review state</dt>
+              <dd>{runs[0]?.reviewStatus || 'Awaiting evidence'}</dd>
+            </div>
+            <div>
+              <dt>Authorization</dt>
+              <dd>Non-authorizing</dd>
+            </div>
+          </dl>
         </div>
       </header>
 
-      <section className="space-y-4 md:space-y-5">
-        {/* Column headers */}
-        <div className={`hidden md:grid gap-4 pb-2`} style={{ gridTemplateColumns: `2fr repeat(${models.length}, minmax(0, 1fr))` }}>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-content-muted">Category</p>
-          {models.map((modelId) => (
-            <p key={modelId} className="text-[11px] uppercase tracking-[0.15em] text-content-muted">
-              {modelLabels[modelId] || modelId}
-            </p>
-          ))}
-        </div>
+      <section className={styles.registrySection} aria-labelledby="registry-title">
+        <div className={styles.rail}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrowSignal}>Public evidence runs</p>
+              <h2 id="registry-title">Evidence available now</h2>
+            </div>
+            <p>Each run listed here has a complete public manifest and case file. Integrity is not a signature or proof of provider authorship.</p>
+          </div>
 
-        {/* Rows */}
-        <div className="space-y-7 md:space-y-4">
-          {categories.map((cat) => {
-            const winners = getWinners(cat.scores);
-            return (
-              <div
-                key={cat.slug}
-                className="grid grid-cols-1 gap-3 md:gap-4 py-3 border-b border-[var(--border-subtle)]"
-                style={{ gridTemplateColumns: `2fr repeat(${models.length}, minmax(0, 1fr))` }}
-              >
-                <p className="text-sm text-content-primary md:pt-0.5">{cat.name}</p>
-                {models.map((modelId) => {
-                  const score = cat.scores[modelId as keyof typeof cat.scores];
-                  return (
-                    <div key={modelId} className="space-y-1.5">
-                      <p className="md:hidden text-[10px] uppercase tracking-[0.16em] text-content-muted">
-                        {modelLabels[modelId] || modelId}
-                      </p>
-                      <ScoreBar score={score} winner={winners.has(modelId)} />
-                    </div>
-                  );
-                })}
+          {runs.length === 0 ? (
+            <div className={styles.emptyState}>
+              <span className={styles.emptyIndex}>00</span>
+              <div>
+                <h3>No public evidence run yet.</h3>
+                <p>
+                  The March 2026 summary lacks raw case artifacts and has not been promoted into this evidence system.
+                  Phase 1 can create and validate bundles locally; a real provider run still requires an explicitly reviewed plan and cost cap.
+                </p>
               </div>
-            );
-          })}
+              <div className={styles.emptyLinks}>
+                <a href="/evidence/index.json">Open empty index</a>
+                <a href="/evidence/schema/evidence-bundle.v1.schema.json">Read bundle schema</a>
+                <Link href="/docs">Run the preflight locally</Link>
+              </div>
+            </div>
+          ) : (
+            <ol className={styles.runList}>
+              {runs.map((run, index) => (
+                <li key={run.runId}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <h3>{run.runId}</h3>
+                    <p>{run.measurementStatus} · {run.reproducibilityStatus} · {run.reviewStatus}</p>
+                  </div>
+                  <time dateTime={run.completedAt}>{run.completedAt.slice(0, 10)}</time>
+                  <a href={`/api/bench/runs/${run.runId}`}>Inspect run →</a>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       </section>
 
-      <section className="mt-10 md:mt-12">
-        <p className="text-sm md:text-base text-content-primary">{summaryLine}</p>
+      <section className={styles.legacySection} aria-labelledby="legacy-title">
+        <div className={styles.rail}>
+          <div className={styles.legacyHeader}>
+            <div>
+              <p className={styles.eyebrowSignal}>Legacy snapshot · {lastUpdated}</p>
+              <h2 id="legacy-title">Maintainer-reported summary</h2>
+            </div>
+            <div className={styles.statuses} aria-label="Legacy evidence status">
+              <span>Low confidence</span>
+              <span>{legacyRuns} runs</span>
+              <span>Raw cases unavailable</span>
+            </div>
+          </div>
+
+          <p className={styles.legacyIntro}>
+            These values remain available for continuity and scrutiny. They are not a reproducible Phase 1 bundle,
+            not universal model grades, and not permission or deployment guidance.
+          </p>
+
+          <p className={styles.tableHint}>Swipe horizontally to compare models. Task names stay pinned.</p>
+          <div className={styles.tableRegion} role="region" aria-label="Legacy benchmark scores by task and model" tabIndex={0}>
+            <table>
+              <caption>Legacy March 2026 mean scores out of 10. Raw constituent cases are unavailable.</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Task category</th>
+                  {models.map((modelId) => <th scope="col" key={modelId}>{modelLabels[modelId] || modelId}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category) => (
+                  <tr key={category.slug}>
+                    <th scope="row">{category.name}</th>
+                    {models.map((modelId) => {
+                      const score = category.scores[modelId as keyof typeof category.scores];
+                      return <td key={modelId}><span>{score.toFixed(2)}</span><small>/ 10</small></td>;
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={styles.legacyNotes}>
+            <div>
+              <h3>Scope</h3>
+              <p>{scope}</p>
+              <p>{modelIdentityStatus}</p>
+            </div>
+            <div>
+              <h3>Known limits</h3>
+              <ul>
+                {limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="mt-14 md:mt-16 space-y-2">
-        <h2 className="text-[10px] uppercase tracking-[0.28em] text-content-muted">Run your own</h2>
-        <p className="text-sm text-content-secondary">
-          Start with the{' '}
-          <a
-            href="https://github.com/aa-on-ai/clawbotomy/blob/main/docs/setup-guide.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-content-primary hover:text-content-secondary transition-colors"
-          >
-            setup guide
-          </a>{' '}
-          and inspect the benchmark implementation on{' '}
-          <a
-            href="https://github.com/aa-on-ai/clawbotomy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-content-primary hover:text-content-secondary transition-colors"
-          >
-            GitHub
-          </a>
-          . Read the{' '}
-          <Link href="/about" className="text-content-primary hover:text-content-secondary transition-colors">
-            methodology
-          </Link>
-          .
-        </p>
+      <section className={styles.runSection} aria-labelledby="run-title">
+        <div className={styles.rail}>
+          <p className={styles.eyebrow}>Local workflow</p>
+          <div className={styles.runGrid}>
+            <h2 id="run-title">Preview spend before the first request.</h2>
+            <div>
+              <p>
+                Preflight resolves the real target and judge call graph, conservative token and cost bounds,
+                output directory, source state, and a digest. Live execution accepts only that frozen plan.
+              </p>
+              <div className={styles.runLinks}>
+                <Link href="/docs">Open the setup guide</Link>
+                <a href="/api/bench">Inspect the API</a>
+                <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">Read source ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
-    </div>
+    </main>
   );
 }
