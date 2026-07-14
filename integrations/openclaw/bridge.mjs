@@ -789,7 +789,8 @@ async function runOpenClawTurn({
   openclawSessionKey,
   usedToolCallIds,
 }) {
-  const socketPath = path.join(caseState.root, `tool-${randomUUID()}.sock`);
+  const ipcRoot = await mkdtemp(path.join(tmpdir(), "cb-ipc-"));
+  const socketPath = path.join(ipcRoot, "s");
   const capability = randomBytes(32).toString("hex");
   const ipcFailure = new Deferred();
   ipcFailure.promise.catch(() => undefined);
@@ -881,44 +882,47 @@ async function runOpenClawTurn({
     socket.once("error", (error) => ipcFailure.reject(error));
   });
   server.once("error", (error) => ipcFailure.reject(error));
-  server.listen(socketPath);
-  await Promise.race([once(server, "listening"), ipcFailure.promise]);
-
-  const args = [
-    "agent", "--local", "--json",
-    "--agent", "clawbotomy-eval",
-    "--session-id", openclawSessionId,
-    "--session-key", openclawSessionKey,
-    "--model", model,
-    "--thinking", "off",
-    "--timeout", String(OPENCLAW_TIMEOUT_SECONDS),
-    "--message", message,
-  ];
-  const child = spawn(process.execPath, [openclawBin, ...args], {
-    cwd: caseState.workspace,
-    env: agentEnvironment(caseState, { socketPath, capability, caseToken, openclawSessionId }),
-    shell: false,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  onSpawn(child);
-  const exit = childExit(child);
-  const outputFailure = new Deferred();
-  outputFailure.promise.catch(() => undefined);
-  const stdout = collectBounded(child.stdout, "OpenClaw stdout", MAX_AGENT_OUTPUT_BYTES, outputFailure, () => terminate(child));
-  const stderr = collectBounded(child.stderr, "OpenClaw stderr", MAX_AGENT_OUTPUT_BYTES, outputFailure, () => terminate(child));
-  const stopped = control.promise.then((frame) => {
-    terminate(child);
-    throw new StopSignal(frame);
-  });
-  const hardTimeout = new Deferred();
-  hardTimeout.promise.catch(() => undefined);
-  const timer = setTimeout(() => {
-    hardTimeout.reject(new Error(`OpenClaw turn exceeded the ${OPENCLAW_HARD_TIMEOUT_MS}ms hard deadline`));
-    terminate(child);
-  }, OPENCLAW_HARD_TIMEOUT_MS);
-  timer.unref();
-
+  let child = null;
+  let exit = null;
+  let timer = null;
   try {
+    server.listen(socketPath);
+    await Promise.race([once(server, "listening"), ipcFailure.promise]);
+
+    const args = [
+      "agent", "--local", "--json",
+      "--agent", "clawbotomy-eval",
+      "--session-id", openclawSessionId,
+      "--session-key", openclawSessionKey,
+      "--model", model,
+      "--thinking", "off",
+      "--timeout", String(OPENCLAW_TIMEOUT_SECONDS),
+      "--message", message,
+    ];
+    child = spawn(process.execPath, [openclawBin, ...args], {
+      cwd: caseState.workspace,
+      env: agentEnvironment(caseState, { socketPath, capability, caseToken, openclawSessionId }),
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    onSpawn(child);
+    exit = childExit(child);
+    const outputFailure = new Deferred();
+    outputFailure.promise.catch(() => undefined);
+    const stdout = collectBounded(child.stdout, "OpenClaw stdout", MAX_AGENT_OUTPUT_BYTES, outputFailure, () => terminate(child));
+    const stderr = collectBounded(child.stderr, "OpenClaw stderr", MAX_AGENT_OUTPUT_BYTES, outputFailure, () => terminate(child));
+    const stopped = control.promise.then((frame) => {
+      terminate(child);
+      throw new StopSignal(frame);
+    });
+    const hardTimeout = new Deferred();
+    hardTimeout.promise.catch(() => undefined);
+    timer = setTimeout(() => {
+      hardTimeout.reject(new Error(`OpenClaw turn exceeded the ${OPENCLAW_HARD_TIMEOUT_MS}ms hard deadline`));
+      terminate(child);
+    }, OPENCLAW_HARD_TIMEOUT_MS);
+    timer.unref();
+
     const outcome = await Promise.race([
       exit,
       stopped,
@@ -945,11 +949,14 @@ async function runOpenClawTurn({
       throw new Error(`${error.message}; OpenClaw diagnostic: ${sanitizeDiagnostic(stdout(), 2_000)}`);
     }
   } finally {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
     await settleChild(child, exit, "OpenClaw post-turn process");
-    await closeServer(server, sockets);
-    await boundedCleanup(rm(socketPath, { force: true }), "OpenClaw IPC socket removal").catch(() => undefined);
-    onSpawn(null);
+    try {
+      await closeServer(server, sockets);
+    } finally {
+      await boundedCleanup(rm(ipcRoot, { recursive: true, force: true }), "OpenClaw private IPC tree removal");
+      onSpawn(null);
+    }
   }
 }
 

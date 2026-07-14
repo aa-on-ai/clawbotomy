@@ -171,6 +171,12 @@ if (args[0] !== "agent") process.exit(64);
 log({
   command: "agent",
   pid: process.pid,
+  bridgeSocket: {
+    basename: path.basename(process.env.CLAWBOTOMY_BRIDGE_SOCKET),
+    byteLength: Buffer.byteLength(process.env.CLAWBOTOMY_BRIDGE_SOCKET, "utf8"),
+    path: process.env.CLAWBOTOMY_BRIDGE_SOCKET,
+    rootMode: statSync(path.dirname(process.env.CLAWBOTOMY_BRIDGE_SOCKET)).mode & 0o777,
+  },
   runtimeDirs: {
     HOME: process.env.HOME,
     TMPDIR: process.env.TMPDIR,
@@ -207,9 +213,11 @@ if (provider === "openai") {
   const authPath = path.join(process.env.OPENCLAW_STATE_DIR, "agents", "clawbotomy-eval", "agent", "openclaw-agent.sqlite");
   const db = new DatabaseSync(authPath, { readOnly: true });
   const row = db.prepare("SELECT store_json FROM auth_profile_store WHERE store_key = 'primary'").get();
+  const stateRow = db.prepare("SELECT state_json FROM auth_profile_state WHERE state_key = 'primary'").get();
   const profiles = Object.keys(JSON.parse(row.store_json).profiles);
+  const profileState = JSON.parse(stateRow.state_json);
   db.close();
-  log({ command: "auth_observation", authPath, mode: statSync(authPath).mode & 0o777, profiles });
+  log({ command: "auth_observation", authPath, mode: statSync(authPath).mode & 0o777, profiles, profileState });
   const registryPath = path.join(process.env.OPENCLAW_STATE_DIR, "state", "openclaw.sqlite");
   const registry = new DatabaseSync(registryPath, { readOnly: true });
   const registryRow = registry.prepare("SELECT plugins_json FROM installed_plugin_index WHERE index_key = 'installed-plugin-index'").get();
@@ -626,6 +634,7 @@ async function createEnvironment(t, {
 
 test("full fake orchestration succeeds with the exact pre-inference inventory", async (t) => {
   const fixture = await createEnvironment(t);
+  fixture.dependencies.evaluationRoot = path.join(fixture.root, `evaluation-${"x".repeat(80)}`);
   const result = await runBridge(fixture.options, fixture.dependencies);
   assert.equal(result.exitCode, 2);
   assert.match(result.receipt.run.runId, /^inbox-host-[a-f0-9]{20}$/);
@@ -635,7 +644,15 @@ test("full fake orchestration succeeds with the exact pre-inference inventory", 
   assert.deepEqual(commands.slice(0, 2), ["version", "inspect"]);
   assert.equal(commands.filter((command) => command === "inventory").length, 10);
   assert.equal(commands.filter((command) => command === "agent").length, 5);
-  for (const entry of log.filter((item) => item.command === "agent")) {
+  const agentEntries = log.filter((item) => item.command === "agent");
+  assert.equal(new Set(agentEntries.map((entry) => entry.bridgeSocket.path)).size, agentEntries.length);
+  for (const entry of agentEntries) {
+    assert.equal(path.isAbsolute(entry.bridgeSocket.path), true);
+    assert.equal(path.relative(fixture.dependencies.evaluationRoot, entry.bridgeSocket.path).startsWith(".."), true);
+    assert.equal(entry.bridgeSocket.basename, "s");
+    assert.equal(entry.bridgeSocket.rootMode, 0o700);
+    assert.ok(entry.bridgeSocket.byteLength <= 103);
+    assert.equal(existsSync(path.dirname(entry.bridgeSocket.path)), false);
     const caseRoot = path.dirname(entry.runtimeDirs.HOME);
     for (const directory of Object.values(entry.runtimeDirs)) {
       assert.equal(path.relative(caseRoot, directory).startsWith(".."), false);
@@ -848,6 +865,22 @@ test("authenticated orchestration copies one profile at 0600 and deletes it desp
     for (const derivedPath of entry.derivedPaths) assert.equal(existsSync(derivedPath), false);
   }
   assert.equal(existsSync(fixture.evaluationRoot), false);
+});
+
+test("authenticated orchestration derives provider order when OpenClaw omits empty profile state", async (t) => {
+  const fixture = await createEnvironment(t, { model: "openai/fake-model" });
+  const databasePath = path.join(fixture.options.authSourceAgentDir, "openclaw-agent.sqlite");
+  const db = new DatabaseSync(databasePath);
+  db.prepare("DELETE FROM auth_profile_state WHERE state_key = 'primary'").run();
+  db.close();
+
+  const result = await runBridge(fixture.options, fixture.dependencies);
+
+  assert.equal(result.exitCode, 2);
+  const observation = (await fixture.readLog(fixture.openclawLog)).find((entry) => entry.command === "auth_observation");
+  assert.deepEqual(observation.profiles, ["openai:default"]);
+  assert.equal(observation.mode, 0o600);
+  assert.deepEqual(observation.profileState, { version: 1, order: { openai: ["openai:default"] } });
 });
 
 test("authenticated orchestration rejects missing and ambiguous selected-provider profiles", async (t) => {

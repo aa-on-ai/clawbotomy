@@ -553,12 +553,18 @@ export function copyInferenceAuthStore(sourceAgentDir, targetAgentDir, model) {
 
     const stateRows = source.prepare("SELECT state_key, state_json, updated_at FROM auth_profile_state").all();
     const primaryState = stateRows.filter((row) => row.state_key === "primary");
-    if (primaryState.length !== 1) throw new Error("OpenClaw auth source requires exactly one primary profile state row");
-    const state = parseStrictJson(primaryState[0].state_json, "OpenClaw auth profile state");
-    assertExactKeys(state, ["version", "order"], "OpenClaw auth profile state");
-    const providerOrder = state.order?.[provider];
-    if (!Array.isArray(providerOrder) || providerOrder.filter((id) => id === selectedProfileId).length !== 1) {
-      throw new Error("Selected OpenClaw auth profile is missing or ambiguous in provider order");
+    if (primaryState.length > 1) throw new Error("OpenClaw auth source has ambiguous primary profile state rows");
+    let stateVersion = store.version;
+    let stateUpdatedAt = primaryStore[0].updated_at;
+    if (primaryState.length === 1) {
+      const state = parseStrictJson(primaryState[0].state_json, "OpenClaw auth profile state");
+      assertExactKeys(state, ["version", "order"], "OpenClaw auth profile state");
+      const providerOrder = state.order?.[provider];
+      if (!Array.isArray(providerOrder) || providerOrder.filter((id) => id === selectedProfileId).length !== 1) {
+        throw new Error("Selected OpenClaw auth profile is missing or ambiguous in provider order");
+      }
+      stateVersion = state.version;
+      stateUpdatedAt = primaryState[0].updated_at;
     }
 
     target.exec(`
@@ -580,8 +586,8 @@ export function copyInferenceAuthStore(sourceAgentDir, targetAgentDir, model) {
     );
     target.prepare("INSERT INTO auth_profile_state(state_key, state_json, updated_at) VALUES (?, ?, ?)").run(
       "primary",
-      JSON.stringify({ version: state.version, order: { [provider]: [selectedProfileId] } }),
-      primaryState[0].updated_at,
+      JSON.stringify({ version: stateVersion, order: { [provider]: [selectedProfileId] } }),
+      stateUpdatedAt,
     );
     succeeded = true;
   } finally {

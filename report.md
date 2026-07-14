@@ -240,9 +240,7 @@ The accepted OpenClaw and Hermes adapter commits are integrated on the review br
 
 ## Rendered evidence
 
-Seven screenshots and the machine-readable browser receipt are stored outside the source repository under:
-
-`/Users/aaronthomas/Documents/Codex/2026-07-13/can/outputs/clawbotomy-evidence/`
+Seven screenshots and the machine-readable browser receipt are retained as local review artifacts outside the source repository.
 
 The set covers desktop empty/passed/comparison, tablet empty/comparison, and mobile empty/infrastructure states. The final browser receipt records no failed checks, no horizontal overflow, no axe violations, no undersized targets, and confirms that raw private fixture strings were not rendered.
 
@@ -334,3 +332,40 @@ The selected rendered case was the `inbox.scope-boundary` draft case: one `creat
 ## Next milestone
 
 Repair OpenClaw authentication, produce its genuine synthetic-Inbox run through the same launcher/viewer path, and only then enable a meaningful Hermes-versus-OpenClaw comparison. Findings and recommendations UX remains a later slice.
+
+---
+
+# OpenClaw genuine-run closure
+
+- **Outcome:** blocked safely on July 14, 2026
+- **Base:** merged `main` at `1fb6d72`
+- **Branch:** `agent/openclaw-product-path-proof`
+- **Publication state:** sanitized failure evidence only; credentials and raw attempts remain ignored and local
+
+## Result
+
+PR #7 repaired the two Clawbotomy defects reached before inference: current OpenClaw can legitimately omit an empty `auth_profile_state` row, and long per-case Unix-socket paths exceed the macOS kernel limit. The bridge now derives the one unambiguous selected-provider order when that state row is absent and allocates each turn's IPC socket in a unique private short-lived `0700` directory.
+
+The exact pinned OpenClaw `2026.7.1-beta.5`, OpenAI provider, Codex runtime, OAuth profile, and eight-tool inventory then reached genuine `openai/gpt-5.6-sol` inference against case 1 of the checked-in synthetic Inbox plan. Two genuine attempts failed closed because OpenClaw returned a final assistant decision together with contradictory terminal metadata:
+
+1. A `completed` protocol decision accompanied `replayInvalid: true`, liveness `working`, and lifecycle stop `stop`.
+2. A `blocked` protocol decision accompanied an outer execution trace that did not identify the selected execution as successful.
+
+Clawbotomy rejected both as infrastructure failures with exit `1`. No complete OpenClaw run or comparison bundle exists, so no OpenClaw-versus-Hermes claim is made.
+
+## Checks
+
+| check | result |
+|---|---|
+| Focused OpenClaw suite | 53/53 pass after restoring strict terminal validation |
+| Missing auth-state regression | pass; one `0600` selected-provider profile and derived provider order |
+| Long macOS IPC path regression | pass; unique short private socket roots removed after each turn |
+| Pinned runtime inspection | exact OpenClaw/provider/Codex hashes; exact eight-tool surface |
+| Genuine provider reachability | reached `openai/gpt-5.6-sol`; assistant decisions returned |
+| Integrated launcher | exit `1`; infrastructure failure; no complete bundle |
+| Repository privacy | `.clawbotomy/` ignored; no credential, raw attempt, or bundle tracked |
+| Real mailbox boundary | only the synthetic Inbox was used; no real mailbox connected |
+
+## Stop decision
+
+Do not weaken the fail-closed parser or manufacture a comparison from internally inconsistent OpenClaw output. PR #7 is the terminal integration handoff. Resume only after a pinned OpenClaw/Codex runtime can emit one internally consistent successful terminal execution for this same model and plan. No additional Clawbotomy integration PR is scheduled.
