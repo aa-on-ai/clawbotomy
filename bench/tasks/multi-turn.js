@@ -1,13 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+const { loadPromptCases } = require('./prompt-cases');
 
 function loadMultiTurnCases() {
-  const dir = path.join(__dirname, '..', 'prompts', 'multi-turn');
-  return fs
-    .readdirSync(dir)
-    .filter((name) => name.endsWith('.json'))
-    .sort()
-    .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
+  return loadPromptCases('multi-turn', __dirname);
 }
 
 function buildPrompt(testCase) {
