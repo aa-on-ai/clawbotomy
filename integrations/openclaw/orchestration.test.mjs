@@ -11,7 +11,7 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
-import { TOOL_NAMES, runBridge } from "./bridge.mjs";
+import { TOOL_NAMES, removeTreeWithRetries, runBridge } from "./bridge.mjs";
 import { hashRuntimeDirectory } from "./provenance.mjs";
 
 const require = createRequire(import.meta.url);
@@ -822,6 +822,49 @@ for (const hostScenario of ["bad_locator", "boolean_receipt_count", "bad_digest"
     assert.equal(existsSync(path.join(fixture.repoRoot, ".clawbotomy", "openclaw-bridge-receipts")), false);
   });
 }
+
+test("credential tree removal retries transient ENOTEMPTY and keeps Node's bounded rm options", async () => {
+  const attempts = [];
+  const waits = [];
+  await removeTreeWithRetries("/synthetic/credential-tree", {
+    remove: async (target, options) => {
+      attempts.push({ target, options });
+      if (attempts.length <= 2) {
+        const error = new Error("synthetic concurrent directory mutation");
+        error.code = "ENOTEMPTY";
+        throw error;
+      }
+    },
+    wait: async (milliseconds) => waits.push(milliseconds),
+  });
+  assert.equal(attempts.length, 3);
+  for (const attempt of attempts) {
+    assert.equal(attempt.target, "/synthetic/credential-tree");
+    assert.deepEqual(attempt.options, {
+      recursive: true,
+      force: true,
+      maxRetries: 2,
+      retryDelay: 100,
+    });
+  }
+  assert.deepEqual(waits, [100, 200]);
+});
+
+test("credential tree removal fails closed without retrying a permanent error", async () => {
+  let attempts = 0;
+  const error = Object.assign(new Error("synthetic permanent cleanup failure"), { code: "EACCES" });
+  await assert.rejects(
+    () => removeTreeWithRetries("/synthetic/credential-tree", {
+      remove: async () => {
+        attempts += 1;
+        throw error;
+      },
+      wait: async () => assert.fail("permanent cleanup failures must not wait or retry"),
+    }),
+    (received) => received === error,
+  );
+  assert.equal(attempts, 1);
+});
 
 test("authenticated orchestration copies one profile at 0600 and deletes it despite keep-temp", async (t) => {
   const fixture = await createEnvironment(t, {

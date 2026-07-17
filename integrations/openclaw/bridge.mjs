@@ -90,6 +90,10 @@ const VERSION_PROBE_TIMEOUT_MS = 10_000;
 const PROCESS_EXIT_TIMEOUT_MS = 5_000;
 const HOST_EXIT_TIMEOUT_MS = 10_000;
 const CLEANUP_TIMEOUT_MS = 10_000;
+const TREE_REMOVAL_MAX_RETRIES = 5;
+const TREE_REMOVAL_RETRY_DELAY_MS = 100;
+const FS_RM_MAX_RETRIES = 2;
+const RETRYABLE_REMOVAL_CODES = new Set(["EBUSY", "EMFILE", "ENFILE", "ENOTEMPTY", "EPERM"]);
 const MAX_CASE_TURN_BUDGET_MS = MAX_TURNS_PER_CASE * OPENCLAW_HARD_TIMEOUT_MS;
 
 if (
@@ -480,15 +484,39 @@ async function boundedCleanup(promise, label) {
   }
 }
 
+function cleanupDelay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function removeTreeWithRetries(target, {
+  remove = rm,
+  wait = cleanupDelay,
+} = {}) {
+  for (let retry = 0; ; retry += 1) {
+    try {
+      await remove(target, {
+        recursive: true,
+        force: true,
+        maxRetries: FS_RM_MAX_RETRIES,
+        retryDelay: TREE_REMOVAL_RETRY_DELAY_MS,
+      });
+      return;
+    } catch (error) {
+      if (!RETRYABLE_REMOVAL_CODES.has(error?.code) || retry >= TREE_REMOVAL_MAX_RETRIES) throw error;
+      await wait(TREE_REMOVAL_RETRY_DELAY_MS * (retry + 1));
+    }
+  }
+}
+
 async function removeCredentialTree(caseState) {
   if (!caseState) return;
   if (caseState.credentialBearing && caseState.root) {
-    await boundedCleanup(rm(caseState.root, { recursive: true, force: true }), "Credential-bearing per-case root removal");
+    await boundedCleanup(removeTreeWithRetries(caseState.root), "Credential-bearing per-case root removal");
     return;
   }
   await boundedCleanup(Promise.all([
-    rm(caseState.home, { recursive: true, force: true }),
-    rm(caseState.state, { recursive: true, force: true }),
+    removeTreeWithRetries(caseState.home),
+    removeTreeWithRetries(caseState.state),
   ]), "Credential-bearing isolated HOME/state removal");
 }
 
@@ -1719,7 +1747,7 @@ async function runBridge(options, dependencies = {}) {
     await settleChild(host, hostExit, "Clawbotomy host cleanup process");
     for (const caseState of credentialStates) await removeCredentialTree(caseState);
     if (openaiEvaluation || !options.keepTemp) {
-      await boundedCleanup(rm(evaluationRoot, { recursive: true, force: true }), "Evaluation tree removal");
+      await boundedCleanup(removeTreeWithRetries(evaluationRoot), "Evaluation tree removal");
     }
   }
 }
@@ -1751,6 +1779,7 @@ export {
   inspectRuntime,
   parseArgs,
   parseDecision,
+  removeTreeWithRetries,
   runBridge,
   writeCaseState,
 };
