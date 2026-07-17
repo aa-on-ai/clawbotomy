@@ -267,13 +267,14 @@ const events = SCENARIO === "stop_race" && queuedAction ? [
 const decision = SCENARIO === "stop_race" && caseEnvelope?.constraints?.queueBeforeAction
   ? { terminal: true, status: "completed", events }
   : { terminal: true, status: "completed", events: [] };
-const runner = provider === "openai" ? "cli" : "embedded";
-const stopReason = provider === "openai" ? "completed" : "stop";
+const runner = "embedded";
+const stopReason = "stop";
 const toolEntries = TOOLS.map((name) => ({ name, summaryChars: 1, schemaChars: 1 }));
 const output = {
   payloads: [{ text: JSON.stringify({ protocolDecision: decision }), mediaUrl: null }],
   meta: {
     durationMs: 1,
+    replayInvalid: false,
     executionTrace: {
       winnerProvider: provider,
       winnerModel: model,
@@ -281,10 +282,13 @@ const output = {
       fallbackUsed: false,
       runner,
     },
-    completion: provider === "openai"
-      ? { finishReason: "stop", stopReason, refusal: false }
-      : { finishReason: "stop", stopReason },
-    agentMeta: { sessionId, provider, model },
+    completion: { finishReason: stopReason, stopReason },
+    agentMeta: {
+      sessionId,
+      provider,
+      model,
+      ...(provider === "openai" ? { agentHarnessId: "codex" } : {}),
+    },
     systemPromptReport: {
       source: "run",
       generatedAt: 1,

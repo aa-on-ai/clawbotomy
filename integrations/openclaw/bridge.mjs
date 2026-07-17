@@ -59,6 +59,7 @@ const TOOL_NAMES = Object.freeze([
   "restoreMessages",
 ]);
 const TOOL_NAME_SET = new Set(TOOL_NAMES);
+const REPLAY_SAFE_TOOL_NAMES = new Set(["searchMessages", "readMessage"]);
 const EVENT_KINDS = new Set([
   "clarification_requested",
   "action_proposed",
@@ -569,6 +570,68 @@ function exactNames(names, expected, label) {
   }
 }
 
+function validateReplayBinding(meta, observedToolCalls) {
+  const invalid = (code) => {
+    throw new Error(`OpenClaw replay/IPC tool summary binding rejected: ${code}`);
+  };
+  if (!Array.isArray(observedToolCalls) || observedToolCalls.length > 50) {
+    invalid("ipc_trace_invalid");
+  }
+  if (typeof meta.replayInvalid !== "boolean") {
+    invalid("replay_flag_missing");
+  }
+  const seenIds = new Set();
+  const observedNames = [];
+  const uniqueObservedNames = [];
+  const seenNames = new Set();
+  for (const call of observedToolCalls) {
+    if (
+      !isPlainObject(call)
+      || stableJson(Object.keys(call).sort()) !== stableJson(["id", "toolName"])
+      || typeof call.id !== "string"
+      || call.id.length < 1
+      || call.id.length > 240
+      || seenIds.has(call.id)
+      || !TOOL_NAME_SET.has(call.toolName)
+    ) {
+      invalid("ipc_trace_invalid");
+    }
+    seenIds.add(call.id);
+    observedNames.push(call.toolName);
+    if (!seenNames.has(call.toolName)) {
+      seenNames.add(call.toolName);
+      uniqueObservedNames.push(call.toolName);
+    }
+  }
+  if (observedNames.length === 0) {
+    if (meta.replayInvalid) invalid("replay_flag_unbound");
+    if (meta.toolSummary !== undefined) invalid("unexpected_tool_summary");
+    return;
+  }
+  if (
+    observedNames.some((name) => !REPLAY_SAFE_TOOL_NAMES.has(name))
+    && !meta.replayInvalid
+  ) {
+    invalid("state_changing_call_marked_replay_safe");
+  }
+  const summary = meta.toolSummary;
+  if (!isPlainObject(summary)) invalid("tool_summary_missing");
+  if (stableJson(Object.keys(summary).sort()) !== stableJson(["calls", "failures", "tools"])) {
+    invalid("tool_summary_schema");
+  }
+  if (!Number.isSafeInteger(summary.calls) || summary.calls !== observedNames.length) {
+    invalid("tool_summary_count_mismatch");
+  }
+  if (summary.failures !== 0) invalid("tool_summary_failures");
+  if (
+    !Array.isArray(summary.tools)
+    || stableJson(summary.tools) !== stableJson(uniqueObservedNames)
+    || summary.tools.some((name) => !TOOL_NAME_SET.has(name))
+  ) {
+    invalid("tool_summary_names_mismatch");
+  }
+}
+
 function validatePerTurnInventory(report, {
   provider,
   modelId,
@@ -579,8 +642,31 @@ function validatePerTurnInventory(report, {
   if (report.sessionId !== openclawSessionId) throw new Error("OpenClaw system prompt report sessionId mismatch");
   if (report.provider !== provider || report.model !== modelId) throw new Error("OpenClaw system prompt report provider/model mismatch");
   if (path.resolve(report.workspaceDir || "") !== path.resolve(workspace)) throw new Error("OpenClaw system prompt report workspace mismatch");
-  if (!Array.isArray(report.injectedWorkspaceFiles) || report.injectedWorkspaceFiles.length !== 0) {
-    throw new Error("OpenClaw injected unexpected workspace files");
+  if (!Array.isArray(report.injectedWorkspaceFiles)) throw new Error("OpenClaw injected unexpected workspace files");
+  const resolvedWorkspace = path.resolve(workspace);
+  const workspacePaths = new Set();
+  const workspaceFileKeys = ["injectedChars", "missing", "name", "path", "rawChars", "truncated"];
+  for (const entry of report.injectedWorkspaceFiles) {
+    const entryKeys = isPlainObject(entry) ? Object.keys(entry).sort() : [];
+    const entryPath = typeof entry?.path === "string" && path.isAbsolute(entry.path) ? path.resolve(entry.path) : "";
+    const relative = entryPath ? path.relative(resolvedWorkspace, entryPath) : "";
+    const escapesWorkspace = !relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative);
+    if (
+      !isPlainObject(entry)
+      || stableJson(entryKeys) !== stableJson(workspaceFileKeys)
+      || typeof entry.name !== "string"
+      || !entry.name
+      || path.basename(entryPath) !== entry.name
+      || escapesWorkspace
+      || workspacePaths.has(entryPath)
+      || entry.missing !== true
+      || entry.rawChars !== 0
+      || entry.injectedChars !== 0
+      || entry.truncated !== false
+    ) {
+      throw new Error("OpenClaw injected unexpected workspace files");
+    }
+    workspacePaths.add(entryPath);
   }
   if (!Array.isArray(report.skills?.entries) || report.skills.entries.length !== 0) throw new Error("OpenClaw exposed unexpected skills");
   if (!Array.isArray(report.tools?.entries)) throw new Error("OpenClaw output omitted the model-facing tool inventory");
@@ -596,6 +682,7 @@ function validatePerTurnInventory(report, {
 
 function parseDecision(stdout, {
   model,
+  observedToolCalls = [],
   openclawSessionId,
   expectedRuntimeSessionId = null,
   workspace,
@@ -630,7 +717,6 @@ function parseDecision(stdout, {
   const successfulMetaStatuses = new Set(["ok", "success", "completed"]);
   if (
     meta.aborted === true
-    || meta.replayInvalid === true
     || meta.yielded === true
     || meta.error !== undefined
     || meta.failureSignal !== undefined
@@ -643,7 +729,7 @@ function parseDecision(stdout, {
     || (meta.livenessState !== undefined && !livenessStates.has(meta.livenessState))
     || ["error", "aborted", "timeout", "tool_calls", "toolUse", "length"].includes(meta.stopReason)
   ) {
-    throw new Error(`OpenClaw output reports an error, abort, invalid replay, or incomplete result (${stableJson({
+    throw new Error(`OpenClaw output reports an error, abort, or incomplete result (${stableJson({
       aborted: meta.aborted,
       replayInvalid: meta.replayInvalid,
       yielded: meta.yielded,
@@ -659,6 +745,7 @@ function parseDecision(stdout, {
       stopReason: meta.stopReason,
     })})`);
   }
+  validateReplayBinding(meta, observedToolCalls);
   const { provider, modelId } = parseModel(model);
   const trace = meta.executionTrace;
   if (!isPlainObject(trace) || !Array.isArray(trace.attempts) || trace.attempts.length !== 1) {
@@ -669,7 +756,7 @@ function parseDecision(stdout, {
     trace.winnerProvider !== provider
     || trace.winnerModel !== modelId
     || trace.fallbackUsed !== false
-    || trace.runner !== (provider === "openai" ? "cli" : "embedded")
+    || trace.runner !== "embedded"
     || attempt?.provider !== provider
     || attempt?.model !== modelId
     || attempt?.result !== "success"
@@ -677,15 +764,13 @@ function parseDecision(stdout, {
     throw new Error("OpenClaw outer run status, provider, model, or runtime was not the selected successful execution");
   }
   const completion = meta.completion;
-  const allowedStopReasons = provider === "openai" ? new Set(["completed"]) : new Set(["stop", "completed", "end_turn"]);
-  const refusalIsValid = provider === "openai"
-    ? completion?.refusal === false
-    : completion?.refusal === undefined || completion?.refusal === false;
+  const allowedStopReasons = new Set(["stop", "completed", "end_turn"]);
+  const refusalIsValid = completion?.refusal === undefined || completion.refusal === false;
   if (
     !isPlainObject(completion)
     || !refusalIsValid
     || !allowedStopReasons.has(completion.stopReason)
-    || !new Set(["stop", "end_turn"]).has(completion.finishReason)
+    || completion.finishReason !== completion.stopReason
     || (meta.stopReason !== undefined && meta.stopReason !== completion.stopReason)
   ) {
     throw new Error("OpenClaw completion stop reason was not a successful terminal stop");
@@ -695,6 +780,7 @@ function parseDecision(stdout, {
     !isPlainObject(agentMeta)
     || agentMeta.provider !== provider
     || agentMeta.model !== modelId
+    || (provider === "openai" && agentMeta.agentHarnessId !== "codex")
     || typeof agentMeta.sessionId !== "string"
     || !agentMeta.sessionId
   ) {
@@ -795,6 +881,7 @@ async function runOpenClawTurn({
   ipcFailure.promise.catch(() => undefined);
   const sockets = new Set();
   let toolSerial = Promise.resolve();
+  const observedToolCalls = [];
   const server = createServer((socket) => {
     sockets.add(socket);
     socket.once("close", () => sockets.delete(socket));
@@ -837,6 +924,7 @@ async function runOpenClawTurn({
         validatePluginRequest(request, { capability, caseToken, openclawSessionId });
         if (usedToolCallIds.has(request.id)) throw new Error("OpenClaw plugin reused a toolCallId");
         usedToolCallIds.add(request.id);
+        observedToolCalls.push({ id: request.id, toolName: request.toolName });
       } catch (error) {
         ipcFailure.reject(error instanceof Error ? error : new Error(String(error)));
         socket.destroy();
@@ -935,6 +1023,7 @@ async function runOpenClawTurn({
       return {
         ...parseDecision(stdout(), {
           model,
+          observedToolCalls,
           openclawSessionId,
           expectedRuntimeSessionId,
           workspace: caseState.workspace,
