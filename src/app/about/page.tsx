@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import styles from '../editorial.module.css';
+
 export const metadata: Metadata = {
   title: 'About — Clawbotomy',
   description:
-    'Clawbotomy records observed model behavior under selected tests. Learn what the current research preview measures, what it does not, and how to reproduce it.',
+    'Clawbotomy evaluates configured AI agents against fixed synthetic tasks and keeps the resulting evidence private, reviewable, and non-authorizing.',
 };
 
 const comparisons = [
@@ -38,9 +40,22 @@ const comparisons = [
     measures: 'Whether agents can complete specific tasks',
     misses: 'Behavioral patterns across task types',
   },
+  {
+    name: 'Clawbotomy',
+    examples: 'Current research preview',
+    measures: 'How one configured agent behaved against fixed synthetic tasks',
+    misses: 'Behavior beyond the exact runtime, plan, and observed session',
+  },
 ];
 
 const applications = [
+  {
+    path: '/evaluate',
+    label: 'Configured-agent evaluation',
+    question: 'How did this OpenClaw or Hermes runtime behave against the fixed synthetic Inbox?',
+    description:
+      'Launch a checked-in bridge, validate the private attempt and evidence receipts, inspect the result locally, and keep the finding scoped to the observed session.',
+  },
   {
     path: '/preflight',
     label: 'Inbox preflight plan',
@@ -61,6 +76,13 @@ const applications = [
     question: 'What does a behavioral report communicate?',
     description:
       'A clearly labeled example of dimension scores, red flags, evidence status, and plain-language interpretation. It is not a live or hosted agent assessment.',
+  },
+  {
+    path: '/routing',
+    label: 'Task-specific routing',
+    question: 'How can evidence inform a bounded model or agent assignment?',
+    description:
+      'Compare task profiles and critical floors without turning an aggregate score into permission or deployment guidance.',
   },
   {
     path: '/lab',
@@ -87,25 +109,23 @@ const dontDo = [
 
 function SectionDivider({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-4 mb-8">
-      <div className="h-px flex-1 bg-white/10" />
-      <h2 className="text-xs font-mono text-content-muted tracking-[0.04em] shrink-0">{label}</h2>
-      <div className="h-px flex-1 bg-white/10" />
+    <div className={styles.sectionDivider}>
+      <h2>{label}</h2>
     </div>
   );
 }
 
 export default function AboutPage() {
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <main className={styles.page}>
       {/* Header */}
-      <header className="mb-16">
-        <p className="text-xs tracking-[0.04em] text-content-muted mb-4">About</p>
-        <h1 className="font-mono text-3xl md:text-4xl tracking-tight text-content-primary mb-8">
-          Behavioral Intelligence for AI Models
-        </h1>
-        <p className="text-lg text-content-secondary leading-relaxed">
-          Benchmarks estimate what models <em>can</em> do. Clawbotomy records what they <em>did</em> under tested conditions.
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.kicker}>About</p>
+          <h1 className={styles.title}>Behavioral evidence for AI agents</h1>
+        </div>
+        <p className={styles.lede}>
+          Connect a configured runtime, exercise it against fixed synthetic tasks, and inspect private evidence before granting access.
         </p>
       </header>
 
@@ -123,9 +143,9 @@ export default function AboutPage() {
             Those observations may reveal failure modes capability scores hide; they are evidence, not predictions.
           </p>
           <p>
-            No single benchmark captures a configured agent&apos;s model, prompt, tools, memory, permissions, and
-            runtime together. The current release can execute an Inbox plan against a bundled reference agent,
-            but it cannot execute the plan against your configured agent yet. Reference evidence is not configured-agent evidence.
+            The current release can exercise a configured OpenClaw or Hermes runtime against fixed mock-Inbox
+            tools. The result applies only to that observed session, remains private by default, and never grants
+            production access. The bundled reference agent remains a control, not configured-agent evidence.
           </p>
         </div>
       </section>
@@ -135,56 +155,40 @@ export default function AboutPage() {
         <SectionDivider label="The category" />
         <div className="space-y-4 text-content-secondary text-sm leading-relaxed mb-8">
           <p>
-            Clawbotomy combines behavioral test protocols, model comparisons, and example routing. It is not a
+            Clawbotomy combines configured-agent evaluation, behavioral test protocols, model comparisons, and example routing. It is not a
             certification, a production guarantee, or a substitute for testing your own configured agent in its
             real workflow.
           </p>
         </div>
-        <div className="space-y-3">
-          {/* Desktop: 3-column grid */}
-          <div className="hidden md:block space-y-3">
-            {comparisons.map((c) => (
-              <div key={c.name} className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 border-b border-white/5 text-xs">
-                <div>
-                  <span className="text-content-primary font-medium">{c.name}</span>
-                  <span className="text-content-muted ml-1">({c.examples})</span>
-                </div>
-                <div className="text-content-secondary">{c.measures}</div>
-                <div className="text-content-muted">{c.misses}</div>
+        <ul className={styles.comparisonList}>
+          {comparisons.map((comparison) => (
+            <li key={comparison.name} className={styles.comparisonItem}>
+              <div className={styles.comparisonName}>
+                <h3>{comparison.name}</h3>
+                <p>{comparison.examples}</p>
               </div>
-            ))}
-            <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 text-xs">
-              <div className="text-content-primary font-semibold">Clawbotomy</div>
-              <div className="text-content-primary">Task-specific observations under selected tests</div>
-              <div className="text-content-muted">—</div>
-            </div>
-          </div>
-          {/* Mobile: stacked */}
-          <div className="md:hidden space-y-4">
-            {comparisons.map((c) => (
-              <div key={c.name} className="py-3 border-b border-white/5 text-xs space-y-1">
+              <dl className={styles.comparisonDetails}>
                 <div>
-                  <span className="text-content-primary font-medium">{c.name}</span>
-                  <span className="text-content-muted ml-1">({c.examples})</span>
+                  <dt>Measures</dt>
+                  <dd>{comparison.measures}</dd>
                 </div>
-                <div className="text-content-secondary">Measures: {c.measures}</div>
-                <div className="text-content-muted">Misses: {c.misses}</div>
-              </div>
-            ))}
-            <div className="py-3 text-xs">
-              <div className="text-content-primary font-semibold">Clawbotomy</div>
-              <div className="text-content-primary">Task-specific observations under selected tests</div>
-            </div>
-          </div>
-        </div>
+                <div>
+                  <dt>Misses</dt>
+                  <dd>{comparison.misses}</dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* Product surfaces */}
       <section className="mb-16">
         <SectionDivider label="Product surfaces, explicit evidence" />
         <p className="text-content-secondary text-sm leading-relaxed mb-8">
-          The Inbox planner records intent, not evidence. The benchmark records scored model runs. Trust and routing
-          show how evidence can inform a decision, with provisional values labeled. The Lab is qualitative, not scored.
+          Evaluate records one configured runtime against fixed synthetic tools. The Inbox planner records intent,
+          not evidence. The benchmark records scored model runs. Trust and routing show how evidence can inform a
+          decision, with provisional values labeled. The Lab is qualitative, not scored.
         </p>
         <div className="space-y-6">
           {applications.map((app) => (
@@ -354,6 +358,6 @@ export default function AboutPage() {
           </a>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

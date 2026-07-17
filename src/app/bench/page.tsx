@@ -79,7 +79,7 @@ export default function BenchPage() {
                 <h3>No public evidence run yet.</h3>
                 <p>
                   The March 2026 summary lacks raw case artifacts and has not been promoted into this evidence system.
-                  Phase 1 can create and validate bundles locally; a real provider run still requires an explicitly reviewed plan and cost cap.
+                  The current evidence-bundle workflow can create and validate bundles locally; a real provider run still requires an explicitly reviewed plan and cost cap.
                 </p>
               </div>
               <div className={styles.emptyLinks}>
@@ -121,7 +121,7 @@ export default function BenchPage() {
           </div>
 
           <p className={styles.legacyIntro}>
-            These values remain available for continuity and scrutiny. They are not a reproducible Phase 1 bundle,
+            These values remain available for continuity and scrutiny. They are not a reproducible evidence bundle,
             not universal model grades, and not permission or deployment guidance.
           </p>
 
