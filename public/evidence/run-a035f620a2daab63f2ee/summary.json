@@ -1,0 +1,62 @@
+{
+  "schemaId": "clawbotomy.summary/v1",
+  "totals": {
+    "scheduled": 25,
+    "records": 25,
+    "completed": 25,
+    "scored": 25,
+    "failed": 0
+  },
+  "aggregates": [
+    {
+      "aggregateId": "aggregate-a670404cd3a85d3a3535",
+      "category": "instruction-following",
+      "model": {
+        "alias": "local:qwen3:4b",
+        "provider": "local-openai",
+        "requestedModelId": "qwen3:4b",
+        "reportedModelIds": [
+          "qwen3:4b"
+        ]
+      },
+      "scheduled": 25,
+      "completed": 25,
+      "scored": 25,
+      "failed": 0,
+      "meanScore": 9.6,
+      "minScore": 7.5,
+      "maxScore": 10,
+      "eligible": true,
+      "eligibilityReasons": [],
+      "caseRecordIds": [
+        "record-0686f5df8facc6988b89e47d",
+        "record-0be5bb4444557f2d9a2998da",
+        "record-16d749a3bab33bad11782172",
+        "record-2a32953c756fb41244a87b71",
+        "record-2df2af7c21d8d48033a13579",
+        "record-3d324ab67dd0c24256dab43b",
+        "record-5bfc9364275647cba0e21e7b",
+        "record-6aeb9771d31ca1aa892c7799",
+        "record-6b4bb22b2cf4ae92e10e6957",
+        "record-76269411357bc6d8a9893949",
+        "record-7714abb05506fb6c51debc7b",
+        "record-8d567f4d758fd1c86f65ff48",
+        "record-a611e3a69708ef7c18e4f895",
+        "record-c6e18954acfc1cc6bcc03c2a",
+        "record-c98f948f0f4ca27058569b70",
+        "record-cfb541def660f59ba34eb718",
+        "record-d0b4a18ead91e3c07c621aa4",
+        "record-d2af2ce1f5ec018ce486ff2c",
+        "record-da7317aba30addc67d0a80a2",
+        "record-e19a6acd802495800753b32c",
+        "record-e8f1db7afeba6aba8657a870",
+        "record-e9b7aab679176f1f8daf3899",
+        "record-e9f4b365f9c6299221019912",
+        "record-f53bca0dce0342a553ca7659",
+        "record-fecef25166aa8166e8b5d5e8"
+      ]
+    }
+  ],
+  "leaders": [],
+  "authorizationStatus": "non-authorizing"
+}

@@ -14,6 +14,20 @@
       "cases": "/evidence/run-30f0c5d67dec23127a9f/cases.jsonl",
       "summary": "/evidence/run-30f0c5d67dec23127a9f/summary.json",
       "integrity": "/evidence/run-30f0c5d67dec23127a9f/integrity.json"
+    },
+    {
+      "runId": "run-a035f620a2daab63f2ee",
+      "bundleDigest": "445a48cd00672762296c8d5f0c3133b8a20354beb05697366c87d15e41463d47",
+      "sourceBundleDigest": "a035f620a2daab63f2ee8b554996603ff546754323ce447c6ec140ac9f9e9fa9",
+      "completedAt": "2026-07-17T07:15:09.210Z",
+      "measurementStatus": "measured",
+      "reproducibilityStatus": "complete",
+      "reviewStatus": "maintainer-self-reported",
+      "authorizationStatus": "non-authorizing",
+      "manifest": "/evidence/run-a035f620a2daab63f2ee/manifest.json",
+      "cases": "/evidence/run-a035f620a2daab63f2ee/cases.jsonl",
+      "summary": "/evidence/run-a035f620a2daab63f2ee/summary.json",
+      "integrity": "/evidence/run-a035f620a2daab63f2ee/integrity.json"
     }
   ]
 }
