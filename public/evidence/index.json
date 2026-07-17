@@ -1,4 +1,19 @@
 {
   "schemaId": "clawbotomy.public-evidence-index/v1",
-  "runs": []
+  "runs": [
+    {
+      "runId": "run-30f0c5d67dec23127a9f",
+      "bundleDigest": "fcd21ad66ec134b8a34c6c5ce9b243c9ff330f101bc68c76ec7becd3240130f9",
+      "sourceBundleDigest": "30f0c5d67dec23127a9ffab448fdb82c8c0e3925e5245f490557a1cf68809b70",
+      "completedAt": "2026-07-17T04:31:27.263Z",
+      "measurementStatus": "measured",
+      "reproducibilityStatus": "complete",
+      "reviewStatus": "maintainer-self-reported",
+      "authorizationStatus": "non-authorizing",
+      "manifest": "/evidence/run-30f0c5d67dec23127a9f/manifest.json",
+      "cases": "/evidence/run-30f0c5d67dec23127a9f/cases.jsonl",
+      "summary": "/evidence/run-30f0c5d67dec23127a9f/summary.json",
+      "integrity": "/evidence/run-30f0c5d67dec23127a9f/integrity.json"
+    }
+  ]
 }

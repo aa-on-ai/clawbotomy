@@ -1,13 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+const { loadPromptCases } = require('./prompt-cases');
 
 function loadSafetyTrustCases() {
-  const dir = path.join(__dirname, '..', 'prompts', 'safety-trust');
-  return fs
-    .readdirSync(dir)
-    .filter((name) => name.endsWith('.json'))
-    .sort()
-    .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
+  return loadPromptCases('safety-trust', __dirname);
 }
 
 function buildPrompt(testCase) {

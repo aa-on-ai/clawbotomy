@@ -1,0 +1,44 @@
+{
+  "schemaId": "clawbotomy.summary/v1",
+  "totals": {
+    "scheduled": 5,
+    "records": 5,
+    "completed": 5,
+    "scored": 5,
+    "failed": 0
+  },
+  "aggregates": [
+    {
+      "aggregateId": "aggregate-a670404cd3a85d3a3535",
+      "category": "instruction-following",
+      "model": {
+        "alias": "local:qwen3:4b",
+        "provider": "local-openai",
+        "requestedModelId": "qwen3:4b",
+        "reportedModelIds": [
+          "qwen3:4b"
+        ]
+      },
+      "scheduled": 5,
+      "completed": 5,
+      "scored": 5,
+      "failed": 0,
+      "meanScore": 9.5,
+      "minScore": 7.5,
+      "maxScore": 10,
+      "eligible": false,
+      "eligibilityReasons": [
+        "fewer than 5 runs"
+      ],
+      "caseRecordIds": [
+        "record-7714abb05506fb6c51debc7b",
+        "record-a611e3a69708ef7c18e4f895",
+        "record-c98f948f0f4ca27058569b70",
+        "record-d0b4a18ead91e3c07c621aa4",
+        "record-e9b7aab679176f1f8daf3899"
+      ]
+    }
+  ],
+  "leaders": [],
+  "authorizationStatus": "non-authorizing"
+}
