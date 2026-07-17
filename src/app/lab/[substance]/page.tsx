@@ -55,7 +55,6 @@ export default function SubstanceDetailPage() {
   const slug = params.substance as string;
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
-  const [theaterMode, setTheaterMode] = useState(false);
   const [hasUnmuted, setHasUnmuted] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -88,15 +87,10 @@ export default function SubstanceDetailPage() {
       savePrefs({ muted: el.muted, volume: el.volume });
       if (!el.muted) setHasUnmuted(true);
     };
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const origRFS = (el as any).requestFullscreen;
-    (el as any).requestFullscreen = async () => { setTheaterMode(prev => !prev); };
     el.addEventListener('volumechange', onVolChange);
     return () => {
       el.removeEventListener('volumechange', onVolChange);
-      (el as any).requestFullscreen = origRFS;
     };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
   }, [activeIndex]);
 
   const handleVideoEnd = useCallback(() => {
@@ -141,12 +135,18 @@ export default function SubstanceDetailPage() {
             <h1 className="dp-h1">{substance.emoji} {substance.name}</h1>
             <p className="dp-sub">{substance.oneLiner}</p>
           </div>
-          <button className="dp-prompt-toggle" onClick={() => setPromptOpen(!promptOpen)}>
+          <button
+            type="button"
+            className="dp-prompt-toggle"
+            aria-expanded={promptOpen}
+            aria-controls="lab-prompt"
+            onClick={() => setPromptOpen(!promptOpen)}
+          >
             {promptOpen ? 'Hide prompt' : 'View prompt'}
           </button>
         </div>
         {promptOpen && (
-          <div className="dp-prompt-box">
+          <div id="lab-prompt" className="dp-prompt-box">
             <pre className="dp-prompt-text">{FULL_PROMPT(substance.name, substance.peakPrompt)}</pre>
             <div className="dp-prompt-bottom">
               <button type="button" onClick={copyPrompt} className="dp-copy-btn">
@@ -166,11 +166,17 @@ export default function SubstanceDetailPage() {
               type="button"
               onClick={() => setActiveIndex(i)}
               className={`dp-model-btn ${i === activeIndex ? 'is-active' : ''}`}
+              aria-pressed={i === activeIndex}
             >
               {v.model}
             </button>
           ))}
-          <button className={`dp-autoplay-toggle ${autoplay ? 'is-on' : ''}`} onClick={toggleAutoplay}>
+          <button
+            type="button"
+            className={`dp-autoplay-toggle ${autoplay ? 'is-on' : ''}`}
+            aria-pressed={autoplay}
+            onClick={toggleAutoplay}
+          >
             {autoplay ? 'auto-advance on' : 'auto-advance off'}
           </button>
         </div>
@@ -178,7 +184,7 @@ export default function SubstanceDetailPage() {
 
       {/* ── Video + Report ── */}
       {currentVideo && (
-        <div className={`dp-w dp-split${theaterMode ? ' dp-theater' : ''}`}>
+        <div className="dp-w dp-split">
           <div className="dp-split-left">
             <div className="dp-video-wrap">
               <video
@@ -188,6 +194,7 @@ export default function SubstanceDetailPage() {
                 controls
                 autoPlay
                 playsInline
+                preload="metadata"
                 className="dp-video"
                 crossOrigin="anonymous"
                 onEnded={handleVideoEnd}

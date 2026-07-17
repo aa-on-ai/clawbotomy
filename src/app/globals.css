@@ -134,8 +134,8 @@ a {
 
 .skip-link {
   position: fixed;
-  top: 12px;
-  left: 12px;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: calc(env(safe-area-inset-left, 0px) + 12px);
   z-index: 1000;
   min-height: 48px;
   padding: 0 18px;
@@ -148,10 +148,14 @@ a {
   font-size: 12px;
   font-weight: 700;
   text-transform: none;
+  opacity: 0;
+  pointer-events: none;
   transform: translateY(calc(-100% - 24px));
 }
 
-.skip-link:focus {
+.skip-link:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
   transform: translateY(0);
 }
 
@@ -1871,7 +1875,7 @@ img {
 }
 
 .trust-overall-score {
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 500;
   letter-spacing: -0.04em;
   color: var(--accent-amber, #C9862A);
@@ -1886,13 +1890,14 @@ img {
 }
 
 .trust-verdict {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .trust-verdict-badge {
   display: inline-block;
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: none;
   padding: 6px 14px;
@@ -2762,6 +2767,13 @@ img {
   color: #eee8de;
 }
 
+.lab-page-heading {
+  max-width: 18ch;
+  font-size: clamp(2.5rem, 6vw, 4.75rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
 .lab-about-sub {
   margin: 0;
   max-width: 640px;
@@ -3153,6 +3165,12 @@ img {
 
   .lab-lenses-grid {
     grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .lab-lenses-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 

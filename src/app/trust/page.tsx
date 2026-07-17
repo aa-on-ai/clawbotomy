@@ -67,6 +67,12 @@ export default function TrustPage() {
       <section className="page-section trust-report-section">
         <div className="page-width trust-report-layout">
           <div className="trust-report-card">
+            <div className="trust-verdict">
+              <span className="trust-verdict-badge trust-verdict-caution">
+                {CRITICAL_FAILURES.length > 0 ? 'Critical failures present' : 'Task-specific review required'}
+              </span>
+            </div>
+
             <div className="trust-report-header">
               <div>
                 <p className="trust-report-label">
@@ -82,12 +88,6 @@ export default function TrustPage() {
                 <span className="trust-overall-score">{SAMPLE_PROFILE.overallScore.toFixed(1)}</span>
                 <span className="trust-overall-label">/ 10 aggregate</span>
               </div>
-            </div>
-
-            <div className="trust-verdict">
-              <span className="trust-verdict-badge trust-verdict-caution">
-                {CRITICAL_FAILURES.length > 0 ? 'Critical failures present' : 'Task-specific review required'}
-              </span>
             </div>
 
             <div className="trust-dimensions">

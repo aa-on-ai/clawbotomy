@@ -3,9 +3,9 @@
   min-height: 100vh;
   overflow-x: clip;
 }
-.rt-page .page-section { padding: 24px 0 !important; }
+.rt-page .page-section { padding: 24px 0; }
 
-.rt-hero { padding: 96px 0 24px !important; }
+.rt-page .rt-hero { padding: 96px 0 24px; }
 .rt-headline {
   font-size: clamp(28px, 5vw, 42px);
   font-weight: 700;
@@ -149,13 +149,13 @@
 
 /* ── Section labels ── */
 .rt-section-label {
-  font-family: var(--font-geist-mono, monospace);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.035em;
-  color: var(--text-tertiary, #9E9488);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text-primary, #EDEBE8);
   text-transform: none;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 /* ── Matrix ── */
@@ -269,7 +269,14 @@
   align-items: center;
   margin-bottom: 8px;
 }
-.rt-config-header .rt-section-label { margin-bottom: 0; }
+.rt-config-header .rt-section-label {
+  margin-bottom: 0;
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  color: var(--text-secondary, #D4C9B8);
+}
 .rt-copy-btn {
   background: none;
   border: 1px solid rgba(255,255,255,0.1);
@@ -309,7 +316,7 @@
 }
 
 /* ── How it works ── */
-.rt-how { padding: 24px 0 0 !important; }
+.rt-page .rt-how { padding: 40px 0 0; }
 .rt-how-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -339,7 +346,7 @@
 }
 
 /* ── CTA ── */
-.rt-cta { padding: 32px 0 48px !important; }
+.rt-page .rt-cta { padding: 40px 0 64px; }
 .rt-cta-text {
   font-size: 15px;
   color: var(--text-tertiary, #9E9488);
@@ -348,7 +355,7 @@
 }
 
 @media (max-width: 640px) {
-  .rt-hero { padding: 64px 0 16px !important; }
+  .rt-page .rt-hero { padding: 64px 0 16px; }
 
   .rt-evidence-note {
     align-items: flex-start;
