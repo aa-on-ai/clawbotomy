@@ -98,7 +98,7 @@ export default function BenchPage() {
                     <p>{run.measurementStatus} · {run.reproducibilityStatus} · {run.reviewStatus}</p>
                   </div>
                   <time dateTime={run.completedAt}>{run.completedAt.slice(0, 10)}</time>
-                  <a href={`/api/bench/runs/${run.runId}`}>Inspect run →</a>
+                  <Link href={`/bench/runs/${run.runId}`}>Inspect run →</Link>
                 </li>
               ))}
             </ol>
