@@ -80,7 +80,11 @@ export default function HomePage() {
                 </div>
                 <div>
                   <dt>Latest public evidence run</dt>
-                  <dd>{latestRun?.runId || 'Awaiting first run'}</dd>
+                  <dd>
+                    {latestRun ? (
+                      <Link href={`/bench/runs/${latestRun.runId}`}>{latestRun.runId}</Link>
+                    ) : 'Awaiting first run'}
+                  </dd>
                 </div>
                 <div>
                   <dt>March snapshot</dt>
@@ -186,8 +190,10 @@ export default function HomePage() {
               <span>01 · Evidence</span>
               <h3>Benchmark registry</h3>
               <p>
-                The public evidence registry is currently empty. The {benchData.lastUpdated} scores remain a low-confidence,
-                maintainer-reported legacy summary because their raw cases were not published.
+                {publicEvidence.runs.length > 0
+                  ? 'The registry contains measured public bundles with complete artifacts and explicit limits. '
+                  : 'The registry is awaiting its first measured public bundle. '}
+                The {benchData.lastUpdated} scores remain a low-confidence, maintainer-reported legacy summary because their raw cases were not published.
               </p>
               <strong>Inspect evidence and legacy data →</strong>
             </Link>
