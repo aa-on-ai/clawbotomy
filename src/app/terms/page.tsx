@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import styles from '../editorial.module.css';
 
 export const metadata = {
   title: 'Terms of Use — Clawbotomy',
@@ -6,19 +6,18 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <Link
-          href="/"
-          className="inline-flex min-h-11 items-center text-content-muted hover:text-content-secondary font-mono text-sm transition-colors"
-        >
-          ← back to home
-        </Link>
-      </div>
+    <main className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.kicker}>Source software · Research preview</p>
+          <h1 className={styles.title}>Terms of Use</h1>
+        </div>
+        <p className={styles.lede}>
+          Use Clawbotomy as source software, keep evidence local, and treat every output as review input rather than authorization.
+        </p>
+      </header>
 
-      <h1 className="text-3xl font-mono font-bold text-content-primary mb-8">Terms of Use</h1>
-
-      <div className="prose prose-zinc dark:prose-invert font-mono text-sm space-y-6">
+      <div className={styles.termsContent}>
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">What This Is</h2>
           <p className="text-content-secondary leading-relaxed">
@@ -101,10 +100,10 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <p className="text-content-muted text-xs pt-6 border-t border-[var(--border)]">
+        <p className={styles.updated}>
           Last updated: July 12, 2026
         </p>
       </div>
-    </div>
+    </main>
   );
 }

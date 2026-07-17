@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import styles from './site-chrome.module.css';
 
@@ -18,9 +18,23 @@ const links = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const isHome = pathname === '/';
 
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setOpen(false);
+      menuButtonRef.current?.focus();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
 
   return (
     <header className={`${styles.header} ${isHome ? styles.signal : ''}`}>
@@ -31,8 +45,10 @@ export function SiteHeader() {
         </Link>
 
         <button
+          ref={menuButtonRef}
           type="button"
           className={styles.menuButton}
+          aria-label={open ? 'Close primary navigation' : 'Open primary navigation'}
           aria-expanded={open}
           aria-controls="site-navigation"
           onClick={() => setOpen((value) => !value)}
