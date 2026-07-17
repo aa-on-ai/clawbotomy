@@ -1,0 +1,19 @@
+{
+  "schemaId": "clawbotomy.integrity/v1",
+  "algorithm": "sha256",
+  "files": {
+    "manifest.json": {
+      "sha256": "b56cc557219c53c44efa9fdcb45d7b881b355a014ad3df2c04830a383ed9f5c6",
+      "bytes": 15376
+    },
+    "cases.jsonl": {
+      "sha256": "b0c9a2c515b74129a263971f27e86bf17dc86f9ccaa83306a068ee2d64943fc9",
+      "bytes": 61859
+    },
+    "summary.json": {
+      "sha256": "23e190f3ed2553423ade811949d722f485a53cc215ad4f35e653f5c930d3b799",
+      "bytes": 1875
+    }
+  },
+  "bundleDigest": "e0cda24de9a884c613c8cfc9afd9c6750791de70d2d21d71f2db13a3c30e7bd2"
+}

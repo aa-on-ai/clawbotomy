@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { benchData } from '@/lib/bench-data';
-import { loadPublicEvidenceIndex } from '@/lib/public-evidence.server';
+import { buildEvidenceComparisons } from '@/lib/evidence-comparison';
+import { loadPublicEvidenceIndex, loadPublicEvidenceRun } from '@/lib/public-evidence.server';
 import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
 
 import styles from './bench.module.css';
@@ -24,6 +25,12 @@ const modelLabels: Record<string, string> = {
 export default function BenchPage() {
   const registry = loadPublicEvidenceIndex();
   const runs = registry.runs.slice().sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const bundles = runs.flatMap((run) => {
+    const bundle = loadPublicEvidenceRun(run.runId);
+    return bundle ? [bundle] : [];
+  });
+  const comparisons = buildEvidenceComparisons(bundles);
+  const comparison = comparisons[0] || null;
   const { models, categories, runs: legacyRuns, lastUpdated, scope, limitations, modelIdentityStatus } = benchData;
 
   return (
@@ -36,8 +43,8 @@ export default function BenchPage() {
           <div className={styles.headerGrid}>
             <h1>Public evidence starts with the bundle.</h1>
             <p>
-              Rankings come later. A publishable run must first expose its frozen plan, exact identities,
-              constituent cases, failures, summary derivation, redaction state, and integrity digest.
+              Comparison starts only after eligible bundles share the same protocol. Every published run still
+              exposes its frozen plan, exact identities, cases, failures, redaction state, and integrity digest.
             </p>
           </div>
 
@@ -51,8 +58,8 @@ export default function BenchPage() {
               <dd>{runs[0]?.runId || 'None'}</dd>
             </div>
             <div>
-              <dt>Review state</dt>
-              <dd>{runs[0]?.reviewStatus || 'Awaiting evidence'}</dd>
+              <dt>Compatible pairs</dt>
+              <dd>{comparisons.length}</dd>
             </div>
             <div>
               <dt>Authorization</dt>
@@ -61,6 +68,84 @@ export default function BenchPage() {
           </dl>
         </div>
       </header>
+
+      {comparison && (
+        <section
+          className={styles.comparisonSection}
+          aria-labelledby="comparison-title"
+          data-evidence-comparison
+        >
+          <div className={styles.rail}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrowSignal}>Compatible public comparison</p>
+                <h2 id="comparison-title">Same prompts. Two Qwen sizes.</h2>
+              </div>
+              <p>
+                Both runs clear the repeat count, coverage, scoring, reproducibility, identity, prompt-hash,
+                and implementation-hash gates for this exact local protocol.
+              </p>
+            </div>
+
+            <article className={styles.comparisonCard}>
+              <div className={styles.comparisonLead}>
+                <div>
+                  <p className={styles.comparisonKicker}>{comparison.category} · {comparison.caseCount} prompts · {comparison.runsPerCase} repeats</p>
+                  <h3>
+                    {comparison.leader
+                      ? `${comparison.leader.modelLabel} led by ${comparison.meanDelta.toFixed(2)} points.`
+                      : 'The mean scores tied.'}
+                  </h3>
+                </div>
+                <p>
+                  This is a bounded, same-family size comparison on fifty scored records. It is not a general
+                  model leaderboard or evidence about safety, speed, cost, or production readiness.
+                </p>
+              </div>
+
+              <div className={styles.comparisonSubjects}>
+                {comparison.subjects.map((subject) => (
+                  <article key={subject.runId} data-comparison-subject>
+                    <p>{subject.modelLabel}</p>
+                    <div className={styles.comparisonScore}>
+                      <strong>{subject.meanScore.toFixed(2)}</strong>
+                      <span>mean / 10</span>
+                    </div>
+                    <dl>
+                      <div><dt>Observed range</dt><dd>{subject.minScore.toFixed(2)} to {subject.maxScore.toFixed(2)}</dd></div>
+                      <div><dt>Scored records</dt><dd>{subject.scored}</dd></div>
+                    </dl>
+                    <Link href={`/bench/runs/${subject.runId}`}>Inspect this run →</Link>
+                  </article>
+                ))}
+              </div>
+
+              <div className={styles.caseComparison} aria-label="Prompt-level mean scores">
+                <div className={styles.caseComparisonHeader} aria-hidden="true">
+                  <span>Prompt</span>
+                  {comparison.subjects.map((subject) => <span key={subject.runId}>{subject.modelLabel}</span>)}
+                </div>
+                <ol>
+                  {comparison.caseRows.map((row) => (
+                    <li key={row.caseId} data-comparison-case>
+                      <span>{row.caseId}</span>
+                      <strong>{row.scores[0].toFixed(2)}</strong>
+                      <strong>{row.scores[1].toFixed(2)}</strong>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <dl className={styles.comparisonProof}>
+                <div><dt>Prompt + implementation hashes</dt><dd>Identical</dd></div>
+                <div><dt>Runs per prompt</dt><dd>{comparison.runsPerCase} each</dd></div>
+                <div><dt>Review state</dt><dd>{comparison.reviewStatus}</dd></div>
+                <div><dt>Authorization</dt><dd>{comparison.authorizationStatus}</dd></div>
+              </dl>
+            </article>
+          </div>
+        </section>
+      )}
 
       <section className={styles.registrySection} aria-labelledby="registry-title">
         <div className={styles.rail}>
