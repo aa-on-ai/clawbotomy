@@ -44,8 +44,27 @@ export type PublicEvidenceBundle = {
     };
     execution: { mode: string };
     plan: {
+      schemaVersion: string;
       source: { repository: string | null; commitSha: string | null; dirty: boolean };
-      configuration: { models: string[]; tasks: string[]; runs: number; judge: string };
+      configuration: {
+        models: string[];
+        tasks: string[];
+        runs: number;
+        judge: string;
+        localEndpoint?: string;
+        maxOutputTokensPerRequest?: number;
+        maxResponseJsonBytesPerRequest?: number;
+      };
+      pricingSnapshot: { sha256: string };
+      implementationSha256: Record<string, string>;
+      caseExecutions: Array<{
+        category: string;
+        caseId: string;
+        caseSha256: string;
+        runIndex: number;
+        target: { provider: string; requestCount: number };
+        scoring: { mode: string };
+      }>;
     };
     actual: Record<string, number>;
     publication: { sourceBundleDigest: string } | null;
