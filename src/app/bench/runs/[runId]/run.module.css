@@ -241,11 +241,15 @@
   font-size: 18px;
 }
 
-.eligibilityNote ul {
+.eligibilityNote ul,
+.eligibilityNote p {
   margin: 0;
-  padding-left: 18px;
   font-size: 14px;
   line-height: 1.65;
+}
+
+.eligibilityNote ul {
+  padding-left: 18px;
 }
 
 .casesSection {
@@ -362,6 +366,49 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   overflow-wrap: anywhere;
+}
+
+.repeatList {
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--cb-border-light);
+}
+
+.repeatList > li {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--cb-border-light);
+}
+
+.repeatHeader {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.repeatHeader span {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.repeatHeader p {
+  max-width: 820px;
+  margin: 9px 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.repeatHeader strong {
+  flex: 0 0 auto;
+  color: var(--cb-danger);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 15px;
+}
+
+.repeatList .evidenceDisclosure {
+  margin-top: 16px;
 }
 
 .evidenceDisclosure {
@@ -549,7 +596,8 @@
     padding: 24px 0 24px 18px;
   }
 
-  .caseHeader {
+  .caseHeader,
+  .repeatHeader {
     flex-direction: column;
     gap: 14px;
   }
