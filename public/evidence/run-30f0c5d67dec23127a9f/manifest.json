@@ -1,0 +1,199 @@
+{
+  "schemaId": "clawbotomy.evidence-bundle/v1",
+  "runId": "run-30f0c5d67dec23127a9f",
+  "lifecycle": {
+    "status": "complete",
+    "startedAt": "2026-07-17T04:29:45.693Z",
+    "completedAt": "2026-07-17T04:31:27.263Z"
+  },
+  "evidence": {
+    "measurementStatus": "measured",
+    "reproducibilityStatus": "complete",
+    "reviewStatus": "maintainer-self-reported",
+    "authorizationStatus": "non-authorizing"
+  },
+  "execution": {
+    "mode": "live"
+  },
+  "plan": {
+    "schemaVersion": "1.0.0",
+    "source": {
+      "repository": "https://github.com/aa-on-ai/clawbotomy",
+      "commitSha": "5b2c20cb362343cc31871a3b7579f1583c1d8f5b",
+      "dirty": false,
+      "worktreeStateSha256": "441f60e16644c7adb6f970c51ebddc0a00a6cb20d1442486d7e75eab23c4dd24"
+    },
+    "configuration": {
+      "models": [
+        "local:qwen3:4b"
+      ],
+      "tasks": [
+        "instruction-following"
+      ],
+      "runs": 1,
+      "judge": "sonnet",
+      "localEndpoint": "http://127.0.0.1:11434/v1",
+      "bundlePath": "[REDACTED_LOCAL_PATH]",
+      "maxOutputTokensPerRequest": 1600,
+      "maxResponseJsonBytesPerRequest": 16384
+    },
+    "pricingSnapshot": {
+      "asOf": "2026-07-12",
+      "currency": "USD",
+      "unit": "per 1M text tokens",
+      "sha256": "fdd9cab60fcd97d541162b579ce560b5ec5c8571092860ec1e91ed951aba2601"
+    },
+    "implementationSha256": {
+      "bench/bundle.js": "f9319333e20f5b22ad9cd3692519a47f15ec07c29437069a04346b0b927bc13b",
+      "bench/canonical.js": "a3f2c7413cf210840c422d58841bf6210b465de12f3ace6c7de46b5b2263bf63",
+      "bench/evidence/pricing.json": "816ed8683edbed9d1963db6522b5d11ce0099b285fb6c33c04ff1460b984acfe",
+      "bench/index.js": "17bb665ebd31aae30d78cd39733c9cf804db1d237c4e012c806e6f40fd57ba80",
+      "bench/judge-envelope.js": "908293b17f019a6a6c5d6ede18ea95c7fd2401022c9e0e0ae3d2c58965a8bef0",
+      "bench/models.js": "294365e9685d30290ba6f6499ca02da5061a5503159781d78723eb72bbbcdc94",
+      "bench/preflight.js": "9f997e1a8692754370ed051b7b8009173d9c844e826f4d187a8c239a7b5b7f26",
+      "bench/private-path.js": "82b845bbe3e876265e6a246bd7c0128fe9850fb517bb1c7e0e1101b47d062c64",
+      "bench/reporter.js": "eb88cb0c081f472bdbee22cb13d817a4e1b43bc3c39e912c03e333f43c5954bd",
+      "bench/runner.js": "dea77dd430231ab986e2257d1b56c35acf02a6a6312466479ab98f366290efb9",
+      "bench/scorer.js": "5cd330b13650b6949f71f29c60f10f890688a311b568d001b34bc6e43af1e27d",
+      "bench/source.js": "5de164af22918546be64948761d3b40804cdd9daf012c6ec85887043235bab14",
+      "bench/tasks/instruction-following.js": "59619c6e3760bb3dae3153959199d1a0923b7e9c50858ccc29d1513e3b6e1b57"
+    },
+    "credentialRequirements": [
+      {
+        "provider": "local-openai",
+        "environmentVariable": null,
+        "present": true
+      }
+    ],
+    "caseExecutions": [
+      {
+        "category": "instruction-following",
+        "caseId": "if-01",
+        "caseSha256": "fb32d183379053efee74c73dc7c5cc70d5c4d2364ba838f137aff5c9bcf564d7",
+        "runIndex": 1,
+        "target": {
+          "alias": "local:qwen3:4b",
+          "modelId": "qwen3:4b",
+          "provider": "local-openai",
+          "requestCount": 1
+        },
+        "scoring": {
+          "mode": "deterministic-rubric"
+        }
+      },
+      {
+        "category": "instruction-following",
+        "caseId": "if-02",
+        "caseSha256": "e9bb583b60c583f5dd69a7563ba439234342207240acf453b860874df57b613b",
+        "runIndex": 1,
+        "target": {
+          "alias": "local:qwen3:4b",
+          "modelId": "qwen3:4b",
+          "provider": "local-openai",
+          "requestCount": 1
+        },
+        "scoring": {
+          "mode": "deterministic-rubric"
+        }
+      },
+      {
+        "category": "instruction-following",
+        "caseId": "if-03",
+        "caseSha256": "6983acf5aeabf690a436232c07b86a56d3f4041a596072f98128182d7ae1d28d",
+        "runIndex": 1,
+        "target": {
+          "alias": "local:qwen3:4b",
+          "modelId": "qwen3:4b",
+          "provider": "local-openai",
+          "requestCount": 1
+        },
+        "scoring": {
+          "mode": "deterministic-rubric"
+        }
+      },
+      {
+        "category": "instruction-following",
+        "caseId": "if-04",
+        "caseSha256": "ee0e92615cbb9c51799f7dd8b4ca49d8cf8b3c7466d7ee9ed78979990838b780",
+        "runIndex": 1,
+        "target": {
+          "alias": "local:qwen3:4b",
+          "modelId": "qwen3:4b",
+          "provider": "local-openai",
+          "requestCount": 1
+        },
+        "scoring": {
+          "mode": "deterministic-rubric"
+        }
+      },
+      {
+        "category": "instruction-following",
+        "caseId": "if-05",
+        "caseSha256": "10ac97b006bc810f1848f42ffe9d407b39bd8f684ed974fa487aa34409963510",
+        "runIndex": 1,
+        "target": {
+          "alias": "local:qwen3:4b",
+          "modelId": "qwen3:4b",
+          "provider": "local-openai",
+          "requestCount": 1
+        },
+        "scoring": {
+          "mode": "deterministic-rubric"
+        }
+      }
+    ],
+    "requestGroups": [
+      {
+        "role": "target",
+        "alias": "local:qwen3:4b",
+        "provider": "local-openai",
+        "modelId": "qwen3:4b",
+        "requests": 5,
+        "inputTokensUpper": 2143,
+        "outputTokensUpper": 8000,
+        "pricing": {
+          "input": 0,
+          "output": 0,
+          "source": "local endpoint; provider billing not estimated"
+        },
+        "costLowerUsd": 0,
+        "costUpperUsd": 0
+      }
+    ],
+    "totals": {
+      "cases": 5,
+      "targetRequests": 5,
+      "judgeRequests": 0,
+      "providerRequests": 5,
+      "inputTokensUpper": 2143,
+      "outputTokensUpper": 8000,
+      "costLowerUsd": 0,
+      "costUpperUsd": 0,
+      "unpricedModels": []
+    },
+    "planDigest": "ab16b6435496d12ab2f6"
+  },
+  "actual": {
+    "scheduledCases": 5,
+    "records": 5,
+    "completedCases": 5,
+    "scoredCases": 5,
+    "failedCases": 0,
+    "targetRequests": 5,
+    "judgeRequests": 0
+  },
+  "publication": {
+    "policy": "public-v1",
+    "exportedAt": "2026-07-17T04:32:33.243Z",
+    "sourceRunId": "qwen3-4b-if-smoke-001",
+    "sourceBundleDigest": "30f0c5d67dec23127a9ffab448fdb82c8c0e3925e5245f490557a1cf68809b70",
+    "sourcePlanDigest": "3140ab85b8b45ebcdb24",
+    "redactionAudit": [
+      {
+        "pointer": "/manifest/plan/configuration/bundlePath",
+        "classification": "local-path",
+        "count": 1
+      }
+    ]
+  }
+}
