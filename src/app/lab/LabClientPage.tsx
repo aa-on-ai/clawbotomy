@@ -21,19 +21,6 @@ export default function LabClientPage() {
     return () => window.clearTimeout(t);
   }, []);
 
-  // Preload videos for ready substances on mount
-  useEffect(() => {
-    READY_SUBSTANCES.forEach(slug => {
-      const vid = getVideoForSubstance(slug);
-      if (vid) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'video';
-        link.href = vid.videoPath;
-        document.head.appendChild(link);
-      }
-    });
-  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
@@ -71,6 +58,7 @@ export default function LabClientPage() {
             muted
             loop
             playsInline
+            preload="metadata"
             className="lab-hover-video"
             style={{ opacity: videoReady ? 1 : 0 }}
             onCanPlay={() => setVideoReady(true)}
@@ -84,7 +72,7 @@ export default function LabClientPage() {
         <section className="lab-hero-section">
           <div className="page-width lab-about-width">
             <p className="lab-about-eyebrow">Behavioral probes</p>
-            <h1 className="lab-about-heading">
+            <h1 className="lab-about-heading lab-page-heading">
               Give a model an altered cognitive state.<br />
               Watch what it creates.
             </h1>

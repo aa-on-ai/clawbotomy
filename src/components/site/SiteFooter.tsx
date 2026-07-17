@@ -15,7 +15,14 @@ export function SiteFooter() {
             Local agent evaluation, private evidence inspection, and non-authorizing routing examples.
           </p>
           <nav aria-label="Footer navigation">
-            <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">Source</a>
+            <a
+              href="https://github.com/aa-on-ai/clawbotomy"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Source on GitHub (opens in a new tab)"
+            >
+              Source ↗
+            </a>
             <Link href="/evaluate">Evaluate</Link>
             <Link href="/bench">Evidence</Link>
             <Link href="/about">About</Link>

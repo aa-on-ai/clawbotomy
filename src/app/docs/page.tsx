@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import styles from '../editorial.module.css';
+
 export const metadata: Metadata = {
   title: 'Documentation — Clawbotomy',
   description: 'How to connect OpenClaw or Hermes, validate private agent evidence, and run Clawbotomy benchmark workflows locally.',
@@ -160,13 +162,13 @@ const currentSurfaces = [
 
 export default function DocsPage() {
   return (
-    <main className="grid-bg min-h-screen">
-      <header className="mb-12 mt-4 text-center">
-        <p className="hero-status-v5 mx-auto mb-5">Current release · research preview</p>
-        <h1 className="text-4xl md:text-5xl font-mono font-bold tracking-tighter text-content-primary mb-4">
-          Documentation
-        </h1>
-        <p className="text-content-secondary font-mono text-sm max-w-2xl mx-auto leading-relaxed">
+    <main className={`${styles.page} ${styles.pageWide} grid-bg`}>
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.kicker}>Current release · Research preview</p>
+          <h1 className={styles.title}>Documentation</h1>
+        </div>
+        <p className={styles.lede}>
           Plan intended Inbox powers in the browser, then run OpenClaw, Hermes, or a fixed reference
           control against the same synthetic Inbox. Every result remains private and non-authorizing.
         </p>
@@ -187,7 +189,11 @@ export default function DocsPage() {
           {agentCommands.map((item) => (
             <div key={item.label} className="space-y-2">
               <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
-              <pre className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary">
+              <pre
+                tabIndex={0}
+                aria-label={`${item.label} command`}
+                className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary"
+              >
                 <code>{item.command}</code>
               </pre>
             </div>
@@ -213,7 +219,11 @@ export default function DocsPage() {
           {inboxCommands.map((item) => (
             <div key={item.label} className="space-y-2">
               <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
-              <pre className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary">
+              <pre
+                tabIndex={0}
+                aria-label={`${item.label} command`}
+                className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary"
+              >
                 <code>{item.command}</code>
               </pre>
             </div>
@@ -250,7 +260,11 @@ export default function DocsPage() {
             {workflowCommands.map((item) => (
               <div key={item.label} className="space-y-2">
                 <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
-                <pre className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary">
+                <pre
+                  tabIndex={0}
+                  aria-label={`${item.label} command`}
+                  className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary"
+                >
                   <code>{item.command}</code>
                 </pre>
               </div>
