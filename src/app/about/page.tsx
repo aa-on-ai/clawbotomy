@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import styles from '../editorial.module.css';
+
 export const metadata: Metadata = {
   title: 'About — Clawbotomy',
   description:
@@ -87,24 +89,22 @@ const dontDo = [
 
 function SectionDivider({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-4 mb-8">
-      <div className="h-px flex-1 bg-white/10" />
-      <h2 className="text-xs font-mono text-content-muted tracking-[0.04em] shrink-0">{label}</h2>
-      <div className="h-px flex-1 bg-white/10" />
+    <div className={styles.sectionDivider}>
+      <h2>{label}</h2>
     </div>
   );
 }
 
 export default function AboutPage() {
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <main className={styles.page}>
       {/* Header */}
-      <header className="mb-16">
-        <p className="text-xs tracking-[0.04em] text-content-muted mb-4">About</p>
-        <h1 className="font-mono text-3xl md:text-4xl tracking-tight text-content-primary mb-8">
-          Behavioral Intelligence for AI Models
-        </h1>
-        <p className="text-lg text-content-secondary leading-relaxed">
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.kicker}>About</p>
+          <h1 className={styles.title}>Behavioral Intelligence for AI Models</h1>
+        </div>
+        <p className={styles.lede}>
           Benchmarks estimate what models <em>can</em> do. Clawbotomy records what they <em>did</em> under tested conditions.
         </p>
       </header>
@@ -354,6 +354,6 @@ export default function AboutPage() {
           </a>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
