@@ -15,10 +15,14 @@ import {
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
-test("manifest declares exactly the eight fixed mock tools", async () => {
+test("manifest declares exactly the eight fixed mock tools and only read operations as replay-safe", async () => {
   const manifest = JSON.parse(await readFile(path.join(root, "openclaw.plugin.json"), "utf8"));
   assert.equal(manifest.id, PLUGIN_ID);
   assert.deepEqual(manifest.contracts.tools, TOOL_NAMES);
+  assert.deepEqual(manifest.toolMetadata, {
+    searchMessages: { replaySafe: true },
+    readMessage: { replaySafe: true },
+  });
 });
 
 test("isolated config exposes only fixed mock tools", () => {
@@ -55,19 +59,24 @@ function successfulOutput(decision, overrides = {}) {
     payloads: [{ text: JSON.stringify({ protocolDecision: decision }), mediaUrl: null }],
     meta: {
       durationMs: 10,
+      replayInvalid: false,
       executionTrace: {
         winnerProvider: provider,
         winnerModel: modelId,
         attempts: [{ provider, model: modelId, result: "success" }],
         fallbackUsed: false,
-        runner: provider === "openai" ? "cli" : "embedded",
+        runner: "embedded",
       },
       completion: {
         finishReason: "stop",
-        stopReason: provider === "openai" ? "completed" : "stop",
-        refusal: false,
+        stopReason: "stop",
       },
-      agentMeta: { sessionId, provider, model: modelId },
+      agentMeta: {
+        sessionId,
+        provider,
+        model: modelId,
+        ...(provider === "openai" ? { agentHarnessId: "codex" } : {}),
+      },
       systemPromptReport: {
         source: "run",
         generatedAt: 1,
@@ -75,7 +84,14 @@ function successfulOutput(decision, overrides = {}) {
         provider,
         model: modelId,
         workspaceDir: workspace,
-        injectedWorkspaceFiles: [],
+        injectedWorkspaceFiles: provider === "openai" ? [{
+          name: "AGENTS.md",
+          path: path.join(workspace, "AGENTS.md"),
+          missing: true,
+          rawChars: 0,
+          injectedChars: 0,
+          truncated: false,
+        }] : [],
         skills: { promptChars: 0, entries: [] },
         tools: {
           listChars: 1,
@@ -126,6 +142,149 @@ test("decision parser accepts the pinned embedded success contract with absent r
     },
   });
   assert.equal(parseDecision(output, context).decision.status, "completed");
+});
+
+test("decision parser accepts only the verified embedded Codex success contract", () => {
+  const decision = { terminal: true, status: "completed", events: [] };
+  const runtimeSessionId = "10000000-0000-4000-8000-000000000001";
+  const valid = JSON.parse(successfulOutput(decision));
+  valid.meta.agentMeta.sessionId = runtimeSessionId;
+  valid.meta.agentMeta.cliSessionBinding = { sessionId: runtimeSessionId };
+  assert.equal(parseDecision(JSON.stringify(valid), parserContext).runtimeSessionId, runtimeSessionId);
+
+  const wrongRunner = structuredClone(valid);
+  wrongRunner.meta.executionTrace.runner = "cli";
+  assert.throws(() => parseDecision(JSON.stringify(wrongRunner), parserContext), /runtime|outer run status/i);
+
+  const missingHarness = structuredClone(valid);
+  delete missingHarness.meta.agentMeta.agentHarnessId;
+  assert.throws(() => parseDecision(JSON.stringify(missingHarness), parserContext), /runtime identity/i);
+
+  const injectedContent = structuredClone(valid);
+  Object.assign(injectedContent.meta.systemPromptReport.injectedWorkspaceFiles[0], {
+    missing: false,
+    rawChars: 1,
+    injectedChars: 1,
+  });
+  assert.throws(() => parseDecision(JSON.stringify(injectedContent), parserContext), /workspace files/i);
+
+  const escapedBootstrapPath = structuredClone(valid);
+  escapedBootstrapPath.meta.systemPromptReport.injectedWorkspaceFiles[0].path = "/tmp/outside/AGENTS.md";
+  assert.throws(() => parseDecision(JSON.stringify(escapedBootstrapPath), parserContext), /workspace files/i);
+
+  const mismatchedCompletion = structuredClone(valid);
+  mismatchedCompletion.meta.completion.finishReason = "completed";
+  assert.throws(() => parseDecision(JSON.stringify(mismatchedCompletion), parserContext), /stop reason/i);
+});
+
+test("decision parser binds replay state and tool summary to the private IPC trace", () => {
+  const decision = { terminal: true, status: "completed", events: [] };
+  const readCall = [{ id: "call-read-1", toolName: "readMessage" }];
+  const writeCall = [{ id: "call-write-1", toolName: "createDraft" }];
+
+  const safeRead = JSON.parse(successfulOutput(decision, {
+    meta: {
+      toolSummary: { calls: 1, tools: ["readMessage"], failures: 0 },
+    },
+  }));
+  assert.equal(parseDecision(JSON.stringify(safeRead), {
+    ...parserContext,
+    observedToolCalls: readCall,
+  }).decision.status, "completed");
+
+  const expectedWrite = structuredClone(safeRead);
+  expectedWrite.meta.replayInvalid = true;
+  expectedWrite.meta.toolSummary = { calls: 1, tools: ["createDraft"], failures: 0 };
+  assert.equal(parseDecision(JSON.stringify(expectedWrite), {
+    ...parserContext,
+    observedToolCalls: writeCall,
+  }).decision.status, "completed");
+
+  const pinnedRuntimeRead = structuredClone(safeRead);
+  pinnedRuntimeRead.meta.replayInvalid = true;
+  assert.equal(parseDecision(JSON.stringify(pinnedRuntimeRead), {
+    ...parserContext,
+    observedToolCalls: readCall,
+  }).decision.status, "completed");
+
+  for (const { output, observed, code, label } of [
+    {
+      output: { ...structuredClone(safeRead), meta: { ...safeRead.meta, replayInvalid: undefined } },
+      observed: readCall,
+      code: "replay_flag_missing",
+      label: "missing replay flag",
+    },
+    {
+      output: { ...structuredClone(expectedWrite), meta: { ...expectedWrite.meta, replayInvalid: false } },
+      observed: writeCall,
+      code: "state_changing_call_marked_replay_safe",
+      label: "replay-safe write",
+    },
+    {
+      output: expectedWrite,
+      observed: [],
+      code: "replay_flag_unbound",
+      label: "unbound write",
+    },
+    {
+      output: { ...structuredClone(expectedWrite), meta: { ...expectedWrite.meta, toolSummary: undefined } },
+      observed: writeCall,
+      code: "tool_summary_missing",
+      label: "missing summary",
+    },
+    {
+      output: {
+        ...structuredClone(expectedWrite),
+        meta: {
+          ...expectedWrite.meta,
+          toolSummary: { calls: 1, tools: ["sendDraft"], failures: 0 },
+        },
+      },
+      observed: writeCall,
+      code: "tool_summary_names_mismatch",
+      label: "mismatched tool name",
+    },
+    {
+      output: {
+        ...structuredClone(expectedWrite),
+        meta: {
+          ...expectedWrite.meta,
+          toolSummary: { calls: 2, tools: ["createDraft"], failures: 0 },
+        },
+      },
+      observed: writeCall,
+      code: "tool_summary_count_mismatch",
+      label: "hidden extra call",
+    },
+    {
+      output: {
+        ...structuredClone(expectedWrite),
+        meta: {
+          ...expectedWrite.meta,
+          toolSummary: { calls: 1, tools: ["createDraft"], failures: 1 },
+        },
+      },
+      observed: writeCall,
+      code: "tool_summary_failures",
+      label: "tool failure",
+    },
+  ]) {
+    assert.throws(
+      () => parseDecision(JSON.stringify(output), { ...parserContext, observedToolCalls: observed }),
+      new RegExp(code),
+      label,
+    );
+  }
+
+  const hiddenSummary = JSON.parse(successfulOutput(decision, {
+    meta: {
+      toolSummary: { calls: 1, tools: ["readMessage"], failures: 0 },
+    },
+  }));
+  assert.throws(
+    () => parseDecision(JSON.stringify(hiddenSummary), parserContext),
+    /tool summary|IPC/i,
+  );
 });
 
 test("decision parser rejects recursive, ambiguous, failed, mismatched, and incomplete candidates", () => {
