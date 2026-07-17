@@ -1,13 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+const { loadPromptCases } = require('./prompt-cases');
 
 function loadInstructionCases() {
-  const dir = path.join(__dirname, '..', 'prompts', 'instruction-following');
-  return fs
-    .readdirSync(dir)
-    .filter((name) => name.endsWith('.json'))
-    .sort()
-    .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
+  return loadPromptCases('instruction-following', __dirname);
 }
 
 function buildPrompt(testCase) {

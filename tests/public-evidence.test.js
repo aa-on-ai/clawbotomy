@@ -9,14 +9,15 @@ const { assertPublicIndexEntryMatchesBundle } = require('../bench/public-index')
 const root = path.resolve(__dirname, '..');
 const evidenceRoot = path.join(root, 'public/evidence');
 
-test('public evidence registry starts honestly empty and every future entry must validate', () => {
+test('public evidence registry contains only complete validated live measurements', () => {
   const index = JSON.parse(fs.readFileSync(path.join(evidenceRoot, 'index.json'), 'utf8'));
   assert.equal(index.schemaId, 'clawbotomy.public-evidence-index/v1');
-  assert.deepEqual(index.runs, []);
+  assert.ok(index.runs.length > 0, 'expected at least one public evidence run');
 
   for (const entry of index.runs) {
     assert.match(entry.runId, /^run-[a-f0-9]{20}$/);
     const bundle = readBundle(path.join(evidenceRoot, entry.runId), { requireComplete: true });
+    assert.doesNotThrow(() => assertPublicIndexEntryMatchesBundle(entry, bundle));
     assert.equal(bundle.manifest.execution.mode, 'live');
     assert.equal(bundle.manifest.evidence.measurementStatus, 'measured');
     assert.equal(bundle.manifest.evidence.authorizationStatus, 'non-authorizing');
@@ -140,7 +141,7 @@ test('unhashed index fields cannot spoof the hashed public manifest', () => {
   }
 });
 
-test('the public API exposes an empty registry without promoting synthetic or legacy data', () => {
+test('the public API exposes registry status without promoting synthetic or legacy data', () => {
   const route = fs.readFileSync(path.join(root, 'src/app/api/bench/route.ts'), 'utf8');
   const runRoute = fs.readFileSync(path.join(root, 'src/app/api/bench/runs/[runId]/route.ts'), 'utf8');
   const caseRoute = fs.readFileSync(path.join(root, 'src/app/api/bench/runs/[runId]/cases/[recordId]/route.ts'), 'utf8');
