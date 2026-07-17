@@ -16,6 +16,11 @@ import {
   type RunStatus,
   type SafeCaseReceipt,
 } from '@/lib/agent-evaluation';
+import {
+  SANITIZED_HERMES_CASE_STUDY,
+  deriveEvidenceRecommendations,
+  getRunDecision,
+} from '@/lib/agent-evaluation-insights';
 
 import styles from './evaluate.module.css';
 
@@ -74,11 +79,27 @@ export function AgentEvaluationWorkbench() {
     : planDigests.size === 1
       ? 'Same plan digest. Case counts can be compared directly.'
       : 'Different plan digests. Keep the rows separate; direct case deltas would be misleading.';
+  const recommendations = useMemo(
+    () => selectedBundle ? deriveEvidenceRecommendations(selectedBundle) : [],
+    [selectedBundle],
+  );
+  const decision = useMemo(
+    () => selectedBundle ? getRunDecision(selectedBundle, recommendations) : null,
+    [recommendations, selectedBundle],
+  );
 
   const selectRun = (run: LocalRun) => {
     setSelectedRunKey(runKey(run));
     setCaseQuery('');
     setSelectedCaseId(run.source === 'private_bundle' ? run.cases[0]?.caseId || null : null);
+  };
+
+  const inspectRecommendation = (caseId: string) => {
+    setCaseQuery('');
+    setSelectedCaseId(caseId);
+    window.setTimeout(() => {
+      document.getElementById('inspect-evidence')?.scrollIntoView({ behavior: 'smooth' });
+    }, 0);
   };
 
   const copyCommand = async () => {
@@ -325,6 +346,9 @@ export function AgentEvaluationWorkbench() {
                 launcher receipt that binds a replay-validated bundle, then derives an allowlisted display model;
                 it does not perform cryptographic or semantic validation itself.
               </p>
+              <a className={styles.exampleLink} href="#act-on-findings">
+                Review a sanitized verified example
+              </a>
               <pre tabIndex={0}><code>{VALIDATE_COMMAND}</code></pre>
             </div>
           ) : (
@@ -587,6 +611,118 @@ export function AgentEvaluationWorkbench() {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      </section>
+
+      <section id="act-on-findings" className={styles.actSection} aria-labelledby="act-title">
+        <div className={styles.rail}>
+          <div className={styles.sectionHeadingDark}>
+            <p className={styles.sectionIndex}>05 · Act</p>
+            <div>
+              <h2 id="act-title">Turn findings into the next controlled change.</h2>
+              <p>
+                Recommendations use only the allowlisted case and assertion IDs already present in
+                the safe viewer projection. Raw prompts, messages, tool arguments, and private event
+                payloads never enter this layer.
+              </p>
+            </div>
+          </div>
+
+          {selectedBundle && decision ? (
+            <div className={styles.actionWorkspace}>
+              <article className={styles.decisionPanel} data-status={selectedBundle.status}>
+                <div className={styles.decisionHeader}>
+                  <span className={styles.statusSignal} aria-hidden="true" />
+                  <p>{selectedBundle.adapterLabel} · {runLabel(selectedBundle)}</p>
+                </div>
+                <strong>{decision.label}</strong>
+                <h3>{decision.headline}</h3>
+                <p>{decision.explanation}</p>
+                <div className={styles.nextStep}>
+                  <span>Next controlled step</span>
+                  <p>{decision.nextStep}</p>
+                </div>
+              </article>
+
+              {recommendations.length > 0 ? (
+                <div className={styles.recommendationList}>
+                  {recommendations.map((recommendation, index) => (
+                    <article key={recommendation.id} className={styles.recommendationCard}>
+                      <header>
+                        <span>{recommendation.priority === 'review_first' ? 'Review first' : `Review ${index + 1}`}</span>
+                        <code>{recommendation.affectedCases} {recommendation.affectedCases === 1 ? 'case' : 'cases'}</code>
+                      </header>
+                      <h3>{recommendation.title}</h3>
+                      <p>{recommendation.explanation}</p>
+                      <dl>
+                        <div><dt>Affected cases</dt><dd>{recommendation.affectedCases}</dd></div>
+                        <div><dt>Failed assertions</dt><dd>{recommendation.failedAssertions}</dd></div>
+                      </dl>
+                      <div className={styles.recommendationAction}>
+                        <span>Guardrail to test</span>
+                        <p>{recommendation.nextAction}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => inspectRecommendation(recommendation.caseIds[0])}
+                      >
+                        Inspect first linked case
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.noRecommendations}>
+                  <h3>No failed assertion IDs in this run.</h3>
+                  <p>{decision.nextStep}</p>
+                </div>
+              )}
+            </div>
+          ) : selectedRun?.source === 'attempt_receipt' ? (
+            <article className={styles.unscoredAction}>
+              <p>Loaded attempt · Not scored</p>
+              <h3>{selectedRun.completeBundleWritten ? 'Load the bound bundle before acting.' : 'Fix infrastructure before evaluating behavior.'}</h3>
+              <p>
+                {selectedRun.completeBundleWritten
+                  ? 'The attempt says evidence exists, but recommendations require the replay-bound safe case projection.'
+                  : 'An infrastructure receipt cannot support behavioral recommendations or permission changes.'}
+              </p>
+              <a href="#inspect-evidence">Return to the evidence loader</a>
+            </article>
+          ) : (
+            <article className={styles.caseStudy} aria-labelledby="case-study-title">
+              <header>
+                <div>
+                  <p>{SANITIZED_HERMES_CASE_STUDY.label}</p>
+                  <span>{SANITIZED_HERMES_CASE_STUDY.adapter} · {SANITIZED_HERMES_CASE_STUDY.measuredAt}</span>
+                </div>
+                <strong>Not loaded evidence</strong>
+              </header>
+              <div className={styles.caseStudyDecision}>
+                <p>{SANITIZED_HERMES_CASE_STUDY.decision}</p>
+                <h3 id="case-study-title">
+                  {SANITIZED_HERMES_CASE_STUDY.totals.failedCases} of {SANITIZED_HERMES_CASE_STUDY.totals.completedCases} cases produced findings.
+                </h3>
+                <p>{SANITIZED_HERMES_CASE_STUDY.allowedClaim}</p>
+              </div>
+              <dl className={styles.caseStudyMetrics}>
+                <div><dt>Passed</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.passedCases}/{SANITIZED_HERMES_CASE_STUDY.totals.completedCases}</dd></div>
+                <div><dt>Findings</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.failedCases}</dd></div>
+                <div><dt>Tool attempts</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.toolAttempts}</dd></div>
+                <div><dt>State transitions</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.stateTransitions}</dd></div>
+              </dl>
+              <div className={styles.claimBoundary}>
+                <div><span>Allowed claim</span><p>{SANITIZED_HERMES_CASE_STUDY.allowedClaim}</p></div>
+                <div><span>Not supported</span><p>{SANITIZED_HERMES_CASE_STUDY.disallowedClaim}</p></div>
+              </div>
+              <ol className={styles.caseStudySteps}>
+                <li><span>01</span><p>Load the replay-bound private bundle to see which allowlisted assertions failed.</p></li>
+                <li><span>02</span><p>Apply one guardrail against the highest-impact recommendation.</p></li>
+                <li><span>03</span><p>Rerun the same frozen plan and compare the new evidence, not the narrative.</p></li>
+              </ol>
+              <footer>{SANITIZED_HERMES_CASE_STUDY.boundary}</footer>
+            </article>
           )}
         </div>
       </section>
