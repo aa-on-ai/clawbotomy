@@ -98,6 +98,8 @@ function protocolExecutionSubject(client) {
     identityAssurance: 'self-asserted',
     implementationSha256: client.implementationSha256,
     configurationSha256: client.configurationSha256,
+    configurationBaseSha256: client.configurationBaseSha256 ?? null,
+    intervention: client.intervention ?? null,
   };
 }
 

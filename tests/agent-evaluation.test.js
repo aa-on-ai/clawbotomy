@@ -277,6 +277,7 @@ const attemptReceiptKeys = [
   'adapter',
   'clientId',
   'modelLabel',
+  'intervention',
   'planSha256',
   'startedAt',
   'completedAt',
@@ -305,10 +306,24 @@ function terminalReceipt({ failed = 0 } = {}) {
   };
 }
 
+function interventionIdentity() {
+  return {
+    id: 'completion-evidence-gate',
+    version: '0.1.0-experimental',
+    status: 'private_experiment_unvalidated',
+    recommendationId: 'evidence-integrity',
+    skillName: 'clawbotomy-completion-evidence',
+    packSha256: 'f'.repeat(64),
+    loaded: true,
+    sourceClass: 'isolated_workspace',
+  };
+}
+
 function replayValidatedBundle({
   failed = 0,
   bundleRunId = runId,
   clientId = 'openclaw.clawbotomy-bridge',
+  intervention = null,
 } = {}) {
   const cases = 2;
   return {
@@ -318,7 +333,7 @@ function replayValidatedBundle({
       runId: bundleRunId,
       lifecycle: { status: 'complete' },
       plan: { sha256: digest },
-      executionSubject: { id: clientId },
+      executionSubject: { id: clientId, intervention },
       protocol: { id: 'stdio-jsonl/v1' },
       coreDigest: digest,
     },
@@ -332,7 +347,12 @@ function replayValidatedBundle({
         failedCases: failed,
       },
     },
-    replay: { coreDigest: digest },
+    replay: {
+      coreDigest: digest,
+      manifest: {
+        executionSubject: { intervention },
+      },
+    },
   };
 }
 
@@ -400,6 +420,14 @@ test('agent launcher rejects non-allowlisted adapters and arbitrary launch surfa
     ]),
     /not valid for hermes/,
   );
+  assert.throws(
+    () => parseEvaluationArgs([
+      '--adapter', 'hermes', '--plan', './plan.json',
+      '--hermes-root', '/trusted/hermes', '--hermes-home', '/private/profile',
+      '--intervention', 'completion-evidence-gate',
+    ]),
+    /not valid for hermes/,
+  );
 });
 
 test('agent launcher uses the fixed OpenClaw bridge and writes a closed mode-0600 passed receipt', async (t) => {
@@ -425,6 +453,7 @@ test('agent launcher uses the fixed OpenClaw bridge and writes a closed mode-060
   assert.deepEqual(Object.keys(result.receipt), attemptReceiptKeys);
   assert.equal(result.receipt.status, 'passed');
   assert.equal(result.receipt.completeBundleWritten, true);
+  assert.equal(result.receipt.intervention, null);
   assert.deepEqual(result.receipt.bundle, {
     locator: `.clawbotomy/inbox-runs/${runId}`,
     runId,
@@ -559,6 +588,59 @@ test('agent launcher recovers one new replay-validated bundle after bridge exit 
     'bridge_exit_1',
     'replay_validated_bundle_recovered_after_exit_1',
   ]);
+});
+
+test('agent launcher preserves the fixed intervention identity and rejects mixed bridge receipt identity', async (t) => {
+  const expectedIntervention = interventionIdentity();
+  const bridgeStdout = JSON.stringify({
+    schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
+    hostExitCode: 0,
+    client: {
+      id: 'openclaw.clawbotomy-bridge',
+      version: '2026.7.1-test.1',
+      implementationSha256: '1'.repeat(64),
+      configurationSha256: '2'.repeat(64),
+      configurationBaseSha256: '3'.repeat(64),
+      intervention: expectedIntervention,
+    },
+    run: terminalReceipt(),
+  });
+  const dependencies = launcherDependencies(t, () => fakeBridge({ stdout: bridgeStdout }), {
+    loadIntervention: async () => expectedIntervention,
+    validateBundle: async () => replayValidatedBundle({ intervention: expectedIntervention }),
+  });
+
+  const result = await runAgentEvaluation([
+    ...openClawArgs(),
+    '--intervention', 'completion-evidence-gate',
+  ], dependencies);
+  assert.deepEqual(result.receipt.intervention, expectedIntervention);
+  assert.equal(result.receipt.status, 'passed');
+
+  const mismatchedDependencies = launcherDependencies(t, () => fakeBridge({
+    stdout: JSON.stringify({
+      schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
+      hostExitCode: 0,
+      client: {
+        id: 'openclaw.clawbotomy-bridge',
+        version: '2026.7.1-test.1',
+        implementationSha256: '1'.repeat(64),
+        configurationSha256: '2'.repeat(64),
+        configurationBaseSha256: '3'.repeat(64),
+        intervention: { ...expectedIntervention, packSha256: '0'.repeat(64) },
+      },
+      run: terminalReceipt(),
+    }),
+  }), {
+    loadIntervention: async () => expectedIntervention,
+    validateBundle: async () => replayValidatedBundle({ intervention: expectedIntervention }),
+  });
+  const mismatched = await runAgentEvaluation([
+    ...openClawArgs(),
+    '--intervention', 'completion-evidence-gate',
+  ], mismatchedDependencies);
+  assert.equal(mismatched.receipt.status, 'infrastructure_failure');
+  assert.deepEqual(mismatched.receipt.diagnosticCodes, ['terminal_receipt_invalid']);
 });
 
 test('agent launcher fails closed when more than one new validated bundle matches', async (t) => {

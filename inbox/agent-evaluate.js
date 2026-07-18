@@ -45,6 +45,7 @@ const FLAG_NAMES = Object.freeze({
   '--adapter': 'adapter',
   '--plan': 'plan',
   '--model': 'model',
+  '--intervention': 'intervention',
   '--openclaw-bin': 'openclawBin',
   '--auth-source-agent-dir': 'authSourceAgentDir',
   '--plugin-registry-source-state-dir': 'pluginRegistrySourceStateDir',
@@ -59,6 +60,7 @@ const COMMON_OPTIONS = new Set(['adapter', 'plan']);
 const OPENCLAW_OPTIONS = new Set([
   ...COMMON_OPTIONS,
   'model',
+  'intervention',
   'openclawBin',
   'authSourceAgentDir',
   'pluginRegistrySourceStateDir',
@@ -119,6 +121,9 @@ function parseArgs(argv) {
     if (/(?:^|\/)(?:sk|gh[opsu]|xox[baprs])-[A-Za-z0-9_-]{8,}/i.test(model)) {
       throw new Error('--model must not contain a credential-like value.');
     }
+    if (options.intervention !== undefined && options.intervention !== 'completion-evidence-gate') {
+      throw new Error('--intervention must be exactly completion-evidence-gate when provided.');
+    }
     requiredText(options.openclawBin, '--openclaw-bin');
     requiredDigest(options.expectedOpenClawRuntimeSha256, '--expected-openclaw-runtime-sha256');
     requiredDigest(options.expectedProviderRuntimeSha256, '--expected-provider-runtime-sha256');
@@ -158,6 +163,7 @@ function buildLaunch(options, { repoRoot, nodePath = process.execPath }) {
         '--expected-codex-runtime-sha256', options.expectedCodexRuntimeSha256,
       );
     }
+    if (options.intervention) args.push('--intervention', options.intervention);
     return { command: nodePath, args };
   }
 
@@ -205,6 +211,7 @@ function parseTerminalReceipt(adapter, stdoutText, exitCode) {
   }
 
   let terminal;
+  let client = null;
   if (adapter === 'openclaw') {
     if (
       document.schemaId !== 'clawbotomy.openclaw-bridge-receipt/v2'
@@ -212,6 +219,7 @@ function parseTerminalReceipt(adapter, stdoutText, exitCode) {
     ) {
       throw new Error('OpenClaw bridge receipt identity or exit code is invalid.');
     }
+    client = document.client ?? null;
     terminal = document.run;
   } else {
     if (document.exitCode !== exitCode) throw new Error('Hermes bridge receipt exit code is invalid.');
@@ -245,7 +253,7 @@ function parseTerminalReceipt(adapter, stdoutText, exitCode) {
   ) {
     throw new Error('Bridge terminal receipt is not a complete, internally consistent run.');
   }
-  return { locator, runId, coreDigest };
+  return { locator, runId, coreDigest, client };
 }
 
 function listRunIds(repoRoot) {
@@ -277,11 +285,22 @@ function normalizedRunIds(value) {
   return result;
 }
 
+function stableIntervention(value) {
+  if (value === undefined || value === null) return 'null';
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Intervention identity must be null or an object.');
+  }
+  return JSON.stringify(Object.fromEntries(
+    Object.entries(value).sort(([left], [right]) => left.localeCompare(right)),
+  ));
+}
+
 function safeValidatedBundle(validated, {
   repoRoot,
   planDigest,
   clientId,
   runId,
+  expectedIntervention = null,
 }) {
   const manifest = validated?.manifest;
   const summary = validated?.summary;
@@ -295,12 +314,14 @@ function safeValidatedBundle(validated, {
     || manifest?.runId !== runId
     || manifest?.plan?.sha256 !== planDigest
     || manifest?.executionSubject?.id !== clientId
+    || stableIntervention(manifest?.executionSubject?.intervention) !== stableIntervention(expectedIntervention)
     || manifest?.protocol?.id !== 'stdio-jsonl/v1'
     || path.resolve(validated?.outputDir || '') !== expectedOutput
     || summary?.runId !== runId
     || !SHA256_PATTERN.test(coreDigest || '')
     || summary?.coreDigest !== coreDigest
     || validated?.replay?.coreDigest !== coreDigest
+    || stableIntervention(validated?.replay?.manifest?.executionSubject?.intervention) !== stableIntervention(expectedIntervention)
     || !Number.isSafeInteger(totals?.scheduledCases)
     || !Number.isSafeInteger(totals?.completedCases)
     || !Number.isSafeInteger(totals?.passedCases)
@@ -324,6 +345,7 @@ async function discoverNewBundle({
   repoRoot,
   planDigest,
   clientId,
+  expectedIntervention = null,
   listRuns = listRunIds,
   validator = validateBundle,
 }) {
@@ -340,6 +362,7 @@ async function discoverNewBundle({
         planDigest,
         clientId,
         runId,
+        expectedIntervention,
       }));
     } catch {
       // A new directory is not evidence until the checked-in replay validator accepts it.
@@ -426,6 +449,26 @@ async function run(argv, dependencies = {}) {
   const attemptId = attemptIdFor(options.adapter, uuid);
   const adapter = ADAPTERS[options.adapter];
   const modelLabel = options.adapter === 'openclaw' ? options.model : adapter.modelLabel;
+  let requestedIntervention = null;
+  if (options.adapter === 'openclaw' && options.intervention) {
+    const loadIntervention = dependencies.loadIntervention || (async () => {
+      const { pathToFileURL } = require('node:url');
+      const modulePath = path.join(repoRoot, 'integrations', 'openclaw', 'interventions.mjs');
+      const loaded = await import(pathToFileURL(modulePath).href);
+      const pack = await loaded.loadInterventionPack(options.intervention);
+      return {
+        id: pack.id,
+        version: pack.version,
+        status: pack.status,
+        recommendationId: pack.recommendationId,
+        skillName: pack.skillName,
+        packSha256: pack.packSha256,
+        loaded: true,
+        sourceClass: 'isolated_workspace',
+      };
+    });
+    requestedIntervention = await loadIntervention();
+  }
   const launch = buildLaunch(options, {
     repoRoot,
     nodePath: dependencies.nodePath || process.execPath,
@@ -502,6 +545,7 @@ async function run(argv, dependencies = {}) {
         repoRoot,
         planDigest: planResult.planDigest,
         clientId: adapter.clientId,
+        expectedIntervention: requestedIntervention,
         listRuns,
         validator: bundleValidator,
       });
@@ -527,7 +571,9 @@ async function run(argv, dependencies = {}) {
       addDiagnosticCode(discovery.diagnosticCode);
     }
   } else if (stdoutBundle && discovery.accepted) {
-    if (!sameBundle(stdoutBundle, discovery.accepted.bundle)) {
+    if (options.adapter === 'openclaw' && stableIntervention(stdoutBundle.client?.intervention) !== stableIntervention(requestedIntervention)) {
+      addDiagnosticCode(DIAGNOSTIC_CODES.TERMINAL_RECEIPT_INVALID);
+    } else if (!sameBundle(stdoutBundle, discovery.accepted.bundle)) {
       addDiagnosticCode(DIAGNOSTIC_CODES.BRIDGE_BUNDLE_MISMATCH);
     } else if (acceptedExitCode !== (discovery.accepted.status === 'passed' ? 0 : 2)) {
       addDiagnosticCode(DIAGNOSTIC_CODES.BRIDGE_STATUS_MISMATCH);
@@ -545,6 +591,7 @@ async function run(argv, dependencies = {}) {
     adapter: options.adapter,
     clientId: adapter.clientId,
     modelLabel,
+    intervention: requestedIntervention,
     planSha256: planResult.planDigest,
     startedAt,
     completedAt: canonicalTime(now),

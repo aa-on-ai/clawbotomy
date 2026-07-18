@@ -36,6 +36,12 @@ import {
   writeJsonLineBounded,
 } from "./protocol.mjs";
 import {
+  COMPLETION_EVIDENCE_SKILL_NAME,
+  installInterventionPack,
+  isSupportedInterventionId,
+  loadInterventionPack,
+} from "./interventions.mjs";
+import {
   copyInferenceAuthStore,
   copyPluginRegistrySnapshot,
   hashJson,
@@ -48,6 +54,7 @@ import {
 const CLIENT_ID = "openclaw.clawbotomy-bridge";
 const PLUGIN_ID = "clawbotomy-openclaw-tools";
 const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
+const ELIGIBLE_SKILLS_COMMAND = "skills";
 const TOOL_NAMES = Object.freeze([
   "searchMessages",
   "readMessage",
@@ -108,6 +115,24 @@ const defaultRepoRoot = path.resolve(integrationRoot, "../..");
 const require = createRequire(import.meta.url);
 const { validateBundle: validateClawbotomyBundle } = require("../../inbox/bundle.js");
 
+function interventionIdentity(pack) {
+  return createInterventionIdentity(pack, { loaded: true });
+}
+
+function createInterventionIdentity(pack, { loaded }) {
+  if (!pack) return null;
+  return Object.freeze({
+    id: pack.id,
+    version: pack.version,
+    status: pack.status,
+    recommendationId: pack.recommendationId,
+    skillName: pack.skillName,
+    packSha256: pack.packSha256,
+    loaded,
+    sourceClass: "isolated_workspace",
+  });
+}
+
 function parseArgs(argv) {
   const options = {
     plan: "tests/fixtures/inbox-plan.v1.json",
@@ -118,12 +143,14 @@ function parseArgs(argv) {
     expectedOpenClawRuntimeSha256: process.env.OPENCLAW_RUNTIME_SHA256 || null,
     expectedProviderRuntimeSha256: process.env.OPENCLAW_PROVIDER_RUNTIME_SHA256 || null,
     expectedCodexRuntimeSha256: process.env.OPENCLAW_CODEX_RUNTIME_SHA256 || null,
+    intervention: null,
     keepTemp: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--plan") options.plan = argv[++index];
     else if (value === "--model") options.model = argv[++index];
+    else if (value === "--intervention") options.intervention = argv[++index];
     else if (value === "--openclaw-bin") options.openclawBin = argv[++index];
     else if (value === "--auth-source-agent-dir") options.authSourceAgentDir = argv[++index];
     else if (value === "--plugin-registry-source-state-dir") options.pluginRegistrySourceStateDir = argv[++index];
@@ -141,6 +168,9 @@ function parseArgs(argv) {
   }
   if (options.model.startsWith("openai/") && !options.expectedCodexRuntimeSha256) {
     throw new Error("openai/* evaluation requires an expected Codex runtime SHA-256 pin");
+  }
+  if (options.intervention !== null && !isSupportedInterventionId(options.intervention)) {
+    throw new Error("--intervention must be exactly completion-evidence-gate when provided");
   }
   return options;
 }
@@ -243,9 +273,17 @@ function createContinuationPrompt(reason) {
   ].join("\n");
 }
 
-function createOpenClawConfig({ model, workspace, hasTrustedCodexRegistry = false }) {
+function createOpenClawConfig({
+  model,
+  workspace,
+  hasTrustedCodexRegistry = false,
+  interventionSkillName = null,
+}) {
   const isOllama = model.startsWith("ollama/") && model.length > "ollama/".length;
   const isCodexRuntime = model.startsWith("openai/") && model.length > "openai/".length;
+  if (interventionSkillName !== null && interventionSkillName !== COMPLETION_EVIDENCE_SKILL_NAME) {
+    throw new Error("Only the fixed completion-evidence skill can be enabled");
+  }
   if (!isOllama && !isCodexRuntime) {
     throw new Error("The isolated bridge supports ollama/<local-model> or openai/<codex-runtime-model>");
   }
@@ -269,7 +307,7 @@ function createOpenClawConfig({ model, workspace, hasTrustedCodexRegistry = fals
         name: "Clawbotomy isolated evaluator",
         workspace,
         model,
-        skills: [],
+        skills: interventionSkillName ? [interventionSkillName] : [],
         tools: { allow: [...TOOL_NAMES] },
       }],
     },
@@ -340,6 +378,7 @@ function createOpenClawConfig({ model, workspace, hasTrustedCodexRegistry = fals
 async function writeCaseState(root, {
   model,
   runtimeProvenance,
+  interventionPack = null,
 }) {
   const home = path.join(root, "home");
   const state = path.join(root, "state");
@@ -361,8 +400,12 @@ async function writeCaseState(root, {
       model,
       workspace,
       hasTrustedCodexRegistry: model.startsWith("openai/"),
+      interventionSkillName: interventionPack?.skillName ?? null,
     });
     await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
+    const installedIntervention = interventionPack
+      ? await installInterventionPack(interventionPack, workspace)
+      : null;
     return {
       authSnapshot: null,
       config,
@@ -378,6 +421,7 @@ async function writeCaseState(root, {
       xdgData,
       xdgState,
       credentialBearing: model.startsWith("openai/"),
+      intervention: installedIntervention,
     };
   } catch (error) {
     await removeCredentialTree({ credentialBearing: model.startsWith("openai/"), home, root, state });
@@ -665,6 +709,7 @@ function validatePerTurnInventory(report, {
   modelId,
   openclawSessionId,
   workspace,
+  intervention = null,
 }) {
   if (!isPlainObject(report) || report.source !== "run") throw new Error("OpenClaw output omitted a run-time system prompt report");
   if (report.sessionId !== openclawSessionId) throw new Error("OpenClaw system prompt report sessionId mismatch");
@@ -696,7 +741,28 @@ function validatePerTurnInventory(report, {
     }
     workspacePaths.add(entryPath);
   }
-  if (!Array.isArray(report.skills?.entries) || report.skills.entries.length !== 0) throw new Error("OpenClaw exposed unexpected skills");
+  const skillEntries = report.skills?.entries;
+  if (!Array.isArray(skillEntries)) throw new Error("OpenClaw omitted the model-facing skill inventory");
+  const skillPromptChars = report.skills?.promptChars;
+  if (!Number.isSafeInteger(skillPromptChars) || skillPromptChars < 0) {
+    throw new Error("OpenClaw skill inventory promptChars is invalid");
+  }
+  if (intervention === null) {
+    if (skillEntries.length !== 0 || skillPromptChars !== 0) throw new Error("OpenClaw exposed unexpected skills");
+  } else {
+    if (skillEntries.length !== 1 || skillPromptChars < 1) throw new Error("OpenClaw did not expose the fixed intervention skill");
+    const entry = skillEntries[0];
+    const entryKeys = isPlainObject(entry) ? Object.keys(entry).sort() : [];
+    if (
+      !isPlainObject(entry)
+      || stableJson(entryKeys) !== stableJson(["blockChars", "name"])
+      || entry.name !== intervention.skillName
+      || !Number.isSafeInteger(entry.blockChars)
+      || entry.blockChars < 1
+    ) {
+      throw new Error("OpenClaw skill inventory did not match the fixed intervention");
+    }
+  }
   if (!Array.isArray(report.tools?.entries)) throw new Error("OpenClaw output omitted the model-facing tool inventory");
   const names = report.tools.entries.map((entry) => entry?.name);
   exactNames(names, TOOL_NAMES, "OpenClaw model-facing tool inventory");
@@ -705,7 +771,18 @@ function validatePerTurnInventory(report, {
       if (!Number.isSafeInteger(entry[field]) || entry[field] < 0) throw new Error(`OpenClaw tool inventory ${field} is invalid`);
     }
   }
-  return names;
+  return {
+    toolNames: names,
+    systemPromptReport: {
+      workspaceFileCount: report.injectedWorkspaceFiles.length,
+      skillPromptChars,
+      skills: skillEntries.map((entry) => ({
+        name: entry.name,
+        blockChars: entry.blockChars,
+      })),
+      toolSummary: names,
+    },
+  };
 }
 
 function parseDecision(stdout, {
@@ -714,6 +791,7 @@ function parseDecision(stdout, {
   openclawSessionId,
   expectedRuntimeSessionId = null,
   workspace,
+  intervention = null,
 } = {}) {
   const outer = parseStrictJson(stdout, "OpenClaw --json output", { maxValues: 250_000, maxDepth: 128 });
   assertExactKeys(outer, ["payloads", "meta"], "OpenClaw --json output");
@@ -820,11 +898,12 @@ function parseDecision(stdout, {
   if (agentMeta.sessionId !== openclawSessionId && agentMeta.cliSessionBinding?.sessionId !== agentMeta.sessionId) {
     throw new Error("OpenClaw runtime session is not bound to the requested case session");
   }
-  const exposedTools = validatePerTurnInventory(meta.systemPromptReport, {
+  const promptInventory = validatePerTurnInventory(meta.systemPromptReport, {
     provider,
     modelId,
     openclawSessionId,
     workspace,
+    intervention,
   });
 
   const assistantText = payload.text.trim();
@@ -863,7 +942,8 @@ function parseDecision(stdout, {
   }
   return {
     decision,
-    exposedTools,
+    exposedTools: promptInventory.toolNames,
+    systemPromptReport: promptInventory.systemPromptReport,
     outer,
     runtimeSessionId: agentMeta.sessionId,
   };
@@ -894,6 +974,7 @@ async function runOpenClawTurn({
   control,
   expectedRuntimeSessionId,
   hostFailure,
+  intervention,
   message,
   model,
   onToolRequest,
@@ -1055,6 +1136,7 @@ async function runOpenClawTurn({
           openclawSessionId,
           expectedRuntimeSessionId,
           workspace: caseState.workspace,
+          intervention,
         }),
         stderr: sanitizeDiagnostic(stderr()),
       };
@@ -1215,6 +1297,111 @@ function validateEffectiveInventory(document, { model, sessionKey, workspace }) 
   };
 }
 
+function validateEligibleSkills(document, { workspace, state, intervention }) {
+  assertExactKeys(document, ["workspaceDir", "managedSkillsDir", "skills"], "OpenClaw eligible skills");
+  if (
+    path.resolve(document.workspaceDir || "") !== path.resolve(workspace)
+    || path.resolve(document.managedSkillsDir || "") !== path.resolve(state, "skills")
+    || !Array.isArray(document.skills)
+  ) {
+    throw new Error("OpenClaw eligible skills binding is invalid");
+  }
+  if (intervention === null) {
+    if (document.skills.length !== 0) throw new Error("OpenClaw control arm exposed unexpected eligible skills");
+    return [];
+  }
+  if (document.skills.length !== 1) throw new Error("OpenClaw treatment arm must expose exactly one eligible skill");
+  const skill = document.skills[0];
+  assertExactKeys(skill, [
+    "name", "description", "eligible", "disabled", "blockedByAllowlist", "blockedByAgentFilter",
+    "modelVisible", "userInvocable", "commandVisible", "source", "bundled", "missing",
+  ], "OpenClaw eligible skill");
+  assertExactKeys(skill.missing, ["bins", "anyBins", "env", "config", "os"], "OpenClaw eligible skill requirements");
+  const missingIsEmpty = Object.values(skill.missing).every((value) => Array.isArray(value) && value.length === 0);
+  if (
+    skill.name !== intervention.skillName
+    || skill.description !== "Require observed tool and state evidence before claiming an action completed."
+    || skill.eligible !== true
+    || skill.disabled !== false
+    || skill.blockedByAllowlist !== false
+    || skill.blockedByAgentFilter !== false
+    || skill.source !== "openclaw-workspace"
+    || skill.bundled !== false
+    || skill.modelVisible !== true
+    || skill.userInvocable !== false
+    || skill.commandVisible !== false
+    || !missingIsEmpty
+  ) {
+    throw new Error("OpenClaw eligible skill inventory did not match the fixed intervention");
+  }
+  return [Object.freeze({
+    name: skill.name,
+    description: skill.description,
+    eligible: skill.eligible,
+    disabled: skill.disabled,
+    blockedByAllowlist: skill.blockedByAllowlist,
+    blockedByAgentFilter: skill.blockedByAgentFilter,
+    modelVisible: skill.modelVisible,
+    userInvocable: skill.userInvocable,
+    commandVisible: skill.commandVisible,
+    source: skill.source,
+    bundled: skill.bundled,
+    missing: Object.freeze({
+      bins: Object.freeze([...skill.missing.bins]),
+      anyBins: Object.freeze([...skill.missing.anyBins]),
+      env: Object.freeze([...skill.missing.env]),
+      config: Object.freeze([...skill.missing.config]),
+      os: Object.freeze([...skill.missing.os]),
+    }),
+  })];
+}
+
+async function inspectEligibleSkills({ caseState, openclawBin, intervention }) {
+  const child = spawn(process.execPath, [openclawBin, ELIGIBLE_SKILLS_COMMAND, "list", "--agent", "clawbotomy-eval", "--eligible", "--json"], {
+    cwd: caseState.workspace,
+    env: baseCaseEnvironment(caseState),
+    shell: false,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const exit = childExit(child);
+  const failure = new Deferred();
+  failure.promise.catch(() => undefined);
+  const stdout = collectBounded(child.stdout, "OpenClaw eligible skills stdout", MAX_AGENT_OUTPUT_BYTES, failure, () => terminate(child));
+  const stderr = collectBounded(child.stderr, "OpenClaw eligible skills stderr", MAX_DIAGNOSTIC_BYTES, failure, () => terminate(child));
+  const timeout = timeoutSignal(RUNTIME_INSPECTION_TIMEOUT_MS, "OpenClaw eligible skill inspection timed out", () => terminate(child));
+  try {
+    const outcome = await Promise.race([exit, failure.promise, timeout.promise]);
+    if (outcome.code !== 0 || outcome.signal !== null) {
+      throw new Error(`Eligible skill inspection failed: ${sanitizeDiagnostic(stderr())}`);
+    }
+    try {
+      const document = parseStrictJson(stdout(), "OpenClaw eligible skills", { maxValues: 250_000, maxDepth: 64 });
+      const skills = validateEligibleSkills(document, {
+        workspace: caseState.workspace,
+        state: caseState.state,
+        intervention,
+      });
+      return Object.freeze({
+        count: skills.length,
+        skills: Object.freeze(skills.map((skill) => Object.freeze({
+          name: skill.name,
+          source: skill.source,
+          bundled: skill.bundled,
+          modelVisible: skill.modelVisible,
+          userInvocable: skill.userInvocable,
+          commandVisible: skill.commandVisible,
+          missingRequirements: 0,
+        }))),
+      });
+    } catch (error) {
+      throw new Error(`${error.message}; skills diagnostic: ${sanitizeDiagnostic(stdout(), 2_000)}`);
+    }
+  } finally {
+    timeout.cancel();
+    await settleChild(child, exit, "OpenClaw eligible skills process");
+  }
+}
+
 async function inspectEffectiveInventory({ caseState, model, openclawBin, sessionKey }) {
   const child = spawn(process.execPath, [openclawBin,
     EFFECTIVE_INVENTORY_COMMAND,
@@ -1341,6 +1528,8 @@ async function validateTerminalBundle({
 async function runBridge(options, dependencies = {}) {
   const repositoryRoot = path.resolve(dependencies.repoRoot || defaultRepoRoot);
   const hostPath = path.resolve(dependencies.hostPath || path.join(repositoryRoot, "inbox", "host-index.js"));
+  const requestedInterventionPack = options.intervention ? await loadInterventionPack(options.intervention) : null;
+  const requestedIntervention = createInterventionIdentity(requestedInterventionPack, { loaded: false });
   const runtimeProvenance = await loadRuntimeProvenance({
     openclawBin: options.openclawBin,
     model: options.model,
@@ -1367,7 +1556,7 @@ async function runBridge(options, dependencies = {}) {
     path.join(integrationRoot, "package.json"),
     path.join(integrationRoot, "src", "index.ts"),
   ]);
-  const configDescriptor = {
+  const configurationDescriptorBase = {
     model: options.model,
     tools: TOOL_NAMES,
     pluginId: PLUGIN_ID,
@@ -1379,7 +1568,21 @@ async function runBridge(options, dependencies = {}) {
     openclawHardTimeoutMs: OPENCLAW_HARD_TIMEOUT_MS,
     inferenceAuthMode: options.model.startsWith("openai/") ? "single-temporary-profile" : "local-marker",
   };
-  const configurationSha256 = hashJson(configDescriptor);
+  const configurationBaseSha256 = hashJson(configurationDescriptorBase);
+  const configurationSha256 = requestedIntervention
+    ? hashJson({
+      ...configurationDescriptorBase,
+      intervention: {
+        id: requestedIntervention.id,
+        version: requestedIntervention.version,
+        status: requestedIntervention.status,
+        recommendationId: requestedIntervention.recommendationId,
+        skillName: requestedIntervention.skillName,
+        packSha256: requestedIntervention.packSha256,
+        sourceClass: requestedIntervention.sourceClass,
+      },
+    })
+    : configurationBaseSha256;
   let evaluationRootCandidate;
   if (dependencies.evaluationRoot) {
     evaluationRootCandidate = path.resolve(dependencies.evaluationRoot);
@@ -1427,6 +1630,7 @@ async function runBridge(options, dependencies = {}) {
   let terminalReceipt = null;
   const caseReceipts = [];
   const credentialStates = new Set();
+  let provenIntervention = null;
   const stopChildren = () => {
     terminate(activeAgent);
     terminate(host);
@@ -1445,9 +1649,36 @@ async function runBridge(options, dependencies = {}) {
     version: openclawVersion,
     implementationSha256,
     configurationSha256,
+    ...(requestedIntervention ? {
+      configurationBaseSha256,
+      intervention: null,
+    } : {}),
   };
 
   try {
+    if (requestedInterventionPack) {
+      const bootstrapRoot = path.join(evaluationRoot, "bootstrap");
+      const bootstrapState = await writeCaseState(bootstrapRoot, {
+        model: options.model,
+        runtimeProvenance,
+        interventionPack: requestedInterventionPack,
+      });
+      credentialStates.add(bootstrapState);
+      try {
+        await inspectEligibleSkills({
+          caseState: bootstrapState,
+          openclawBin,
+          intervention: bootstrapState.intervention,
+        });
+        provenIntervention = interventionIdentity(bootstrapState.intervention);
+        clientDescriptor.intervention = provenIntervention;
+      } finally {
+        await removeCredentialSnapshot(bootstrapState.authSnapshot);
+        await removeCredentialTree(bootstrapState);
+        credentialStates.delete(bootstrapState);
+        await boundedCleanup(rm(bootstrapRoot, { recursive: true, force: true }), "Bootstrap intervention tree removal");
+      }
+    }
     await writeClientFrame("hello", {
       client: clientDescriptor,
     });
@@ -1463,8 +1694,22 @@ async function runBridge(options, dependencies = {}) {
       const caseState = await writeCaseState(caseRoot, {
         model: options.model,
         runtimeProvenance,
+        interventionPack: requestedInterventionPack,
       });
       credentialStates.add(caseState);
+      const eligibleSkills = await inspectEligibleSkills({
+        caseState,
+        openclawBin,
+        intervention: caseState.intervention,
+      });
+      if (requestedInterventionPack) {
+        const loadedIntervention = interventionIdentity(caseState.intervention);
+        if (stableJson(loadedIntervention) !== stableJson(provenIntervention)) {
+          throw new Error("OpenClaw intervention identity changed between bootstrap proof and case installation");
+        }
+      } else if (caseState.intervention !== null || eligibleSkills.count !== 0) {
+        throw new Error("OpenClaw control arm installed an unexpected intervention");
+      }
       const openclawSessionId = randomUUID();
       const openclawSessionKey = `agent:clawbotomy-eval:clawbotomy-${openclawSessionId}`;
       const effectiveInventory = await inspectEffectiveInventory({
@@ -1491,6 +1736,8 @@ async function runBridge(options, dependencies = {}) {
         semanticEvents: 0,
         terminalStatus: null,
         authProfileIdSha256: caseState.authSnapshot?.profileIdSha256 ?? null,
+        intervention: requestedInterventionPack ? provenIntervention : null,
+        eligibleSkills,
         effectiveInventory,
         turnEffectiveInventories: [],
       };
@@ -1565,6 +1812,7 @@ async function runBridge(options, dependencies = {}) {
             openclawBin,
             openclawSessionId,
             openclawSessionKey,
+            intervention: requestedInterventionPack ? provenIntervention : null,
             usedToolCallIds,
           });
           runtimeSessionId = result.runtimeSessionId;
@@ -1702,6 +1950,10 @@ async function runBridge(options, dependencies = {}) {
         version: openclawVersion,
         implementationSha256,
         configurationSha256,
+        ...(requestedInterventionPack ? {
+          configurationBaseSha256,
+          intervention: provenIntervention,
+        } : {}),
       },
       model: options.model,
       runtime: runtimeProvenance.identity,
@@ -1776,10 +2028,13 @@ export {
   createOpenClawConfig,
   getOpenClawVersion,
   inspectEffectiveInventory,
+  inspectEligibleSkills,
   inspectRuntime,
+  interventionIdentity,
   parseArgs,
   parseDecision,
   removeTreeWithRetries,
   runBridge,
+  validateEligibleSkills,
   writeCaseState,
 };

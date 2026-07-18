@@ -10,7 +10,9 @@ import {
   PLUGIN_ID,
   TOOL_NAMES,
   createOpenClawConfig,
+  parseArgs,
   parseDecision,
+  validateEligibleSkills,
 } from "./bridge.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -32,6 +34,30 @@ test("isolated config exposes only fixed mock tools", () => {
   assert.deepEqual(config.agents.list[0].skills, []);
   assert.deepEqual(config.mcp.servers, {});
   assert.equal(config.plugins.allow.includes(PLUGIN_ID), true);
+});
+
+test("fixed intervention selector and config skill are closed over one allowlisted value", () => {
+  assert.equal(parseArgs([
+    "--model", "ollama/qwen3:4b",
+    "--openclaw-bin", "/tmp/openclaw.mjs",
+    "--expected-openclaw-runtime-sha256", "a".repeat(64),
+    "--expected-provider-runtime-sha256", "b".repeat(64),
+    "--intervention", "completion-evidence-gate",
+  ]).intervention, "completion-evidence-gate");
+  assert.throws(() => parseArgs([
+    "--model", "ollama/qwen3:4b",
+    "--openclaw-bin", "/tmp/openclaw.mjs",
+    "--expected-openclaw-runtime-sha256", "a".repeat(64),
+    "--expected-provider-runtime-sha256", "b".repeat(64),
+    "--intervention", "https://example.com/skill",
+  ]), /completion-evidence-gate/i);
+
+  const config = createOpenClawConfig({
+    model: "ollama/qwen3:4b",
+    workspace: "/tmp/isolated",
+    interventionSkillName: "clawbotomy-completion-evidence",
+  });
+  assert.deepEqual(config.agents.list[0].skills, ["clawbotomy-completion-evidence"]);
 });
 
 test("same-model config uses the Codex runtime while preserving the eight-tool allowlist", () => {
@@ -142,6 +168,64 @@ test("decision parser accepts the pinned embedded success contract with absent r
     },
   });
   assert.equal(parseDecision(output, context).decision.status, "completed");
+});
+
+test("eligible-skill validator accepts the actual zero/one CLI object shape", () => {
+  assert.deepEqual(validateEligibleSkills({
+    workspaceDir: "/tmp/isolated",
+    managedSkillsDir: "/tmp/state/skills",
+    skills: [],
+  }, {
+    workspace: "/tmp/isolated",
+    state: "/tmp/state",
+    intervention: null,
+  }), []);
+
+  assert.equal(validateEligibleSkills({
+    workspaceDir: "/tmp/isolated",
+    managedSkillsDir: "/tmp/state/skills",
+    skills: [{
+      name: "clawbotomy-completion-evidence",
+      description: "Require observed tool and state evidence before claiming an action completed.",
+      eligible: true,
+      disabled: false,
+      blockedByAllowlist: false,
+      blockedByAgentFilter: false,
+      modelVisible: true,
+      userInvocable: false,
+      commandVisible: false,
+      source: "openclaw-workspace",
+      bundled: false,
+      missing: { bins: [], anyBins: [], env: [], config: [], os: [] },
+    }],
+  }, {
+    workspace: "/tmp/isolated",
+    state: "/tmp/state",
+    intervention: { skillName: "clawbotomy-completion-evidence" },
+  }).length, 1);
+
+  assert.throws(() => validateEligibleSkills({
+    workspaceDir: "/tmp/isolated",
+    managedSkillsDir: "/tmp/state/skills",
+    skills: [{
+      name: "clawbotomy-completion-evidence",
+      description: "Require observed tool and state evidence before claiming an action completed.",
+      eligible: true,
+      disabled: false,
+      blockedByAllowlist: false,
+      blockedByAgentFilter: false,
+      modelVisible: true,
+      userInvocable: true,
+      commandVisible: false,
+      source: "openclaw-workspace",
+      bundled: false,
+      missing: { bins: [], anyBins: [], env: [], config: [], os: [] },
+    }],
+  }, {
+    workspace: "/tmp/isolated",
+    state: "/tmp/state",
+    intervention: { skillName: "clawbotomy-completion-evidence" },
+  }), /eligible skill inventory/i);
 });
 
 test("decision parser accepts only the verified embedded Codex success contract", () => {
@@ -341,4 +425,26 @@ test("decision parser rejects recursive, ambiguous, failed, mismatched, and inco
   const wrongProvider = structuredClone(valid);
   wrongProvider.meta.agentMeta.provider = "other";
   assert.throws(() => parseDecision(JSON.stringify(wrongProvider), parserContext), /runtime identity/i);
+});
+
+test("decision parser enforces exact zero/one skill prompt report shapes", () => {
+  const control = JSON.parse(successfulOutput({ terminal: true, status: "completed", events: [] }));
+  assert.equal(parseDecision(JSON.stringify(control), parserContext).systemPromptReport.skillPromptChars, 0);
+
+  const treatment = structuredClone(control);
+  treatment.meta.systemPromptReport.skills = {
+    promptChars: 42,
+    entries: [{ name: "clawbotomy-completion-evidence", blockChars: 42 }],
+  };
+  const parsed = parseDecision(JSON.stringify(treatment), {
+    ...parserContext,
+    intervention: { skillName: "clawbotomy-completion-evidence" },
+  });
+  assert.deepEqual(parsed.systemPromptReport.skills, [{ name: "clawbotomy-completion-evidence", blockChars: 42 }]);
+
+  treatment.meta.systemPromptReport.skills.entries[0].summaryChars = 1;
+  assert.throws(() => parseDecision(JSON.stringify(treatment), {
+    ...parserContext,
+    intervention: { skillName: "clawbotomy-completion-evidence" },
+  }), /skill inventory/i);
 });

@@ -21,6 +21,7 @@ const actualHostPath = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const inspectRuntimePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "inspect-runtime.mjs");
 const execFileAsync = promisify(execFile);
 const EFFECTIVE_INVENTORY_COMMAND = "clawbotomy-effective-tools";
+const INTERVENTION_SKILL = "clawbotomy-completion-evidence";
 
 const VERSION = "2026.7.1-test.1";
 const SESSION_ID = `session-${"a".repeat(32)}`;
@@ -167,6 +168,42 @@ if (args[0] === ${JSON.stringify(EFFECTIVE_INVENTORY_COMMAND)}) {
   process.exit(0);
 }
 
+if (args[0] === "skills" && args[1] === "list") {
+  const config = JSON.parse(readFileSync(process.env.OPENCLAW_CONFIG_PATH, "utf8"));
+  const workspaceDir = config.agents.list.find((agent) => agent.id === arg("--agent")).workspace;
+  const managedSkillsDir = path.join(process.env.OPENCLAW_STATE_DIR, "skills");
+  const enabledSkills = config.agents.list.find((agent) => agent.id === arg("--agent")).skills || [];
+  log({ command: "skills", authPresent: existsSync(path.join(process.env.OPENCLAW_STATE_DIR, "agents", "clawbotomy-eval", "agent", "openclaw-agent.sqlite")) });
+  const skills = enabledSkills.map((name) => ({
+    name,
+    description: SCENARIO === "skills_description_mismatch"
+      ? "wrong"
+      : "Require observed tool and state evidence before claiming an action completed.",
+    eligible: true,
+    disabled: false,
+    blockedByAllowlist: false,
+    blockedByAgentFilter: false,
+    modelVisible: true,
+    userInvocable: false,
+    commandVisible: false,
+    source: SCENARIO === "skills_source_mismatch" ? "bundled" : "openclaw-workspace",
+    bundled: SCENARIO === "skills_source_mismatch",
+    missing: {
+      bins: [],
+      anyBins: [],
+      env: [],
+      config: [],
+      os: [],
+    },
+  }));
+  process.stdout.write(JSON.stringify({
+    workspaceDir,
+    managedSkillsDir,
+    skills,
+  }));
+  process.exit(0);
+}
+
 if (args[0] !== "agent") process.exit(64);
 log({
   command: "agent",
@@ -270,6 +307,7 @@ const decision = SCENARIO === "stop_race" && caseEnvelope?.constraints?.queueBef
 const runner = "embedded";
 const stopReason = "stop";
 const toolEntries = TOOLS.map((name) => ({ name, summaryChars: 1, schemaChars: 1 }));
+const enabledSkills = JSON.parse(readFileSync(process.env.OPENCLAW_CONFIG_PATH, "utf8")).agents.list.find((agent) => agent.id === "clawbotomy-eval").skills || [];
 const output = {
   payloads: [{ text: JSON.stringify({ protocolDecision: decision }), mediaUrl: null }],
   meta: {
@@ -297,7 +335,15 @@ const output = {
       model,
       workspaceDir: process.cwd(),
       injectedWorkspaceFiles: [],
-      skills: { promptChars: 0, entries: [] },
+      skills: enabledSkills.length === 0
+        ? { promptChars: 0, entries: [] }
+        : {
+          promptChars: 42,
+          entries: enabledSkills.map((name) => ({
+            name,
+            blockChars: SCENARIO === "skill_blockchars_zero" ? 0 : 42,
+          })),
+        },
       tools: { listChars: 1, schemaChars: 1, entries: toolEntries },
     },
   },
@@ -552,6 +598,7 @@ async function createEnvironment(t, {
   model = "ollama/fake-model",
   keepTemp = false,
   capabilityId = "search_read",
+  intervention = null,
 } = {}) {
   const root = await realpath(await mkdtemp(path.join(tmpdir(), "clawbotomy-openclaw-orchestration-")));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -605,6 +652,7 @@ async function createEnvironment(t, {
   const options = {
     plan: "plan.json",
     model,
+    intervention,
     openclawBin,
     authSourceAgentDir,
     pluginRegistrySourceStateDir,
@@ -638,6 +686,7 @@ test("full fake orchestration succeeds with the exact pre-inference inventory", 
   const commands = log.map((entry) => entry.command);
   assert.deepEqual(commands.slice(0, 2), ["version", "inspect"]);
   assert.equal(commands.filter((command) => command === "inventory").length, 10);
+  assert.equal(commands.filter((command) => command === "skills").length, 5);
   assert.equal(commands.filter((command) => command === "agent").length, 5);
   for (const entry of log.filter((item) => item.command === "agent")) {
     const caseRoot = path.dirname(entry.runtimeDirs.HOME);
@@ -646,6 +695,44 @@ test("full fake orchestration succeeds with the exact pre-inference inventory", 
     }
   }
 });
+
+test("treatment installs and revalidates the fixed intervention before auth and records the proven identity", async (t) => {
+  const fixture = await createEnvironment(t, {
+    intervention: "completion-evidence-gate",
+  });
+  const result = await runBridge(fixture.options, fixture.dependencies);
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.receipt.client.intervention.skillName, INTERVENTION_SKILL);
+  assert.equal(result.receipt.client.intervention.loaded, true);
+  assert.equal(result.receipt.client.configurationBaseSha256.length, 64);
+  assert.notEqual(result.receipt.client.configurationBaseSha256, result.receipt.client.configurationSha256);
+  assert.deepEqual(result.receipt.cases[0].eligibleSkills.skills, [{
+    name: INTERVENTION_SKILL,
+    source: "openclaw-workspace",
+    bundled: false,
+    modelVisible: true,
+    userInvocable: false,
+    commandVisible: false,
+    missingRequirements: 0,
+  }]);
+  const log = await fixture.readLog(fixture.openclawLog);
+  const skillChecks = log.filter((entry) => entry.command === "skills");
+  assert.equal(skillChecks.length, 6);
+  assert.deepEqual(skillChecks.map((entry) => entry.authPresent), [false, false, false, false, false, false]);
+});
+
+for (const scenario of ["skills_description_mismatch", "skills_source_mismatch"]) {
+  test(`eligible-skill validation rejects ${scenario} before auth`, async (t) => {
+    const fixture = await createEnvironment(t, {
+      openclawScenario: scenario,
+      intervention: "completion-evidence-gate",
+    });
+    await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /eligible skill inventory/i);
+    const log = await fixture.readLog(fixture.openclawLog);
+    assert.deepEqual(log.map((entry) => entry.command), ["version", "inspect", "skills"]);
+    assert.equal(log[2].authPresent, false);
+  });
+}
 
 test("fake empty-directory and arbitrary-digest terminal success fails bundle validation", async (t) => {
   const fixture = await createEnvironment(t, { hostScenario: "success" });
@@ -686,7 +773,7 @@ for (const scenario of ["inventory_extra_tool", "inventory_missing_tool"]) {
     const fixture = await createEnvironment(t, { openclawScenario: scenario });
     await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /eight tools|exactly eight/i);
     const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
-    assert.deepEqual(commands, ["version", "inspect", "inventory"]);
+    assert.deepEqual(commands, ["version", "inspect", "skills", "inventory"]);
   });
 }
 
@@ -694,7 +781,7 @@ test("session-effective inventory is rechecked before the first model turn", asy
   const fixture = await createEnvironment(t, { openclawScenario: "inventory_drift" });
   await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /eight tools|exactly eight/i);
   const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
-  assert.deepEqual(commands, ["version", "inspect", "inventory", "inventory"]);
+  assert.deepEqual(commands, ["version", "inspect", "skills", "inventory", "inventory"]);
 });
 
 test("runtime provenance rejects a symlinked binary and version-mismatched provider plugin", async (t) => {
@@ -913,7 +1000,7 @@ test("authenticated orchestration rejects missing and ambiguous selected-provide
       /exactly one openai profile/i,
     );
     const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
-    assert.deepEqual(commands, ["version", "inspect", "inventory"]);
+    assert.deepEqual(commands, ["version", "inspect", "skills", "inventory"]);
   }
 });
 

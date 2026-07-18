@@ -74,6 +74,9 @@ const CASE_COMPLETE_STATUSES = new Set([
 const SAFE_ID = /^[a-z0-9][a-z0-9._-]{0,119}$/;
 const SAFE_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/;
 const SHA256 = /^[a-f0-9]{64}$/;
+const INTERVENTION_SOURCE_CLASS = 'isolated_workspace';
+const INTERVENTION_ID = 'completion-evidence-gate';
+const INTERVENTION_SKILL = 'clawbotomy-completion-evidence';
 
 function isPlainObject(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -147,17 +150,45 @@ function requireStringArray(value, label, { maxItems = 50 } = {}) {
 }
 
 function validateClientDescriptor(client) {
-  requireExactKeys(
-    client,
-    ['id', 'version', 'implementationSha256', 'configurationSha256'],
-    'hello client descriptor',
-  );
+  const keys = isPlainObject(client) ? Object.keys(client).sort() : [];
+  const allowed = [
+    ['configurationSha256', 'id', 'implementationSha256', 'version'],
+    ['configurationBaseSha256', 'configurationSha256', 'id', 'implementationSha256', 'version'],
+    ['configurationSha256', 'id', 'implementationSha256', 'intervention', 'version'],
+    ['configurationBaseSha256', 'configurationSha256', 'id', 'implementationSha256', 'intervention', 'version'],
+  ];
+  if (!allowed.some((candidate) => candidate.length === keys.length && candidate.every((key, index) => key === keys[index]))) {
+    fail('hello client descriptor contains unexpected or missing fields.');
+  }
   requireSafeId(client.id, 'client.id', 64);
   requireSafeId(client.version, 'client.version', 32);
-  for (const field of ['implementationSha256', 'configurationSha256']) {
+  for (const field of ['implementationSha256', 'configurationSha256', 'configurationBaseSha256']) {
+    if (client[field] === undefined) continue;
     if (client[field] !== null && (typeof client[field] !== 'string' || !SHA256.test(client[field]))) {
       fail(`client.${field} must be null or a lowercase SHA-256 digest.`);
     }
+  }
+  validateInterventionIdentity(client.intervention);
+}
+
+function validateInterventionIdentity(intervention) {
+  if (intervention === undefined || intervention === null) return;
+  requireExactKeys(
+    intervention,
+    ['id', 'version', 'status', 'recommendationId', 'skillName', 'packSha256', 'loaded', 'sourceClass'],
+    'intervention identity',
+  );
+  if (
+    intervention.id !== INTERVENTION_ID
+    || intervention.skillName !== INTERVENTION_SKILL
+    || intervention.recommendationId !== 'evidence-integrity'
+    || intervention.sourceClass !== INTERVENTION_SOURCE_CLASS
+    || intervention.loaded !== true
+    || typeof intervention.version !== 'string'
+    || typeof intervention.status !== 'string'
+    || !SHA256.test(intervention.packSha256 || '')
+  ) {
+    fail('intervention identity is invalid.');
   }
 }
 

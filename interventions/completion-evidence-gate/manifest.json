@@ -1,0 +1,47 @@
+{
+  "schemaId": "clawbotomy.intervention-pack/v1",
+  "id": "completion-evidence-gate",
+  "version": "0.1.0-experimental",
+  "status": "private_experiment_unvalidated",
+  "recommendationId": "evidence-integrity",
+  "skillName": "clawbotomy-completion-evidence",
+  "behavior": {
+    "trigger": "before_any_completion_claim",
+    "requiredEvidence": [
+      "successful_tool_result",
+      "matching_observed_state"
+    ],
+    "missingEvidenceBehavior": "report_unverified_and_stop"
+  },
+  "applicability": {
+    "adapters": [
+      "openclaw"
+    ],
+    "phase": 9,
+    "runtimeActivation": "isolated_workspace_only"
+  },
+  "authorizationStatus": "non-authorizing",
+  "productionAccessChanged": false,
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sha256": "f32cac71967b213f4e63e5a26a72c8d5b2fa764518fe090c3e398544a2e05ffd",
+      "bytes": 1556
+    },
+    {
+      "path": "references/behavior-contract.md",
+      "sha256": "673a4e92c8a2c4815cb4786b9e37357758d522022e9cb0ca94b26fa66ab26a21",
+      "bytes": 1518
+    },
+    {
+      "path": "references/hermes-install.md",
+      "sha256": "75ee563d2f78ba8900a9a3d0b45d314204f8d07768bd44cf605890dd50459321",
+      "bytes": 632
+    },
+    {
+      "path": "references/openclaw-install.md",
+      "sha256": "84eb6ef31d389b423a42d0dbb70b837ca39ecaa307186dc5961c2b432f2b7a7e",
+      "bytes": 837
+    }
+  ]
+}

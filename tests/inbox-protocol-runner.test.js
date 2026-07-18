@@ -29,13 +29,13 @@ const CLIENT_DESCRIPTOR = Object.freeze({
   configurationSha256: null,
 });
 
-function hello(clientSeq = 1) {
+function hello(clientSeq = 1, client = CLIENT_DESCRIPTOR) {
   return {
     schemaId: MESSAGE_SCHEMA_ID,
     protocolId: PROTOCOL_ID,
     type: 'hello',
     clientSeq,
-    client: { ...CLIENT_DESCRIPTOR },
+    client: { ...client },
   };
 }
 
@@ -143,6 +143,49 @@ test('recorded client frames replay to the exact same protocol evidence', () => 
     replay.records.map((record) => record.digests.record),
     original.records.map((record) => record.digests.record),
   );
+});
+
+test('protocol execution subject preserves comparable base config and proven intervention identity', () => {
+  const engine = createProtocolEngine({
+    inputPlan: plan,
+    sessionId: 'session-protocol-runner-intervention-001',
+  });
+  engine.handleClientFrame(hello(1, {
+    ...CLIENT_DESCRIPTOR,
+    configurationSha256: 'a'.repeat(64),
+    configurationBaseSha256: 'b'.repeat(64),
+    intervention: {
+      id: 'completion-evidence-gate',
+      version: '0.1.0-experimental',
+      status: 'private_experiment_unvalidated',
+      recommendationId: 'evidence-integrity',
+      skillName: 'clawbotomy-completion-evidence',
+      packSha256: 'c'.repeat(64),
+      loaded: true,
+      sourceClass: 'isolated_workspace',
+    },
+  }));
+  let clientSeq = 2;
+  while (engine.state === 'case_active') {
+    engine.handleClientFrame(caseFrame(engine, clientSeq, 'case_complete', {
+      status: 'completed',
+    }));
+    clientSeq += 1;
+  }
+  const result = engine.finishAtEof();
+  const replay = replayProtocolPlanInMemory({
+    inputPlan: result.manifest.plan.document,
+    planDigest: result.manifest.plan.sha256,
+    protocolId: result.manifest.protocol.id,
+    sessionId: result.manifest.protocol.sessionId,
+    clientHello: result.manifest.protocol.clientHello,
+    caseClientFrames: result.records.map((record) => record.protocol.clientFrames),
+    recordedCaseTokens: result.records.map((record) => record.protocol.caseToken),
+  });
+  assert.equal(result.manifest.executionSubject.configurationSha256, 'a'.repeat(64));
+  assert.equal(result.manifest.executionSubject.configurationBaseSha256, 'b'.repeat(64));
+  assert.equal(result.manifest.executionSubject.intervention?.id, 'completion-evidence-gate');
+  assert.equal(replay.manifest.executionSubject.intervention?.packSha256, 'c'.repeat(64));
 });
 
 test('a no-op client receives failed measurements for every actionable public task', () => {
