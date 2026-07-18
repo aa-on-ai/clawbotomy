@@ -210,6 +210,47 @@ test('the safe projection rejects private text in displayed identifiers and diag
     () => parseEvaluationAttempt(JSON.stringify(unsafeAttempt)),
     /unsupported diagnostic code/,
   );
+
+  const wrongPackAttempt = JSON.parse(bundle().attemptText);
+  wrongPackAttempt.intervention = interventionIdentity();
+  assert.throws(
+    () => parseEvaluationAttempt(JSON.stringify(wrongPackAttempt)),
+    /outside the fixed local-only allowlist/,
+  );
+
+  wrongPackAttempt.intervention.packSha256 = '4cbb4259ce3fbeedd51102ada12378af3454fc113c7e56cc55732daa2baacf5c';
+  assert.equal(
+    parseEvaluationAttempt(JSON.stringify(wrongPackAttempt)).intervention.packSha256,
+    wrongPackAttempt.intervention.packSha256,
+  );
+
+  const incompleteImplementation = bundle();
+  const incompleteManifest = JSON.parse(incompleteImplementation.manifestText);
+  incompleteManifest.implementationSha256 = { runner: digest };
+  assert.throws(
+    () => parsePrivateInboxBundle({
+      ...incompleteImplementation,
+      manifestText: JSON.stringify(incompleteManifest),
+    }),
+    /exact frozen protocol implementation surface/,
+  );
+
+  const completeImplementation = bundle();
+  const completeManifest = JSON.parse(completeImplementation.manifestText);
+  const implementationKeys = [
+    'canonical', 'contract', 'evaluator', 'fixture', 'pack', 'plan',
+    'protocolRegistry', 'publicTask', 'runner', 'strictJson', 'tools', 'transport',
+  ];
+  completeManifest.implementationSha256 = Object.fromEntries(
+    implementationKeys.map((key) => [key, digest]),
+  );
+  assert.deepEqual(
+    Object.keys(parsePrivateInboxBundle({
+      ...completeImplementation,
+      manifestText: JSON.stringify(completeManifest),
+    }).comparisonSummary.implementationSha256).sort(),
+    implementationKeys,
+  );
 });
 
 test('an explicit attempt receipt represents infrastructure failure without a scored bundle', async () => {

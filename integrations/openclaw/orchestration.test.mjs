@@ -682,6 +682,8 @@ test("full fake orchestration succeeds with the exact pre-inference inventory", 
   assert.equal(result.exitCode, 2);
   assert.match(result.receipt.run.runId, /^inbox-host-[a-f0-9]{20}$/);
   assert.deepEqual(result.receipt.enabledTools, TOOL_NAMES);
+  assert.equal(result.receipt.client.configurationBaseSha256.length, 64);
+  assert.equal(result.receipt.client.configurationSha256, result.receipt.client.configurationBaseSha256);
   const log = await fixture.readLog(fixture.openclawLog);
   const commands = log.map((entry) => entry.command);
   assert.deepEqual(commands.slice(0, 2), ["version", "inspect"]);
@@ -706,6 +708,22 @@ test("treatment installs and revalidates the fixed intervention before auth and 
   assert.equal(result.receipt.client.intervention.loaded, true);
   assert.equal(result.receipt.client.configurationBaseSha256.length, 64);
   assert.notEqual(result.receipt.client.configurationBaseSha256, result.receipt.client.configurationSha256);
+  const configurationIntervention = {
+    id: result.receipt.client.intervention.id,
+    version: result.receipt.client.intervention.version,
+    status: result.receipt.client.intervention.status,
+    recommendationId: result.receipt.client.intervention.recommendationId,
+    skillName: result.receipt.client.intervention.skillName,
+    packSha256: result.receipt.client.intervention.packSha256,
+    sourceClass: result.receipt.client.intervention.sourceClass,
+  };
+  assert.equal(
+    result.receipt.client.configurationSha256,
+    sha256(stable({
+      configurationBaseSha256: result.receipt.client.configurationBaseSha256,
+      intervention: configurationIntervention,
+    })),
+  );
   assert.deepEqual(result.receipt.cases[0].eligibleSkills.skills, [{
     name: INTERVENTION_SKILL,
     source: "openclaw-workspace",

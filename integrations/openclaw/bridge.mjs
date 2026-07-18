@@ -1570,10 +1570,8 @@ async function runBridge(options, dependencies = {}) {
     inferenceAuthMode: options.model.startsWith("openai/") ? "single-temporary-profile" : "local-marker",
   };
   const configurationBaseSha256 = hashJson(configurationDescriptorBase);
-  const configurationSha256 = requestedIntervention
-    ? hashJson({
-      ...configurationDescriptorBase,
-      intervention: {
+  const configurationIntervention = requestedIntervention
+    ? {
         id: requestedIntervention.id,
         version: requestedIntervention.version,
         status: requestedIntervention.status,
@@ -1581,8 +1579,10 @@ async function runBridge(options, dependencies = {}) {
         skillName: requestedIntervention.skillName,
         packSha256: requestedIntervention.packSha256,
         sourceClass: requestedIntervention.sourceClass,
-      },
-    })
+      }
+    : null;
+  const configurationSha256 = configurationIntervention
+    ? hashJson({ configurationBaseSha256, intervention: configurationIntervention })
     : configurationBaseSha256;
   let evaluationRootCandidate;
   if (dependencies.evaluationRoot) {
@@ -1650,8 +1650,8 @@ async function runBridge(options, dependencies = {}) {
     version: openclawVersion,
     implementationSha256,
     configurationSha256,
+    configurationBaseSha256,
     ...(requestedIntervention ? {
-      configurationBaseSha256,
       intervention: null,
     } : {}),
   };
@@ -1951,8 +1951,8 @@ async function runBridge(options, dependencies = {}) {
         version: openclawVersion,
         implementationSha256,
         configurationSha256,
+        configurationBaseSha256,
         ...(requestedInterventionPack ? {
-          configurationBaseSha256,
           intervention: provenIntervention,
         } : {}),
       },

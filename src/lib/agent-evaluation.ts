@@ -110,7 +110,6 @@ const ATTEMPT_ID_PATTERN = /^attempt-(openclaw|hermes)-[a-f0-9]{8}-[a-f0-9]{4}-[
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/;
 const OPENCLAW_MODEL_PATTERN = /^(?:ollama|openai)\/[A-Za-z0-9][A-Za-z0-9._:/-]*$/;
 const CREDENTIAL_LIKE_PATTERN = /(?:^|\/)(?:sk|gh[opsu]|xox[baprs])-[A-Za-z0-9_-]{8,}/i;
-const SAFE_ID_PATTERN = /^[a-z0-9]+(?:[._:-][a-z0-9]+)*$/;
 const ALLOWED_TOOLS = new Set([
   'searchMessages',
   'readMessage',
@@ -170,17 +169,34 @@ const ALLOWED_ASSERTION_IDS = new Set([
 ]);
 const DIAGNOSTIC_CODES = new Set<DiagnosticCode>(Object.keys(DIAGNOSTIC_GUIDE) as DiagnosticCode[]);
 const FIXED_INTERVENTION_ID: FixedInterventionId = 'completion-evidence-gate';
+const FIXED_INTERVENTION_VERSION = '0.1.0-experimental';
+const FIXED_INTERVENTION_STATUS = 'private_experiment_unvalidated';
 const FIXED_INTERVENTION_SKILL = 'clawbotomy-completion-evidence';
 const FIXED_INTERVENTION_RECOMMENDATION = 'evidence-integrity';
 const FIXED_INTERVENTION_SOURCE_CLASS = 'isolated_workspace';
+const FIXED_INTERVENTION_PACK_SHA256 = '4cbb4259ce3fbeedd51102ada12378af3454fc113c7e56cc55732daa2baacf5c';
 const PROTOCOL_ID = 'stdio-jsonl/v1';
+const PROTOCOL_IMPLEMENTATION_DIGEST_KEYS = Object.freeze([
+  'canonical',
+  'contract',
+  'evaluator',
+  'fixture',
+  'pack',
+  'plan',
+  'protocolRegistry',
+  'publicTask',
+  'runner',
+  'strictJson',
+  'tools',
+  'transport',
+]);
 
 type JsonRecord = Record<string, unknown>;
 
 export interface SafeInterventionIdentity {
   id: FixedInterventionId;
-  version: string;
-  status: string;
+  version: '0.1.0-experimental';
+  status: 'private_experiment_unvalidated';
   recommendationId: 'evidence-integrity';
   skillName: 'clawbotomy-completion-evidence';
   packSha256: string;
@@ -410,15 +426,16 @@ function safeDigestMap(value: unknown, label: string): Record<string, string> | 
   if (value === undefined || value === null) return null;
   const item = record(value, label);
   const entries = Object.entries(item);
-  if (entries.length === 0 || entries.length > 24) {
-    throw new EvidenceImportError(`${label} is outside the supported bound.`);
+  const keys = entries.map(([key]) => key).sort();
+  if (
+    keys.length !== PROTOCOL_IMPLEMENTATION_DIGEST_KEYS.length
+    || keys.some((key, index) => key !== PROTOCOL_IMPLEMENTATION_DIGEST_KEYS[index])
+  ) {
+    throw new EvidenceImportError(`${label} does not contain the exact frozen protocol implementation surface.`);
   }
-  const safeEntries = entries.map(([key, digest]) => {
-    if (!SAFE_ID_PATTERN.test(key) || key.length > 48) {
-      throw new EvidenceImportError(`${label} contains an unsupported identifier.`);
-    }
-    return [key, sha256(digest, `${label} ${key}`)];
-  });
+  const safeEntries = entries.map(([key, digest]) => (
+    [key, sha256(digest, `${label} ${key}`)]
+  ));
   return Object.fromEntries(safeEntries);
 }
 
@@ -438,8 +455,11 @@ function safeInterventionIdentity(
   const packSha256 = sha256(item.packSha256, `${label} digest`);
   if (
     item.id !== FIXED_INTERVENTION_ID
+    || version !== FIXED_INTERVENTION_VERSION
+    || status !== FIXED_INTERVENTION_STATUS
     || item.recommendationId !== FIXED_INTERVENTION_RECOMMENDATION
     || item.skillName !== FIXED_INTERVENTION_SKILL
+    || packSha256 !== FIXED_INTERVENTION_PACK_SHA256
     || item.loaded !== true
     || item.sourceClass !== FIXED_INTERVENTION_SOURCE_CLASS
   ) {
@@ -447,8 +467,8 @@ function safeInterventionIdentity(
   }
   return {
     id: FIXED_INTERVENTION_ID,
-    version,
-    status,
+    version: FIXED_INTERVENTION_VERSION,
+    status: FIXED_INTERVENTION_STATUS,
     recommendationId: FIXED_INTERVENTION_RECOMMENDATION,
     skillName: FIXED_INTERVENTION_SKILL,
     packSha256,

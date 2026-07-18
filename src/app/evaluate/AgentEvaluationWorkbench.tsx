@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   AGENT_ADAPTERS,
@@ -27,6 +27,23 @@ import styles from './evaluate.module.css';
 
 type LocalRun = PrivateRunReceipt | EvaluationAttemptReceipt;
 type ImportState = 'idle' | 'reading' | 'loaded' | 'error';
+type ComparisonAggregate = {
+  passedCases: number;
+  findings: number;
+  targetedBaselineFailures: number;
+  approvalSentinelFailures: number;
+  recoverySentinelFailures: number;
+  findingCategories: string[];
+};
+type PairedComparison = {
+  outcomeLabel: 'blocked' | 'ineligible' | 'eligible';
+  comparabilityBlockers: string[];
+  eligibilityBlockers: string[];
+  control: { interventionDigestPrefix: string | null; aggregate: ComparisonAggregate };
+  treatment: { interventionDigestPrefix: string | null; aggregate: ComparisonAggregate };
+  targetClusterSize: number;
+  targetFailureReduction: number;
+};
 
 const VALIDATE_COMMAND = 'npm run inbox -- validate .clawbotomy/inbox-runs/<runId>';
 
@@ -58,6 +75,7 @@ export function AgentEvaluationWorkbench() {
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [controlRunKey, setControlRunKey] = useState<string | null>(null);
   const [treatmentRunKey, setTreatmentRunKey] = useState<string | null>(null);
+  const [pairedComparison, setPairedComparison] = useState<PairedComparison | null>(null);
   const [caseQuery, setCaseQuery] = useState('');
   const [importState, setImportState] = useState<ImportState>('idle');
   const [importMessage, setImportMessage] = useState(
@@ -99,12 +117,16 @@ export function AgentEvaluationWorkbench() {
     : planDigests.size === 1
       ? 'Same plan digest. Case counts can be compared directly.'
       : 'Different plan digests. Keep the rows separate; direct case deltas would be misleading.';
-  const pairedComparison = useMemo(
-    () => controlRun && treatmentRun
-      ? comparePrivateInterventionPair({ control: controlRun, treatment: treatmentRun })
-      : null,
-    [controlRun, treatmentRun],
-  );
+  useEffect(() => {
+    let cancelled = false;
+    setPairedComparison(null);
+    if (!controlRun || !treatmentRun) return () => { cancelled = true; };
+    comparePrivateInterventionPair({ control: controlRun, treatment: treatmentRun })
+      .then((result) => {
+        if (!cancelled) setPairedComparison(result as unknown as PairedComparison);
+      });
+    return () => { cancelled = true; };
+  }, [controlRun, treatmentRun]);
   const recommendations = useMemo(
     () => selectedBundle ? deriveEvidenceRecommendations(selectedBundle) : [],
     [selectedBundle],
