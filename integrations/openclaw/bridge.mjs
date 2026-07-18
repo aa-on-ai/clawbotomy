@@ -1549,6 +1549,7 @@ async function runBridge(options, dependencies = {}) {
   });
   const implementationSha256 = await hashFiles([
     path.join(integrationRoot, "bridge.mjs"),
+    path.join(integrationRoot, "interventions.mjs"),
     path.join(integrationRoot, "protocol.mjs"),
     path.join(integrationRoot, "provenance.mjs"),
     path.join(integrationRoot, "inspect-runtime.mjs"),

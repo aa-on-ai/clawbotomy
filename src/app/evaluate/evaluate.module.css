@@ -263,6 +263,168 @@
   padding: var(--cb-section-y) 0;
 }
 
+.privatePairPanel {
+  margin-top: clamp(40px, 6vw, 72px);
+  border: 1px solid var(--cb-border-light);
+  background: color-mix(in srgb, var(--cb-bone) 92%, white);
+}
+
+.privatePairHeader {
+  min-height: 84px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--cb-border-light);
+}
+
+.privatePairHeader p,
+.privatePairStatus span,
+.privatePairBlockers span,
+.privatePairNote {
+  margin: 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+}
+
+.privatePairHeader h3,
+.privatePairGrid h4 {
+  margin: 6px 0 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.privatePairHeader > span {
+  padding: 8px 10px;
+  border: 1px solid var(--cb-border-light);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.pairSelectors {
+  padding: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  border-bottom: 1px solid var(--cb-border-light);
+}
+
+.pairSelectors label {
+  display: grid;
+  gap: 10px;
+}
+
+.pairSelectors span,
+.privatePairBlockers span {
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.pairSelectors select {
+  min-height: 48px;
+  padding: 0 14px;
+  color: var(--cb-ink);
+  background: var(--cb-bone);
+  border: 1px solid var(--cb-border-light);
+  font-size: 14px;
+}
+
+.pairSelectors select:focus-visible {
+  outline: 3px solid var(--cb-focus);
+  outline-offset: 3px;
+}
+
+.privatePairNote {
+  padding: 0 22px 20px;
+  color: color-mix(in srgb, var(--cb-ink) 66%, transparent);
+  line-height: 1.65;
+}
+
+.privatePairResults {
+  padding: 0 22px 22px;
+}
+
+.privatePairStatus {
+  min-height: 58px;
+  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-top: 1px solid var(--cb-border-light);
+}
+
+.privatePairStatus strong {
+  font-size: 16px;
+}
+
+.privatePairStatus code,
+.privatePairBlockers code {
+  font-size: 11px;
+}
+
+.privatePairGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.privatePairGrid article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--cb-border-light);
+  background: var(--cb-bone);
+}
+
+.privatePairGrid dl,
+.privatePairGrid ul {
+  margin: 16px 0 0;
+}
+
+.privatePairGrid dl {
+  display: grid;
+  gap: 10px;
+}
+
+.privatePairGrid dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.privatePairGrid dt,
+.privatePairGrid dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.privatePairGrid dd {
+  font-weight: 700;
+}
+
+.privatePairBlockers + .privatePairBlockers {
+  margin-top: 18px;
+}
+
+.privatePairBlockers ul {
+  padding-left: 18px;
+}
+
+.privatePairBlockers li,
+.privatePairBlockers p,
+.privatePairEmpty p {
+  margin: 10px 0 0;
+  color: color-mix(in srgb, var(--cb-ink) 70%, transparent);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.privatePairEmpty {
+  padding: 0 22px 22px;
+}
+
 .sectionHeading,
 .sectionHeadingDark {
   display: grid;

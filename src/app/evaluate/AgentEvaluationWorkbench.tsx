@@ -16,6 +16,7 @@ import {
   type RunStatus,
   type SafeCaseReceipt,
 } from '@/lib/agent-evaluation';
+import { comparePrivateInterventionPair } from '@/lib/agent-evaluation-private-comparator';
 import {
   SANITIZED_HERMES_CASE_STUDY,
   deriveEvidenceRecommendations,
@@ -45,12 +46,18 @@ function stateChangeTotal(caseReceipt: SafeCaseReceipt) {
   return Object.values(caseReceipt.stateChanges).reduce((total, count) => total + count, 0);
 }
 
+function comparisonRunLabel(run: PrivateRunReceipt, index: number) {
+  return `Run ${index + 1} · ${run.adapterLabel} · ${run.intervention ? 'treatment candidate' : 'control candidate'}`;
+}
+
 export function AgentEvaluationWorkbench() {
   const [adapterId, setAdapterId] = useState<AdapterId>('openclaw');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [runs, setRuns] = useState<LocalRun[]>([]);
   const [selectedRunKey, setSelectedRunKey] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [controlRunKey, setControlRunKey] = useState<string | null>(null);
+  const [treatmentRunKey, setTreatmentRunKey] = useState<string | null>(null);
   const [caseQuery, setCaseQuery] = useState('');
   const [importState, setImportState] = useState<ImportState>('idle');
   const [importMessage, setImportMessage] = useState(
@@ -73,12 +80,31 @@ export function AgentEvaluationWorkbench() {
     || filteredCases[0]
     || null;
   const comparableRuns = runs.filter((run): run is PrivateRunReceipt => run.source === 'private_bundle');
+  const comparableRunKeys = new Set(comparableRuns.map((run) => runKey(run)));
+  const resolvedControlRunKey = controlRunKey && comparableRunKeys.has(controlRunKey)
+    ? controlRunKey
+    : comparableRuns[0]
+      ? runKey(comparableRuns[0])
+      : null;
+  const resolvedTreatmentRunKey = treatmentRunKey && comparableRunKeys.has(treatmentRunKey)
+    ? treatmentRunKey
+    : comparableRuns[1]
+      ? runKey(comparableRuns[1])
+      : null;
+  const controlRun = comparableRuns.find((run) => runKey(run) === resolvedControlRunKey) || null;
+  const treatmentRun = comparableRuns.find((run) => runKey(run) === resolvedTreatmentRunKey) || null;
   const planDigests = new Set(comparableRuns.map((run) => run.planSha256));
   const comparisonState = comparableRuns.length < 2
     ? 'Load at least two launcher-bound bundles to compare case counts.'
     : planDigests.size === 1
       ? 'Same plan digest. Case counts can be compared directly.'
       : 'Different plan digests. Keep the rows separate; direct case deltas would be misleading.';
+  const pairedComparison = useMemo(
+    () => controlRun && treatmentRun
+      ? comparePrivateInterventionPair({ control: controlRun, treatment: treatmentRun })
+      : null,
+    [controlRun, treatmentRun],
+  );
   const recommendations = useMemo(
     () => selectedBundle ? deriveEvidenceRecommendations(selectedBundle) : [],
     [selectedBundle],
@@ -119,6 +145,10 @@ export function AgentEvaluationWorkbench() {
       const withoutExisting = current.filter((item) => runKey(item) !== key);
       return [run, ...withoutExisting];
     });
+    if (run.source === 'private_bundle') {
+      setControlRunKey((current) => current || key);
+      setTreatmentRunKey((current) => current || (controlRunKey ? key : null));
+    }
     selectRun(run);
   };
 
@@ -183,6 +213,8 @@ export function AgentEvaluationWorkbench() {
   const removeRun = (run: LocalRun) => {
     const key = runKey(run);
     setRuns((current) => current.filter((item) => runKey(item) !== key));
+    if (controlRunKey === key) setControlRunKey(null);
+    if (treatmentRunKey === key) setTreatmentRunKey(null);
     if (selectedRunKey === key) {
       const next = runs.find((item) => runKey(item) !== key) || null;
       setSelectedRunKey(next ? runKey(next) : null);
@@ -571,46 +603,167 @@ export function AgentEvaluationWorkbench() {
               <a href="#inspect-evidence">Load a run above</a>
             </div>
           ) : (
-            <div className={styles.comparisonTable} role="region" aria-label="Loaded run comparison" tabIndex={0}>
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Run</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Process</th>
-                    <th scope="col">Cases</th>
-                    <th scope="col">Findings</th>
-                    <th scope="col">Tools</th>
-                    <th scope="col">State transitions</th>
-                    <th scope="col">Plan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {runs.map((run) => (
-                    <tr key={runKey(run)}>
-                      <th scope="row" data-label="Run">
-                        <strong>{run.adapterLabel}</strong>
-                        <code>{runLabel(run)}</code>
-                      </th>
-                      <td data-label="Status">
-                        <span data-status={run.status}>
-                          <i className={styles.statusSignal} aria-hidden="true" />
-                          {statusLabel(run.status)}
-                        </span>
-                      </td>
-                      <td data-label="Process">
-                        exit {run.exitCode}{run.source === 'private_bundle' && run.exitCode === 1 ? ' · recovered' : ''}
-                      </td>
-                      <td data-label="Cases">{run.source === 'private_bundle' ? `${run.totals.passedCases}/${run.totals.completedCases}` : 'Not scored'}</td>
-                      <td data-label="Findings">{run.source === 'private_bundle' ? run.totals.failedCases : '—'}</td>
-                      <td data-label="Tools">{run.source === 'private_bundle' ? run.totals.toolAttempts : '—'}</td>
-                      <td data-label="State transitions">{run.source === 'private_bundle' ? run.totals.stateTransitions : '—'}</td>
-                      <td data-label="Plan"><code className={styles.fullDigest}>{run.planSha256}</code></td>
+            <>
+              <article className={styles.privatePairPanel}>
+                <header className={styles.privatePairHeader}>
+                  <div>
+                    <p>Private local comparison</p>
+                    <h3>One paired session</h3>
+                  </div>
+                  <span>Non-authorizing intervention only</span>
+                </header>
+
+                <div className={styles.pairSelectors}>
+                  <label>
+                    <span>Control</span>
+                    <select
+                      value={resolvedControlRunKey || ''}
+                      onChange={(event) => setControlRunKey(event.target.value || null)}
+                    >
+                      <option value="">Select one loaded bundle</option>
+                      {comparableRuns.map((run, index) => (
+                        <option key={runKey(run)} value={runKey(run)}>
+                          {comparisonRunLabel(run, index)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Treatment</span>
+                    <select
+                      value={resolvedTreatmentRunKey || ''}
+                      onChange={(event) => setTreatmentRunKey(event.target.value || null)}
+                    >
+                      <option value="">Select one loaded bundle</option>
+                      {comparableRuns.map((run, index) => (
+                        <option key={runKey(run)} value={runKey(run)}>
+                          {comparisonRunLabel(run, index)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <p className={styles.privatePairNote}>
+                  Provider execution is not launched or authorized by this UI. The pair result is
+                  bounded to one local control-versus-treatment session and cannot authorize a deployment,
+                  permission change, or broader benchmark claim.
+                </p>
+
+                {pairedComparison ? (
+                  <div className={styles.privatePairResults}>
+                    <div className={styles.privatePairStatus}>
+                      <strong>{pairedComparison.outcomeLabel === 'eligible' ? 'Eligible pair' : pairedComparison.outcomeLabel === 'ineligible' ? 'Ineligible pair' : 'Pair blocked'}</strong>
+                      <span>
+                        Treatment intervention digest:
+                        {' '}
+                        <code>{pairedComparison.treatment.interventionDigestPrefix || 'none'}</code>
+                      </span>
+                    </div>
+
+                    <div className={styles.privatePairGrid}>
+                      <article>
+                        <h4>Control</h4>
+                        <dl>
+                          <div><dt>Passed</dt><dd>{pairedComparison.control.aggregate.passedCases}</dd></div>
+                          <div><dt>Findings</dt><dd>{pairedComparison.control.aggregate.findings}</dd></div>
+                          <div><dt>Target cluster</dt><dd>{pairedComparison.control.aggregate.targetedBaselineFailures}/{pairedComparison.targetClusterSize}</dd></div>
+                          <div><dt>Approval sentinel</dt><dd>{pairedComparison.control.aggregate.approvalSentinelFailures}</dd></div>
+                          <div><dt>Recovery sentinel</dt><dd>{pairedComparison.control.aggregate.recoverySentinelFailures}</dd></div>
+                        </dl>
+                      </article>
+
+                      <article>
+                        <h4>Treatment</h4>
+                        <dl>
+                          <div><dt>Passed</dt><dd>{pairedComparison.treatment.aggregate.passedCases}</dd></div>
+                          <div><dt>Findings</dt><dd>{pairedComparison.treatment.aggregate.findings}</dd></div>
+                          <div><dt>Target cluster</dt><dd>{pairedComparison.treatment.aggregate.targetedBaselineFailures}/{pairedComparison.targetClusterSize}</dd></div>
+                          <div><dt>Approval sentinel</dt><dd>{pairedComparison.treatment.aggregate.approvalSentinelFailures}</dd></div>
+                          <div><dt>Recovery sentinel</dt><dd>{pairedComparison.treatment.aggregate.recoverySentinelFailures}</dd></div>
+                        </dl>
+                      </article>
+
+                      <article>
+                        <h4>Eligibility</h4>
+                        <dl>
+                          <div><dt>Outcome</dt><dd>{pairedComparison.outcomeLabel}</dd></div>
+                          <div><dt>Target reduction</dt><dd>{pairedComparison.targetFailureReduction}</dd></div>
+                        </dl>
+                        <div className={styles.privatePairBlockers}>
+                          <span>Comparability blockers</span>
+                          {pairedComparison.comparabilityBlockers.length > 0 ? (
+                            <ul>
+                              {pairedComparison.comparabilityBlockers.map((blocker) => (
+                                <li key={blocker}><code>{blocker}</code></li>
+                              ))}
+                            </ul>
+                          ) : <p>None</p>}
+                        </div>
+                        <div className={styles.privatePairBlockers}>
+                          <span>Eligibility blockers</span>
+                          {pairedComparison.eligibilityBlockers.length > 0 ? (
+                            <ul>
+                              {pairedComparison.eligibilityBlockers.map((blocker) => (
+                                <li key={blocker}><code>{blocker}</code></li>
+                              ))}
+                            </ul>
+                          ) : <p>None</p>}
+                        </div>
+                      </article>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.privatePairEmpty}>
+                    <p>Load two replay-bound private bundles and assign one control arm plus one treatment arm.</p>
+                  </div>
+                )}
+              </article>
+
+              <div className={styles.comparisonTable} role="region" aria-label="Loaded run comparison" tabIndex={0}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Run</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Process</th>
+                      <th scope="col">Cases</th>
+                      <th scope="col">Findings</th>
+                      <th scope="col">Tools</th>
+                      <th scope="col">State transitions</th>
+                      <th scope="col">Plan</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {runs.map((run, index) => (
+                      <tr key={runKey(run)}>
+                        <th scope="row" data-label="Run">
+                          <strong>{run.adapterLabel}</strong>
+                          <span>Loaded run {index + 1}</span>
+                        </th>
+                        <td data-label="Status">
+                          <span data-status={run.status}>
+                            <i className={styles.statusSignal} aria-hidden="true" />
+                            {statusLabel(run.status)}
+                          </span>
+                        </td>
+                        <td data-label="Process">
+                          exit {run.exitCode}{run.source === 'private_bundle' && run.exitCode === 1 ? ' · recovered' : ''}
+                        </td>
+                        <td data-label="Cases">{run.source === 'private_bundle' ? `${run.totals.passedCases}/${run.totals.completedCases}` : 'Not scored'}</td>
+                        <td data-label="Findings">{run.source === 'private_bundle' ? run.totals.failedCases : '—'}</td>
+                        <td data-label="Tools">{run.source === 'private_bundle' ? run.totals.toolAttempts : '—'}</td>
+                        <td data-label="State transitions">{run.source === 'private_bundle' ? run.totals.stateTransitions : '—'}</td>
+                        <td data-label="Plan">
+                          {planDigests.size === 1 ? 'Same frozen plan' : 'Plan differs'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </section>

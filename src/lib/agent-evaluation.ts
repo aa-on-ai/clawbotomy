@@ -1,5 +1,6 @@
 export type AdapterId = 'openclaw' | 'hermes';
 export type RunStatus = 'passed' | 'findings' | 'infrastructure_failure';
+export type FixedInterventionId = 'completion-evidence-gate';
 
 export const DIAGNOSTIC_GUIDE = {
   bridge_spawn_failed: 'The adapter process could not be started.',
@@ -109,6 +110,7 @@ const ATTEMPT_ID_PATTERN = /^attempt-(openclaw|hermes)-[a-f0-9]{8}-[a-f0-9]{4}-[
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/;
 const OPENCLAW_MODEL_PATTERN = /^(?:ollama|openai)\/[A-Za-z0-9][A-Za-z0-9._:/-]*$/;
 const CREDENTIAL_LIKE_PATTERN = /(?:^|\/)(?:sk|gh[opsu]|xox[baprs])-[A-Za-z0-9_-]{8,}/i;
+const SAFE_ID_PATTERN = /^[a-z0-9]+(?:[._:-][a-z0-9]+)*$/;
 const ALLOWED_TOOLS = new Set([
   'searchMessages',
   'readMessage',
@@ -167,8 +169,36 @@ const ALLOWED_ASSERTION_IDS = new Set([
   'inbox.assert.untrusted-content.not-authority',
 ]);
 const DIAGNOSTIC_CODES = new Set<DiagnosticCode>(Object.keys(DIAGNOSTIC_GUIDE) as DiagnosticCode[]);
+const FIXED_INTERVENTION_ID: FixedInterventionId = 'completion-evidence-gate';
+const FIXED_INTERVENTION_SKILL = 'clawbotomy-completion-evidence';
+const FIXED_INTERVENTION_RECOMMENDATION = 'evidence-integrity';
+const FIXED_INTERVENTION_SOURCE_CLASS = 'isolated_workspace';
+const PROTOCOL_ID = 'stdio-jsonl/v1';
 
 type JsonRecord = Record<string, unknown>;
+
+export interface SafeInterventionIdentity {
+  id: FixedInterventionId;
+  version: string;
+  status: string;
+  recommendationId: 'evidence-integrity';
+  skillName: 'clawbotomy-completion-evidence';
+  packSha256: string;
+  loaded: true;
+  sourceClass: 'isolated_workspace';
+}
+
+export interface PrivateComparatorBundleSummary {
+  protocolId: string | null;
+  protocolVersion: string | null;
+  replayKey: string | null;
+  executionSubjectImplementationSha256: string | null;
+  configurationSha256: string | null;
+  configurationBaseSha256: string | null;
+  intervention: SafeInterventionIdentity | null;
+  implementationSha256: Record<string, string> | null;
+  caseOrder: string[];
+}
 
 export interface SafeCaseReceipt {
   caseId: string;
@@ -193,6 +223,8 @@ export interface PrivateRunReceipt {
   adapterLabel: string;
   clientId: string;
   clientVersion: string;
+  modelLabel: string;
+  intervention: SafeInterventionIdentity | null;
   status: Exclude<RunStatus, 'infrastructure_failure'>;
   totals: {
     scheduledCases: number;
@@ -207,6 +239,7 @@ export interface PrivateRunReceipt {
   authorizationStatus: 'non-authorizing';
   exitCode: 0 | 1 | 2;
   cases: SafeCaseReceipt[];
+  comparisonSummary: PrivateComparatorBundleSummary;
 }
 
 export interface PrivateBundleText {
@@ -223,6 +256,7 @@ export interface EvaluationAttemptReceipt {
   adapterLabel: string;
   clientId: string;
   modelLabel: string;
+  intervention: SafeInterventionIdentity | null;
   status: RunStatus;
   exitCode: 0 | 1 | 2;
   planSha256: string;
@@ -271,6 +305,17 @@ function countValue(value: unknown, label: string): number {
     throw new EvidenceImportError(`${label} is not a non-negative integer.`);
   }
   return Number(value);
+}
+
+function exactKeys(value: JsonRecord, keys: string[], label: string) {
+  const actual = Object.keys(value).sort();
+  const expected = [...keys].sort();
+  if (
+    actual.length !== expected.length
+    || actual.some((key, index) => key !== expected[index])
+  ) {
+    throw new EvidenceImportError(`${label} contains unsupported fields.`);
+  }
 }
 
 function sha256(value: unknown, label: string): string {
@@ -337,6 +382,79 @@ function adapterLabel(adapter: AdapterId | 'unknown', clientId: string): string 
   if (adapter === 'openclaw') return 'OpenClaw';
   if (adapter === 'hermes') return 'Hermes Agent';
   return clientId;
+}
+
+function safeOptionalDigest(value: unknown, label: string): string | null {
+  if (value === undefined || value === null) return null;
+  return sha256(value, label);
+}
+
+function safeProtocolId(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (value !== PROTOCOL_ID) {
+    throw new EvidenceImportError('The bundle protocol ID is unsupported.');
+  }
+  return PROTOCOL_ID;
+}
+
+function safeProtocolVersion(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  const version = stringValue(value, 'Protocol version', 32);
+  if (!VERSION_PATTERN.test(version)) {
+    throw new EvidenceImportError('The bundle protocol version is unsupported.');
+  }
+  return version;
+}
+
+function safeDigestMap(value: unknown, label: string): Record<string, string> | null {
+  if (value === undefined || value === null) return null;
+  const item = record(value, label);
+  const entries = Object.entries(item);
+  if (entries.length === 0 || entries.length > 24) {
+    throw new EvidenceImportError(`${label} is outside the supported bound.`);
+  }
+  const safeEntries = entries.map(([key, digest]) => {
+    if (!SAFE_ID_PATTERN.test(key) || key.length > 48) {
+      throw new EvidenceImportError(`${label} contains an unsupported identifier.`);
+    }
+    return [key, sha256(digest, `${label} ${key}`)];
+  });
+  return Object.fromEntries(safeEntries);
+}
+
+function safeInterventionIdentity(
+  value: unknown,
+  label = 'Intervention identity',
+): SafeInterventionIdentity | null {
+  if (value === undefined || value === null) return null;
+  const item = record(value, label);
+  exactKeys(
+    item,
+    ['id', 'version', 'status', 'recommendationId', 'skillName', 'packSha256', 'loaded', 'sourceClass'],
+    label,
+  );
+  const version = stringValue(item.version, `${label} version`, 48);
+  const status = stringValue(item.status, `${label} status`, 64);
+  const packSha256 = sha256(item.packSha256, `${label} digest`);
+  if (
+    item.id !== FIXED_INTERVENTION_ID
+    || item.recommendationId !== FIXED_INTERVENTION_RECOMMENDATION
+    || item.skillName !== FIXED_INTERVENTION_SKILL
+    || item.loaded !== true
+    || item.sourceClass !== FIXED_INTERVENTION_SOURCE_CLASS
+  ) {
+    throw new EvidenceImportError('The intervention identity is outside the fixed local-only allowlist.');
+  }
+  return {
+    id: FIXED_INTERVENTION_ID,
+    version,
+    status,
+    recommendationId: FIXED_INTERVENTION_RECOMMENDATION,
+    skillName: FIXED_INTERVENTION_SKILL,
+    packSha256,
+    loaded: true,
+    sourceClass: FIXED_INTERVENTION_SOURCE_CLASS,
+  };
 }
 
 function canonicalDate(value: unknown, label: string): string {
@@ -424,6 +542,7 @@ export function parseEvaluationAttempt(text: string): EvaluationAttemptReceipt {
     adapterLabel: adapterLabel(adapter, clientId),
     clientId,
     modelLabel: safeModelLabel(attempt.modelLabel, adapter),
+    intervention: safeInterventionIdentity(attempt.intervention, 'Attempt intervention'),
     status,
     exitCode,
     planSha256: sha256(attempt.planSha256, 'Attempt plan digest'),
@@ -553,6 +672,7 @@ export function parsePrivateInboxBundle({
 
   const subject = record(manifest.executionSubject, 'Execution subject');
   const plan = record(manifest.plan, 'Plan binding');
+  const protocol = manifest.protocol === undefined ? null : record(manifest.protocol, 'Protocol identity');
   const planSha256 = sha256(plan.sha256, 'Plan digest');
   const clientId = stringValue(subject.id, 'Execution subject ID', 64);
   const clientVersion = stringValue(subject.version, 'Execution subject version', 32);
@@ -606,6 +726,7 @@ export function parsePrivateInboxBundle({
 
   const status = totals.failedCases > 0 ? 'findings' : 'passed';
   const attempt = parseEvaluationAttempt(attemptText);
+  const subjectIntervention = safeInterventionIdentity(subject.intervention, 'Execution subject intervention');
   if (
     !attempt.completeBundleWritten
     || !attempt.bundle
@@ -615,6 +736,7 @@ export function parsePrivateInboxBundle({
     || attempt.clientId !== clientId
     || attempt.adapter !== adapter
     || attempt.status !== status
+    || JSON.stringify(attempt.intervention) !== JSON.stringify(subjectIntervention)
   ) {
     throw new EvidenceImportError('The launcher attempt receipt does not bind this replay-validated bundle.');
   }
@@ -627,6 +749,8 @@ export function parsePrivateInboxBundle({
     adapterLabel: adapterLabel(adapter, clientId),
     clientId,
     clientVersion,
+    modelLabel: attempt.modelLabel,
+    intervention: subjectIntervention,
     status,
     totals,
     coreDigest: manifestDigest,
@@ -634,5 +758,28 @@ export function parsePrivateInboxBundle({
     authorizationStatus: 'non-authorizing',
     exitCode: attempt.exitCode,
     cases,
+    comparisonSummary: {
+      protocolId: safeProtocolId(protocol?.id),
+      protocolVersion: safeProtocolVersion(protocol?.version),
+      replayKey: safeOptionalDigest(manifest.replay && record(manifest.replay, 'Replay binding').key, 'Replay key'),
+      executionSubjectImplementationSha256: safeOptionalDigest(
+        subject.implementationSha256,
+        'Execution subject implementation digest',
+      ),
+      configurationSha256: safeOptionalDigest(
+        subject.configurationSha256,
+        'Execution subject configuration digest',
+      ),
+      configurationBaseSha256: safeOptionalDigest(
+        subject.configurationBaseSha256,
+        'Execution subject base configuration digest',
+      ),
+      intervention: subjectIntervention,
+      implementationSha256: safeDigestMap(
+        manifest.implementationSha256,
+        'Manifest implementation digests',
+      ),
+      caseOrder: cases.map((item) => item.caseId),
+    },
   };
 }

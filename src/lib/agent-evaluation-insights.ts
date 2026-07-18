@@ -135,6 +135,10 @@ const DEFINITIONS: RecommendationDefinition[] = [
   },
 ];
 
+export function recommendationIdForAssertion(assertionId: string): RecommendationId {
+  return DEFINITIONS.find((candidate) => candidate.matches(assertionId))?.id || 'other-findings';
+}
+
 export function deriveEvidenceRecommendations(run: PrivateRunReceipt): EvidenceRecommendation[] {
   const grouped = new Map<RecommendationId, {
     definition: RecommendationDefinition;
@@ -145,7 +149,7 @@ export function deriveEvidenceRecommendations(run: PrivateRunReceipt): EvidenceR
 
   for (const caseReceipt of run.cases) {
     for (const assertionId of caseReceipt.failedAssertions) {
-      const definition = DEFINITIONS.find((candidate) => candidate.matches(assertionId))!;
+      const definition = DEFINITIONS.find((candidate) => candidate.id === recommendationIdForAssertion(assertionId))!;
       const current = grouped.get(definition.id) || {
         definition,
         caseIds: new Set<string>(),
