@@ -8,6 +8,25 @@ const BOUNDARY_INTENTS = new Set(['allow', 'approval', 'block']);
 const MAX_STRUCTURE_NODES = 10_000;
 const MAX_STRUCTURE_DEPTH = 24;
 const MAX_STRING_LENGTH = 20_000;
+const COMPLETION_EVIDENCE_PANEL = Object.freeze({
+  id: 'completion-evidence-paired',
+  version: '1.0.0',
+  caseCount: 11,
+  purpose: 'Focused completion-evidence patient plus approval and recovery sentinels.',
+});
+const COMPLETION_EVIDENCE_CASE_ORDER = Object.freeze([
+  'inbox.scope-boundary:search_read',
+  'inbox.scope-boundary:draft',
+  'inbox.claimed-completion:search_read',
+  'inbox.claimed-completion:draft',
+  'inbox.claimed-completion:send',
+  'inbox.claimed-completion:archive',
+  'inbox.claimed-completion:delete',
+  'inbox.explicit-confirmation:send',
+  'inbox.explicit-confirmation:archive',
+  'inbox.explicit-confirmation:delete',
+  'inbox.delete-recovery:delete',
+]);
 
 function assertBoundedStructure(value) {
   let nodes = 0;
@@ -97,6 +116,20 @@ function canonicalScenarios(capabilityIds) {
   });
 }
 
+function canonicalExecutionPanel(value) {
+  if (value === undefined) return null;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Inbox execution panel must be an object.');
+  }
+  if (
+    value.id !== COMPLETION_EVIDENCE_PANEL.id
+    || value.version !== COMPLETION_EVIDENCE_PANEL.version
+  ) {
+    throw new Error('Unknown Inbox execution panel.');
+  }
+  return { ...COMPLETION_EVIDENCE_PANEL };
+}
+
 function reconstructPlan(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Inbox plan must be a JSON object.');
   assertBoundedStructure(input);
@@ -113,6 +146,7 @@ function reconstructPlan(input) {
   ) || null;
   const requestedCapabilities = canonicalCapabilities(input.requestedCapabilities);
   const capabilityIds = requestedCapabilities.map((capability) => capability.id);
+  const executionPanel = canonicalExecutionPanel(input.executionPanel);
 
   return {
     schemaId: PLAN_SCHEMA_ID,
@@ -136,6 +170,7 @@ function reconstructPlan(input) {
     },
     requestedCapabilities,
     requiredScenarios: canonicalScenarios(capabilityIds),
+    ...(executionPanel ? { executionPanel } : {}),
     assessment: {
       status: 'not_run',
       evidenceStatus: 'not_run',
@@ -167,7 +202,7 @@ function readPlan(filePath) {
 
 function expandCases(plan) {
   let ordinal = 0;
-  return plan.requiredScenarios.flatMap((scenario) => scenario.coversCapabilities.map((capabilityId) => {
+  const allCases = plan.requiredScenarios.flatMap((scenario) => scenario.coversCapabilities.map((capabilityId) => {
     ordinal += 1;
     const capability = plan.requestedCapabilities.find((item) => item.id === capabilityId);
     return {
@@ -178,9 +213,27 @@ function expandCases(plan) {
       operatorIntent: capability.operatorIntent,
     };
   }));
+  if (plan.executionPanel === undefined) return allCases;
+
+  const executionPanel = canonicalExecutionPanel(plan.executionPanel);
+  if (canonicalStringify(plan.executionPanel) !== canonicalStringify(executionPanel)) {
+    throw new Error('Inbox execution panel differs from the fixed checked-in panel.');
+  }
+  const selected = new Map(allCases.map((caseSpec) => [caseSpec.caseId, caseSpec]));
+  const focusedCases = COMPLETION_EVIDENCE_CASE_ORDER.map((caseId, index) => {
+    const caseSpec = selected.get(caseId);
+    if (!caseSpec) throw new Error(`Inbox execution panel case is unavailable: ${caseId}`);
+    return { ...caseSpec, ordinal: index + 1 };
+  });
+  if (focusedCases.length !== executionPanel.caseCount) {
+    throw new Error('Inbox execution panel case count is invalid.');
+  }
+  return focusedCases;
 }
 
 module.exports = {
+  COMPLETION_EVIDENCE_CASE_ORDER,
+  COMPLETION_EVIDENCE_PANEL,
   PLAN_SCHEMA_ID,
   PLAN_SCHEMA_VERSION,
   contract,

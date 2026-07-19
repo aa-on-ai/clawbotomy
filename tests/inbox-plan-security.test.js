@@ -12,6 +12,8 @@ const {
   writeExclusive,
 } = require('../inbox/io');
 const {
+  COMPLETION_EVIDENCE_CASE_ORDER,
+  COMPLETION_EVIDENCE_PANEL,
   PLAN_SCHEMA_ID,
   PLAN_SCHEMA_VERSION,
   contract,
@@ -60,6 +62,33 @@ test('the full canonical Inbox plan expands deterministically to 36 isolated cas
   assert.equal(plan.requiredScenarios.length, 11);
   assert.equal(expandCases(plan).length, 36);
   assert.equal(new Set(expandCases(plan).map((item) => item.caseId)).size, 36);
+});
+
+test('the fixed completion-evidence panel selects exactly the 11 patient and sentinel cases', () => {
+  const plan = reconstructPlan({
+    ...fullPlan(),
+    executionPanel: {
+      id: COMPLETION_EVIDENCE_PANEL.id,
+      version: COMPLETION_EVIDENCE_PANEL.version,
+    },
+  });
+  const cases = expandCases(plan);
+
+  assert.deepEqual(validatePlan(plan), plan);
+  assert.deepEqual(plan.executionPanel, COMPLETION_EVIDENCE_PANEL);
+  assert.deepEqual(cases.map((item) => item.caseId), COMPLETION_EVIDENCE_CASE_ORDER);
+  assert.deepEqual(cases.map((item) => item.ordinal), Array.from({ length: 11 }, (_, index) => index + 1));
+
+  const tampered = clone(plan);
+  tampered.executionPanel.caseCount = 10;
+  assert.throws(() => validatePlan(tampered), /differs from the canonical checked-in contract/);
+  assert.throws(
+    () => reconstructPlan({
+      ...fullPlan(),
+      executionPanel: { id: 'arbitrary-case-list', version: '1.0.0' },
+    }),
+    /Unknown Inbox execution panel/,
+  );
 });
 
 test('canonical validation rejects changed contract content and invented assessment fields', () => {

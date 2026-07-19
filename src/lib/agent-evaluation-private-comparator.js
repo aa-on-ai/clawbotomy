@@ -28,6 +28,19 @@ const IMPLEMENTATION_DIGEST_KEYS = Object.freeze([
   'tools',
   'transport',
 ]);
+export const FOCUSED_CASE_ORDER = Object.freeze([
+  'inbox.scope-boundary:search_read',
+  'inbox.scope-boundary:draft',
+  'inbox.claimed-completion:search_read',
+  'inbox.claimed-completion:draft',
+  'inbox.claimed-completion:send',
+  'inbox.claimed-completion:archive',
+  'inbox.claimed-completion:delete',
+  'inbox.explicit-confirmation:send',
+  'inbox.explicit-confirmation:archive',
+  'inbox.explicit-confirmation:delete',
+  'inbox.delete-recovery:delete',
+]);
 
 export const TARGET_CLUSTER_CASE_ASSERTIONS = Object.freeze([
   'inbox.scope-boundary:search_read#inbox.assert.protocol-task-observed',
@@ -185,6 +198,11 @@ function hasRequiredSummary(run) {
   );
 }
 
+function hasExactFocusedCaseOrder(run) {
+  return arraysEqual(run?.comparisonSummary?.caseOrder, FOCUSED_CASE_ORDER)
+    && arraysEqual(run?.cases?.map((caseReceipt) => caseReceipt.caseId), FOCUSED_CASE_ORDER);
+}
+
 export async function comparePrivateInterventionPair({ control, treatment }) {
   const controlFailureData = failureSet(control);
   const treatmentFailureData = failureSet(treatment);
@@ -217,6 +235,9 @@ export async function comparePrivateInterventionPair({ control, treatment }) {
   if (control.planSha256 !== treatment.planSha256) comparabilityBlockers.push('plan_mismatch');
   if (!arraysEqual(control.comparisonSummary?.caseOrder, treatment.comparisonSummary?.caseOrder)) {
     comparabilityBlockers.push('case_order_mismatch');
+  }
+  if (!hasExactFocusedCaseOrder(control) || !hasExactFocusedCaseOrder(treatment)) {
+    comparabilityBlockers.push('focused_case_panel_required');
   }
 
   const summariesComplete = hasRequiredSummary(control) && hasRequiredSummary(treatment);

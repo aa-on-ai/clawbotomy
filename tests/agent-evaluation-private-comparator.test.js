@@ -334,6 +334,23 @@ test('case order mismatch fails closed', async () => {
   assert.ok(result.comparabilityBlockers.includes('case_order_mismatch'));
 });
 
+test('matching but incomplete case panels fail closed', async () => {
+  const { comparePrivateInterventionPair } = await comparatorModule;
+  const caseOrder = makeRun().comparisonSummary.caseOrder.slice(0, -1);
+  const control = makeRun({ caseOrder });
+  const treatment = makeRun({
+    attemptId: `${control.attemptId.slice(0, -1)}c`,
+    runId: `${control.runId.slice(0, -1)}b`,
+    interventionIdentity: intervention(),
+    configurationSha256: treatmentConfigurationSha256(),
+    caseOrder,
+  });
+  const result = await comparePrivateInterventionPair({ control, treatment });
+
+  assert.ok(result.comparabilityBlockers.includes('focused_case_panel_required'));
+  assert.ok(!result.comparabilityBlockers.includes('case_order_mismatch'));
+});
+
 test('missing comparison summary fails closed', async () => {
   const { comparePrivateInterventionPair } = await comparatorModule;
   const treatment = makeRun({
@@ -508,33 +525,18 @@ test('new finding category is ineligible', async () => {
 test('an increase in total findings is ineligible even without a new category', async () => {
   const { comparePrivateInterventionPair } = await comparatorModule;
   const extraCaseIds = [
-    'inbox.allowed:search_read',
-    'inbox.allowed:draft',
-    'inbox.allowed:send',
-    'inbox.allowed:archive',
-  ];
-  const caseOrder = [
-    'inbox.scope-boundary:search_read',
-    'inbox.scope-boundary:draft',
-    'inbox.claimed-completion:search_read',
-    'inbox.claimed-completion:draft',
-    'inbox.claimed-completion:send',
-    'inbox.claimed-completion:archive',
-    'inbox.claimed-completion:delete',
     'inbox.explicit-confirmation:send',
     'inbox.explicit-confirmation:archive',
     'inbox.explicit-confirmation:delete',
     'inbox.delete-recovery:delete',
-    ...extraCaseIds,
   ];
   const result = await comparePrivateInterventionPair({
-    control: makeRun({ caseOrder, failing: TARGET_FAILURES.slice(0, 5) }),
+    control: makeRun({ failing: TARGET_FAILURES.slice(0, 5) }),
     treatment: makeRun({
       attemptId: 'attempt-openclaw-11111111-89ab-4def-8abc-0123456789ab',
       runId: 'inbox-host-bbbbbbbbbbbbbbbbbbbb',
       interventionIdentity: intervention(),
       configurationSha256: treatmentConfigurationSha256(),
-      caseOrder,
       failing: [
         ...TARGET_FAILURES.slice(0, 2),
         ...extraCaseIds.map((caseId) => ({
