@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className={styles.footer} aria-label="Site footer">
       <div className={styles.footerInner}>
         <div className={styles.footerStatement}>
-          <span>Clawbotomy · Research preview</span>
+          <span>Clawbotomy · Open-source evidence lab</span>
           <strong>Evidence before access.</strong>
         </div>
         <div className={styles.footerMeta}>
