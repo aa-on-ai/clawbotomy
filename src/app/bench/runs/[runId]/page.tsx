@@ -11,7 +11,7 @@ import {
 import styles from './run.module.css';
 
 type RunPageProps = {
-  params: { runId: string };
+  params: Promise<{ runId: string }>;
 };
 
 type EvidenceAggregate = {
@@ -59,12 +59,13 @@ export function generateStaticParams() {
   return loadPublicEvidenceIndex().runs.map(({ runId }) => ({ runId }));
 }
 
-export function generateMetadata({ params }: RunPageProps): Metadata {
-  const bundle = loadPublicEvidenceRun(params.runId);
+export async function generateMetadata({ params }: RunPageProps): Promise<Metadata> {
+  const { runId } = await params;
+  const bundle = loadPublicEvidenceRun(runId);
   if (!bundle) return { title: 'Evidence run not found | Clawbotomy' };
 
   return {
-    title: `${params.runId} | Clawbotomy Evidence`,
+    title: `${runId} | Clawbotomy Evidence`,
     description: 'A human-readable view of one validated, non-authorizing Clawbotomy public evidence bundle.',
   };
 }
@@ -147,8 +148,9 @@ function EvidenceDisclosure({ record, runId, label }: { record: EvidenceRecord; 
   );
 }
 
-export default function EvidenceRunPage({ params }: RunPageProps) {
-  const bundle = loadPublicEvidenceRun(params.runId);
+export default async function EvidenceRunPage({ params }: RunPageProps) {
+  const { runId } = await params;
+  const bundle = loadPublicEvidenceRun(runId);
   if (!bundle) notFound();
 
   const aggregate = evidenceAggregate(bundle);
@@ -166,7 +168,7 @@ export default function EvidenceRunPage({ params }: RunPageProps) {
     ? aggregate.eligibilityReasons.filter((item): item is string => typeof item === 'string')
     : [];
   const sourceCommit = bundle.manifest.plan.source.commitSha;
-  const artifactBase = `/evidence/${params.runId}`;
+  const artifactBase = `/evidence/${runId}`;
 
   return (
     <main className={styles.page}>
@@ -176,8 +178,8 @@ export default function EvidenceRunPage({ params }: RunPageProps) {
           <p className={styles.eyebrow}>Public evidence run · Measured</p>
           <div className={styles.heroGrid}>
             <div>
-              <h1>{text(model.alias, models[0] || params.runId)}</h1>
-              <p className={styles.runId}>{params.runId}</p>
+              <h1>{text(model.alias, models[0] || runId)}</h1>
+              <p className={styles.runId}>{runId}</p>
             </div>
             <p className={styles.heroSummary}>
               {aggregateEligible ? (
@@ -338,7 +340,7 @@ export default function EvidenceRunPage({ params }: RunPageProps) {
                                 </div>
                                 <EvidenceDisclosure
                                   record={record}
-                                  runId={params.runId}
+                                  runId={runId}
                                   label={`Inspect repeat ${repeatIndex + 1} evidence`}
                                 />
                               </li>
@@ -355,7 +357,7 @@ export default function EvidenceRunPage({ params }: RunPageProps) {
                           </dl>
                           <EvidenceDisclosure
                             record={primaryRecord}
-                            runId={params.runId}
+                            runId={runId}
                             label="Inspect untrusted prompt and response"
                           />
                         </>
@@ -390,7 +392,7 @@ export default function EvidenceRunPage({ params }: RunPageProps) {
             <a href={`${artifactBase}/cases.jsonl`}>Cases JSONL</a>
             <a href={`${artifactBase}/summary.json`}>Summary</a>
             <a href={`${artifactBase}/integrity.json`}>Integrity</a>
-            <a href={`/api/bench/runs/${params.runId}`}>Run API</a>
+            <a href={`/api/bench/runs/${runId}`}>Run API</a>
             {sourceCommit && (
               <a href={`https://github.com/aa-on-ai/clawbotomy/commit/${sourceCommit}`} target="_blank" rel="noopener noreferrer">
                 Source commit ↗

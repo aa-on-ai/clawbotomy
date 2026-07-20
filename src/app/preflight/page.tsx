@@ -23,7 +23,7 @@ export default function PreflightPage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Planning preview · Inbox pack · Browser local</p>
+              <p className={styles.eyebrow}>Planning workspace · Inbox pack · Browser local</p>
               <h1 id="preflight-title">Define the powers before you test them.</h1>
               <p>
                 Choose what an agent may read or change. Clawbotomy turns that intent into a

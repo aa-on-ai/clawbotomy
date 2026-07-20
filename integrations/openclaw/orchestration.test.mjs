@@ -141,6 +141,12 @@ if (args[0] === ${JSON.stringify(EFFECTIVE_INVENTORY_COMMAND)}) {
   const authPath = path.join(process.env.OPENCLAW_STATE_DIR, "agents", "clawbotomy-eval", "agent", "openclaw-agent.sqlite");
   const previousInventories = readFileSync(OBSERVATION_PATH, "utf8").split("\\n").filter((line) => line.includes('\"command\":\"inventory\"')).length;
   log({ command: "inventory", authPresent: existsSync(authPath) });
+  if (
+    SCENARIO === "inventory_timeout_always"
+    || (SCENARIO === "inventory_timeout_once" && previousInventories === 0)
+  ) {
+    await new Promise(() => setInterval(() => {}, 60_000));
+  }
   const config = JSON.parse(readFileSync(process.env.OPENCLAW_CONFIG_PATH, "utf8"));
   const workspaceDir = config.agents.list.find((agent) => agent.id === arg("--agent")).workspace;
   const entries = TOOLS.map((id) => ({ id, source: "plugin", pluginId: "clawbotomy-openclaw-tools" }));
@@ -695,6 +701,43 @@ test("session-effective inventory is rechecked before the first model turn", asy
   await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /eight tools|exactly eight/i);
   const commands = (await fixture.readLog(fixture.openclawLog)).map((entry) => entry.command);
   assert.deepEqual(commands, ["version", "inspect", "inventory", "inventory"]);
+});
+
+test("credential-free inventory inspection retries one transient timeout before auth or inference", async (t) => {
+  const fixture = await createEnvironment(t, {
+    model: "openai/fake-model",
+    openclawScenario: "inventory_timeout_once",
+  });
+  fixture.dependencies.inventoryInspectionTimeoutMs = 500;
+  const result = await runBridge(fixture.options, fixture.dependencies);
+  assert.equal(result.exitCode, 2);
+  const observations = await fixture.readLog(fixture.openclawLog);
+  assert.deepEqual(observations.slice(0, 5).map((entry) => entry.command), [
+    "version",
+    "inspect",
+    "inventory",
+    "inventory",
+    "inventory",
+  ]);
+  assert.equal(observations[2].authPresent, false);
+  assert.equal(observations[3].authPresent, false);
+  assert.equal(observations[4].authPresent, true, JSON.stringify(observations.slice(0, 8)));
+});
+
+test("credential-free inventory inspection fails closed after the one bounded retry", async (t) => {
+  const fixture = await createEnvironment(t, {
+    model: "openai/fake-model",
+    openclawScenario: "inventory_timeout_always",
+  });
+  fixture.dependencies.inventoryInspectionTimeoutMs = 500;
+  await assert.rejects(
+    () => runBridge(fixture.options, fixture.dependencies),
+    /effective inventory inspection timed out/i,
+  );
+  const observations = await fixture.readLog(fixture.openclawLog);
+  assert.deepEqual(observations.map((entry) => entry.command), ["version", "inspect", "inventory", "inventory"]);
+  assert.equal(observations.some((entry) => entry.command === "agent"), false);
+  assert.equal(observations.some((entry) => entry.authPresent === true), false);
 });
 
 test("runtime provenance rejects a symlinked binary and version-mismatched provider plugin", async (t) => {

@@ -76,7 +76,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <span className={styles.modeStamp}>Source only</span>
+        <span className={styles.modeStamp}>Local first</span>
       </div>
     </header>
   );

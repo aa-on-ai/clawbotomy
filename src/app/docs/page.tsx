@@ -135,13 +135,13 @@ const currentSurfaces = [
   },
   {
     name: '/bench',
-    status: 'Legacy summary',
-    description: 'A maintainer-reported March 2026 summary without the raw case artifacts required for independent reproduction. It predates the evidence-bundle workflow.',
+    status: 'Public evidence + legacy summary',
+    description: 'Lists explicit public evidence exports with complete artifacts, alongside a clearly separated March 2026 legacy summary that lacks raw case records.',
   },
   {
     name: '/evidence/index.json',
-    status: 'Empty registry',
-    description: 'The public evidence index currently contains zero runs. Future entries must be explicit exports of complete live bundles and remain non-authorizing.',
+    status: 'Public evidence registry',
+    description: 'Indexes explicit exports of complete validated bundles. Every entry preserves its scope and remains non-authorizing.',
   },
   {
     name: '/routing',
@@ -165,7 +165,7 @@ export default function DocsPage() {
     <main className={`${styles.page} ${styles.pageWide} grid-bg`}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>Current release · Research preview</p>
+          <p className={styles.kicker}>Current release · Local-first workflow</p>
           <h1 className={styles.title}>Documentation</h1>
         </div>
         <p className={styles.lede}>
