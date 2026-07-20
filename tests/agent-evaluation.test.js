@@ -122,6 +122,7 @@ test('private viewer derives a passed receipt without returning raw event or sta
 
   assert.equal(receipt.status, 'passed');
   assert.equal(receipt.adapter, 'hermes');
+  assert.equal(receipt.modelLabel, 'openai-codex/gpt-5.6-sol');
   assert.equal(receipt.authorizationStatus, 'non-authorizing');
   assert.equal(receipt.cases[0].toolAttempts, 1);
   assert.deepEqual(receipt.cases[0].tools, ['searchMessages']);

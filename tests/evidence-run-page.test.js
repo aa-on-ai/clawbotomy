@@ -13,7 +13,8 @@ test('the human evidence route is static, validated, non-authorizing, and links 
   assert.match(source, /export const dynamicParams = false/);
   assert.match(source, /generateStaticParams\(\)/);
   assert.match(source, /loadPublicEvidenceIndex\(\)/);
-  assert.match(source, /loadPublicEvidenceRun\(params\.runId\)/);
+  assert.match(source, /const \{ runId \} = await params/);
+  assert.match(source, /loadPublicEvidenceRun\(runId\)/);
   assert.match(source, /notFound\(\)/);
   assert.match(source, /Useful proof\. Not comparison-grade\./);
   assert.match(source, /does not rank models, authorize tools, or support a routing decision/);

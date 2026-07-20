@@ -49,7 +49,7 @@ export default function HomePage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Configured-agent preview · Source only · Non-authorizing</p>
+              <p className={styles.eyebrow}>Configured-agent evidence · Browser local · Non-authorizing</p>
               <h1 id="home-title">Grant tools slowly.<br />Demand evidence first.</h1>
               <p className={styles.heroSummary}>
                 Define the powers an agent is asking for, connect OpenClaw or Hermes to a synthetic

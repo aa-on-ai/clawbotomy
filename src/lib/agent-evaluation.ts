@@ -193,6 +193,7 @@ export interface PrivateRunReceipt {
   adapterLabel: string;
   clientId: string;
   clientVersion: string;
+  modelLabel: string;
   status: Exclude<RunStatus, 'infrastructure_failure'>;
   totals: {
     scheduledCases: number;
@@ -627,6 +628,7 @@ export function parsePrivateInboxBundle({
     adapterLabel: adapterLabel(adapter, clientId),
     clientId,
     clientVersion,
+    modelLabel: attempt.modelLabel,
     status,
     totals,
     coreDigest: manifestDigest,
