@@ -42,7 +42,7 @@ const comparisons = [
   },
   {
     name: 'Clawbotomy',
-    examples: 'Current research preview',
+    examples: 'Configured-agent evaluation',
     measures: 'How one configured agent behaved against fixed synthetic tasks',
     misses: 'Behavior beyond the exact runtime, plan, and observed session',
   },

@@ -86,6 +86,8 @@ const OPENCLAW_HARD_TIMEOUT_MS = 105_000;
 const IPC_REQUEST_TIMEOUT_MS = 5_000;
 const IPC_RESPONSE_TIMEOUT_MS = 30_000;
 const RUNTIME_INSPECTION_TIMEOUT_MS = 30_000;
+const EFFECTIVE_INVENTORY_MAX_ATTEMPTS = 2;
+const EFFECTIVE_INVENTORY_TIMEOUT_MESSAGE = "OpenClaw effective inventory inspection timed out";
 const VERSION_PROBE_TIMEOUT_MS = 10_000;
 const PROCESS_EXIT_TIMEOUT_MS = 5_000;
 const HOST_EXIT_TIMEOUT_MS = 10_000;
@@ -1215,7 +1217,7 @@ function validateEffectiveInventory(document, { model, sessionKey, workspace }) 
   };
 }
 
-async function inspectEffectiveInventory({ caseState, model, openclawBin, sessionKey }) {
+async function inspectEffectiveInventoryOnce({ caseState, model, openclawBin, sessionKey, timeoutMs }) {
   const child = spawn(process.execPath, [openclawBin,
     EFFECTIVE_INVENTORY_COMMAND,
     "--agent", "clawbotomy-eval",
@@ -1232,7 +1234,7 @@ async function inspectEffectiveInventory({ caseState, model, openclawBin, sessio
   failure.promise.catch(() => undefined);
   const stdout = collectBounded(child.stdout, "OpenClaw effective inventory stdout", MAX_AGENT_OUTPUT_BYTES, failure, () => terminate(child));
   const stderr = collectBounded(child.stderr, "OpenClaw effective inventory stderr", MAX_DIAGNOSTIC_BYTES, failure, () => terminate(child));
-  const timeout = timeoutSignal(RUNTIME_INSPECTION_TIMEOUT_MS, "OpenClaw effective inventory inspection timed out", () => terminate(child));
+  const timeout = timeoutSignal(timeoutMs, EFFECTIVE_INVENTORY_TIMEOUT_MESSAGE, () => terminate(child));
   try {
     const outcome = await Promise.race([exit, failure.promise, timeout.promise]);
     if (outcome.code !== 0 || outcome.signal !== null) {
@@ -1248,6 +1250,35 @@ async function inspectEffectiveInventory({ caseState, model, openclawBin, sessio
     timeout.cancel();
     await settleChild(child, exit, "OpenClaw effective inventory process");
   }
+}
+
+async function inspectEffectiveInventory({
+  caseState,
+  model,
+  openclawBin,
+  sessionKey,
+  timeoutMs = RUNTIME_INSPECTION_TIMEOUT_MS,
+}) {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 10 || timeoutMs > RUNTIME_INSPECTION_TIMEOUT_MS) {
+    throw new Error("OpenClaw effective inventory timeout is invalid");
+  }
+  for (let attempt = 1; attempt <= EFFECTIVE_INVENTORY_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const inventory = await inspectEffectiveInventoryOnce({
+        caseState,
+        model,
+        openclawBin,
+        sessionKey,
+        timeoutMs,
+      });
+      return { ...inventory, inspectionAttempts: attempt };
+    } catch (error) {
+      if (error?.message !== EFFECTIVE_INVENTORY_TIMEOUT_MESSAGE || attempt === EFFECTIVE_INVENTORY_MAX_ATTEMPTS) {
+        throw error;
+      }
+    }
+  }
+  throw new Error(EFFECTIVE_INVENTORY_TIMEOUT_MESSAGE);
 }
 
 function targetIds(action) {
@@ -1375,6 +1406,8 @@ async function runBridge(options, dependencies = {}) {
     runtimeInspection: inspectionIdentity,
     freshStatePerCase: true,
     maxTurnsPerCase: MAX_TURNS_PER_CASE,
+    effectiveInventoryInspectionMaxAttempts: EFFECTIVE_INVENTORY_MAX_ATTEMPTS,
+    effectiveInventoryInspectionTimeoutMs: RUNTIME_INSPECTION_TIMEOUT_MS,
     openclawTimeoutSeconds: OPENCLAW_TIMEOUT_SECONDS,
     openclawHardTimeoutMs: OPENCLAW_HARD_TIMEOUT_MS,
     inferenceAuthMode: options.model.startsWith("openai/") ? "single-temporary-profile" : "local-marker",
@@ -1472,6 +1505,7 @@ async function runBridge(options, dependencies = {}) {
         model: options.model,
         openclawBin,
         sessionKey: openclawSessionKey,
+        timeoutMs: dependencies.inventoryInspectionTimeoutMs,
       });
       await attachInferenceAuth(caseState, {
         authSourceAgentDir: options.authSourceAgentDir,
@@ -1551,6 +1585,7 @@ async function runBridge(options, dependencies = {}) {
             model: options.model,
             openclawBin,
             sessionKey: openclawSessionKey,
+            timeoutMs: dependencies.inventoryInspectionTimeoutMs,
           }));
           const result = await runOpenClawTurn({
             caseState,

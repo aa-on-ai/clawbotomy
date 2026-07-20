@@ -77,7 +77,7 @@ export function AgentEvaluationWorkbench() {
   const comparisonState = comparableRuns.length < 2
     ? 'Load at least two launcher-bound bundles to compare case counts.'
     : planDigests.size === 1
-      ? 'Same plan digest. Case counts can be compared directly.'
+      ? 'Same frozen plan. Compare case counts while keeping adapter, model, and runtime version visible before attributing a delta.'
       : 'Different plan digests. Keep the rows separate; direct case deltas would be misleading.';
   const recommendations = useMemo(
     () => selectedBundle ? deriveEvidenceRecommendations(selectedBundle) : [],
@@ -342,12 +342,12 @@ export function AgentEvaluationWorkbench() {
               <p>No private runs loaded</p>
               <h3>The browser holds nothing until you choose the files.</h3>
               <p>
-                Use the fixed launcher and validator in your terminal first. This viewer requires the
-                launcher receipt that binds a replay-validated bundle, then derives an allowlisted display model;
-                it does not perform cryptographic or semantic validation itself.
+                Genuine private evidence starts with the fixed launcher and validator in your terminal.
+                This viewer requires the launcher receipt that binds a replay-validated bundle, then
+                derives an allowlisted display model; it does not validate the bundle itself.
               </p>
               <a className={styles.exampleLink} href="#act-on-findings">
-                Review a sanitized verified example
+                Review a sanitized genuine example
               </a>
               <pre tabIndex={0}><code>{VALIDATE_COMMAND}</code></pre>
             </div>
@@ -386,7 +386,7 @@ export function AgentEvaluationWorkbench() {
                 <article className={styles.runViewer}>
                   <header className={styles.runHeader}>
                     <div>
-                      <p>{selectedRun.clientId}</p>
+                      <p>{selectedRun.clientId}{selectedRun.source === 'private_bundle' ? ` · ${selectedRun.modelLabel}` : ''}</p>
                       <h3>{runLabel(selectedRun)}</h3>
                     </div>
                     <div className={styles.runHeaderActions}>
@@ -576,6 +576,8 @@ export function AgentEvaluationWorkbench() {
                 <thead>
                   <tr>
                     <th scope="col">Run</th>
+                    <th scope="col">Model</th>
+                    <th scope="col">Runtime</th>
                     <th scope="col">Status</th>
                     <th scope="col">Process</th>
                     <th scope="col">Cases</th>
@@ -592,6 +594,8 @@ export function AgentEvaluationWorkbench() {
                         <strong>{run.adapterLabel}</strong>
                         <code>{runLabel(run)}</code>
                       </th>
+                      <td data-label="Model">{run.modelLabel}</td>
+                      <td data-label="Runtime">{run.source === 'private_bundle' ? run.clientVersion : 'Not bound'}</td>
                       <td data-label="Status">
                         <span data-status={run.status}>
                           <i className={styles.statusSignal} aria-hidden="true" />
@@ -697,7 +701,7 @@ export function AgentEvaluationWorkbench() {
                   <p>{SANITIZED_HERMES_CASE_STUDY.label}</p>
                   <span>{SANITIZED_HERMES_CASE_STUDY.adapter} · {SANITIZED_HERMES_CASE_STUDY.measuredAt}</span>
                 </div>
-                <strong>Not loaded evidence</strong>
+                <strong>Sanitized genuine example · Not loaded evidence</strong>
               </header>
               <div className={styles.caseStudyDecision}>
                 <p>{SANITIZED_HERMES_CASE_STUDY.decision}</p>
@@ -718,7 +722,7 @@ export function AgentEvaluationWorkbench() {
               </div>
               <ol className={styles.caseStudySteps}>
                 <li><span>01</span><p>Load the replay-bound private bundle to see which allowlisted assertions failed.</p></li>
-                <li><span>02</span><p>Apply one guardrail against the highest-impact recommendation.</p></li>
+                <li><span>02</span><p>Apply one guardrail against the review-first recommendation.</p></li>
                 <li><span>03</span><p>Rerun the same frozen plan and compare the new evidence, not the narrative.</p></li>
               </ol>
               <footer>{SANITIZED_HERMES_CASE_STUDY.boundary}</footer>

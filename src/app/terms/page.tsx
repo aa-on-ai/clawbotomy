@@ -9,7 +9,7 @@ export default function TermsPage() {
     <main className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>Source software · Research preview</p>
+          <p className={styles.kicker}>Open-source software · Non-authorizing</p>
           <h1 className={styles.title}>Terms of Use</h1>
         </div>
         <p className={styles.lede}>
@@ -21,7 +21,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">What This Is</h2>
           <p className="text-content-secondary leading-relaxed">
-            Clawbotomy is an open-source research preview for browser-local Inbox planning, model-level
+            Clawbotomy is open-source software for browser-local Inbox planning, model-level
             behavioral tests, example trust reports, and example routing policies. The Inbox planner records
             operator intent but runs no agent and makes no permission decision. Clawbotomy does not currently
             provide hosted agent registration, hosted assessments, or production certification.
@@ -33,7 +33,7 @@ export default function TermsPage() {
           <ul className="text-content-secondary space-y-2 list-disc list-inside">
             <li>The public site displays maintainer-published benchmark data and Lab artifacts</li>
             <li>The Inbox planner runs in your browser and does not upload, persist, or transmit its form data</li>
-            <li>The site does not accept assessment uploads or create user or agent accounts</li>
+            <li>Selected private evidence is parsed in the browser and is not uploaded; the site creates no user or agent accounts</li>
             <li>Local benchmark requests go directly from your machine to the providers you configure</li>
             <li>Local results remain on your machine unless you choose to share them</li>
             <li>Never paste provider API keys, personal data, or confidential prompts into the public site</li>
