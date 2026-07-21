@@ -149,7 +149,9 @@ test('the public API exposes registry status without promoting synthetic or lega
 
   assert.match(route, /latestRunId/);
   assert.match(route, /publishedRuns/);
-  assert.match(route, /No public evidence run has been published/);
+  assert.match(route, /schemaVersion: '3\.0\.0'/);
+  assert.match(route, /authorizationStatus: 'non-authorizing'/);
+  assert.doesNotMatch(route, /benchData|legacySummary/);
   assert.match(runRoute, /non-authorizing/);
   assert.match(caseRoute, /untrusted model output and judge data/);
   assert.match(loader, /safeRunId = \/\^run-/);

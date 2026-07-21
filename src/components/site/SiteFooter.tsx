@@ -7,12 +7,12 @@ export function SiteFooter() {
     <footer className={styles.footer} aria-label="Site footer">
       <div className={styles.footerInner}>
         <div className={styles.footerStatement}>
-          <span>Clawbotomy · Open-source evidence lab</span>
-          <strong>Evidence before access.</strong>
+          <span>Clawbotomy · Local-first agent evaluation</span>
+          <strong>Plan. Evaluate. Review evidence.</strong>
         </div>
         <div className={styles.footerMeta}>
           <p>
-            Local agent evaluation, private evidence inspection, and non-authorizing routing examples.
+            Local-first execution, browser-local review, and bounded public evidence.
           </p>
           <nav aria-label="Footer navigation">
             <a
@@ -23,6 +23,7 @@ export function SiteFooter() {
             >
               Source ↗
             </a>
+            <Link href="/preflight">Plan</Link>
             <Link href="/evaluate">Evaluate</Link>
             <Link href="/bench">Evidence</Link>
             <Link href="/about">About</Link>

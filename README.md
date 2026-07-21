@@ -1,26 +1,24 @@
 # Clawbotomy
 
-Behavioral research tooling for comparing model responses under pressure. Probe behavior, preserve the evidence, and make routing decisions cautiously.
+Plan requested agent powers, evaluate an exact OpenClaw or Hermes runtime in a synthetic Inbox, and review bounded evidence locally.
 
 **Site:** [clawbotomy.com](https://www.clawbotomy.com)
 
 ## What exists today
 
 - **Inbox preflight planner:** `/preflight` creates a browser-local, versioned plan from operator-declared Inbox capabilities and intended boundaries. The planner itself runs no agent and makes no permission decision.
-- **Connect and evaluate workspace:** `/evaluate` provides exact OpenClaw and Hermes launch paths, explains process status, requires a launcher-issued receipt bound to every displayed bundle, derives a closed-contract view entirely in the browser, and compares runs without uploading evidence.
-- **Configured-agent bridges:** `integrations/openclaw/` and `integrations/hermes-agent/` run the real agent runtime as the parent of Clawbotomy’s fixed synthetic-Inbox protocol. Both expose exactly eight project-owned mock tools and fail closed on runtime or protocol drift.
+- **Evaluate workspace:** `/evaluate` provides exact OpenClaw and Hermes launch paths, explains process status, requires a launcher-issued receipt bound to every displayed bundle, derives a closed-contract view entirely in the browser, and compares runs without uploading evidence.
+- **Fixed runtime bridges:** `integrations/openclaw/` and `integrations/hermes-agent/` run the selected runtime as the parent of Clawbotomy’s fixed synthetic-Inbox protocol. Both expose exactly eight project-owned mock tools and fail closed on runtime or protocol drift.
 - **Private attempt receipts:** `npm run agent:evaluate` launches only one of those two checked-in bridges and writes a closed, mode-`0600` attempt receipt under `.clawbotomy/evaluation-attempts/`; arbitrary stderr remains terminal-only and only fixed diagnostic category codes persist.
 - **Deterministic Inbox runner:** `npm run inbox` consumes that plan, runs every required case against either a bundled reference control or the checked-in `declarative-policy/v1` adapter, and writes replayable tool, result, state-diff, assertion, and integrity evidence against a fresh synthetic mailbox. It never connects to a real Inbox or resolves the plan's configuration reference.
 - **Fixed Inbox agent-host protocol:** an operator-owned agent host can launch the checked-in `stdio-jsonl/v1` child process and drive the same synthetic tools through strict JSONL without giving Clawbotomy a module, command, URL, provider, credential, or mailbox connector.
 - **Evidence runner:** a local Node.js benchmark with a frozen preflight plan, digest-confirmed live execution, explicit request and estimated-cost ceilings, private evidence bundles, offline validation, and a separate public-export command.
-- **Public evidence registry:** [`public/evidence/index.json`](public/evidence/index.json) is currently empty. No reproducible public run has been exported yet.
-- **Legacy benchmark page:** `/bench` displays a maintainer-reported March 2026 summary. It predates the evidence-bundle workflow and has no raw case artifacts for independent reproduction.
-- **Routing explorer:** a public example built from one maintainer-reported dated profile and explicitly provisional profiles.
-- **Lab:** a public collection of pre-generated creative model experiments.
+- **Public evidence registry:** [`public/evidence/index.json`](public/evidence/index.json) contains three complete, maintainer-self-reported, non-authorizing exports with frozen plans, case records, summaries, and integrity metadata.
+- **Public evidence review:** `/bench` exposes human-readable run pages and one comparison bounded to an exactly compatible protocol.
 
-The source benchmark is a research preview. It is not a hosted assessment API, an npm CLI, a security certification, or authorization to grant a model or agent tool access. No run publishes itself.
+Clawbotomy is a research preview. It is not a hosted assessment API, an npm CLI, a security certification, or authorization to grant a model or agent tool access. No run publishes itself.
 
-The local configured-agent boundary trusts the operator, same-UID filesystem, selected interpreters, Git binary, installed dependencies, and canonical runtime checkout owner. It does not trust model output, tool choices, protocol frames, message content, or unvalidated evidence claims. See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md).
+The local runtime boundary trusts the operator, same-UID filesystem, selected interpreters, Git binary, installed dependencies, and canonical runtime checkout owner. It does not trust model output, tool choices, protocol frames, message content, or unvalidated evidence claims. See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md).
 
 ## Run an Inbox reference check
 
@@ -42,7 +40,7 @@ npm run inbox -- summarize .clawbotomy/inbox-runs/inbox-...
 
 The bundle contains `manifest.json`, `cases.jsonl`, `summary.json`, and `integrity.json`. Validation re-runs the same fixture, selected execution subject, tools, and evaluator and requires an exact semantic match; rewriting outer file hashes cannot make changed evidence valid.
 
-Use `--agent overreach` as a negative control. It deliberately expands scope, follows injected instructions, acts after stop, duplicates retries, overstates completion, exceeds bulk limits, and permanently deletes the recovery fixture. Exit code `2` means the evidence is valid but contains failed cases. Both profiles are built-in controls—not adapters for your deployed agent—and every result remains non-authorizing with `permissionDecision: null`.
+Use `--agent overreach` as a negative control. It deliberately expands scope, follows injected instructions, acts after stop, duplicates retries, overstates completion, exceeds bulk limits, and permanently deletes the recovery fixture. Exit code `2` means the evidence is valid but contains failed cases. Both profiles are built-in controls—not evidence about the selected OpenClaw or Hermes runtime—and every result remains non-authorizing with `permissionDecision: null`.
 
 ## Run a declarative Inbox policy check
 
@@ -254,7 +252,7 @@ Replace the example model IDs with IDs exposed by your endpoint. Local models ha
 - The runner does not execute generated code. Code-generation scores currently depend on the selected model judge.
 - Some categories use deterministic rubrics; others depend on an LLM judge and inherit that judge's variance and bias.
 - Model-judged cases embed the untrusted target response in the judge prompt. Prompt injection or reward gaming can distort the score; review raw responses and judge rationales.
-- One run is useful for a smoke test, not a stable routing decision. Use repeated runs and inspect variance.
+- One run is useful for a smoke test, not a stable comparison. Use repeated runs and inspect variance.
 - A valid digest proves the bundle's recorded files have not changed; it does not prove the methodology is correct or the model is safe.
 - No benchmark score or evidence bundle authorizes tool access, write access, deployment, or autonomous operation. Keep human approval and platform controls around consequential actions.
 

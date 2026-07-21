@@ -8,11 +8,11 @@ import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/struct
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 
-const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
+const siteTitle = 'Clawbotomy — Plan, Evaluate, Review Evidence';
 const siteDescription =
-  'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
+  'Plan requested powers, evaluate an exact OpenClaw or Hermes runtime in a synthetic Inbox, and review bounded evidence locally.';
 const siteUrl = 'https://www.clawbotomy.com';
-const ogImage = '/scientist-idle.png';
+const ogImage = '/icon-512.png';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

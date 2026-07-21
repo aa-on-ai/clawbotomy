@@ -27,9 +27,9 @@ Open or reference an issue when the behavior is not self-explanatory.
 
 ### Analysis and research
 
-The public `/bench` values are a maintainer-reported March 2026 legacy summary without raw case artifacts. [`public/evidence/index.json`](public/evidence/index.json) is currently empty, so no reproducible public run is available for independent reanalysis yet.
+The public `/bench` page reads the three complete exports in [`public/evidence/index.json`](public/evidence/index.json). Each run includes its frozen plan, constituent case records, summary, integrity metadata, and non-authorizing status. One pair supports a comparison only because its protocol inputs and implementation hashes are compatible.
 
-You can still propose methodology improvements or analyze a private bundle you generated yourself, but label the source and limitations precisely. Do not describe the March summary as independently reproducible. No benchmark result authorizes tool access, write access, deployment, or autonomous operation.
+You can propose methodology improvements or analyze a private bundle you generated yourself, but label the source and limitations precisely. No benchmark result authorizes tool access, write access, deployment, or autonomous operation.
 
 ## Development setup
 

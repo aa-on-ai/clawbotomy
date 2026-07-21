@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 
 import { benchCorsHeaders, benchResponseHeaders } from '@/lib/bench-api';
-import { benchData } from '@/lib/bench-data';
 import { loadPublicEvidenceIndex } from '@/lib/public-evidence.server';
 
 export function OPTIONS() {
@@ -13,25 +12,39 @@ export function OPTIONS() {
 
 export function GET() {
   const index = loadPublicEvidenceIndex();
-  const latest = index.runs.slice().sort((a, b) => b.completedAt.localeCompare(a.completedAt))[0] || null;
+  const publishedRuns = index.runs
+    .slice()
+    .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const latest = publishedRuns[0] || null;
+
   return NextResponse.json({
-    ...benchData,
-    schemaVersion: '2.0.0',
+    schemaVersion: '3.0.0',
+    registrySchemaId: index.schemaId,
+    publishedRunCount: publishedRuns.length,
     latestRunId: latest?.runId || null,
     publishedRuns: index.runs,
     evidenceRegistry: {
-      status: index.runs.length > 0 ? 'published-runs-available' : 'empty',
-      warning: index.runs.length > 0
-        ? 'Each run is maintainer-reported and non-authorizing; inspect its manifest and cases.'
-        : 'No public evidence run has been published. The March summary remains legacy and has no raw case artifacts.',
+      status: 'published-runs-available',
+      warning: 'Each run is maintainer-self-reported, bounded to its exact plan and records, and non-authorizing.',
       links: {
         index: '/evidence/index.json',
         schemas: '/evidence/schema/',
+        bench: '/bench',
+        latestRun: latest ? `/bench/runs/${latest.runId}` : null,
         runApiTemplate: '/api/bench/runs/{runId}',
         caseApiTemplate: '/api/bench/runs/{runId}/cases/{recordId}',
       },
     },
-    legacySummary: benchData,
+    limits: {
+      scope: 'Exact published run, plan, cases, scorer, endpoint identity, and observed session only.',
+      authorizationStatus: 'non-authorizing',
+      unsupportedClaims: [
+        'universal model quality',
+        'production agent behavior',
+        'security or safety certification',
+        'permission, deployment, or autonomous-operation approval',
+      ],
+    },
   }, {
     headers: benchResponseHeaders(),
   });

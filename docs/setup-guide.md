@@ -12,13 +12,11 @@ The evidence workflow has five distinct boundaries:
 
 No stage grants tool access. No live run auto-publishes, and no export command deploys, commits, or pushes anything.
 
-Configured-agent evaluation uses the separate practical local boundary in [ADR 0001](adr/0001-practical-local-trust-boundary.md). It trusts the operator and local runtime environment while treating the model, tool choices, protocol frames, and evidence claims as untrusted.
+Exact-runtime evaluation uses the practical local boundary in [ADR 0001](adr/0001-practical-local-trust-boundary.md). It trusts the operator and local runtime environment while treating the model, tool choices, protocol frames, and evidence claims as untrusted.
 
 ## Current public evidence state
 
-[`public/evidence/index.json`](../public/evidence/index.json) is currently empty. No reproducible public run has been exported.
-
-The values on `/bench` are a maintainer-reported March 2026 legacy summary. They predate the current evidence-bundle workflow and do not include raw case artifacts needed for independent reproduction. They remain visible for historical context, not as authorization for routing, tools, write access, or autonomous operation.
+[`public/evidence/index.json`](../public/evidence/index.json) contains three complete public exports. Every entry is maintainer-self-reported and non-authorizing, with a frozen plan, constituent case records, summary, integrity metadata, and stable run links. `/bench` presents those current artifacts and one comparison bounded to an exactly compatible protocol.
 
 ## Prerequisites
 
@@ -187,7 +185,7 @@ node bench/index.js \
   --dry-run
 ```
 
-Dry-run responses and scores are synthetic. They are not measurement evidence, must not be exported, and must not inform routing or permissions.
+Dry-run responses and scores are synthetic. They are not measurement evidence, must not be exported, and must not inform a production or permission decision.
 
 ## 3. Configure hosted-provider keys
 

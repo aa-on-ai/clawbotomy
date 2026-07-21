@@ -44,6 +44,6 @@ test('registry and homepage point people to the human run page without stale emp
   assert.match(bench, /href=\{`\/bench\/runs\/\$\{run\.runId\}`\}/);
   assert.doesNotMatch(bench, /href=\{`\/api\/bench\/runs\/\$\{run\.runId\}`\}>Inspect run/);
   assert.match(home, /href=\{`\/bench\/runs\/\$\{latestRun\.runId\}`\}/);
-  assert.match(home, /registry contains measured public bundles/);
+  assert.match(home, /three complete public evidence exports/i);
   assert.doesNotMatch(home, /registry is currently empty/);
 });

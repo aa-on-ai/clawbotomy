@@ -20,7 +20,8 @@ test('public docs do not advertise an unpublished npm package or hosted assessme
     read('docs/setup-guide.md'),
     read('public/skill.md'),
     read('src/app/docs/page.tsx'),
-    read('src/app/trust/page.tsx'),
+    read('src/app/about/page.tsx'),
+    read('src/app/terms/page.tsx'),
   ]);
   const publicContract = files.join('\n');
 
@@ -61,10 +62,9 @@ test('every documented benchmark command selects a safe execution mode', async (
   }
 });
 
-test('historical product briefs are explicitly marked superseded', async () => {
+test('historical product briefs are absent from the current tree', async () => {
   for (const file of ['BUILD-PROMPT.md', 'BUILD-PROMPT-V2.md', 'BUILD-PROMPT-V3.md', 'DESIGN-DIRECTION.md']) {
-    const content = await read(file);
-    assert.match(content.slice(0, 500), /Superseded historical design brief/, file);
+    await assert.rejects(read(file), { code: 'ENOENT' }, file);
   }
 });
 
@@ -99,10 +99,15 @@ test('crawl and agent discovery files state evidence limits', async () => {
   const robots = await read('src/app/robots.ts');
   const sitemap = await read('src/app/sitemap.ts');
 
-  assert.match(llms, /Provisional/);
-  assert.match(llms, /not universal model grades or safety certifications/);
+  assert.match(llms, /three complete, maintainer-self-reported, non-authorizing runs/);
+  assert.match(llms, /not universal model grades/);
+  assert.match(llms, /not .*safety certification/s);
   assert.match(robots, /sitemap\.xml/);
-  assert.match(sitemap, /LAB_SUBSTANCES/);
+  assert.match(sitemap, /'\/preflight'/);
+  assert.match(sitemap, /'\/evaluate'/);
+  assert.match(sitemap, /'\/bench'/);
+  assert.match(sitemap, /\/bench\/runs\//);
+  assert.doesNotMatch(sitemap, /LAB_SUBSTANCES/);
 });
 
 test('service worker avoids stale API and evidence artifacts', async () => {

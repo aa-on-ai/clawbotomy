@@ -1,16 +1,16 @@
 ---
 name: clawbotomy
 version: 0.1.0
-description: Run Clawbotomy's research-preview model benchmark and deterministic mock-Inbox policy checks from a trusted local source checkout.
+description: Plan requested powers, evaluate an exact OpenClaw or Hermes runtime in a synthetic Inbox, and review bounded evidence from a trusted local source checkout.
 homepage: https://www.clawbotomy.com
 metadata: {"emoji":"🧠✂️","category":"qa","repository":"https://github.com/aa-on-ai/clawbotomy","execution":"local-source"}
 ---
 
 # Clawbotomy
 
-Clawbotomy is research-preview tooling for comparing foundation-model responses across behavioral task categories. Its current evidence workflow freezes a preflight plan, requires separate digest and spend confirmation for live execution, writes a private integrity-checked bundle, validates offline, and exports a separate public artifact only on explicit request.
+Clawbotomy is a research-preview workflow for planning requested powers, evaluating an exact OpenClaw or Hermes runtime in a synthetic Inbox, and reviewing bounded evidence. The optional model-endpoint runner freezes a preflight plan, requires separate digest and spend confirmation for live execution, writes a private integrity-checked bundle, validates offline, and exports a separate public artifact only on explicit request.
 
-The public `/preflight` page also creates a browser-local Inbox planning artifact from operator-declared capabilities and intended boundaries. The local `npm run inbox` command consumes that artifact and produces deterministic mock tool and state evidence for bundled controls and the fixed protocol. The accepted OpenClaw and Hermes bridges use that protocol to measure one configured agent session. They do not connect Clawbotomy to a real mailbox or create a permission decision.
+The public `/preflight` page creates a browser-local Inbox planning artifact from operator-declared capabilities and intended boundaries. The local `npm run inbox` command consumes that artifact and produces deterministic mock tool and state evidence for bundled controls and the fixed protocol. The accepted OpenClaw and Hermes bridges use that protocol to observe one exact runtime session. They do not connect Clawbotomy to a real mailbox or create a permission decision.
 
 The `/evaluate` page provides copyable fixed-launcher commands and derives a closed-contract private receipt view from one launcher-issued attempt receipt plus its bound bundle files, entirely in the browser. It does not upload or render raw private bundle payloads.
 
@@ -18,9 +18,9 @@ Clawbotomy does not provide a hosted registration flow, hosted assessment endpoi
 
 ## Current evidence state
 
-- `public/evidence/index.json` is currently empty. No reproducible public run has been exported.
-- The March 2026 values on `/bench` are a maintainer-reported legacy summary without raw case artifacts for independent reproduction.
-- No benchmark score, bundle, routing example, or exported record authorizes tool access, write access, deployment, or autonomous operation.
+- `public/evidence/index.json` contains three complete public exports with frozen plans, case records, summaries, and integrity metadata.
+- Every public run is maintainer-self-reported, scoped to its exact protocol, and non-authorizing.
+- No benchmark score, bundle, comparison, or exported record authorizes tool access, write access, deployment, or autonomous operation.
 - No run auto-publishes.
 
 ## Safety contract
@@ -36,7 +36,7 @@ Clawbotomy does not provide a hosted registration flow, hosted assessment endpoi
 - Validate and inspect the private bundle offline before summarizing it.
 - Treat public export as a second, explicit mutation requiring its own user authorization and the exact private bundle digest.
 - For an Inbox adapter run, accept only `--adapter declarative-policy/v1 --adapter-config <json>`. Never translate an adapter config into a module path, package, command, URL, provider call, or mailbox connection.
-- For a configured-agent run, use `npm run agent:evaluate` with exactly `--adapter openclaw` or `--adapter hermes`. The launcher has no arbitrary command, module, package, URL, endpoint, or provider option.
+- For an exact-runtime run, use `npm run agent:evaluate` with exactly `--adapter openclaw` or `--adapter hermes`. The launcher has no arbitrary command, module, package, URL, endpoint, or provider option.
 - Interpret exit `0` as passed and exit `2` as a complete run with findings. Exit `1` always remains a process anomaly; only a unique new bundle that independently validates and deterministically replays may retain its measured status. Never turn a missing, ambiguous, or incomplete bundle into a score.
 - Never commit, push, deploy, or change real agent permissions unless the user separately requests that action.
 

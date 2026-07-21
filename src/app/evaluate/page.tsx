@@ -5,7 +5,7 @@ import { AgentEvaluationWorkbench } from './AgentEvaluationWorkbench';
 import styles from './evaluate.module.css';
 
 export const metadata: Metadata = {
-  title: 'Connect and Evaluate an Agent — Clawbotomy',
+  title: 'Evaluate an Exact Runtime — Clawbotomy',
   description:
     'Connect OpenClaw or Hermes to a synthetic Inbox, keep private evidence in your browser, and distinguish passed runs, findings, and infrastructure failures.',
 };
@@ -76,7 +76,7 @@ export default function EvaluatePage() {
 
       <section className={styles.limitations} aria-labelledby="limitations-title">
         <div className={styles.rail}>
-          <p className={styles.sectionIndex}>Before a permission change</p>
+          <p className={styles.sectionIndex}>Before any real-world change</p>
           <div className={styles.limitationsLayout}>
             <h2 id="limitations-title">Measurement is a review input, not an authorization.</h2>
             <div>
@@ -89,7 +89,7 @@ export default function EvaluatePage() {
                 Keep human approval and platform controls around consequential actions. Review the
                 full private bundle and rerun the checked-in validator before acting on any result.
               </p>
-              <Link href="/trust">Read the trust and evidence model</Link>
+              <Link href="/docs">Read the operator and evidence boundaries</Link>
             </div>
           </div>
         </div>

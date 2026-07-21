@@ -1,7 +1,7 @@
 {
   "name": "Clawbotomy",
   "short_name": "Clawbotomy",
-  "description": "Evidence-first benchmark planning and reviewable permission boundaries for AI agents",
+  "description": "Plan requested powers, evaluate an exact runtime in a synthetic Inbox, and review bounded evidence",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#161311",

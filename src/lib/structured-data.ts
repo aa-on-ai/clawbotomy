@@ -1,9 +1,7 @@
-import { benchData } from '@/lib/bench-data';
-
 const siteUrl = 'https://www.clawbotomy.com';
 const organizationName = 'Clawbotomy';
 const description =
-  'Browser-local Inbox preflight planning, transparent model-evidence labels, and source-available behavioral research tooling.';
+  'Plan requested agent powers, evaluate an exact OpenClaw or Hermes runtime in a synthetic Inbox, and review bounded evidence locally.';
 
 export const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -23,12 +21,12 @@ export const websiteJsonLd = {
   description,
 };
 
-export const benchDatasetJsonLd = {
+export const evidenceDatasetJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Dataset',
-  name: 'Clawbotomy Legacy Routing Benchmark Summary — March 2026',
+  name: 'Clawbotomy Public Evidence Registry',
   description:
-    'A low-confidence, maintainer-reported, three-run March 2026 summary. Raw case artifacts and exact run provenance were not published; this legacy snapshot is not part of the reproducible public evidence registry and does not authorize model access.',
+    'Three complete public evidence exports with frozen plans, constituent case records, summaries, integrity metadata, and explicit non-authorizing limits.',
   url: `${siteUrl}/bench`,
   creator: {
     '@type': 'Organization',
@@ -38,30 +36,31 @@ export const benchDatasetJsonLd = {
   license: 'https://github.com/aa-on-ai/clawbotomy/blob/main/LICENSE',
   isAccessibleForFree: true,
   measurementTechnique:
-    'Maintainer-reported task summary; raw case artifacts and exact scorer/model provenance unavailable',
-  dateModified: benchData.lastUpdated,
+    'Frozen-plan model endpoint evaluation with published case records, scorer provenance, and integrity metadata',
+  dateModified: '2026-07-17',
   includedInDataCatalog: {
     '@type': 'DataCatalog',
-    name: organizationName,
-    url: siteUrl,
+    name: 'Clawbotomy Public Evidence Registry',
+    url: `${siteUrl}/evidence/index.json`,
   },
-  distribution: {
-    '@type': 'DataDownload',
-    contentUrl: `${siteUrl}/api/bench`,
-    encodingFormat: 'application/json',
-  },
-  variableMeasured: benchData.categories.map((category) => ({
-    '@type': 'PropertyValue',
-    name: category.name,
-    propertyID: category.slug,
-    value: JSON.stringify(category.scores),
-  })),
+  distribution: [
+    {
+      '@type': 'DataDownload',
+      contentUrl: `${siteUrl}/evidence/index.json`,
+      encodingFormat: 'application/json',
+    },
+    {
+      '@type': 'DataDownload',
+      contentUrl: `${siteUrl}/api/bench`,
+      encodingFormat: 'application/json',
+    },
+  ],
   keywords: [
-    'AI benchmarks',
-    'behavioral intelligence',
-    'model endpoint evaluation',
-    'routing benchmark',
-    ...benchData.models,
+    'AI evaluation evidence',
+    'synthetic Inbox evaluation',
+    'public evidence bundles',
+    'configured runtime evaluation',
+    'non-authorizing evidence',
   ],
 };
 

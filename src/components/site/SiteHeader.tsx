@@ -7,12 +7,11 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './site-chrome.module.css';
 
 const links = [
+  { href: '/preflight', label: 'Plan' },
   { href: '/evaluate', label: 'Evaluate' },
   { href: '/bench', label: 'Evidence' },
-  { href: '/trust', label: 'Trust' },
-  { href: '/routing', label: 'Routing' },
-  { href: '/lab', label: 'Lab' },
   { href: '/docs', label: 'Docs' },
+  { href: '/about', label: 'About' },
 ];
 
 export function SiteHeader() {
@@ -41,7 +40,7 @@ export function SiteHeader() {
       <div className={styles.headerInner}>
         <Link href="/" className={styles.brand} aria-label="Clawbotomy home">
           <span className={styles.brandName}>Clawbotomy</span>
-          <span className={styles.brandMode}>Evidence lab</span>
+          <span className={styles.brandMode}>Agent evidence</span>
         </Link>
 
         <button

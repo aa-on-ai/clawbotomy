@@ -3,6 +3,25 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/bench/**': ['./bench/prompts/**/*'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/lab/shuffle',
+        destination: 'https://aftercare.clawbotomy.com/shuffle',
+        permanent: true,
+      },
+      {
+        source: '/lab',
+        destination: 'https://aftercare.clawbotomy.com',
+        permanent: true,
+      },
+      {
+        source: '/lab/:slug*',
+        destination: 'https://aftercare.clawbotomy.com/:slug*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [{
       source: '/:path*',
