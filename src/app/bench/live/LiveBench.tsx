@@ -70,6 +70,9 @@ export function LiveBench({ source, trajectory }: LiveBenchProps) {
   const pathData = useMemo(() => visibleTrajectory.map((point, index) => (
     `${index === 0 ? 'M' : 'L'} ${point.grounding} ${100 - point.selfDirection}`
   )).join(' '), [visibleTrajectory]);
+  const fullPathData = useMemo(() => trajectory.map((point, index) => (
+    `${index === 0 ? 'M' : 'L'} ${point.grounding} ${100 - point.selfDirection}`
+  )).join(' '), [trajectory]);
 
   const runReplay = () => {
     if (visibleCount >= trajectory.length) {
@@ -102,6 +105,9 @@ export function LiveBench({ source, trajectory }: LiveBenchProps) {
           <div>
             <p className={styles.eyebrow}>Behavioral posture · deterministic replay</p>
             <h1>Helpfulness,<br /><em>under load.</em></h1>
+            <a className={styles.heroAction} href="#replay-controls">
+              Open the replay <span aria-hidden="true">↓</span>
+            </a>
           </div>
           <div className={styles.premise}>
             <p>Observe how helpfulness turns into unilateral momentum under pressure.</p>
@@ -132,7 +138,7 @@ export function LiveBench({ source, trajectory }: LiveBenchProps) {
           </p>
         </div>
 
-        <div className={styles.controlBar} aria-label="Replay controls">
+        <div id="replay-controls" className={styles.controlBar} aria-label="Replay controls">
           <div className={styles.transportControls}>
             {running ? (
               <button type="button" onClick={pauseReplay}>Pause</button>
@@ -150,6 +156,10 @@ export function LiveBench({ source, trajectory }: LiveBenchProps) {
 
         <div className={styles.workspace}>
           <div className={styles.mapColumn}>
+            <div className={styles.replayCue}>
+              <span>14 observed moments</span>
+              <strong>Press Run. Watch the agent cross the boundary.</strong>
+            </div>
             <div className={styles.mapHeader}>
               <div>
                 <span>Observed posture map</span>
@@ -170,9 +180,22 @@ export function LiveBench({ source, trajectory }: LiveBenchProps) {
               <div className={styles.plotArea}>
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                   <path className={styles.gridLine} d="M 50 0 V 100 M 0 50 H 100" />
+                  <path className={styles.trajectoryPreview} d={fullPathData} />
                   <path className={styles.trajectoryShadow} d={pathData} />
                   <path className={styles.trajectoryLine} d={pathData} />
                 </svg>
+                {trajectory.map((point, index) => (
+                  <span
+                    key={`preview-${point.sequence}`}
+                    className={styles.futurePoint}
+                    data-revealed={index < visibleCount}
+                    style={{
+                      '--point-x': `${point.grounding}%`,
+                      '--point-y': `${100 - point.selfDirection}%`,
+                    } as CSSProperties}
+                    aria-hidden="true"
+                  />
+                ))}
                 {visibleTrajectory.map((point, index) => (
                   <button
                     key={point.sequence}
@@ -193,12 +216,15 @@ export function LiveBench({ source, trajectory }: LiveBenchProps) {
               </div>
             </div>
 
-            <div className={styles.sourceStrip}>
-              <span>REFERENCE / {source.referenceAgentId}</span>
-              <span>PLAN / {source.planDigest.slice(0, 8)}</span>
-              <span>CORE / {source.coreDigest.slice(0, 8)}</span>
-              <span>{source.caseCount} CASES / {source.networkRequests} NETWORK</span>
-            </div>
+            <details className={styles.sourceDetails}>
+              <summary>Reference provenance</summary>
+              <div className={styles.sourceStrip}>
+                <span>REFERENCE / {source.referenceAgentId}</span>
+                <span>PLAN / {source.planDigest.slice(0, 8)}</span>
+                <span>CORE / {source.coreDigest.slice(0, 8)}</span>
+                <span>{source.caseCount} CASES / {source.networkRequests} NETWORK</span>
+              </div>
+            </details>
           </div>
 
           <aside className={styles.eventRail} aria-labelledby="event-rail-title">
