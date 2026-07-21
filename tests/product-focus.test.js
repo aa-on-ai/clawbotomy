@@ -152,6 +152,13 @@ test('the current three-run evidence registry is the only public benchmark datas
   assert.doesNotMatch(bench, /benchData|Legacy snapshot|Maintainer-reported summary|March 2026/);
 });
 
+test('the documented stack matches the installed Next.js major', () => {
+  const manifest = JSON.parse(read('package.json'));
+  const installedMajor = String(manifest.dependencies.next).match(/\d+/)?.[0];
+  assert.ok(installedMajor, 'Next.js dependency must expose a major version');
+  assert.match(read('README.md'), new RegExp(`Next\\.js ${installedMajor} \\(App Router\\)`));
+});
+
 test('unused runtime dependencies are removed from the manifest and lockfile root', () => {
   const manifest = JSON.parse(read('package.json'));
   const lock = JSON.parse(read('package-lock.json'));

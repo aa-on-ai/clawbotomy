@@ -269,7 +269,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 
 ## Stack
 
-- Next.js 14 (App Router)
+- Next.js 15 (App Router)
 - React 18
 - Tailwind CSS
 - Vercel
