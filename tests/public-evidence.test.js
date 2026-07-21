@@ -143,15 +143,17 @@ test('unhashed index fields cannot spoof the hashed public manifest', () => {
 
 test('the public API exposes registry status without promoting synthetic or legacy data', () => {
   const route = fs.readFileSync(path.join(root, 'src/app/api/bench/route.ts'), 'utf8');
+  const payload = fs.readFileSync(path.join(root, 'src/lib/bench-index-payload.ts'), 'utf8');
   const runRoute = fs.readFileSync(path.join(root, 'src/app/api/bench/runs/[runId]/route.ts'), 'utf8');
   const caseRoute = fs.readFileSync(path.join(root, 'src/app/api/bench/runs/[runId]/cases/[recordId]/route.ts'), 'utf8');
   const loader = fs.readFileSync(path.join(root, 'src/lib/public-evidence.server.ts'), 'utf8');
 
-  assert.match(route, /latestRunId/);
-  assert.match(route, /publishedRuns/);
-  assert.match(route, /schemaVersion: '3\.0\.0'/);
-  assert.match(route, /authorizationStatus: 'non-authorizing'/);
-  assert.doesNotMatch(route, /benchData|legacySummary/);
+  assert.match(route, /buildBenchIndexPayload\(index\)/);
+  assert.match(payload, /latestRunId/);
+  assert.match(payload, /publishedRuns/);
+  assert.match(payload, /schemaVersion: '3\.0\.0'/);
+  assert.match(payload, /authorizationStatus: 'non-authorizing'/);
+  assert.doesNotMatch(`${route}\n${payload}`, /benchData|legacySummary/);
   assert.match(runRoute, /non-authorizing/);
   assert.match(caseRoute, /untrusted model output and judge data/);
   assert.match(loader, /safeRunId = \/\^run-/);

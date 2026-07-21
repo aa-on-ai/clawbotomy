@@ -146,28 +146,46 @@ test('the public product is Plan, Evaluate, Evidence, Docs, and About', () => {
   assert.match(sitemap, /\/bench\/runs\//);
 });
 
-test('the current three-run evidence registry is the only public benchmark dataset', () => {
+test('the current three-run evidence registry is the only public benchmark dataset', async () => {
   const index = JSON.parse(read('public', 'evidence', 'index.json'));
-  const publishedRuns = index.runs
-    .slice()
-    .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
-  const latestRunId = publishedRuns[0]?.runId || null;
+  const { buildBenchIndexPayload } = await import(
+    pathToFileURL(fromRoot('src', 'lib', 'bench-index-payload.ts')).href
+  );
+  const payload = buildBenchIndexPayload(index);
   const bench = read('src', 'app', 'bench', 'page.tsx');
-  const api = read('src', 'app', 'api', 'bench', 'route.ts');
   const structured = read('src', 'lib', 'structured-data.ts');
 
-  assert.equal(publishedRuns.length, 3);
-  assert.equal(publishedRuns[0].runId, latestRunId);
+  assert.equal(payload.schemaVersion, '3.0.0');
+  assert.equal(payload.publishedRuns.length, 3);
+  assert.equal(payload.latestRunId, payload.publishedRuns[0].runId);
+  for (let index = 1; index < payload.publishedRuns.length; index += 1) {
+    assert.ok(
+      payload.publishedRuns[index - 1].completedAt >= payload.publishedRuns[index].completedAt,
+      'published runs must be newest-first',
+    );
+  }
   assert.match(bench, /Evidence available now/);
-  assert.match(api, /schemaVersion: '3\.0\.0'/);
-  assert.match(api, /const latest = publishedRuns\[0\] \|\| null/);
-  assert.match(api, /latestRunId: latest\?\.runId \|\| null/);
-  assert.match(api, /publishedRuns,/);
-  assert.doesNotMatch(api, /publishedRuns: index\.runs/);
-  assert.doesNotMatch(api, /benchData|legacySummary|March summary/);
+  assert.doesNotMatch(JSON.stringify(payload), /benchData|legacySummary|March summary/);
   assert.match(structured, /Clawbotomy Public Evidence Registry/);
   assert.doesNotMatch(structured, /benchData|March 2026|Legacy Routing Benchmark/);
   assert.doesNotMatch(bench, /benchData|Legacy snapshot|Maintainer-reported summary|March 2026/);
+});
+
+test('the bench API payload sorts unsorted input without mutating registry order', async () => {
+  const { buildBenchIndexPayload } = await import(
+    pathToFileURL(fromRoot('src', 'lib', 'bench-index-payload.ts')).href
+  );
+  const runs = [
+    { runId: 'middle', completedAt: '2026-02-01T00:00:00.000Z' },
+    { runId: 'oldest', completedAt: '2026-01-01T00:00:00.000Z' },
+    { runId: 'newest', completedAt: '2026-03-01T00:00:00.000Z' },
+  ];
+  const originalOrder = runs.map(({ runId }) => runId);
+  const payload = buildBenchIndexPayload({ schemaId: 'fixture/v1', runs });
+
+  assert.deepEqual(payload.publishedRuns.map(({ runId }) => runId), ['newest', 'middle', 'oldest']);
+  assert.equal(payload.latestRunId, 'newest');
+  assert.deepEqual(runs.map(({ runId }) => runId), originalOrder, 'input registry order must remain unchanged');
 });
 
 test('the documented stack matches the installed Next.js major', () => {
