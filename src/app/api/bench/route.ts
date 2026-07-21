@@ -22,7 +22,7 @@ export function GET() {
     registrySchemaId: index.schemaId,
     publishedRunCount: publishedRuns.length,
     latestRunId: latest?.runId || null,
-    publishedRuns: index.runs,
+    publishedRuns,
     evidenceRegistry: {
       status: 'published-runs-available',
       warning: 'Each run is maintainer-self-reported, bounded to its exact plan and records, and non-authorizing.',

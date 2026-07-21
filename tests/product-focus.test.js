@@ -50,6 +50,16 @@ const removedDependencies = [
   'tailwind-merge',
 ];
 
+const staleOverrides = [
+  '@hono/node-server',
+  'express-rate-limit',
+  'fast-uri',
+  'hono',
+  'ip-address',
+  'qs',
+  'ws',
+];
+
 test('Lab moves permanently to Aftercare while assess compatibility remains', async () => {
   const { default: nextConfig } = await import(pathToFileURL(fromRoot('next.config.mjs')).href);
   const redirects = await nextConfig.redirects();
@@ -138,14 +148,22 @@ test('the public product is Plan, Evaluate, Evidence, Docs, and About', () => {
 
 test('the current three-run evidence registry is the only public benchmark dataset', () => {
   const index = JSON.parse(read('public', 'evidence', 'index.json'));
+  const publishedRuns = index.runs
+    .slice()
+    .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const latestRunId = publishedRuns[0]?.runId || null;
   const bench = read('src', 'app', 'bench', 'page.tsx');
   const api = read('src', 'app', 'api', 'bench', 'route.ts');
   const structured = read('src', 'lib', 'structured-data.ts');
 
-  assert.equal(index.runs.length, 3);
+  assert.equal(publishedRuns.length, 3);
+  assert.equal(publishedRuns[0].runId, latestRunId);
   assert.match(bench, /Evidence available now/);
   assert.match(api, /schemaVersion: '3\.0\.0'/);
-  assert.match(api, /publishedRuns: index\.runs/);
+  assert.match(api, /const latest = publishedRuns\[0\] \|\| null/);
+  assert.match(api, /latestRunId: latest\?\.runId \|\| null/);
+  assert.match(api, /publishedRuns,/);
+  assert.doesNotMatch(api, /publishedRuns: index\.runs/);
   assert.doesNotMatch(api, /benchData|legacySummary|March summary/);
   assert.match(structured, /Clawbotomy Public Evidence Registry/);
   assert.doesNotMatch(structured, /benchData|March 2026|Legacy Routing Benchmark/);
@@ -168,4 +186,17 @@ test('unused runtime dependencies are removed from the manifest and lockfile roo
     assert.equal(manifest.dependencies?.[dependency], undefined, dependency);
     assert.equal(rootDependencies?.[dependency], undefined, `lockfile root: ${dependency}`);
   }
+});
+
+test('obsolete package overrides stay absent while active overrides remain', () => {
+  const manifest = JSON.parse(read('package.json'));
+  const lock = JSON.parse(read('package-lock.json'));
+
+  for (const dependency of staleOverrides) {
+    assert.equal(manifest.overrides?.[dependency], undefined, `override: ${dependency}`);
+    assert.equal(lock.packages[`node_modules/${dependency}`], undefined, `lockfile package: ${dependency}`);
+  }
+
+  assert.equal(manifest.overrides.sharp, '0.35.0');
+  assert.equal(manifest.overrides.next.postcss, '8.5.10');
 });
