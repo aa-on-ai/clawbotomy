@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const fixturePath = path.join(root, 'src/lib/live-bench-reference.json');
 const generatorPath = path.join(root, 'scripts/generate-live-bench-reference.js');
 const contractPath = path.join(root, 'src/lib/live-bench.ts');
+const accessPath = path.join(root, 'src/lib/live-bench-access.server.ts');
 const routePath = path.join(root, 'src/app/bench/live/page.tsx');
 const clientPath = path.join(root, 'src/app/bench/live/LiveBench.tsx');
 const stylesPath = path.join(root, 'src/app/bench/live/live.module.css');
@@ -18,6 +19,11 @@ const nextConfigPath = path.join(root, 'next.config.mjs');
 function loadContract() {
   delete require.cache[require.resolve(contractPath)];
   return require(contractPath);
+}
+
+function loadAccessContract() {
+  delete require.cache[require.resolve(accessPath)];
+  return require(accessPath);
 }
 
 function loadFixture() {
@@ -122,21 +128,47 @@ test('trajectory projection has exact deterministic coordinates and momentary po
 test('Live Bench source is local-only and has no provider, network, credential, or API surface', () => {
   const generator = fs.readFileSync(generatorPath, 'utf8');
   const contract = fs.readFileSync(contractPath, 'utf8');
+  const access = fs.readFileSync(accessPath, 'utf8');
   const route = fs.readFileSync(routePath, 'utf8');
   const client = fs.readFileSync(clientPath, 'utf8');
-  const executableSource = [generator, contract, route, client].join('\n');
+  const executableSource = [generator, contract, access, route, client].join('\n');
 
   assert.match(generator, /runPlanInMemory/);
   assert.match(generator, /inbox-plan\.v1\.json/);
   assert.match(generator, /profile:\s*['"]overreach['"]/);
   assert.match(route, /notFound/);
-  assert.match(route, /process\.env\.NODE_ENV === ['"]production['"]/);
-  assert.match(route, /process\.env\.CLAWBOTOMY_LIVE_BENCH !== ['"]1['"]/);
+  assert.match(route, /isLiveBenchEnabled/);
+  assert.match(access, /VERCEL_ENV/);
+  assert.match(access, /VERCEL_GIT_COMMIT_REF/);
   assert.doesNotMatch(executableSource, /\bfetch\s*\(|node:https?|node:net|https?\.request\s*\(|net\.connect\s*\(/);
   assert.doesNotMatch(executableSource, /@anthropic-ai|@google\/genai|from ['"]openai['"]|require\(['"]openai['"]\)/);
   assert.doesNotMatch(executableSource, /(?:API_KEY|TOKEN|SECRET|PASSWORD)|(?:^|[\\/])\.clawbotomy(?:[\\/]|$)/im);
   assert.equal(fs.existsSync(path.join(root, 'src/app/api/bench/live/route.ts')), false);
   assert.equal(fs.existsSync(path.join(root, 'src/app/bench/live/route.ts')), false);
+});
+
+test('Live Bench access allows local opt-in and only the exact review preview branch', () => {
+  const { isLiveBenchEnabled } = loadAccessContract();
+
+  assert.equal(isLiveBenchEnabled({ NODE_ENV: 'development', CLAWBOTOMY_LIVE_BENCH: '1' }), true);
+  assert.equal(isLiveBenchEnabled({ NODE_ENV: 'development' }), false);
+  assert.equal(isLiveBenchEnabled({
+    NODE_ENV: 'production',
+    VERCEL_ENV: 'preview',
+    VERCEL_GIT_COMMIT_REF: 'agent/clawbotomy-live-bench',
+  }), true);
+  assert.equal(isLiveBenchEnabled({
+    NODE_ENV: 'production',
+    VERCEL_ENV: 'preview',
+    VERCEL_GIT_COMMIT_REF: 'agent/another-branch',
+    CLAWBOTOMY_LIVE_BENCH: '1',
+  }), false);
+  assert.equal(isLiveBenchEnabled({
+    NODE_ENV: 'production',
+    VERCEL_ENV: 'production',
+    VERCEL_GIT_COMMIT_REF: 'agent/clawbotomy-live-bench',
+    CLAWBOTOMY_LIVE_BENCH: '1',
+  }), false);
 });
 
 test('Live Bench UI exposes controls, disclaimers, and accessible point and event inspection', () => {
@@ -165,12 +197,11 @@ test('Live Bench UI exposes controls, disclaimers, and accessible point and even
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
-test('Bench index exposes the entry only behind the same non-production local flag', () => {
+test('Bench index exposes the entry only behind the shared Live Bench access gate', () => {
   const benchPage = fs.readFileSync(benchPagePath, 'utf8');
   const benchStyles = fs.readFileSync(benchStylesPath, 'utf8');
 
-  assert.match(benchPage, /process\.env\.NODE_ENV !== ['"]production['"]/);
-  assert.match(benchPage, /process\.env\.CLAWBOTOMY_LIVE_BENCH === ['"]1['"]/);
+  assert.match(benchPage, /isLiveBenchEnabled/);
   assert.match(benchPage, /liveBenchEnabled\s*&&/);
   assert.match(benchPage, /href="\/bench\/live"/);
   assert.match(benchStyles, /\.liveBenchEntry/);

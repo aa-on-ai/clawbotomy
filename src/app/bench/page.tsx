@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { benchData } from '@/lib/bench-data';
 import { buildEvidenceComparisons } from '@/lib/evidence-comparison';
+import { isLiveBenchEnabled } from '@/lib/live-bench-access.server';
 import { loadPublicEvidenceIndex, loadPublicEvidenceRun } from '@/lib/public-evidence.server';
 import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
 
@@ -32,8 +33,7 @@ export default function BenchPage() {
   const comparisons = buildEvidenceComparisons(bundles);
   const comparison = comparisons[0] || null;
   const { models, categories, runs: legacyRuns, lastUpdated, scope, limitations, modelIdentityStatus } = benchData;
-  const liveBenchEnabled = process.env.NODE_ENV !== 'production'
-    && process.env.CLAWBOTOMY_LIVE_BENCH === '1';
+  const liveBenchEnabled = isLiveBenchEnabled();
 
   return (
     <main className={styles.page}>

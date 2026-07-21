@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import referenceFixture from '@/lib/live-bench-reference.json';
+import { isLiveBenchEnabled } from '@/lib/live-bench-access.server';
 import { projectLiveBenchTrajectory, validateLiveBenchReference } from '@/lib/live-bench';
 
 import { LiveBench } from './LiveBench';
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default function LiveBenchPage() {
-  if (process.env.NODE_ENV === 'production' || process.env.CLAWBOTOMY_LIVE_BENCH !== '1') {
+  if (!isLiveBenchEnabled()) {
     notFound();
   }
 
