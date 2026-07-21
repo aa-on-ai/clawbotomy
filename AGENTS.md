@@ -168,15 +168,18 @@ Do not infer current state from session summaries alone. Session summaries, GBra
 
 - Offline validation, replay, and summarization of an existing bundle are not permission to launch a provider-backed run.
 - Never rerun a provider-backed control or treatment without a fresh, exact approval for that run. A past approval, a failed display/notification, or an ambiguous receipt does not authorize a retry.
-- The Phase 9 control must not be retried. Its offline validation is complete; the exact next gate is the treatment decision in `docs/current-state.md`.
-- Any Phase 9 treatment requires fresh exact approval and must remain on commit `c52d37077cbe6dfd1cb534ccddeb73e5d7c34b9d` so it stays comparable to the frozen control.
+- The Phase 9 control must not be retried. Its offline validation is complete.
+- Exactly one Phase 9 treatment was approved and attempted at commit `c52d37077cbe6dfd1cb534ccddeb73e5d7c34b9d`. It ended as `infrastructure_failure`, wrote no complete bundle, and supports no comparison or remedy claim.
+- That one-run approval is consumed. No control retry, treatment retry, fallback, or additional provider run is authorized. The exact next gate is the external PR decision in `docs/current-state.md`.
 - Keep private evidence private. Checked-in docs and handoff summaries may report only the approved aggregate state or terminal classification.
 
-### Approved frozen-execution procedure
+### Historical frozen-execution procedure
 
-The live-main preflight above is always completed first in the supervisory checkout. It prepares the decision but does not authorize the experiment.
+The procedure below records the guardrails used for an exactly approved historical experiment. It is not current authorization and must not be reused for the terminal Phase 9 treatment.
 
-Only after an exact treatment approval:
+The live-main preflight above is always completed first in the supervisory checkout. It prepares a decision but never authorizes an experiment.
+
+Only after a new exact run approval:
 
 1. Identify the intended frozen execution checkout. It may be a previously preserved worktree or a new detached worktree created from the approved OID.
 2. Independently verify its canonical `origin`, resolved path, clean worktree, and exact `HEAD`:

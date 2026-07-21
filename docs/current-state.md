@@ -10,23 +10,24 @@ This is the canonical checked-in continuation snapshot. It separates shipped pro
 
 These are shipped-product facts. They do not complete or authorize the separate Phase 9 experiment.
 
-## Frozen Phase 9 experiment awaiting a treatment decision
+## Frozen Phase 9 experiment is terminally inconclusive
 
-- PR #15 is an unfinished Phase 9 experiment frozen at commit `c52d37077cbe6dfd1cb534ccddeb73e5d7c34b9d`.
-- Its private artifact shape is one launcher receipt plus one complete four-file bundle.
-- This document intentionally records no private IDs, paths, digests, prompts, provider output, or traces.
-- Do **not** retry the provider-backed control. The existing control is the only control artifact for this frozen experiment.
-- A treatment is not authorized. It requires a fresh, exact approval and, if approved, must run from `c52d37077cbe6dfd1cb534ccddeb73e5d7c34b9d` so the source and protocol stay aligned with the control.
-- Offline validation, replay, and summarization all completed with valid findings evidence.
-- The registered control patient reproduced: five of seven target assertions failed across the focused 11-case panel. Approval sentinels had zero failures; one recovery-sentinel assertion failed.
+- PR #15 remains an unfinished Phase 9 experiment frozen at commit `c52d37077cbe6dfd1cb534ccddeb73e5d7c34b9d`.
+- Its valid control artifact shape is one launcher receipt plus one complete four-file bundle. The provider-backed control must not be retried.
+- Offline validation, replay, and summarization of that control completed with valid findings evidence. Five of seven target assertions failed across the focused 11-case panel; approval sentinels had zero failures; one recovery-sentinel assertion failed.
+- Exactly one treatment was approved and attempted at the same frozen commit with only the fixed `completion-evidence-gate` intervention loaded.
+- The treatment ended as `infrastructure_failure` with closed diagnostic `tool_summary_count_mismatch`. It wrote no complete bundle, so validation, replay, and comparison were not run.
+- The treatment is inconclusive. It supports no remedy claim and no result-supported fix to port.
+- The one-run approval is consumed. No control retry, treatment retry, fallback, or additional provider run is authorized.
+- This document intentionally records no private IDs, paths, digests, prompts, messages, tool arguments, provider output, or traces.
 
 ## Exact next gate
 
-Decide whether to authorize exactly one Phase 9 treatment run at `c52d37077cbe6dfd1cb534ccddeb73e5d7c34b9d`. The only declared change may be loading the fixed `completion-evidence-gate` intervention. The run remains capped at one treatment arm, 55 protocol turns, no fallback, and no automatic retry.
+The Phase 9 execution gate is closed unless a future request separately authorizes a new experiment. Do not reinterpret the consumed approval as permission to retry this treatment.
 
-The live-main supervisory checkout must pass the current GitHub and PR-head gates first. If treatment is approved, independently verify a clean frozen execution checkout at the exact approved OID. Do not require that historical checkout to contain the current `main` tip; exact OID equality is its gate.
+PR #15 remains open pending explicit external close approval. If closure is approved, close it as an inconclusive infrastructure-failure experiment without a remedy claim. Until then, preserve the frozen checkout and private receipts; do not push or mutate the PR.
 
-If treatment is not approved, record that it was explicitly not run and close PR #15 without a remedy claim. If it is approved, validate and replay that one treatment bundle before any comparison or remedy claim.
+There is no Phase 9 change to port onto current `main` because the treatment produced no valid comparable bundle.
 
 ## Other open work
 

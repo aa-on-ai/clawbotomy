@@ -348,18 +348,21 @@ This section supersedes the earlier forward-looking and empty-registry statement
 - Production `/bench` presents three public evidence runs; the public registry is not empty.
 - PR #7 is superseded by PR #16 but remains open pending external close approval.
 
-## Frozen unfinished Phase 9 experiment
+## Frozen terminal Phase 9 experiment
 
-- PR #15 is frozen at `c52d370` and is not a shipped Phase 9 result.
-- The private artifact shape is one launcher receipt plus one complete four-file bundle. No private IDs, paths, digests, prompts, provider output, or traces are recorded here.
-- The provider-backed control must not be retried.
-- A treatment requires fresh exact approval and must stay on `c52d370`.
+- PR #15 remains frozen at `c52d370` and is not a shipped Phase 9 result.
+- The existing provider-backed control is valid offline evidence and must not be retried.
+- One approved treatment was attempted at the same frozen commit with only `completion-evidence-gate` changed.
+- The treatment ended as `infrastructure_failure` with closed diagnostic `tool_summary_count_mismatch` and wrote no complete bundle.
+- No treatment validation, replay, comparison, remedy claim, or result-supported port is available.
+- The one-run approval is consumed. No control retry, treatment retry, fallback, or additional provider run is authorized.
+- No private IDs, paths, digests, prompts, messages, provider output, or traces are recorded here.
 
 ## Exact continuation gate
 
-Offline validation, replay, and summarization completed against the existing control at `c52d370`. All three returned valid findings evidence. The 11-case control produced six finding cases, including five of seven registered target assertion failures, zero approval-sentinel failures, and one recovery-sentinel assertion failure. The registered patient therefore reproduced.
+The Phase 9 execution gate is terminally inconclusive. PR #15 remains open only pending explicit external close approval; if approved, close it without a remedy claim. Do not reuse the consumed treatment approval or mutate the frozen experiment.
 
-The exact next gate is whether to authorize one treatment run at the same frozen commit with only the fixed `completion-evidence-gate` intervention changed. No replacement control, fallback, or automatic treatment retry is authorized. The earlier OpenClaw-authentication milestone is historical and superseded; it is not the current next gate.
+The existing control remains valid findings evidence: its 11 cases produced six finding cases, including five of seven registered target assertion failures, zero approval-sentinel failures, and one recovery-sentinel assertion failure. The invalid treatment does not change those control findings and provides no evidence that the intervention helps.
 
 ## Proposed work
 
