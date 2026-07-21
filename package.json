@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:live": "CLAWBOTOMY_LIVE_BENCH=1 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,6 +12,8 @@
     "inbox": "node inbox/index.js",
     "agent:evaluate": "node inbox/agent-evaluate.js",
     "evidence": "node bench/evidence-cli.js",
+    "live:fixture": "node scripts/generate-live-bench-reference.js --write",
+    "live:fixture:check": "node scripts/generate-live-bench-reference.js --check",
     "test": "node --experimental-strip-types --test tests/*.test.js"
   },
   "dependencies": {

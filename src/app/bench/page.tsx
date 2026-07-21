@@ -32,6 +32,8 @@ export default function BenchPage() {
   const comparisons = buildEvidenceComparisons(bundles);
   const comparison = comparisons[0] || null;
   const { models, categories, runs: legacyRuns, lastUpdated, scope, limitations, modelIdentityStatus } = benchData;
+  const liveBenchEnabled = process.env.NODE_ENV !== 'production'
+    && process.env.CLAWBOTOMY_LIVE_BENCH === '1';
 
   return (
     <main className={styles.page}>
@@ -264,6 +266,11 @@ export default function BenchPage() {
                 <Link href="/docs">Open the setup guide</Link>
                 <a href="/api/bench">Inspect the API</a>
                 <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">Read source ↗</a>
+                {liveBenchEnabled && (
+                  <Link className={styles.liveBenchEntry} href="/bench/live">
+                    Open Live Bench →
+                  </Link>
+                )}
               </div>
             </div>
           </div>

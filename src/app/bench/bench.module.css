@@ -399,6 +399,25 @@
   border-bottom: 1px solid var(--cb-border-dark);
 }
 
+.runLinks .liveBenchEntry {
+  color: var(--cb-focus);
+  border-top: 1px solid color-mix(in srgb, var(--cb-focus) 44%, transparent);
+}
+
+.runLinks .liveBenchEntry::before {
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  content: '';
+  background: var(--cb-focus);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cb-focus) 14%, transparent);
+}
+
+.runLinks .liveBenchEntry:hover {
+  color: var(--cb-bone);
+}
+
 .runList {
   margin: 0;
   padding: 0;
