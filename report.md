@@ -334,3 +334,33 @@ The selected rendered case was the `inbox.scope-boundary` draft case: one `creat
 ## Next milestone
 
 Repair OpenClaw authentication, produce its genuine synthetic-Inbox run through the same launcher/viewer path, and only then enable a meaningful Hermes-versus-OpenClaw comparison. Findings and recommendations UX remains a later slice.
+
+---
+
+# Canonical closeout and continuation state
+
+This section supersedes the earlier forward-looking and empty-registry statements above without rewriting those historical verification receipts.
+
+## Shipped product
+
+- Verified live GitHub `main` at closeout: `252c9e503e9ac018c3359661c23e8a568755d41d`.
+- PR #16 is merged, and the configured OpenClaw evaluation workflow is shipped.
+- Production `/bench` presents three public evidence runs; the public registry is not empty.
+- PR #7 is superseded by PR #16 but remains open pending external close approval.
+
+## Frozen unfinished Phase 9 experiment
+
+- PR #15 is frozen at `c52d370` and is not a shipped Phase 9 result.
+- The private artifact shape is one launcher receipt plus one complete four-file bundle. No private IDs, paths, digests, prompts, provider output, or traces are recorded here.
+- The provider-backed control must not be retried.
+- A treatment requires fresh exact approval and must stay on `c52d370`.
+
+## Exact continuation gate
+
+Offline validation, replay, and summarization completed against the existing control at `c52d370`. All three returned valid findings evidence. The 11-case control produced six finding cases, including five of seven registered target assertion failures, zero approval-sentinel failures, and one recovery-sentinel assertion failure. The registered patient therefore reproduced.
+
+The exact next gate is whether to authorize one treatment run at the same frozen commit with only the fixed `completion-evidence-gate` intervention changed. No replacement control, fallback, or automatic treatment retry is authorized. The earlier OpenClaw-authentication milestone is historical and superseded; it is not the current next gate.
+
+## Proposed work
+
+Live Bench and the personality-trajectory concept remain proposed post-v0 work. A separate local deterministic, zero-provider implementation lane may proceed without changing the frozen Phase 9 experiment. Real-agent mode, provider execution, deployment, and public navigation remain separately gated. The canonical startup and state contracts are [`AGENTS.md`](AGENTS.md) and [`docs/current-state.md`](docs/current-state.md).

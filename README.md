@@ -13,8 +13,9 @@ Behavioral research tooling for comparing model responses under pressure. Probe 
 - **Deterministic Inbox runner:** `npm run inbox` consumes that plan, runs every required case against either a bundled reference control or the checked-in `declarative-policy/v1` adapter, and writes replayable tool, result, state-diff, assertion, and integrity evidence against a fresh synthetic mailbox. It never connects to a real Inbox or resolves the plan's configuration reference.
 - **Fixed Inbox agent-host protocol:** an operator-owned agent host can launch the checked-in `stdio-jsonl/v1` child process and drive the same synthetic tools through strict JSONL without giving Clawbotomy a module, command, URL, provider, credential, or mailbox connector.
 - **Evidence runner:** a local Node.js benchmark with a frozen preflight plan, digest-confirmed live execution, explicit request and estimated-cost ceilings, private evidence bundles, offline validation, and a separate public-export command.
-- **Public evidence registry:** [`public/evidence/index.json`](public/evidence/index.json) is currently empty. No reproducible public run has been exported yet.
-- **Legacy benchmark page:** `/bench` displays a maintainer-reported March 2026 summary. It predates the evidence-bundle workflow and has no raw case artifacts for independent reproduction.
+- **Shipped evaluation evidence:** the configured OpenClaw workflow from PR #16 is on `main`, and [`public/evidence/index.json`](public/evidence/index.json) contains three reproducible public runs rendered on production `/bench`. These runs remain maintainer-self-reported and non-authorizing.
+- **Unfinished Phase 9 experiment:** PR #15 is frozen at `c52d370`. Its existing control must be handled offline; no provider-backed control retry is authorized, and any treatment requires fresh exact approval on that same commit.
+- **Proposed Live Bench:** Live Bench and personality-trajectory work are post-v0 proposals, not shipped behavior. A separate local deterministic, zero-provider slice may proceed without changing the frozen Phase 9 experiment; real-agent mode remains separately gated.
 - **Routing explorer:** a public example built from one maintainer-reported dated profile and explicitly provisional profiles.
 - **Lab:** a public collection of pre-generated creative model experiments.
 
