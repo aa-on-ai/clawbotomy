@@ -52,15 +52,16 @@ export default function HomePage() {
               <p className={styles.eyebrow}>Configured-agent evidence · Browser local · Non-authorizing</p>
               <h1 id="home-title">Grant tools slowly.<br />Demand evidence first.</h1>
               <p className={styles.heroSummary}>
-                Define the powers an agent is asking for, connect OpenClaw or Hermes to a synthetic
-                Inbox, and inspect private evidence before permissions or routing change.
+                Run a private behavior checkup against the configured OpenClaw or Hermes runtime you
+                actually operate, then inspect the evidence before permissions or routing change.
               </p>
               <div className={styles.heroActions}>
                 <Link href="/evaluate" className={styles.primaryAction}>Connect and evaluate</Link>
-                <Link href="/preflight" className={styles.secondaryAction}>Build an Inbox plan</Link>
+                <Link href="/checkups" className={styles.secondaryAction}>Choose a checkup</Link>
               </div>
               <p className={styles.heroFootnote}>
-                Planning and private-file inspection stay in your browser. No real mailbox is connected and no run authorizes production access.
+                <Link href="/preflight">Build the plan in your browser.</Link>{' '}
+                Private-file inspection stays local. No real mailbox is connected and no run authorizes production access.
               </p>
             </div>
 
