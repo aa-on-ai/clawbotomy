@@ -18,6 +18,7 @@ function writePublicIndex(indexPath, index) {
   const directory = path.dirname(indexPath);
   const temp = path.join(directory, `.index.${process.pid}.${Date.now()}.tmp`);
   fs.writeFileSync(temp, `${JSON.stringify(index, null, 2)}\n`, { flag: 'wx', mode: 0o644 });
+  fs.chmodSync(temp, 0o644);
   fs.renameSync(temp, indexPath);
 }
 
@@ -89,6 +90,7 @@ function exportPublicBundle({
   }
 
   fs.mkdirSync(publicRoot, { recursive: true, mode: 0o755 });
+  fs.chmodSync(publicRoot, 0o755);
   const exported = materializeBundle({
     outputDir,
     manifest,

@@ -1,6 +1,6 @@
 # Clawbotomy
 
-Clawbotomy is an open-source research preview for configured-agent evaluation, model-routing benchmarks, integrity-checked evidence bundles, and qualitative behavioral exploration.
+Clawbotomy is an open-source behavior checkup for configured OpenClaw and Hermes agents. It runs fixed synthetic Inbox tasks, preserves private evidence for local review, and keeps permission decisions human. Direct model benchmarks and qualitative experiments remain secondary research surfaces.
 
 ## Canonical pages and machine-readable surfaces
 
@@ -45,7 +45,7 @@ Clawbotomy is an open-source research preview for configured-agent evaluation, m
 - Protocol validation replays recorded client frames through a fresh mock Inbox without reconnecting to or re-executing the client. Evidence applies only to that exact observed session and remains non-authorizing.
 - The protocol contract is published as frame, public-case-envelope, manifest, case-record, and summary schemas under `/evidence/schema/`. The opening acknowledgement publishes fixed message, case, session, and output deadlines; the terminal receipt exposes only a repository-relative bundle locator.
 - Clawbotomy's protocol host makes no network requests, real Inbox connections, or production-access changes; external-client network and production-access activity are not observed, so there is no global offline or production-inert claim.
-- `public/evidence/index.json` is currently empty: no reproducible public run has been exported.
+- `public/evidence/index.json` lists the current complete, validated public benchmark exports. Each entry preserves its source scope, is maintainer-self-reported, and remains non-authorizing.
 - The March 2026 `/bench` data is a maintainer-reported legacy summary without raw case artifacts for independent reproduction.
 - The legacy summary is not an entry in the public-evidence registry.
 - No run auto-publishes. Live execution writes a private local bundle only.

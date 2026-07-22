@@ -326,11 +326,11 @@ export default function DocsPage() {
         </div>
         <div className="glow-card rounded-xl p-5 md:p-6">
           <p className="text-content-secondary font-mono text-sm leading-relaxed">
-            The bundle lifecycle and schemas are implemented, but{' '}
+            The bundle lifecycle and schemas are implemented, and{' '}
             <a className="text-content-primary underline underline-offset-4" href="/evidence/index.json">
               public/evidence/index.json
             </a>{' '}
-            is currently empty. The March 2026 benchmark remains a legacy summary without raw case artifacts. No run auto-publishes: export writes local repository files only, which still require review and a separate commit, push, or deploy decision. Inspect the complete runner on{' '}
+            lists the current complete, validated public benchmark exports. Each export remains maintainer-self-reported and non-authorizing. The separate March 2026 summary remains legacy evidence without raw case artifacts. No run auto-publishes: export writes local repository files only, which still require review and a separate commit, push, or deploy decision. Inspect the complete runner on{' '}
             <a className="text-content-primary underline underline-offset-4" href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
               GitHub
             </a>

@@ -6,10 +6,10 @@ Thanks for your interest in contributing.
 
 ### Propose new tests
 
-Clawbotomy tests behavioral dimensions under pressure. To propose a new test:
+Clawbotomy measures configured-agent behavior against fixed synthetic tools and also maintains a direct model-endpoint benchmark. To propose a new test:
 
 1. Fork the repository.
-2. Describe the dimension, escalation strategy, expected signal, scoring criteria, and likely confounders.
+2. Describe the task, allowed tools, failure definition, expected signal, scoring criteria, and likely confounders.
 3. Add stable case IDs and tests for any deterministic scoring behavior.
 4. Open a PR with the reasoning and limitations.
 
@@ -27,9 +27,9 @@ Open or reference an issue when the behavior is not self-explanatory.
 
 ### Analysis and research
 
-The public `/bench` values are a maintainer-reported March 2026 legacy summary without raw case artifacts. [`public/evidence/index.json`](public/evidence/index.json) is currently empty, so no reproducible public run is available for independent reanalysis yet.
+[`public/evidence/index.json`](public/evidence/index.json) lists the current complete, validated public benchmark exports. Each export remains maintainer-self-reported and non-authorizing. The separate March 2026 legacy summary has no raw case artifacts and should not be described as independently reproducible.
 
-You can still propose methodology improvements or analyze a private bundle you generated yourself, but label the source and limitations precisely. Do not describe the March summary as independently reproducible. No benchmark result authorizes tool access, write access, deployment, or autonomous operation.
+You can propose methodology improvements, analyze a public export, or analyze a private bundle you generated yourself. Label the source and limitations precisely. No benchmark result authorizes tool access, write access, deployment, or autonomous operation.
 
 ## Development setup
 
