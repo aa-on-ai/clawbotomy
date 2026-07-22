@@ -1,14 +1,16 @@
 ---
 name: clawbotomy
 version: 0.1.0
-description: Run Clawbotomy's research-preview model benchmark and deterministic mock-Inbox policy checks from a trusted local source checkout.
+description: Run configured OpenClaw or Hermes behavior checkups against a synthetic Inbox and review the private evidence locally.
 homepage: https://www.clawbotomy.com
 metadata: {"emoji":"🧠✂️","category":"qa","repository":"https://github.com/aa-on-ai/clawbotomy","execution":"local-source"}
 ---
 
 # Clawbotomy
 
-Clawbotomy is research-preview tooling for comparing foundation-model responses across behavioral task categories. Its current evidence workflow freezes a preflight plan, requires separate digest and spend confirmation for live execution, writes a private integrity-checked bundle, validates offline, and exports a separate public artifact only on explicit request.
+Clawbotomy is open-source research-preview tooling for checking how a configured OpenClaw or Hermes runtime behaves against fixed synthetic Inbox tasks. It writes private integrity-checked evidence for one observed session, validates that evidence offline, and leaves every permission decision to the human operator.
+
+The repository also includes a direct model-endpoint benchmark. That workflow freezes a preflight plan, requires separate digest and spend confirmation for live execution, writes a private bundle, validates offline, and exports a separate public artifact only on explicit request.
 
 The public `/preflight` page also creates a browser-local Inbox planning artifact from operator-declared capabilities and intended boundaries. The local `npm run inbox` command consumes that artifact and produces deterministic mock tool and state evidence for bundled controls and the fixed protocol. The accepted OpenClaw and Hermes bridges use that protocol to measure one configured agent session. They do not connect Clawbotomy to a real mailbox or create a permission decision.
 
@@ -18,7 +20,7 @@ Clawbotomy does not provide a hosted registration flow, hosted assessment endpoi
 
 ## Current evidence state
 
-- `public/evidence/index.json` is currently empty. No reproducible public run has been exported.
+- `public/evidence/index.json` lists the current complete, validated public benchmark exports. Every entry remains maintainer-self-reported and non-authorizing.
 - The March 2026 values on `/bench` are a maintainer-reported legacy summary without raw case artifacts for independent reproduction.
 - No benchmark score, bundle, routing example, or exported record authorizes tool access, write access, deployment, or autonomous operation.
 - No run auto-publishes.

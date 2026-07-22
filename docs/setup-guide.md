@@ -16,9 +16,9 @@ Configured-agent evaluation uses the separate practical local boundary in [ADR 0
 
 ## Current public evidence state
 
-[`public/evidence/index.json`](../public/evidence/index.json) is currently empty. No reproducible public run has been exported.
+[`public/evidence/index.json`](../public/evidence/index.json) lists the current complete, validated public benchmark exports. Every entry preserves its source scope, is maintainer-self-reported, and remains non-authorizing.
 
-The values on `/bench` are a maintainer-reported March 2026 legacy summary. They predate the current evidence-bundle workflow and do not include raw case artifacts needed for independent reproduction. They remain visible for historical context, not as authorization for routing, tools, write access, or autonomous operation.
+The separate March 2026 legacy summary on `/bench` predates the current evidence-bundle workflow and does not include raw case artifacts needed for independent reproduction. It remains visible for historical context, not as authorization for routing, tools, write access, or autonomous operation.
 
 ## Prerequisites
 
