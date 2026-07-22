@@ -21,7 +21,7 @@
   min-height: 76px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 32px;
 }
@@ -54,7 +54,7 @@
 }
 
 .navigation {
-  justify-self: center;
+  justify-self: end;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -82,18 +82,20 @@
   border-bottom-color: var(--cb-signal);
 }
 
-.modeStamp {
-  min-height: 36px;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.035em;
-  border: 1px solid currentColor;
+.navigation .navAction {
+  min-height: 38px;
+  margin-left: 10px;
+  padding: 0 16px;
+  color: var(--cb-ink);
+  background: var(--cb-signal);
+  border: 1px solid var(--cb-signal);
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+
+.navigation .navAction:hover,
+.navigation .navAction.active {
+  border-color: var(--cb-signal);
+  opacity: 0.86;
 }
 
 .menuButton {
@@ -191,10 +193,6 @@
     justify-content: center;
   }
 
-  .modeStamp {
-    display: none;
-  }
-
   .navigation {
     position: absolute;
     inset: 76px 0 auto;
@@ -218,6 +216,14 @@
   }
 
   .navigation .active {
+    color: var(--cb-ink);
+    background: var(--cb-signal);
+    border-color: var(--cb-signal);
+  }
+
+  .navigation .navAction {
+    min-height: 52px;
+    margin-left: 0;
     color: var(--cb-ink);
     background: var(--cb-signal);
     border-color: var(--cb-signal);
