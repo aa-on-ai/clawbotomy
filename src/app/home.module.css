@@ -147,6 +147,13 @@
   color: color-mix(in srgb, var(--cb-ink) 72%, transparent);
 }
 
+.heroFootnote a {
+  color: var(--cb-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .registry {
   align-self: stretch;
   margin: 18px 0;

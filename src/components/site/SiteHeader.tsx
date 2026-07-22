@@ -8,6 +8,7 @@ import styles from './site-chrome.module.css';
 
 const links = [
   { href: '/evaluate', label: 'Evaluate' },
+  { href: '/checkups', label: 'Checkups' },
   { href: '/bench', label: 'Evidence' },
   { href: '/trust', label: 'Trust' },
   { href: '/routing', label: 'Routing' },
