@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: process.cwd(),
   outputFileTracingIncludes: {
     '/api/bench/**': ['./bench/prompts/**/*'],
   },

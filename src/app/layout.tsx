@@ -12,7 +12,8 @@ const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
 const siteDescription =
   'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
 const siteUrl = 'https://www.clawbotomy.com';
-const ogImage = '/scientist-idle.png';
+const ogImage = '/opengraph-image';
+const ogImageAlt = 'Clawbotomy configured-agent behavior checkups. Connect the runtime and keep the evidence local.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,13 +38,13 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: 'Clawbotomy',
     type: 'website',
-    images: [{ url: ogImage }],
+    images: [{ url: ogImage, width: 1200, height: 630, alt: ogImageAlt }],
   },
   twitter: {
     card: 'summary_large_image',
     title: siteTitle,
     description: siteDescription,
-    images: [ogImage],
+    images: [{ url: ogImage, width: 1200, height: 630, alt: ogImageAlt }],
   },
 };
 

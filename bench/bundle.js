@@ -78,6 +78,7 @@ function writeExclusive(filePath, bytes, mode = 0o600) {
   } finally {
     fs.closeSync(fd);
   }
+  fs.chmodSync(filePath, mode);
 }
 
 function atomicReplace(filePath, bytes, mode = 0o600) {
@@ -481,6 +482,7 @@ function materializeBundle({ outputDir, manifest, records, summary, directoryMod
   assertNoSymlinkComponents(path.dirname(absolute));
   if (fs.existsSync(absolute)) throw new Error(`Bundle output already exists: ${absolute}`);
   fs.mkdirSync(absolute, { mode: directoryMode });
+  fs.chmodSync(absolute, directoryMode);
 
   const contents = {
     'manifest.json': `${JSON.stringify(manifest, null, 2)}\n`,
