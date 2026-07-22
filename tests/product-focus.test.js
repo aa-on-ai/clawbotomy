@@ -112,6 +112,7 @@ test('obsolete product islands, media, docs, tests, and dead modules are absent'
 
 test('the public product is Plan, Evaluate, Evidence, Docs, and About', () => {
   const header = read('src', 'components', 'site', 'SiteHeader.tsx');
+  const footer = read('src', 'components', 'site', 'SiteFooter.tsx');
   const sitemap = read('src', 'app', 'sitemap.ts');
   const publicCopy = [
     read('src', 'app', 'page.tsx'),
@@ -142,6 +143,8 @@ test('the public product is Plan, Evaluate, Evidence, Docs, and About', () => {
   assert.match(publicCopy, /inconclusive/i);
   assert.doesNotMatch(publicCopy, /March 2026|legacy (?:benchmark|summary|snapshot)|empty registry|permission levels?|trust score|routing explorer|Enter the lab|model-routing benchmarks|behavioral exploration/i);
   assert.doesNotMatch(header, /\/lab|\/trust|\/routing/);
+  assert.match(footer, /https:\/\/github\.com\/aa-on-ai\/clawbotomy-aftercare/);
+  assert.match(footer, /Aftercare archive/);
   assert.doesNotMatch(sitemap, /\/lab|\/trust|\/routing|LAB_SUBSTANCES/);
   assert.match(sitemap, /\/bench\/runs\//);
 });

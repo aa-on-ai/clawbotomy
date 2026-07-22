@@ -23,6 +23,14 @@ export function SiteFooter() {
             >
               Source ↗
             </a>
+            <a
+              href="https://github.com/aa-on-ai/clawbotomy-aftercare"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Aftercare archive on GitHub (opens in a new tab)"
+            >
+              Aftercare archive ↗
+            </a>
             <Link href="/preflight">Plan</Link>
             <Link href="/evaluate">Evaluate</Link>
             <Link href="/bench">Evidence</Link>
