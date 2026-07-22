@@ -31,6 +31,11 @@ test('checkups are discoverable from the human and machine-facing surfaces', () 
   assert.match(home, /href="\/checkups"/);
   assert.match(home, /Run a private behavior checkup/);
   assert.match(header, /href: '\/checkups', label: 'Checkups'/);
+  assert.match(header, /href: '\/bench', label: 'Evidence'/);
+  assert.match(header, /href: '\/about', label: 'Method'/);
+  assert.match(header, /href="\/evaluate"/);
+  assert.match(header, /Run a checkup/);
+  assert.doesNotMatch(header, /label: '(Evaluate|Trust|Routing|Lab|Docs)'/);
   assert.match(footer, /href="\/checkups">Checkups/);
   assert.match(sitemap, /'\/checkups'/);
   assert.match(llms, /clawbotomy\.com\/checkups/);

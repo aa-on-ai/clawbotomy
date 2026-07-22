@@ -7,13 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './site-chrome.module.css';
 
 const links = [
-  { href: '/evaluate', label: 'Evaluate' },
   { href: '/checkups', label: 'Checkups' },
   { href: '/bench', label: 'Evidence' },
-  { href: '/trust', label: 'Trust' },
-  { href: '/routing', label: 'Routing' },
-  { href: '/lab', label: 'Lab' },
-  { href: '/docs', label: 'Docs' },
+  { href: '/about', label: 'Method' },
 ];
 
 export function SiteHeader() {
@@ -75,9 +71,14 @@ export function SiteHeader() {
               </Link>
             );
           })}
+          <Link
+            href="/evaluate"
+            aria-current={pathname === '/evaluate' ? 'page' : undefined}
+            className={`${styles.navAction} ${pathname === '/evaluate' ? styles.active : ''}`}
+          >
+            Run a checkup
+          </Link>
         </nav>
-
-        <span className={styles.modeStamp}>Local first</span>
       </div>
     </header>
   );
