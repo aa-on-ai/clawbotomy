@@ -1,47 +1,41 @@
 import Link from 'next/link';
 
-import { benchData } from '@/lib/bench-data';
-import { loadPublicEvidenceIndex } from '@/lib/public-evidence.server';
-
 import styles from './home.module.css';
 
 const evidenceSteps = [
   {
     index: '01',
-    title: 'Freeze the plan',
-    copy: 'Resolve exact targets, judges, task hashes, provider calls, a cost ceiling, and a digest before any network request.',
-    field: 'clawbotomy.benchmark-plan/v1',
+    title: 'Build the plan',
+    copy: 'Choose the synthetic Inbox powers and scenarios the configured agent should be tested against.',
+    field: 'clawbotomy.inbox-preflight-plan/v1',
   },
   {
     index: '02',
-    title: 'Run the cases',
-    copy: 'Write private case records incrementally. Missing, failed, or unknown-after-send calls remain coverage failures—not hidden zeros.',
-    field: 'clawbotomy.case-record/v1',
+    title: 'Run the configured agent',
+    copy: 'Launch the checked-in OpenClaw or Hermes bridge as the parent of Clawbotomy’s fixed synthetic-Inbox protocol.',
+    field: 'stdio-jsonl/v1',
   },
   {
     index: '03',
-    title: 'Record the trace',
-    copy: 'Keep requested and provider-reported model identity, allowlisted request bodies, timing, usage, judge output, and scoring state.',
-    field: 'requestedModelId ≠ reportedModelId',
+    title: 'Record what happened',
+    copy: 'Keep the allowed tool attempts, synthetic state changes, assertion results, and process status tied to one session.',
+    field: 'clawbotomy.inbox-protocol-case-record/v1',
   },
   {
     index: '04',
-    title: 'Verify the bundle',
-    copy: 'Regenerate aggregates from constituent cases and verify exact-byte SHA-256 integrity before treating the artifact as internally consistent.',
-    field: 'clawbotomy.integrity/v1',
+    title: 'Separate failure types',
+    copy: 'Keep agent findings distinct from missing, incomplete, or failed test infrastructure. Invalid runs do not become scores.',
+    field: 'passed / findings / infrastructure-failure',
   },
   {
     index: '05',
-    title: 'Export separately',
-    copy: 'A public artifact is a distinct, explicit, redacted export. It never appears automatically and never authorizes production access.',
-    field: 'authorization / non-authorizing',
+    title: 'Review before deciding',
+    copy: 'Inspect the bound receipt locally. Any permission or deployment change remains a separate human decision.',
+    field: 'permissionDecision: null',
   },
 ];
 
 export default function HomePage() {
-  const publicEvidence = loadPublicEvidenceIndex();
-  const latestRun = publicEvidence.runs.slice().sort((a, b) => b.completedAt.localeCompare(a.completedAt))[0] || null;
-
   return (
     <main className={styles.homePage}>
       <section className={styles.hero} aria-labelledby="home-title">
@@ -65,44 +59,34 @@ export default function HomePage() {
               </p>
             </div>
 
-            <aside className={styles.registry} aria-label="Public evidence registry status">
+            <aside className={styles.registry} aria-label="Configured-agent checkup boundary">
               <div className={styles.registrySignal} aria-hidden="true">
-                <strong>{String(publicEvidence.runs.length).padStart(2, '0')}</strong>
-                <span>Public evidence runs<br />published</span>
+                <strong>01</strong>
+                <span>Observed session<br />scoped evidence</span>
               </div>
               <div className={styles.registryHeader}>
-                <span>Public evidence registry</span>
-                <span>Live state</span>
+                <span>Checkup boundary</span>
+                <span>Current contract</span>
               </div>
               <dl>
                 <div>
-                  <dt>Published bundles</dt>
-                  <dd>{publicEvidence.runs.length}</dd>
+                  <dt>Runtime</dt>
+                  <dd>OpenClaw + Hermes</dd>
                 </div>
                 <div>
-                  <dt>Latest public evidence run</dt>
-                  <dd>
-                    {latestRun ? (
-                      <Link href={`/bench/runs/${latestRun.runId}`}>{latestRun.runId}</Link>
-                    ) : 'Awaiting first run'}
-                  </dd>
+                  <dt>Real mailbox</dt>
+                  <dd>Never connected</dd>
                 </div>
                 <div>
-                  <dt>March snapshot</dt>
-                  <dd>Legacy · Summary only</dd>
+                  <dt>Private evidence</dt>
+                  <dd>Browser local</dd>
                 </div>
                 <div>
-                  <dt>Publication</dt>
-                  <dd>Explicit export only</dd>
-                </div>
-                <div>
-                  <dt>Authorization</dt>
-                  <dd>Non-authorizing</dd>
+                  <dt>Permission decision</dt>
+                  <dd>None</dd>
                 </div>
               </dl>
-              <a href="/evidence/index.json" className={styles.registryLink}>
-                Read machine index <span>→</span>
-              </a>
+              <Link href="/about" className={styles.registryLink}>Read the boundary <span>→</span></Link>
             </aside>
           </div>
         </div>
@@ -139,10 +123,10 @@ export default function HomePage() {
 
           <div className={styles.schemaLinks}>
             <span>Schema surface</span>
-            <a href="/evidence/schema/benchmark-plan.v1.schema.json">plan.json</a>
-            <a href="/evidence/schema/case-record.v1.schema.json">case-record.json</a>
-            <a href="/evidence/schema/summary.v1.schema.json">summary.json</a>
-            <a href="/evidence/schema/integrity.v1.schema.json">integrity.json</a>
+            <a href="/evidence/schema/inbox-preflight-plan.v1.schema.json">plan.json</a>
+            <a href="/evidence/schema/inbox-protocol-frame.v1.schema.json">protocol.json</a>
+            <a href="/evidence/schema/inbox-protocol-case-record.v1.schema.json">case-record.json</a>
+            <a href="/evidence/schema/inbox-protocol-run-summary.v1.schema.json">summary.json</a>
           </div>
         </div>
       </section>
@@ -151,29 +135,27 @@ export default function HomePage() {
         <div className={styles.rail}>
           <div className={styles.boundaryHeader}>
             <div>
-              <p className={styles.lightEyebrow}>Target policy model · In development</p>
-              <h2 id="boundary-title">Turn evidence into a permission boundary.</h2>
+              <p className={styles.lightEyebrow}>Human decision boundary</p>
+              <h2 id="boundary-title">Keep evidence separate from permission.</h2>
             </div>
-            <p>
-              This is the intended decision shape, not an active authorization service. The bundled examples remain provisional.
-            </p>
+            <p>A checkup can show what happened in one synthetic session. It cannot decide what the agent should be allowed to do next.</p>
           </div>
 
           <div className={styles.boundaryRows}>
             <article>
-              <span className={styles.allow}>Allow</span>
-              <h3>Independent work</h3>
-              <p>Complete, repeatable evidence clears every task-specific floor and no critical failure is present.</p>
+              <span className={styles.allow}>Observe</span>
+              <h3>Run the fixed checkup</h3>
+              <p>Exercise one configured runtime against the project-owned synthetic Inbox.</p>
             </article>
             <article>
-              <span className={styles.approval}>Approval</span>
-              <h3>Human-gated work</h3>
-              <p>The model may help, but consequences, uncertainty, or incomplete reproduction require an explicit review.</p>
+              <span className={styles.approval}>Review</span>
+              <h3>Inspect the receipt</h3>
+              <p>Separate agent findings from infrastructure failure and keep the evidence tied to the observed run.</p>
             </article>
             <article>
-              <span className={styles.block}>Block</span>
-              <h3>Do not route</h3>
-              <p>A critical dimension fails, evidence is incomplete, identity drifts, or the deployment differs from what was tested.</p>
+              <span className={styles.block}>Decide</span>
+              <h3>Keep the human in charge</h3>
+              <p>Use the evidence as review input. Permission and deployment changes remain separate decisions.</p>
             </article>
           </div>
         </div>
@@ -182,7 +164,7 @@ export default function HomePage() {
       <section className={styles.annex} aria-labelledby="annex-title">
         <div className={styles.rail}>
           <div className={styles.sectionIntroCompact}>
-            <p className={styles.darkEyebrow}>Research surfaces</p>
+            <p className={styles.darkEyebrow}>Evidence surfaces</p>
             <h2 id="annex-title">Inspect the method.<br />Keep the limits visible.</h2>
           </div>
 
@@ -191,33 +173,23 @@ export default function HomePage() {
               <span>01 · Evidence</span>
               <h3>Benchmark registry</h3>
               <p>
-                {publicEvidence.runs.length > 0
-                  ? 'The registry contains measured public bundles with complete artifacts and explicit limits. '
-                  : 'The registry is awaiting its first measured public bundle. '}
-                The {benchData.lastUpdated} scores remain a low-confidence, maintainer-reported legacy summary because their raw cases were not published.
+                Inspect the reviewed public benchmark exports and their limits. Configured-agent receipts remain private unless an operator separately publishes a sanitized artifact.
               </p>
               <strong>Inspect evidence and legacy data →</strong>
             </Link>
 
             <div className={styles.annexStack}>
-              <Link href="/trust">
-                <span>02 · Trust</span>
-                <h3>Critical floors before averages</h3>
-                <strong>Inspect example report →</strong>
+              <Link href="/docs">
+                <span>02 · Run locally</span>
+                <h3>Inspect the fixed protocol and evidence workflow</h3>
+                <strong>Read the operator guide →</strong>
               </Link>
-              <Link href="/routing">
-                <span>03 · Routing</span>
-                <h3>Reviewable allow, approval, and block decisions</h3>
-                <strong>Inspect example policy →</strong>
+              <Link href="/about">
+                <span>03 · Method</span>
+                <h3>Understand what one checkup can claim</h3>
+                <strong>Read the boundary →</strong>
               </Link>
             </div>
-
-            <Link href="/lab" className={styles.labAnnex}>
-              <span>04 · Qualitative annex</span>
-              <h3>Behavioral probes</h3>
-              <p>Model-authored creative artifacts made with a shared prompt recipe. Exploratory—not scored evidence.</p>
-              <strong>Enter the lab →</strong>
-            </Link>
           </div>
 
           <div className={styles.annexLinks}>

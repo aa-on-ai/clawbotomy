@@ -89,7 +89,7 @@ export default function EvaluatePage() {
                 Keep human approval and platform controls around consequential actions. Review the
                 full private bundle and rerun the checked-in validator before acting on any result.
               </p>
-              <Link href="/trust">Read the trust and evidence model</Link>
+              <Link href="/about">Read the evidence boundary</Link>
             </div>
           </div>
         </div>

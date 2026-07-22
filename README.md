@@ -40,7 +40,6 @@ A checkup describes one observed session in a synthetic fixture. It is not a saf
 - [`public/evidence/index.json`](public/evidence/index.json) lists the current complete, validated public benchmark exports. These exports are maintainer-self-reported and non-authorizing.
 - Configured-agent receipts remain private unless an operator separately reviews and publishes a sanitized artifact.
 - [`/bench`](https://www.clawbotomy.com/bench) separates public evidence bundles from the maintainer-reported March 2026 legacy summary, which has no raw case artifacts.
-- `/routing`, `/trust`, and `/lab` remain clearly labeled examples or qualitative research surfaces. They are not the current product wedge.
 
 ## First five minutes
 

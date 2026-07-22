@@ -4,6 +4,13 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/bench/**': ['./bench/prompts/**/*'],
   },
+  async redirects() {
+    return [
+      { source: '/lab/:path*', destination: '/about', permanent: true },
+      { source: '/routing', destination: '/checkups', permanent: true },
+      { source: '/trust', destination: '/checkups', permanent: true },
+    ];
+  },
   async headers() {
     return [{
       source: '/:path*',
