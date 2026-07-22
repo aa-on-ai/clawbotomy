@@ -37,13 +37,14 @@ test('the evidence route keeps long raw text contained and keyboard-scrollable',
   assert.match(styles, /overflow-wrap: anywhere/);
 });
 
-test('registry and homepage point people to the human run page without stale empty copy', () => {
+test('registry exposes human run pages while the homepage keeps configured-agent evidence scoped', () => {
   const bench = fs.readFileSync(path.join(root, 'src/app/bench/page.tsx'), 'utf8');
   const home = fs.readFileSync(path.join(root, 'src/app/page.tsx'), 'utf8');
 
   assert.match(bench, /href=\{`\/bench\/runs\/\$\{run\.runId\}`\}/);
   assert.doesNotMatch(bench, /href=\{`\/api\/bench\/runs\/\$\{run\.runId\}`\}>Inspect run/);
-  assert.match(home, /href=\{`\/bench\/runs\/\$\{latestRun\.runId\}`\}/);
-  assert.match(home, /registry contains measured public bundles/);
+  assert.match(home, /href="\/bench"/);
+  assert.match(home, /Configured-agent receipts remain private/);
+  assert.match(home, /Permission decision/);
   assert.doesNotMatch(home, /registry is currently empty/);
 });

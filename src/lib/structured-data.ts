@@ -58,9 +58,9 @@ export const benchDatasetJsonLd = {
   })),
   keywords: [
     'AI benchmarks',
-    'behavioral intelligence',
+    'agent behavior evidence',
     'model endpoint evaluation',
-    'routing benchmark',
+    'task benchmark',
     ...benchData.models,
   ],
 };

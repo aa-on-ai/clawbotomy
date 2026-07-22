@@ -143,21 +143,6 @@ const currentSurfaces = [
     status: 'Public evidence registry',
     description: 'Indexes explicit exports of complete validated bundles. Every entry preserves its scope and remains non-authorizing.',
   },
-  {
-    name: '/routing',
-    status: 'Decision example',
-    description: 'A transparent routing policy that distinguishes maintainer-reported and provisional inputs and fails closed on critical tasks.',
-  },
-  {
-    name: '/trust',
-    status: 'Derived example',
-    description: 'A trust-oriented view generated from the same routing evidence. It is not an independent certification.',
-  },
-  {
-    name: '/lab',
-    status: 'Prompt library',
-    description: 'Creative prompt lenses and recorded outputs for qualitative exploration. These are not scored assessments.',
-  },
 ];
 
 export default function DocsPage() {

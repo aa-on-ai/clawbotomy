@@ -469,7 +469,7 @@
 
 .annexGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.85fr) minmax(240px, 0.65fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.85fr);
   border-top: 1px solid var(--cb-border-dark);
   border-left: 1px solid var(--cb-border-dark);
 }
@@ -482,7 +482,6 @@
 }
 
 .annexLead,
-.labAnnex,
 .annexStack a {
   padding: clamp(28px, 4vw, 48px);
   display: flex;
@@ -490,8 +489,7 @@
   align-items: flex-start;
 }
 
-.annexLead,
-.labAnnex {
+.annexLead {
   min-height: 430px;
 }
 
@@ -538,14 +536,6 @@
 .annexStack h3 {
   margin-top: 18px;
   font-size: clamp(1.45rem, 2.2vw, 2.25rem);
-}
-
-.labAnnex {
-  background: color-mix(in srgb, var(--cb-research) 46%, var(--cb-ink));
-}
-
-.labAnnex span {
-  color: #c9a7d4;
 }
 
 .annexLinks {
@@ -700,8 +690,7 @@
     grid-column: auto;
   }
 
-  .annexLead,
-  .labAnnex {
+  .annexLead {
     min-height: 360px;
   }
 
