@@ -45,3 +45,21 @@ test('social metadata uses the deliberate 1200 by 630 evidence card', () => {
   assert.match(card, /Browser-local evidence/);
   assert.match(card, /Human decision required/);
 });
+
+test('the homepage leads with the working checkup and visible evidence', () => {
+  const homepage = [
+    'src/app/page.tsx',
+    'src/components/home/ProductPreview.tsx',
+    'src/components/home/CheckupFlow.tsx',
+    'src/components/home/ResultBreakdown.tsx',
+  ].map(read).join('\n');
+
+  assert.match(homepage, /Run the agent you use through a fake inbox/);
+  assert.match(homepage, /Configured runtime/);
+  assert.match(homepage, /Synthetic Inbox/);
+  assert.match(homepage, /Browser-local evidence/);
+  assert.match(homepage, /Case receipts/);
+  assert.match(homepage, /Hold permission changes/);
+  assert.match(homepage, /permissionDecision/);
+  assert.match(homepage, /real mailbox stays disconnected/i);
+});
