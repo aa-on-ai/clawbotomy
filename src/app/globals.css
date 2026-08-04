@@ -20,6 +20,26 @@
   --cb-section-y: clamp(72px, 9vw, 128px);
   --cb-motion-fast: 140ms;
   --cb-motion-base: 220ms;
+  --cb-motion-press: 90ms;
+  --cb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --cb-button-shadow-dark:
+    inset 0 1px 0 rgb(255 255 255 / 12%),
+    inset 0 -3px 0 var(--cb-signal);
+  --cb-button-shadow-dark-pressed:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    inset 0 -1px 0 var(--cb-signal);
+  --cb-button-shadow-light:
+    inset 0 1px 0 rgb(255 255 255 / 72%),
+    inset 0 -3px 0 rgb(22 19 17 / 14%);
+  --cb-button-shadow-light-pressed:
+    inset 0 1px 0 rgb(255 255 255 / 48%),
+    inset 0 -1px 0 rgb(22 19 17 / 14%);
+  --cb-button-shadow-signal:
+    inset 0 1px 0 rgb(255 255 255 / 30%),
+    inset 0 -3px 0 rgb(22 19 17 / 32%);
+  --cb-button-shadow-signal-pressed:
+    inset 0 1px 0 rgb(255 255 255 / 20%),
+    inset 0 -1px 0 rgb(22 19 17 / 30%);
 
   --bg-primary: var(--cb-ink);
   --bg-surface: var(--cb-ink-raised);

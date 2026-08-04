@@ -83,19 +83,40 @@
 }
 
 .navigation .navAction {
-  min-height: 38px;
+  min-height: 48px;
   margin-left: 10px;
   padding: 0 16px;
   color: var(--cb-ink);
   background: var(--cb-signal);
   border: 1px solid var(--cb-signal);
+  box-shadow: var(--cb-button-shadow-signal);
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease,
+    box-shadow var(--cb-motion-fast) ease;
 }
 
-.navigation .navAction:hover,
 .navigation .navAction.active {
   border-color: var(--cb-signal);
-  opacity: 0.86;
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navigation .navAction:hover {
+    background: color-mix(in srgb, var(--cb-signal) 88%, white);
+    border-bottom-color: var(--cb-signal);
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
+.navigation .navAction:active {
+  box-shadow: var(--cb-button-shadow-signal-pressed);
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--cb-motion-press);
 }
 
 .menuButton {
@@ -241,5 +262,10 @@
 @media (prefers-reduced-motion: reduce) {
   .navigation a {
     transition: none;
+  }
+
+  .navigation .navAction:hover,
+  .navigation .navAction:active {
+    transform: none;
   }
 }

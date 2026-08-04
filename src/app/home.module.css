@@ -117,44 +117,87 @@
 
 .primaryAction,
 .secondaryAction {
+  position: relative;
   min-height: 52px;
   padding: 0 20px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 18px;
+  cursor: pointer;
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.035em;
+  will-change: transform;
   transition:
-    transform var(--cb-motion-fast) ease,
+    transform var(--cb-motion-fast) var(--cb-ease-out),
     color var(--cb-motion-fast) ease,
     background-color var(--cb-motion-fast) ease,
-    border-color var(--cb-motion-fast) ease;
+    border-color var(--cb-motion-fast) ease,
+    box-shadow var(--cb-motion-fast) ease;
 }
 
 .primaryAction {
   color: var(--cb-bone);
   background: var(--cb-ink);
+  border: 1px solid var(--cb-ink);
+  box-shadow: var(--cb-button-shadow-dark);
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
 }
 
 .secondaryAction {
   border: 1px solid var(--cb-border-light);
+  background: rgb(255 255 255 / 16%);
+  box-shadow: var(--cb-button-shadow-light);
 }
 
-.primaryAction:hover,
-.secondaryAction:hover {
-  transform: translateY(-2px);
+.primaryAction::after,
+.secondaryAction::after {
+  content: '→';
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.72;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    opacity var(--cb-motion-fast) ease;
 }
 
-.secondaryAction:hover {
-  background: rgb(22 19 17 / 6%);
-  border-color: color-mix(in srgb, var(--cb-ink) 48%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .primaryAction:hover,
+  .secondaryAction:hover {
+    transform: translateY(-2px);
+  }
+
+  .primaryAction:hover {
+    background: var(--cb-ink-raised);
+  }
+
+  .secondaryAction:hover {
+    background: rgb(22 19 17 / 6%);
+    border-color: color-mix(in srgb, var(--cb-ink) 48%, transparent);
+  }
+
+  .primaryAction:hover::after,
+  .secondaryAction:hover::after {
+    opacity: 1;
+    transform: translateX(3px);
+  }
 }
 
 .primaryAction:active,
 .secondaryAction:active {
-  transform: scale(0.98);
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--cb-motion-press);
+}
+
+.primaryAction:active {
+  box-shadow: var(--cb-button-shadow-dark-pressed);
+}
+
+.secondaryAction:active {
+  box-shadow: var(--cb-button-shadow-light-pressed);
 }
 
 .heroNote {
@@ -402,6 +445,7 @@
 }
 
 .previewAction {
+  position: relative;
   min-height: 58px;
   padding: 0 18px;
   display: flex;
@@ -409,16 +453,24 @@
   justify-content: space-between;
   color: var(--cb-ink);
   background: var(--cb-signal);
+  border: 1px solid var(--cb-ink);
+  box-shadow: var(--cb-button-shadow-signal);
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 800;
+  will-change: transform;
   transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
     color var(--cb-motion-fast) ease,
-    background-color var(--cb-motion-fast) ease;
+    background-color var(--cb-motion-fast) ease,
+    box-shadow var(--cb-motion-fast) ease;
 }
 
-.previewAction:hover {
-  background: color-mix(in srgb, var(--cb-signal) 88%, white);
+@media (hover: hover) and (pointer: fine) {
+  .previewAction:hover {
+    background: color-mix(in srgb, var(--cb-signal) 88%, white);
+    transform: translateY(-2px);
+  }
 }
 
 .previewAction > span,
@@ -430,6 +482,12 @@
 .previewAction:hover > span,
 .nextLinks > a:hover strong > span {
   transform: translateX(4px);
+}
+
+.previewAction:active {
+  box-shadow: var(--cb-button-shadow-signal-pressed);
+  transform: translateY(1px) scale(0.99);
+  transition-duration: var(--cb-motion-press);
 }
 
 .previewCallout {
@@ -1208,5 +1266,14 @@
   .previewAction > span,
   .nextLinks strong > span {
     transition: none;
+  }
+
+  .primaryAction:hover,
+  .secondaryAction:hover,
+  .previewAction:hover,
+  .primaryAction:active,
+  .secondaryAction:active,
+  .previewAction:active {
+    transform: none;
   }
 }
