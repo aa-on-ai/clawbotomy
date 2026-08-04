@@ -12,17 +12,17 @@ export const metadata: Metadata = {
 const offers = [
   {
     index: '01',
-    status: 'Open source',
-    title: 'Run it yourself',
+    status: 'Self-serve',
+    title: 'Open-source workflow',
     copy: 'Build the plan in your browser, connect OpenClaw or Hermes from your own checkout, and inspect the private receipt locally.',
     includes: ['Browser-local planning', 'Synthetic Inbox tools', 'Private evidence viewer', 'No hosted agent or mailbox'],
-    href: '/evaluate',
-    action: 'Open the local workflow',
+    href: '/preflight',
+    action: 'Start a checkup',
     external: false,
   },
   {
     index: '02',
-    status: 'Guided',
+    status: 'Guided review',
     title: 'Agent Behavior Checkup',
     copy: 'Work through one configured runtime with a human reviewer. Freeze the scope, run the cases, separate behavior from infrastructure, and leave with a decision packet.',
     includes: ['One frozen runtime and plan', 'Failure-cluster review', 'Evidence and limits packet', 'Recommended next controlled change'],
@@ -30,25 +30,13 @@ const offers = [
     action: 'Discuss a guided checkup',
     external: true,
   },
-  {
-    index: '03',
-    status: 'After a valid baseline',
-    title: 'Controlled intervention retest',
-    copy: 'Change one behavior, keep the comparison contract fixed, and retest only when the baseline and treatment can produce comparable evidence.',
-    includes: ['One declared intervention', 'Fixed comparison panel', 'Independent offline validation', 'Explicit inconclusive stop conditions'],
-    href: '/about',
-    action: 'Read the evidence model',
-    external: false,
-  },
 ] as const;
 
 const workflow = [
-  ['01', 'Freeze', 'Pin the runtime, cases, limits, and intervention state before a provider call.'],
+  ['01', 'Plan', 'Record intended powers, pin the runtime, and freeze the cases before a provider call.'],
   ['02', 'Connect', 'Run the checked-in OpenClaw or Hermes bridge from your own machine.'],
-  ['03', 'Observe', 'Exercise only synthetic tools and record the actual session incrementally.'],
-  ['04', 'Inspect', 'Validate the private receipt and review closed-contract findings locally.'],
-  ['05', 'Decide', 'Separate behavioral evidence, infrastructure failures, and unknowns.'],
-  ['06', 'Retest', 'Change one thing only after a valid baseline makes comparison possible.'],
+  ['03', 'Inspect', 'Validate the private receipt and keep findings separate from infrastructure failures.'],
+  ['04', 'Decide', 'Use the bounded evidence as a review input. Permission decisions remain human.'],
 ] as const;
 
 export default function CheckupsPage() {
@@ -60,10 +48,10 @@ export default function CheckupsPage() {
           <p className={styles.eyebrow}>Configured-agent evaluation · Private by default</p>
           <h1 id="checkups-title">See how your agent behaves before it gets more power.</h1>
           <p className={styles.lede}>
-            Clawbotomy runs fixed synthetic tasks against the runtime you actually operate. Use the open-source workflow yourself, or work through one guided behavior checkup and a controlled retest.
+            Clawbotomy runs fixed synthetic tasks against the runtime you actually operate. Run the open-source workflow yourself, or add a human reviewer to the same evidence chain.
           </p>
           <div className={styles.actions}>
-            <Link href="/evaluate" className={styles.primaryAction}>Run it yourself</Link>
+            <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
             <a
               href="https://x.com/aa_on_ai"
               target="_blank"
@@ -91,7 +79,7 @@ export default function CheckupsPage() {
           <div className={styles.sectionIntro}>
             <div>
               <p className={styles.eyebrow}>Choose the level of help</p>
-              <h2 id="offers-title">One evidence chain.<br />Three ways to use it.</h2>
+              <h2 id="offers-title">Two ways to run the same checkup.</h2>
             </div>
             <p>
               Start self-serve. Add guided review when the runtime, failure modes, or permission decision deserve another pair of eyes.
@@ -129,7 +117,7 @@ export default function CheckupsPage() {
           <div className={styles.workflowHeader}>
             <div>
               <p className={styles.darkEyebrow}>The checkup loop</p>
-              <h2 id="workflow-title">Behavior first.<br />Intervention second.</h2>
+              <h2 id="workflow-title">Plan. Connect. Inspect. Decide.</h2>
             </div>
             <p>
               Failed infrastructure is not scored as behavior. An invalid arm ends the comparison instead of quietly becoming a zero.
@@ -144,6 +132,16 @@ export default function CheckupsPage() {
               </li>
             ))}
           </ol>
+          <aside className={styles.retestGate} aria-labelledby="retest-title">
+            <div>
+              <span>Optional next stage</span>
+              <h3 id="retest-title">Retest only after a valid baseline.</h3>
+            </div>
+            <p>
+              Change one behavior, keep the plan and comparison contract fixed, then rerun. If either arm is invalid or the evidence cannot be compared honestly, stop as inconclusive.
+            </p>
+            <Link href="/about">Read the evidence model →</Link>
+          </aside>
         </div>
       </section>
 
@@ -181,7 +179,7 @@ export default function CheckupsPage() {
           <p className={styles.darkEyebrow}>Start with the smallest honest check</p>
           <h2 id="final-cta-title">Freeze one plan. Observe one runtime.</h2>
           <div className={styles.actions}>
-            <Link href="/preflight" className={styles.primaryAction}>Build the plan</Link>
+            <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
             <a
               href="https://github.com/aa-on-ai/clawbotomy"
               target="_blank"

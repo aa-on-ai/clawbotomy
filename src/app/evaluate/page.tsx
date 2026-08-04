@@ -66,8 +66,7 @@ export default function EvaluatePage() {
             <li><span>01</span><Link href="/preflight">Plan</Link></li>
             <li><span>02</span><a href="#connect-agent">Connect</a></li>
             <li><span>03</span><a href="#inspect-evidence">Inspect</a></li>
-            <li><span>04</span><a href="#compare-runs">Compare</a></li>
-            <li><span>05</span><a href="#act-on-findings">Act</a></li>
+            <li><span>04</span><a href="#act-on-findings">Decide</a></li>
           </ol>
         </div>
       </nav>

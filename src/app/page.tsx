@@ -16,14 +16,14 @@ const proofPoints = [
 const nextLinks = [
   {
     index: '01',
-    label: 'Run a checkup',
+    label: 'Start a checkup',
     copy: 'Build a plan, choose OpenClaw or Hermes, and open the local evidence workflow.',
-    href: '/evaluate',
+    href: '/preflight',
   },
   {
     index: '02',
     label: 'Inspect evidence',
-    copy: 'Review public benchmark exports, schemas, integrity records, and stated limits.',
+    copy: 'Inspect the configured-runtime receipt, its claim boundary, and the separate model archive.',
     href: '/bench',
   },
   {
@@ -49,11 +49,11 @@ export default function HomePage() {
                 changes, and findings in your browser before you change real permissions.
               </p>
               <div className={styles.heroActions}>
-                <Link href="/evaluate" className={styles.primaryAction}>Run a checkup</Link>
+                <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
                 <Link href="/checkups" className={styles.secondaryAction}>See checkup options</Link>
               </div>
               <p className={styles.heroNote}>
-                Run a private behavior checkup. <Link href="/preflight">Build the plan in your browser.</Link>{' '}
+                Start in the browser-local planner.{' '}
                 No hosted agent, real mailbox, or automatic permission decision.
               </p>
             </div>

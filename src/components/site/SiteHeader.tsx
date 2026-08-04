@@ -72,11 +72,11 @@ export function SiteHeader() {
             );
           })}
           <Link
-            href="/evaluate"
-            aria-current={pathname === '/evaluate' ? 'page' : undefined}
-            className={`${styles.navAction} ${pathname === '/evaluate' ? styles.active : ''}`}
+            href="/preflight"
+            aria-current={pathname === '/preflight' ? 'page' : undefined}
+            className={`${styles.navAction} ${pathname === '/preflight' ? styles.active : ''}`}
           >
-            Run a checkup
+            Start a checkup
           </Link>
         </nav>
       </div>

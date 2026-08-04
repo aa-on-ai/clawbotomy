@@ -245,33 +245,39 @@ export function AgentEvaluationWorkbench() {
               </div>
               <p className={styles.adapterDescription}>{adapter.description}</p>
 
-              <div className={styles.prerequisites}>
-                <h4>Before you launch</h4>
-                <ul>
-                  {adapter.prerequisites.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-                <p>{adapter.trustNote}</p>
-              </div>
-
-              <div className={styles.commandBlock}>
-                <div>
-                  <h4>Copyable launch command</h4>
-                  <button type="button" onClick={copyCommand}>
-                    {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy command'}
-                  </button>
+              <details className={styles.launchDetails}>
+                <summary>
+                  <strong>Open setup requirements and command</strong>
+                  <span>{adapter.prerequisites.length} prerequisites</span>
+                </summary>
+                <div className={styles.prerequisites}>
+                  <h4>Before you launch</h4>
+                  <ul>
+                    {adapter.prerequisites.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                  <p>{adapter.trustNote}</p>
                 </div>
-                <pre tabIndex={0} aria-label={`${adapter.name} evaluation launch command`}>
-                  <code>{adapter.launchCommand}</code>
-                </pre>
-              </div>
+
+                <div className={styles.commandBlock}>
+                  <div>
+                    <h4>Copyable launch command</h4>
+                    <button type="button" onClick={copyCommand}>
+                      {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy command'}
+                    </button>
+                  </div>
+                  <pre tabIndex={0} aria-label={`${adapter.name} evaluation launch command`}>
+                    <code>{adapter.launchCommand}</code>
+                  </pre>
+                </div>
+              </details>
             </article>
           </div>
 
-          <section className={styles.statusGuide} aria-labelledby="status-guide-title">
-            <div className={styles.statusGuideHeader}>
+          <details className={styles.statusGuide}>
+            <summary className={styles.statusGuideHeader}>
               <h3 id="status-guide-title">Read the process exit before the score</h3>
               <code>npm run inbox -- validate …</code>
-            </div>
+            </summary>
             <div className={styles.statusRows}>
               {STATUS_GUIDE.map((item) => (
                 <div key={item.status} data-status={item.status}>
@@ -282,7 +288,7 @@ export function AgentEvaluationWorkbench() {
                 </div>
               ))}
             </div>
-          </section>
+          </details>
         </div>
       </section>
 
@@ -558,10 +564,10 @@ export function AgentEvaluationWorkbench() {
       <section id="compare-runs" className={styles.compareSection} aria-labelledby="compare-title">
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
-            <p className={styles.sectionIndex}>04 · Compare</p>
+            <p className={styles.sectionIndex}>After a valid baseline · Compare</p>
             <div>
               <h2 id="compare-title">Compare receipts without flattening their provenance.</h2>
-              <p>{comparisonState}</p>
+              <p>Comparison is a conditional branch, not a required step. {comparisonState}</p>
             </div>
           </div>
 
@@ -622,9 +628,9 @@ export function AgentEvaluationWorkbench() {
       <section id="act-on-findings" className={styles.actSection} aria-labelledby="act-title">
         <div className={styles.rail}>
           <div className={styles.sectionHeadingDark}>
-            <p className={styles.sectionIndex}>05 · Act</p>
+            <p className={styles.sectionIndex}>04 · Decide</p>
             <div>
-              <h2 id="act-title">Turn findings into the next controlled change.</h2>
+              <h2 id="act-title">Decide what changes, then test one thing.</h2>
               <p>
                 Recommendations use only the allowlisted case and assertion IDs already present in
                 the safe viewer projection. Raw prompts, messages, tool arguments, and private event

@@ -132,6 +132,8 @@
 .primaryLink:focus-visible,
 .secondaryLink:focus-visible,
 .sequence a:focus-visible,
+.launchDetails summary:focus-visible,
+.statusGuide summary:focus-visible,
 .adapterSelector input:focus-visible + span,
 .launchPanel button:focus-visible,
 .fileButton:focus-visible,
@@ -219,7 +221,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   list-style: none;
 }
 
@@ -440,8 +442,54 @@
   line-height: 1.68;
 }
 
+.launchDetails {
+  margin-top: 26px;
+  border-top: 1px solid var(--cb-border-dark);
+}
+
+.launchDetails > summary {
+  position: relative;
+  min-height: 72px;
+  padding: 12px 64px 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.launchDetails > summary::-webkit-details-marker,
+.statusGuide > summary::-webkit-details-marker {
+  display: none;
+}
+
+.launchDetails > summary::after,
+.statusGuide > summary::after {
+  content: '+';
+  position: absolute;
+  right: 22px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 20px;
+}
+
+.launchDetails[open] > summary::after,
+.statusGuide[open] > summary::after {
+  content: '−';
+}
+
+.launchDetails summary strong,
+.launchDetails summary span {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+}
+
+.launchDetails summary span {
+  color: var(--cb-bone-dim);
+}
+
 .prerequisites {
-  margin: 26px 24px 0;
+  margin: 0 24px;
   padding: 22px 0;
   border-top: 1px solid var(--cb-border-dark);
 }
@@ -560,12 +608,16 @@
 }
 
 .statusGuideHeader {
+  position: relative;
   min-height: 76px;
+  padding-right: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   border-bottom: 1px solid var(--cb-border-light);
+  cursor: pointer;
+  list-style: none;
 }
 
 .statusGuideHeader h3 {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { SANITIZED_HERMES_CASE_STUDY } from '@/lib/agent-evaluation-insights';
 import { benchData } from '@/lib/bench-data';
 import { buildEvidenceComparisons } from '@/lib/evidence-comparison';
 import { loadPublicEvidenceIndex, loadPublicEvidenceRun } from '@/lib/public-evidence.server';
@@ -9,9 +10,9 @@ import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
 import styles from './bench.module.css';
 
 export const metadata: Metadata = {
-  title: 'Evidence Registry & Legacy Benchmark — Clawbotomy',
+  title: 'Configured-Agent Evidence — Clawbotomy',
   description:
-    'Public Clawbotomy evidence bundles when available, plus a clearly separated maintainer-reported March 2026 legacy summary.',
+    'See what a configured-agent checkup can support, then inspect the separate model benchmark archive and its limits.',
 };
 
 const modelLabels: Record<string, string> = {
@@ -32,6 +33,7 @@ export default function BenchPage() {
   const comparisons = buildEvidenceComparisons(bundles);
   const comparison = comparisons[0] || null;
   const { models, categories, runs: legacyRuns, lastUpdated, scope, limitations, modelIdentityStatus } = benchData;
+  const configured = SANITIZED_HERMES_CASE_STUDY;
 
   return (
     <main className={styles.page}>
@@ -39,27 +41,27 @@ export default function BenchPage() {
 
       <header className={styles.header}>
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Evidence registry · Public v1</p>
+          <p className={styles.eyebrow}>Configured runtime evidence · Sanitized example</p>
           <div className={styles.headerGrid}>
-            <h1>Public evidence starts with the bundle.</h1>
+            <h1>Evidence follows the runtime you actually operate.</h1>
             <p>
-              Comparison starts only after eligible bundles share the same protocol. Every published run still
-              exposes its frozen plan, exact identities, cases, failures, redaction state, and integrity digest.
+              Clawbotomy measures one configured OpenClaw or Hermes session against a synthetic Inbox.
+              The useful output is a bounded receipt and a human decision, not a universal score.
             </p>
           </div>
 
           <dl className={styles.registryStats}>
             <div>
-              <dt>Published runs</dt>
-              <dd>{runs.length}</dd>
+              <dt>Observed runtime</dt>
+              <dd>{configured.adapter}</dd>
             </div>
             <div>
-              <dt>Latest run</dt>
-              <dd>{runs[0]?.runId || 'None'}</dd>
+              <dt>Completed cases</dt>
+              <dd>{configured.totals.completedCases}</dd>
             </div>
             <div>
-              <dt>Compatible pairs</dt>
-              <dd>{comparisons.length}</dd>
+              <dt>Cases with findings</dt>
+              <dd>{configured.totals.failedCases}</dd>
             </div>
             <div>
               <dt>Authorization</dt>
@@ -68,6 +70,73 @@ export default function BenchPage() {
           </dl>
         </div>
       </header>
+
+      <section className={styles.configuredSection} aria-labelledby="configured-title" data-configured-runtime-evidence>
+        <div className={styles.rail}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrowSignal}>Configured runtime evidence</p>
+              <h2 id="configured-title">The receipt ends in a decision.</h2>
+            </div>
+            <p>
+              This sanitized Hermes summary is the same aggregate shown on the homepage. Private case payloads stay local, so the public story stops at what the reviewed summary can support.
+            </p>
+          </div>
+
+          <div className={styles.evidenceQuestionSplit} aria-label="Evidence types">
+            <div>
+              <span>Current product</span>
+              <strong>Tests a configured agent runtime</strong>
+              <p>Tool attempts, state changes, findings, and one human permission decision.</p>
+            </div>
+            <div>
+              <span>Separate archive</span>
+              <strong>Tests base-model task performance</strong>
+              <p>Prompt scores and same-protocol comparisons. Useful history, but not product proof.</p>
+            </div>
+          </div>
+
+          <article className={styles.configuredReceipt}>
+            <header>
+              <div>
+                <span>{configured.label}</span>
+                <strong>{configured.adapter}</strong>
+              </div>
+              <time dateTime={configured.measuredAt}>Jul 13, 2026</time>
+            </header>
+            <div className={styles.configuredDecision}>
+              <span>Operator decision</span>
+              <h3>{configured.decision}</h3>
+              <p>{configured.totals.failedCases} of {configured.totals.completedCases} completed cases produced findings.</p>
+            </div>
+            <dl className={styles.configuredMetrics}>
+              <div><dt>Passed</dt><dd>{configured.totals.passedCases}</dd></div>
+              <div><dt>Findings</dt><dd>{configured.totals.failedCases}</dd></div>
+              <div><dt>Tool attempts</dt><dd>{configured.totals.toolAttempts}</dd></div>
+              <div><dt>State changes</dt><dd>{configured.totals.stateTransitions}</dd></div>
+            </dl>
+            <div className={styles.claims}>
+              <div><span>Supported</span><p>{configured.allowedClaim}</p></div>
+              <div><span>Not supported</span><p>{configured.disallowedClaim}</p></div>
+            </div>
+            <footer>
+              <span>{configured.boundary}</span>
+              <div>
+                <Link href="/preflight">Start a checkup →</Link>
+                <Link href="/evaluate">Open the local viewer →</Link>
+              </div>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <details className={styles.archiveDisclosure}>
+        <summary>
+          <span>Model benchmark archive</span>
+          <strong>{runs.length} published runs · {comparisons.length} compatible pairs · legacy March 2026 snapshot</strong>
+          <p>Open the separate base-model evidence registry, compatible Qwen comparison, schemas, and legacy benchmark table.</p>
+        </summary>
+        <div className={styles.archiveBody}>
 
       {comparison && (
         <section
@@ -269,6 +338,8 @@ export default function BenchPage() {
           </div>
         </div>
       </section>
+        </div>
+      </details>
     </main>
   );
 }
