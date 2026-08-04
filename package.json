@@ -11,6 +11,7 @@
     "bench": "node bench/index.js",
     "inbox": "node inbox/index.js",
     "agent:evaluate": "node inbox/agent-evaluate.js",
+    "agent:repeat": "node inbox/repeated-session-evidence.js",
     "evidence": "node bench/evidence-cli.js",
     "test": "npm run test:core",
     "test:core": "node --experimental-strip-types --test tests/*.test.js",

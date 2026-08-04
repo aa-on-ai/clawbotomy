@@ -28,6 +28,7 @@ A checkup describes one observed session in a synthetic fixture. It is not a saf
 - [`/evaluate`](https://www.clawbotomy.com/evaluate) provides the fixed OpenClaw and Hermes launch paths, distinguishes pass, findings, and infrastructure failure, and reads selected private evidence files in the browser without uploading them.
 - `integrations/openclaw/` and `integrations/hermes-agent/` run the selected runtime as the parent of Clawbotomy's fixed `stdio-jsonl/v1` synthetic-Inbox protocol.
 - `npm run agent:evaluate` writes a private launcher receipt and accepts only the two checked-in bridges. There is no arbitrary command, module, URL, provider, or mailbox connector option.
+- `npm run agent:repeat` freezes a costed 3–5 session experiment and derives finding-frequency and behavioral-variation receipts from individually replay-validated bundles. It produces no trust score and makes no repeatability claim.
 
 ### Controls and protocol
 

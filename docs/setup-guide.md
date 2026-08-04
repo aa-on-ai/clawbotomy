@@ -152,6 +152,45 @@ Exit `0` is a complete run whose cases passed. Exit `2` is a complete run with f
 
 Open `/evaluate` and select one launcher-issued `evaluation-attempt-*.json` together with its bound `manifest.json`, `summary.json`, and `cases.jsonl`. The browser requires that receipt-to-bundle binding before displaying a measured status, then derives only closed-contract case/tool/state/assertion/digest receipts in memory. Select one attempt receipt alone to inspect an infrastructure failure with no accepted bundle.
 
+### Bounded repeated-session evidence
+
+Repeated-session evidence is a separate local experiment over individually valid configured-agent sessions. It does not turn several sessions into a trust score, probability estimate, repeatability claim, adapter ranking, or permission decision.
+
+Use one frozen plan and choose 3–5 fresh sessions per adapter. Run the cost preflight before provider inference:
+
+```bash
+npm run agent:repeat -- preflight \
+  --experiment-id phase3-search-read-20260804 \
+  --plan .clawbotomy/plans/phase3-search-read.json \
+  --sessions 3 \
+  --openclaw-runtime-version 2026.7.1-beta.5 \
+  --openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --openclaw-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256" \
+  --openclaw-codex-runtime-sha256 "$OPENCLAW_CODEX_RUNTIME_SHA256" \
+  --hermes-runtime-version 0.18.2 \
+  --hermes-git-commit 111544d544d6cf6efed9875e116f2daeb76a1211 \
+  --incremental-cash-cost-usd 0 \
+  --output .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/preflight.json
+```
+
+The preflight requires a clean committed checkout and records the plan digest, case inventory, pinned runtime identities, session count, maximum model-turn calls, OAuth subscription boundary, and incremental cash ceiling. A zero-dollar ceiling means Clawbotomy supplies no metered API key and expects no incremental token invoice; the runs still consume existing subscription quota that Clawbotomy cannot price.
+
+Run each adapter through `npm run agent:evaluate`, preserving every launcher receipt and complete bundle. Then pass every attempt receipt, including infrastructure failures, to the report command:
+
+```bash
+npm run agent:repeat -- report \
+  --preflight .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/preflight.json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-openclaw-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-openclaw-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-openclaw-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-hermes-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-hermes-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-hermes-....json \
+  --output .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/report.json
+```
+
+The reporter revalidates integrity and deterministically replays every completed bundle. It requires stable plan and runtime/configuration provenance within each adapter cohort. The JSON and Markdown outputs contain only closed identifiers, counts, tool names, assertion IDs, state-change counts, and digests, then pass the local residual-secret scan. Raw event, message, and state text stay in the private source bundles.
+
 The run writes four private files under `.clawbotomy/inbox-runs/<deterministic-run-id>/`:
 
 | File | Purpose |
