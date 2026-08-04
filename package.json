@@ -12,7 +12,10 @@
     "inbox": "node inbox/index.js",
     "agent:evaluate": "node inbox/agent-evaluate.js",
     "evidence": "node bench/evidence-cli.js",
-    "test": "node --experimental-strip-types --test tests/*.test.js"
+    "test": "npm run test:core",
+    "test:core": "node --experimental-strip-types --test tests/*.test.js",
+    "test:openclaw": "node --experimental-strip-types --test integrations/openclaw/*.test.mjs",
+    "verify:node": "npm run test:core && npm run test:openclaw && npm run lint && npm run build"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

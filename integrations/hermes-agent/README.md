@@ -20,16 +20,25 @@ A parent-side bridge that runs the real Hermes `AIAgent` against Clawbotomy's fi
 
 ## Focused tests
 
+The bridge unit suite needs only the checked-in bridge and its test dependency:
+
 ```bash
-REPO=/path/to/clawbotomy-hermes
+python -m pip install -r integrations/hermes-agent/requirements-test.txt
+python -m unittest integrations/hermes-agent/test_bridge.py -v
+```
+
+The separate registration smoke verifies the exact pinned Hermes source, isolated import path, and eight-tool registration. Point it at a canonical checkout and Hermes home:
+
+```bash
 HERMES_ROOT=/path/to/hermes-agent
 HERMES_HOME=/path/to/hermes-home
 CLAWBOTOMY_HERMES_ROOT="$HERMES_ROOT" \
 CLAWBOTOMY_HERMES_HOME="$HERMES_HOME" \
   "$HERMES_ROOT/venv/bin/python" -m unittest \
-  integrations/hermes-agent/test_bridge.py \
   integrations/hermes-agent/test_registration_smoke.py -v
 ```
+
+CI checks out commit `111544d544d6cf6efed9875e116f2daeb76a1211` and sets the explicit `CLAWBOTOMY_HERMES_TEST_PLACEHOLDER_AUTH=1` test mode. That mode supplies non-secret placeholder OAuth-shaped data because registration requires a configured provider but makes no provider request; it does not test login or model inference.
 
 ## Real evaluation
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 from pathlib import Path
 import sys
@@ -16,17 +17,49 @@ import bridge
 import plugin
 
 
+PLACEHOLDER_AUTH_ENABLED = os.environ.get("CLAWBOTOMY_HERMES_TEST_PLACEHOLDER_AUTH") == "1"
+
+
 @unittest.skipUnless(
-    os.environ.get("CLAWBOTOMY_HERMES_ROOT") and os.environ.get("CLAWBOTOMY_HERMES_HOME"),
-    "set CLAWBOTOMY_HERMES_ROOT and CLAWBOTOMY_HERMES_HOME for the pinned runtime smoke",
+    os.environ.get("CLAWBOTOMY_HERMES_ROOT")
+    and (os.environ.get("CLAWBOTOMY_HERMES_HOME") or PLACEHOLDER_AUTH_ENABLED),
+    "set CLAWBOTOMY_HERMES_ROOT plus CLAWBOTOMY_HERMES_HOME or the explicit test-only placeholder-auth flag",
 )
 class PinnedHermesRegistrationSmoke(unittest.TestCase):
+    def setUp(self):
+        self.hermes_root = Path(os.environ["CLAWBOTOMY_HERMES_ROOT"]).resolve(strict=True)
+        configured_home = os.environ.get("CLAWBOTOMY_HERMES_HOME")
+        if configured_home:
+            self.hermes_home = Path(configured_home).resolve(strict=True)
+            return
+
+        self.assertTrue(PLACEHOLDER_AUTH_ENABLED)
+        temporary = tempfile.TemporaryDirectory(prefix="clawbotomy-placeholder-auth-")
+        self.addCleanup(temporary.cleanup)
+        self.hermes_home = Path(temporary.name)
+        auth_path = self.hermes_home / "auth.json"
+        auth_path.write_text(
+            json.dumps({
+                "version": 1,
+                "providers": {
+                    "openai-codex": {
+                        "tokens": {
+                            "access_token": "test-only-placeholder-token",
+                            "refresh_token": "test-only-placeholder-refresh",
+                        },
+                        "auth_mode": "oauth",
+                    },
+                },
+                "active_provider": "openai-codex",
+            }),
+            encoding="utf-8",
+        )
+        os.chmod(auth_path, 0o600)
+
     def test_real_pinned_hermes_registers_exactly_eight_tools(self):
-        hermes_root = Path(os.environ["CLAWBOTOMY_HERMES_ROOT"]).resolve(strict=True)
-        hermes_home = Path(os.environ["CLAWBOTOMY_HERMES_HOME"]).resolve(strict=True)
         with tempfile.TemporaryDirectory(prefix="clawbotomy-runtime-smoke-") as runtime_temporary:
             runtime = bridge.HermesRuntime(
-                hermes_root,
+                self.hermes_root,
                 Path(runtime_temporary) / "verified-source",
             )
             try:
@@ -43,7 +76,7 @@ class PinnedHermesRegistrationSmoke(unittest.TestCase):
                         runtime.initialize()
                         self.assertFalse((isolation["hermesHome"] / "auth.json").exists())
                         isolation["authSnapshot"] = bridge.attach_isolated_oauth(
-                            hermes_home,
+                            self.hermes_home,
                             isolation["hermesHome"],
                         )
                         self.assertFalse(isolation["authSnapshot"].is_symlink())
@@ -61,12 +94,10 @@ class PinnedHermesRegistrationSmoke(unittest.TestCase):
                 runtime.make_snapshot_removable()
 
     def test_real_preloaded_utils_fails_before_oauth_registration_or_agent_init(self):
-        hermes_root = Path(os.environ["CLAWBOTOMY_HERMES_ROOT"]).resolve(strict=True)
-        hermes_home = Path(os.environ["CLAWBOTOMY_HERMES_HOME"]).resolve(strict=True)
-        auth_path = (hermes_home / "auth.json").resolve(strict=True)
-        utils_path = (hermes_root / "utils.py").resolve(strict=True)
+        auth_path = (self.hermes_home / "auth.json").resolve(strict=True)
+        utils_path = (self.hermes_root / "utils.py").resolve(strict=True)
         with tempfile.TemporaryDirectory(prefix="clawbotomy-root-probe-") as probe_temporary:
-            probe = bridge.HermesRuntime(hermes_root, Path(probe_temporary) / "unused-snapshot")
+            probe = bridge.HermesRuntime(self.hermes_root, Path(probe_temporary) / "unused-snapshot")
             manifest = probe._load_tree_manifest(bridge.EXPECTED_HERMES_GIT_COMMIT)
             protected_roots = probe._derive_protected_module_roots(manifest)
         for name in tuple(sys.modules):
@@ -100,8 +131,8 @@ class PinnedHermesRegistrationSmoke(unittest.TestCase):
                     bridge.main([
                         "--repo-root", str(HERE.parents[1]),
                         "--plan", "tests/fixtures/inbox-plan.v1.json",
-                        "--hermes-root", str(hermes_root),
-                        "--hermes-home", str(hermes_home),
+                        "--hermes-root", str(self.hermes_root),
+                        "--hermes-home", str(self.hermes_home),
                     ])
             self.assertEqual(credential_reads, [])
             attach_oauth.assert_not_called()

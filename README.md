@@ -99,12 +99,13 @@ npm install
 npm run dev
 ```
 
-Run the verification suite with:
+Run the complete Node.js verification path with:
 
 ```bash
-npm test
-npm run build
+npm run verify:node
 ```
+
+CI keeps core tests, the OpenClaw bridge suite, lint, and the production build as separate checks. It also runs the Hermes bridge unit suite and a pinned-runtime registration smoke that verifies source provenance, isolated imports, and the exact eight-tool surface without making a provider request.
 
 The website uses Next.js 15, React 18, and Tailwind CSS. The runner and evidence tooling use local Node.js commands.
 
