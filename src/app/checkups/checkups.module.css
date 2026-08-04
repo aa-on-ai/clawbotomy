@@ -102,31 +102,98 @@
 
 .primaryAction,
 .secondaryAction {
+  position: relative;
   min-height: 52px;
   padding: 0 22px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 18px;
+  cursor: pointer;
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease,
+    box-shadow var(--cb-motion-fast) ease;
 }
 
 .primaryAction {
   color: var(--cb-bone);
   background: var(--cb-ink);
+  border: 1px solid var(--cb-ink);
+  box-shadow: var(--cb-button-shadow-dark);
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-  transition: transform var(--cb-motion-fast) ease, background-color var(--cb-motion-fast) ease;
-}
-
-.primaryAction:hover {
-  background: var(--cb-ink-raised);
-  transform: translateY(-2px);
 }
 
 .secondaryAction {
-  border-bottom: 1px solid currentColor;
+  color: var(--cb-ink);
+  background: rgb(255 255 255 / 16%);
+  border: 1px solid var(--cb-border-light);
+  box-shadow: var(--cb-button-shadow-light);
+}
+
+.primaryAction::after,
+.secondaryAction::after {
+  content: '→';
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.72;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    opacity var(--cb-motion-fast) ease;
+}
+
+.secondaryAction::after {
+  content: '↗';
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primaryAction:hover,
+  .secondaryAction:hover {
+    transform: translateY(-2px);
+  }
+
+  .primaryAction:hover {
+    background: var(--cb-ink-raised);
+  }
+
+  .secondaryAction:hover {
+    background: rgb(22 19 17 / 6%);
+    border-color: color-mix(in srgb, var(--cb-ink) 48%, transparent);
+  }
+
+  .primaryAction:hover::after,
+  .secondaryAction:hover::after {
+    opacity: 1;
+    transform: translate(2px, -1px);
+  }
+}
+
+.primaryAction:active,
+.secondaryAction:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--cb-motion-press);
+}
+
+.primaryAction:active {
+  box-shadow: var(--cb-button-shadow-dark-pressed);
+}
+
+.secondaryAction:active {
+  box-shadow: var(--cb-button-shadow-light-pressed);
+}
+
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible {
+  outline: 3px solid var(--cb-focus);
+  outline-offset: 3px;
 }
 
 .boundaryNote {
@@ -523,7 +590,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .primaryAction {
+  .primaryAction,
+  .secondaryAction,
+  .primaryAction::after,
+  .secondaryAction::after {
     transition: none;
+  }
+
+  .primaryAction:hover,
+  .secondaryAction:hover,
+  .primaryAction:active,
+  .secondaryAction:active {
+    transform: none;
   }
 }
