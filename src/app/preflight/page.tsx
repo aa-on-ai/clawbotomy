@@ -77,7 +77,7 @@ export default function PreflightPage() {
             <li><span>01</span><strong>Plan</strong><p>Record intended capabilities and approval boundaries.</p></li>
             <li><span>02</span><strong>Connect</strong><p>Launch the accepted OpenClaw or Hermes bridge from your checkout.</p></li>
             <li><span>03</span><strong>Inspect</strong><p>Validate the bundle, then derive private case, tool, and state receipts locally.</p></li>
-            <li><span>04</span><strong>Compare</strong><p>Keep pass, findings, and infrastructure failures distinct across runs.</p></li>
+            <li><span>04</span><strong>Decide</strong><p>Use the bounded evidence as a review input. Permission decisions remain human.</p></li>
           </ol>
           <a className={styles.nextLink} href="/evaluate">Continue to connect and evaluate →</a>
         </div>

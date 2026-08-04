@@ -12,7 +12,7 @@ export function SiteFooter() {
         </div>
         <div className={styles.footerMeta}>
           <p>
-            Open-source local evaluation, guided behavior checkups, and controlled retests. Evidence remains private and non-authorizing.
+            Open-source local evaluation and guided behavior checkups. Controlled retests come only after a valid baseline. Evidence remains private and non-authorizing.
           </p>
           <nav aria-label="Footer navigation">
             <a
@@ -24,7 +24,7 @@ export function SiteFooter() {
               Source ↗
             </a>
             <Link href="/checkups">Checkups</Link>
-            <Link href="/evaluate">Evaluate</Link>
+            <Link href="/preflight">Start a checkup</Link>
             <Link href="/bench">Evidence</Link>
             <Link href="/about">About</Link>
             <Link href="/terms">Terms</Link>

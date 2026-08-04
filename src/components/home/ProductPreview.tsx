@@ -20,8 +20,8 @@ export function ProductPreview() {
       </header>
 
       <div className={styles.previewTabs} aria-label="Checkup steps">
-        <span>01 Plan</span>
-        <strong>02 Connect</strong>
+        <strong>01 Plan</strong>
+        <span>02 Connect</span>
         <span>03 Inspect</span>
       </div>
 
@@ -57,8 +57,8 @@ export function ProductPreview() {
         </ul>
       </div>
 
-      <Link href="/evaluate" className={styles.previewAction}>
-        Open the evaluation workspace <span>→</span>
+      <Link href="/preflight" className={styles.previewAction}>
+        Start a checkup <span>→</span>
       </Link>
       <span className={styles.previewCallout}>Tests the configured runtime, not a base model</span>
     </aside>

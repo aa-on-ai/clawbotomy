@@ -253,7 +253,7 @@ export function InboxPreflightPlanner() {
               type="text"
               value={configurationReference}
               maxLength={120}
-              placeholder="Commit, version, or internal reference"
+              placeholder="e.g. commit or version"
               autoComplete="off"
               aria-describedby="configuration-reference-help"
               onChange={(event) => changeConfigurationReference(event.target.value)}
