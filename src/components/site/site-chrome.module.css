@@ -33,6 +33,8 @@
   justify-content: center;
   gap: 2px;
   line-height: 1;
+  will-change: transform;
+  transition: transform var(--cb-motion-fast) var(--cb-ease-out);
 }
 
 .brandName {
@@ -47,6 +49,11 @@
   font-size: 12px;
   letter-spacing: 0.04em;
   color: var(--cb-bone-muted);
+}
+
+.brandName,
+.brandMode {
+  transition: color var(--cb-motion-fast) ease;
 }
 
 .signal .brandMode {
@@ -71,11 +78,31 @@
   letter-spacing: 0.035em;
   text-transform: none;
   border-bottom: 2px solid transparent;
-  transition: border-color var(--cb-motion-fast) ease, opacity var(--cb-motion-fast) ease;
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease,
+    opacity var(--cb-motion-fast) ease;
 }
 
-.navigation a:hover {
-  border-bottom-color: currentColor;
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover {
+    transform: translateY(-1px);
+  }
+
+  .brand:hover .brandName,
+  .navigation a:not(.navAction):hover {
+    color: var(--cb-signal);
+  }
+
+  .brand:hover .brandMode {
+    color: color-mix(in srgb, var(--cb-signal) 72%, currentColor);
+  }
+
+  .navigation a:not(.navAction):hover {
+    background: color-mix(in srgb, var(--cb-signal) 8%, transparent);
+    border-bottom-color: var(--cb-signal);
+  }
 }
 
 .navigation .active {
@@ -131,6 +158,26 @@
   font-weight: 700;
   letter-spacing: 0.035em;
   text-transform: none;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menuButton:hover {
+    color: var(--cb-ink);
+    background: var(--cb-signal);
+    border-color: var(--cb-signal);
+    transform: translateY(-1px);
+  }
+}
+
+.menuButton:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--cb-motion-press);
 }
 
 .footer {
@@ -200,6 +247,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footerMeta nav a:hover {
+    color: var(--cb-signal);
+    transform: translateY(-1px);
+  }
+}
+
+.footerMeta nav a:active {
+  transform: translateY(1px);
+  transition-duration: var(--cb-motion-press);
 }
 
 @media (max-width: 780px) {
@@ -259,13 +322,29 @@
   }
 }
 
+@media (max-width: 780px) and (hover: hover) and (pointer: fine) {
+  .navigation .active:not(.navAction):hover {
+    color: var(--cb-ink);
+    background: color-mix(in srgb, var(--cb-signal) 88%, white);
+    border-color: var(--cb-signal);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .navigation a {
+  .brand,
+  .navigation a,
+  .menuButton,
+  .footerMeta nav a {
     transition: none;
   }
 
+  .brand:hover,
   .navigation .navAction:hover,
-  .navigation .navAction:active {
+  .navigation .navAction:active,
+  .menuButton:hover,
+  .menuButton:active,
+  .footerMeta nav a:hover,
+  .footerMeta nav a:active {
     transform: none;
   }
 }

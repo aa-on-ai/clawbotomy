@@ -3,6 +3,7 @@
   z-index: 2;
   color: var(--cb-bone);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .rail {
@@ -17,6 +18,7 @@
   color: var(--cb-ink);
   background: var(--cb-bone);
   border-bottom: 1px solid var(--cb-border-light);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .header::after {
@@ -376,6 +378,9 @@
   gap: 12px;
   cursor: pointer;
   list-style: none;
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
 }
 
 .archiveDisclosure > summary::-webkit-details-marker {
@@ -396,6 +401,23 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 24px;
   transform: translateY(-50%);
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease,
+    transform var(--cb-motion-fast) var(--cb-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .archiveDisclosure > summary:hover {
+    color: var(--cb-signal);
+    background: var(--cb-ink-raised);
+  }
+
+  .archiveDisclosure > summary:hover::after {
+    color: var(--cb-bone);
+    background: var(--cb-danger);
+    transform: translateY(-50%) rotate(90deg);
+  }
 }
 
 .archiveDisclosure[open] > summary::after {
@@ -440,6 +462,7 @@
   color: var(--cb-ink);
   background: var(--cb-bone);
   border-bottom: 1px solid var(--cb-border-light);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .comparisonSection .eyebrowSignal {
@@ -569,6 +592,17 @@
   align-items: center;
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .comparisonSubjects a:hover {
+    color: var(--cb-danger);
+    transform: translateX(2px);
+  }
 }
 
 .caseComparison {
@@ -710,6 +744,20 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   border-bottom: 1px solid var(--cb-border-dark);
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .emptyLinks a:hover,
+  .runLinks a:hover {
+    color: var(--cb-signal);
+    background: color-mix(in srgb, var(--cb-signal) 8%, transparent);
+    transform: translateX(2px);
+  }
 }
 
 .runList {
@@ -745,11 +793,23 @@
   align-items: center;
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .runList a:hover {
+    color: var(--cb-signal);
+    transform: translateX(2px);
+  }
 }
 
 .legacySection {
   color: var(--cb-ink);
   background: var(--cb-bone);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .legacySection .eyebrowSignal {
@@ -1081,12 +1141,23 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .configuredReceipt footer a {
+  .configuredReceipt footer a,
+  .archiveDisclosure > summary,
+  .archiveDisclosure > summary::after,
+  .comparisonSubjects a,
+  .emptyLinks a,
+  .runLinks a,
+  .runList a {
     transition: none;
   }
 
   .configuredReceipt footer a:hover,
-  .configuredReceipt footer a:active {
+  .configuredReceipt footer a:active,
+  .archiveDisclosure > summary:hover::after,
+  .comparisonSubjects a:hover,
+  .emptyLinks a:hover,
+  .runLinks a:hover,
+  .runList a:hover {
     transform: none;
   }
 }

@@ -4,6 +4,7 @@
   overflow: clip;
   color: var(--cb-bone);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .rail {
@@ -19,6 +20,7 @@
   color: var(--cb-ink);
   background: var(--cb-bone);
   border-bottom: 1px solid var(--cb-border-light);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .hero::before {
@@ -214,7 +216,19 @@
   color: currentColor;
   font-weight: 700;
   text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 46%, transparent);
   text-underline-offset: 4px;
+  transition:
+    color var(--cb-motion-fast) ease,
+    text-decoration-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heroNote a:hover,
+  .inlineLink:hover {
+    color: var(--cb-danger);
+    text-decoration-color: currentColor;
+  }
 }
 
 .productPreview {
@@ -689,6 +703,7 @@
     linear-gradient(to right, rgb(22 19 17 / 4%) 1px, transparent 1px),
     var(--cb-bone);
   background-size: calc(100% / 12) 100%;
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .sectionHeadingLight > p {
@@ -929,13 +944,17 @@
   border-right: 1px solid var(--cb-border-dark);
   border-bottom: 1px solid var(--cb-border-dark);
   transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
     color var(--cb-motion-fast) ease,
     background-color var(--cb-motion-fast) ease;
 }
 
-.nextLinks > a:hover {
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+@media (hover: hover) and (pointer: fine) {
+  .nextLinks > a:hover {
+    color: var(--cb-ink);
+    background: var(--cb-signal);
+    transform: translateY(-2px);
+  }
 }
 
 .nextLinks > a > span {
@@ -945,6 +964,11 @@
 .nextLinks > a:hover > span,
 .nextLinks > a:hover p {
   color: currentColor;
+}
+
+.nextLinks > a:active {
+  transform: translateY(1px) scale(0.99);
+  transition-duration: var(--cb-motion-press);
 }
 
 .nextLinks h3 {
@@ -1271,9 +1295,11 @@
   .primaryAction:hover,
   .secondaryAction:hover,
   .previewAction:hover,
+  .nextLinks > a:hover,
   .primaryAction:active,
   .secondaryAction:active,
-  .previewAction:active {
+  .previewAction:active,
+  .nextLinks > a:active {
     transform: none;
   }
 }

@@ -4,6 +4,7 @@
   overflow: clip;
   color: var(--cb-ink);
   background: var(--cb-bone);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .rail {
@@ -332,12 +333,26 @@
   font-size: 12px;
   font-weight: 700;
   border-bottom: 1px solid currentColor;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .offerOutput a:hover {
+    color: var(--cb-danger);
+    border-bottom-color: var(--cb-danger);
+    transform: translateX(2px);
+  }
 }
 
 .workflow {
   padding: var(--cb-section-y) 0;
   color: var(--cb-bone);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .workflowHeader > p {
@@ -421,6 +436,21 @@
   font-weight: 700;
   white-space: nowrap;
   border-bottom: 1px solid currentColor;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .retestGate a:hover {
+    color: var(--cb-bone);
+    background: var(--cb-ink);
+    border-bottom-color: var(--cb-ink);
+    transform: translateX(2px);
+  }
 }
 
 .boundaryHeader {
@@ -592,6 +622,8 @@
 @media (prefers-reduced-motion: reduce) {
   .primaryAction,
   .secondaryAction,
+  .offerOutput a,
+  .retestGate a,
   .primaryAction::after,
   .secondaryAction::after {
     transition: none;
@@ -599,6 +631,8 @@
 
   .primaryAction:hover,
   .secondaryAction:hover,
+  .offerOutput a:hover,
+  .retestGate a:hover,
   .primaryAction:active,
   .secondaryAction:active {
     transform: none;
