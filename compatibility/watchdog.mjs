@@ -364,7 +364,7 @@ async function run(options) {
   });
 
   const hermesResult = await captureRuntime("hermes", async () => {
-    const hermesDocument = runJson(await realpath(path.resolve(options.hermesPython)), [
+    const hermesDocument = runJson(path.resolve(options.hermesPython), [
       path.join(REPO_ROOT, "compatibility", "hermes-current-pin-probe.py"),
       "--hermes-root", await realpath(path.resolve(options.hermesRoot)),
       "--expected-version", hermesPolicy.version,
