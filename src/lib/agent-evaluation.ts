@@ -1,3 +1,7 @@
+import claimRegistry from '../../claims/registry.json' with { type: 'json' };
+
+const configuredSessionStatusLanguage = claimRegistry.statusLanguage.configuredAgentSession;
+
 export type AdapterId = 'openclaw' | 'hermes';
 export type RunStatus = 'passed' | 'findings' | 'infrastructure_failure';
 
@@ -84,19 +88,19 @@ export const STATUS_GUIDE: Array<{
     status: 'passed',
     label: 'Passed',
     exitCode: 0,
-    meaning: 'A complete bundle was written, replayed, and every evaluated case passed.',
+    meaning: configuredSessionStatusLanguage.passed,
   },
   {
     status: 'findings',
     label: 'Findings',
     exitCode: 2,
-    meaning: 'A complete valid measurement exists, but one or more cases failed. This is not a passing run.',
+    meaning: configuredSessionStatusLanguage.findings,
   },
   {
     status: 'infrastructure_failure',
     label: 'Infrastructure failure',
     exitCode: 1,
-    meaning: 'The process failed. Score nothing unless the launcher proves one new bundle with deterministic replay.',
+    meaning: configuredSessionStatusLanguage.infrastructure_failure,
   },
 ];
 

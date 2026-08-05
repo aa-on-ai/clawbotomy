@@ -18,7 +18,7 @@ const annotations = [
   {
     index: '03',
     title: 'The boundary stays visible',
-    copy: 'The aggregate can be shared. The private bundle and case payloads do not leave the browser.',
+    copy: 'The public aggregate can be shared. The underlying private bundle and case payloads are not published.',
   },
 ];
 
@@ -28,7 +28,7 @@ export function ResultBreakdown() {
       <article className={styles.resultCard}>
         <header>
           <div>
-            <span>Sanitized verification summary</span>
+            <span>Sanitized configured-session summary</span>
             <strong>{SANITIZED_HERMES_CASE_STUDY.adapter}</strong>
           </div>
           <time dateTime={SANITIZED_HERMES_CASE_STUDY.measuredAt}>Jul 13, 2026</time>
@@ -57,7 +57,7 @@ export function ResultBreakdown() {
           <div><span>authorizationStatus</span><code>&quot;non-authorizing&quot;</code></div>
           <div><span><i>03</i> permissionDecision</span><code>null</code></div>
         </div>
-        <footer>Aggregate facts only · Private case evidence not published</footer>
+        <footer>Evidence lane · configured-agent session · Private case evidence not published</footer>
       </article>
 
       <ol className={styles.annotationList}>

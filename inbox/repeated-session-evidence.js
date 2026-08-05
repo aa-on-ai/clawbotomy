@@ -15,6 +15,7 @@ const {
   writeExclusive,
 } = require('./io');
 const { expandCases, readPlan } = require('./plan');
+const claimRegistry = require('../claims/registry.json');
 
 const PREFLIGHT_SCHEMA_ID = 'clawbotomy.configured-agent-repeated-session-preflight/v1';
 const REPORT_SCHEMA_ID = 'clawbotomy.configured-agent-repeated-session-report/v1';
@@ -302,6 +303,7 @@ function createPreflight({
       permissionDecision: null,
     },
     claimBoundary: [
+      ...claimRegistry.lanes['configured-agent-session'].defaultNonClaims,
       'This experiment describes only the sampled sessions and pinned configurations.',
       'Finding frequency is an observed count, not a trust score or probability estimate.',
       'Behavioral variation does not establish repeatability, safety, certification, or production readiness.',
@@ -570,6 +572,9 @@ function buildReport({ preflight, samples, attempts, generatedAt }) {
       passed: true,
     },
     interpretation: {
+      evidenceLane: 'configured-agent-session',
+      statusLanguage: claimRegistry.statusLanguage.configuredAgentSession,
+      nonClaims: claimRegistry.lanes['configured-agent-session'].defaultNonClaims,
       findingFrequencyMeaning: 'Observed sessions with a finding divided by sampled completed sessions for the same case and pinned adapter configuration.',
       behavioralVariationMeaning: 'More than one safe behavioral signature appeared across sampled sessions for the same case.',
       prohibitedConclusions: [

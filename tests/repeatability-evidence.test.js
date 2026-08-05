@@ -46,12 +46,12 @@ test('the public repeatability bundle has five complete repeats for every case',
   assert.equal(bundle.manifest.evidence.authorizationStatus, 'non-authorizing');
 });
 
-test('repeatability interpretation stays within one model and groups raw repeats by case', () => {
+test('repeated-run interpretation stays descriptive and groups raw repeats by case', () => {
   const source = fs.readFileSync(path.join(root, 'src/app/bench/runs/[runId]/page.tsx'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src/app/bench/runs/[runId]/run.module.css'), 'utf8');
 
-  assert.match(source, /aggregateEligible \? 'Repeatability evidence\. Still not a ranking\.'/);
-  assert.match(source, /Within-model repeatability/);
+  assert.match(source, /aggregateEligible \? 'Repeated-run aggregate\. Still not a ranking\.'/);
+  assert.match(source, /descriptive coverage, not proof of repeatability/);
   assert.match(source, /Only one model is present, so no cross-model comparison exists/);
   assert.match(source, /Cross-model ranking, safety certification, production access/);
   assert.match(source, /data-evidence-case-group/);
@@ -60,5 +60,5 @@ test('repeatability interpretation stays within one model and groups raw repeats
   assert.match(source, /runsPerCase > 1 \? 'Every case and repeat'/);
   assert.match(styles, /\.repeatList/);
   assert.match(styles, /\.repeatHeader/);
-  assert.doesNotMatch(source, /aggregateEligible[^\n]*rank models/);
+  assert.doesNotMatch(source, /support(?:s|ing)? within-model repeatability/);
 });

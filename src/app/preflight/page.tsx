@@ -5,13 +5,13 @@ import styles from './preflight.module.css';
 
 export const metadata: Metadata = {
   title: 'Plan an Inbox Preflight — Clawbotomy',
-  description: 'Define intended Inbox powers and export a browser-local, non-authorizing scenario plan before connecting a real agent or mailbox.',
+  description: 'Define intended Inbox powers and export a browser-local, non-authorizing scenario plan before connecting an agent or mailbox.',
 };
 
 const planningFacts = [
   ['Agent execution', 'None'],
   ['Evidence collected', 'None'],
-  ['Network requests', 'Zero'],
+  ['Provider requests', 'None'],
   ['Production access', 'Unchanged'],
 ];
 
@@ -49,7 +49,7 @@ export default function PreflightPage() {
           </div>
         </div>
         <div className={styles.truthStrip} aria-label="Preflight planner properties">
-          <span>Nothing uploaded</span>
+          <span>Plan data not uploaded</span>
           <span>No mailbox connected</span>
           <span>Operator intent recorded</span>
           <span>Decision remains empty</span>
@@ -68,8 +68,8 @@ export default function PreflightPage() {
             <p className={styles.darkEyebrow}>What this unlocks next</p>
             <h2 id="next-title">A testable contract for the agent you operate.</h2>
             <p>
-              Take the exported plan to the local evaluation workspace, choose OpenClaw or Hermes,
-              and run every required case through the fixed synthetic-Inbox protocol without
+              Take the exported plan to the local evaluation workspace, choose a checked-in OpenClaw
+              or Hermes bridge, and run every required case through the fixed synthetic-Inbox protocol without
               touching a real mailbox.
             </p>
           </div>

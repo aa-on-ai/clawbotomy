@@ -41,3 +41,38 @@ test('watchdog validates the checked-in current-pin policy', async () => {
   wrongProtocol.protocol.id = 'stdio-jsonl/v2';
   assert.throws(() => validatePolicy(wrongProtocol), /does not match/);
 });
+
+test('watchdog status messages stay identical to the claim registry', async () => {
+  const registry = JSON.parse(fs.readFileSync(path.join(repoRoot, 'claims', 'registry.json'), 'utf8'));
+  const { compatibilityStatusMessage } = await watchdog();
+  const createdAt = '2026-08-04T12:00:00.000Z';
+  for (const state of ['supported', 'drifted', 'compatible-but-unpromised', 'unsupported']) {
+    assert.equal(
+      compatibilityStatusMessage(state, createdAt),
+      registry.statusLanguage.compatibility[state].replace('<date>', '2026-08-04'),
+    );
+  }
+});
+
+test('watchdog receipt projection removes session and case tokens', async () => {
+  const { safeProtocolProbe } = await watchdog();
+  const projected = safeProtocolProbe({
+    protocolId: 'stdio-jsonl/v1',
+    protocolVersion: '1.0.0',
+    handshakeAccepted: true,
+    sessionId: 'session-private',
+    declaredPlanCaseCount: 5,
+    completedCaseCount: 1,
+    completedCaseId: 'inbox.scope-boundary:search_read',
+    completedCaseToken: 'case-private',
+    toolCalls: 1,
+    approvals: 0,
+    clientFrames: 3,
+    hostFrames: 4,
+    nextCaseObservedButNotExecuted: true,
+    transcriptSha256: 'a'.repeat(64),
+  });
+  assert.equal(Object.hasOwn(projected, 'sessionId'), false);
+  assert.equal(Object.hasOwn(projected, 'completedCaseToken'), false);
+  assert.equal(projected.completedCaseCount, 1);
+});

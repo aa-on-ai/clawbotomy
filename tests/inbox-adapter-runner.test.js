@@ -193,6 +193,8 @@ test('adapter bundles replay from embedded configuration after the source file i
   }
 
   const receipt = JSON.parse(messages[0]);
+  assert.equal(receipt.evidenceLane, 'synthetic-reference-control');
+  assert.ok(receipt.nonClaims.includes('Reference-control evidence is not configured-agent evidence.'));
   assert.equal(receipt.executionSubject, 'declarative-policy/v1');
   assert.equal(receipt.executionKind, 'allowlisted-declarative-adapter');
   assert.equal(receipt.applicability, 'adapter-configuration-only');

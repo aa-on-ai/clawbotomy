@@ -2,6 +2,8 @@ export const benchData = {
   lastUpdated: '2026-03-07',
   evidenceStatus: 'maintainer-reported',
   confidence: 'low',
+  routingGuidance: false,
+  accessGuidance: false,
   runs: 3,
   scope: 'Direct model-endpoint benchmark on the included tasks; not a configured-agent evaluation or safety certification.',
   limitations: [
@@ -38,7 +40,6 @@ export const benchData = {
         'claude-sonnet-4.6': 8.61,
         'gemini-3.1-pro': 9.19,
       },
-      winners: ['gpt-5.4'],
     },
     {
       name: 'Tool Use',
@@ -50,7 +51,6 @@ export const benchData = {
         'claude-sonnet-4.6': 4.89,
         'gemini-3.1-pro': 5.0,
       },
-      winners: ['gpt-5.3-instant'],
     },
     {
       name: 'Code Generation',
@@ -62,7 +62,6 @@ export const benchData = {
         'claude-sonnet-4.6': 9.13,
         'gemini-3.1-pro': 9.07,
       },
-      winners: ['gpt-5.4', 'gpt-5.3-instant', 'claude-opus-4.6', 'claude-sonnet-4.6'],
     },
     {
       name: 'Summarization',
@@ -74,7 +73,6 @@ export const benchData = {
         'claude-sonnet-4.6': 5.4,
         'gemini-3.1-pro': 5.24,
       },
-      winners: ['gpt-5.3-instant'],
     },
     {
       name: 'Judgment',
@@ -86,10 +84,9 @@ export const benchData = {
         'claude-sonnet-4.6': 9.13,
         'gemini-3.1-pro': 9.0,
       },
-      winners: ['claude-sonnet-4.6'],
     },
     {
-      name: 'Safety/Trust',
+      name: 'Safety-boundary prompts',
       slug: 'safety-trust',
       scores: {
         'gpt-5.4': 9.56,
@@ -98,15 +95,8 @@ export const benchData = {
         'claude-sonnet-4.6': 10.0,
         'gemini-3.1-pro': 6.78,
       },
-      winners: ['claude-opus-4.6', 'claude-sonnet-4.6'],
     },
   ],
-  routing: {
-    status: 'maintainer-reported suggestion',
-    mechanical: 'gpt-5.3-instant',
-    judgment: 'claude-sonnet-4.6',
-    safety: 'claude-opus-4.6',
-  },
   methodology: 'https://www.clawbotomy.com/about',
   reproduce: 'https://github.com/aa-on-ai/clawbotomy',
 } as const;

@@ -14,8 +14,8 @@ const offers = [
     index: '01',
     status: 'Self-serve',
     title: 'Open-source workflow',
-    copy: 'Build the plan in your browser, connect OpenClaw or Hermes from your own checkout, and inspect the private receipt locally.',
-    includes: ['Browser-local planning', 'Synthetic Inbox tools', 'Private evidence viewer', 'No hosted agent or mailbox'],
+    copy: 'Build the plan in your browser, connect a checked-in OpenClaw or Hermes bridge, validate the bundle in your terminal, and inspect its local projection.',
+    includes: ['Browser-local planning', 'Synthetic Inbox tools', 'Private evidence inspection', 'No hosted agent or mailbox'],
     href: '/preflight',
     action: 'Start a checkup',
     external: false,
@@ -34,8 +34,8 @@ const offers = [
 
 const workflow = [
   ['01', 'Plan', 'Record intended powers, pin the runtime, and freeze the cases before a provider call.'],
-  ['02', 'Connect', 'Run the checked-in OpenClaw or Hermes bridge from your own machine.'],
-  ['03', 'Inspect', 'Validate the private receipt and keep findings separate from infrastructure failures.'],
+  ['02', 'Connect', 'Run a checked-in OpenClaw or Hermes bridge from your own machine. Exact-pin compatibility is checked separately.'],
+  ['03', 'Inspect', 'Validate the private bundle in the terminal, then load its allowlisted browser projection.'],
   ['04', 'Decide', 'Use the bounded evidence as a review input. Permission decisions remain human.'],
 ] as const;
 
@@ -45,10 +45,10 @@ export default function CheckupsPage() {
       <section className={styles.hero} aria-labelledby="checkups-title">
         <div className={styles.grid} aria-hidden="true" />
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Configured-agent evaluation · Private by default</p>
+          <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
           <h1 id="checkups-title">See how your agent behaves before it gets more power.</h1>
           <p className={styles.lede}>
-            Clawbotomy runs fixed synthetic tasks against the runtime you actually operate. Run the open-source workflow yourself, or add a human reviewer to the same evidence chain.
+            Clawbotomy records fixed synthetic tasks against one operator-selected runtime. Run the open-source workflow yourself, or add a human reviewer to the same local evidence workflow.
           </p>
           <div className={styles.actions}>
             <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
@@ -68,7 +68,7 @@ export default function CheckupsPage() {
       </section>
 
       <section className={styles.proofStrip} aria-label="Checkup properties">
-        <span>Operator-owned runtime</span>
+        <span>One observed session</span>
         <span>Synthetic tools only</span>
         <span>Private receipts</span>
         <span>Human decision required</span>
@@ -156,7 +156,7 @@ export default function CheckupsPage() {
               <span>What you get</span>
               <ul>
                 <li>A frozen, reviewable test plan</li>
-                <li>Private attempt and evidence receipts</li>
+                <li>Private launcher and bundle receipts</li>
                 <li>Observed failures separated from runtime failures</li>
                 <li>A bounded next-step recommendation</li>
               </ul>

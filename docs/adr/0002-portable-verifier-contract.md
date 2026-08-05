@@ -54,7 +54,7 @@ Selected.
 - Keeps review at source level and binds every verdict to an exact Git commit and archive digest.
 - Has a less polished install path, but that matches the first technical-reviewer consumer.
 
-A clean `git archive` of commit `fdc0cc5241d0dd8740da40db217e243e3a52897a` validated a genuine phase 3 protocol bundle in an empty environment using only `node inbox/index.js validate`. The valid findings bundle returned exit `2` and reproduced its recorded core digest.
+A clean `git archive` of commit `fdc0cc5241d0dd8740da40db217e243e3a52897a` accepted one recorded phase 3 protocol bundle in an empty environment using only `node inbox/index.js validate`. The findings bundle returned exit `2` and reproduced its recorded core digest.
 
 ### Standalone verifier package
 
@@ -121,7 +121,7 @@ The validation verdict depends on:
 - the checked-in evaluator, fixture, mock Inbox, protocol, adapter, and replay code; and
 - self-asserted execution-subject identity fields recorded in the bundle.
 
-The validator proves internal bundle integrity and exact deterministic host replay under the selected verifier source. It does not independently authenticate the configured agent, release publisher, Node runtime, local machine, or operator.
+The validator checks internal bundle integrity and exact deterministic host replay under the selected verifier source. It does not independently authenticate the configured agent, release publisher, Node runtime, local machine, or operator.
 
 ## Failure modes and stop conditions
 

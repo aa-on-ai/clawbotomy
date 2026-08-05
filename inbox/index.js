@@ -8,6 +8,7 @@ const { resolveAdapter } = require('./adapters');
 const { runAdapterPlanInMemory } = require('./adapter-runner');
 const { runPlanInMemory } = require('./runner');
 const { validateBundle, writeBundle } = require('./bundle');
+const claimRegistry = require('../claims/registry.json');
 
 const HELP = `Clawbotomy deterministic mock Inbox runner
 
@@ -84,7 +85,10 @@ function printRunReceipt(bundle) {
     : adapterRun
       ? bundle.summary.subjectObservation
       : bundle.summary.referenceObservation;
+  const evidenceLane = protocolRun ? 'configured-agent-session' : 'synthetic-reference-control';
   console.log(JSON.stringify({
+    evidenceLane,
+    nonClaims: claimRegistry.lanes[evidenceLane].defaultNonClaims,
     runId: bundle.manifest.runId,
     outputDir: bundle.outputDir,
     executionSubject: protocolRun || adapterRun

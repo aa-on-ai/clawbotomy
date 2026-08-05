@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 const { canonicalStringify, sha256 } = require("../bench/canonical");
 const { runBundleSelfTest, runSingleCaseProbe } = require("./protocol-probe");
 const { PROTOCOL_ID, PROTOCOL_VERSION, TOOL_NAMES } = require("../inbox/protocols/stdio-jsonl");
+const claimRegistry = require("../claims/registry.json");
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.dirname(path.dirname(SCRIPT_PATH));
@@ -19,6 +20,29 @@ const DEFAULT_OUTPUT_ROOT = path.join(REPO_ROOT, ".clawbotomy", "compatibility-r
 const NETWORK_SANDBOX_MARKER = "CLAWBOTOMY_COMPATIBILITY_NETWORK_DENY_ACTIVE";
 const SANDBOX_PROFILE = "(version 1) (allow default) (deny network*)";
 const DIGEST = /^[a-f0-9]{64}$/;
+
+function compatibilityStatusMessage(state, createdAt = new Date().toISOString()) {
+  const template = claimRegistry.statusLanguage.compatibility[state];
+  if (!template) throw new Error(`Unsupported compatibility status language: ${state}`);
+  return template.replace("<date>", createdAt.slice(0, 10));
+}
+
+function safeProtocolProbe(probe) {
+  return {
+    protocolId: probe.protocolId,
+    protocolVersion: probe.protocolVersion,
+    handshakeAccepted: probe.handshakeAccepted,
+    declaredPlanCaseCount: probe.declaredPlanCaseCount,
+    completedCaseCount: probe.completedCaseCount,
+    completedCaseId: probe.completedCaseId,
+    toolCalls: probe.toolCalls,
+    approvals: probe.approvals,
+    clientFrames: probe.clientFrames,
+    hostFrames: probe.hostFrames,
+    nextCaseObservedButNotExecuted: probe.nextCaseObservedButNotExecuted,
+    transcriptSha256: probe.transcriptSha256,
+  };
+}
 
 function parseArgs(argv) {
   const options = {
@@ -358,7 +382,7 @@ async function run(options) {
     return {
       supportState: "supported",
       provenance: openclaw,
-      protocol: runSingleCaseProbe({ repoRoot: REPO_ROOT, identity }),
+      protocol: safeProtocolProbe(runSingleCaseProbe({ repoRoot: REPO_ROOT, identity })),
       bundleSelfTest: await runBundleSelfTest({ repoRoot: REPO_ROOT, identity }),
     };
   });
@@ -377,7 +401,7 @@ async function run(options) {
     return {
       supportState: "supported",
       provenance: hermes,
-      protocol: runSingleCaseProbe({ repoRoot: REPO_ROOT, identity }),
+      protocol: safeProtocolProbe(runSingleCaseProbe({ repoRoot: REPO_ROOT, identity })),
       bundleSelfTest: await runBundleSelfTest({ repoRoot: REPO_ROOT, identity }),
     };
   });
@@ -386,11 +410,13 @@ async function run(options) {
   const supportState = Object.values(runtimeResults).every((result) => result.supportState === "supported")
     ? "supported"
     : "drifted";
+  const createdAt = new Date().toISOString();
   const document = {
     schemaId: "clawbotomy.compatibility-watchdog-receipt/v1",
     schemaVersion: "1.0.0",
-    createdAt: new Date().toISOString(),
+    createdAt,
     supportState,
+    statusMessage: compatibilityStatusMessage(supportState, createdAt),
     source,
     policy: {
       schemaId: policy.schemaId,
@@ -437,6 +463,7 @@ async function main() {
   const { receipt, receiptPath } = await run(options);
   process.stdout.write(`${JSON.stringify({
     supportState: receipt.supportState,
+    statusMessage: receipt.statusMessage,
     runId: receipt.runId,
     receiptPath,
     sourceGitCommit: receipt.source.gitCommit,
@@ -466,7 +493,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 export {
   checkHermes,
   checkOpenClaw,
+  compatibilityStatusMessage,
   parseArgs,
   run,
+  safeProtocolProbe,
   validatePolicy,
 };

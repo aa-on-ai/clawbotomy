@@ -7,6 +7,7 @@ import {
   loadPublicEvidenceRun,
   type PublicEvidenceBundle,
 } from '@/lib/public-evidence.server';
+import { artifactDisclosureLabel } from '@/lib/claim-registry';
 
 import styles from './run.module.css';
 
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: RunPageProps): Promise<Metada
 
   return {
     title: `${runId} | Clawbotomy Evidence`,
-    description: 'A human-readable view of one validated, non-authorizing Clawbotomy public evidence bundle.',
+    description: 'A human-readable view of one internally checked, maintainer-reported Clawbotomy model benchmark artifact.',
   };
 }
 
@@ -175,7 +176,7 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
       <header className={styles.hero}>
         <div className={styles.rail}>
           <Link href="/bench" className={styles.backLink}>← Evidence registry</Link>
-          <p className={styles.eyebrow}>Public evidence run · Measured</p>
+          <p className={styles.eyebrow}>Evidence lane · model benchmark observations</p>
           <div className={styles.heroGrid}>
             <div>
               <h1>{text(model.alias, models[0] || runId)}</h1>
@@ -184,14 +185,14 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
             <p className={styles.heroSummary}>
               {aggregateEligible ? (
                 <>
-                  A validated local measurement with {runsPerCase} repeats per case across {tasks.join(', ')}.
-                  It supports within-model repeatability for this exact configuration; it does not rank models,
-                  authorize tools, or support a routing decision.
+                  A maintainer-reported artifact with {runsPerCase} recorded repeats per case across {tasks.join(', ')}.
+                  It supports a descriptive aggregate for this exact frozen configuration; it does not prove repeatability,
+                  rank models, authorize tools, or support a routing decision.
                 </>
               ) : (
                 <>
-                  One validated local smoke run across {tasks.join(', ')}. It proves the evidence pipeline completed;
-                  it does not rank models, authorize tools, or support a routing decision.
+                  One maintainer-reported recorded smoke run across {tasks.join(', ')}. The checked-in artifact validator
+                  accepted the files; this does not prove model identity, repeatability, safety, or production suitability.
                 </>
               )}
             </p>
@@ -207,8 +208,8 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
               <dd>{score(aggregate.meanScore)}</dd>
             </div>
             <div>
-              <dt>Reproducibility</dt>
-              <dd>{displayLabel(bundle.manifest.evidence.reproducibilityStatus)}</dd>
+              <dt>Artifact disclosure</dt>
+              <dd>{artifactDisclosureLabel(bundle.manifest.evidence.reproducibilityStatus)}</dd>
             </div>
             <div>
               <dt>Authorization</dt>
@@ -224,7 +225,7 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
             <div className={styles.decisionLead}>
               <p className={styles.signalEyebrow}>Interpretation first</p>
               <h2 id="decision-title">
-                {aggregateEligible ? 'Repeatability evidence. Still not a ranking.' : 'Useful proof. Not comparison-grade.'}
+                {aggregateEligible ? 'Repeated-run aggregate. Still not a ranking.' : 'Recorded smoke run. Not comparison-grade.'}
               </h2>
             </div>
             <div className={styles.decisionCards}>
@@ -232,8 +233,8 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
                 <span>Supports</span>
                 <p>
                   {aggregateEligible
-                    ? `The frozen plan completed ${runsPerCase} repeats for every case, supporting within-model repeatability for this exact configuration.`
-                    : 'The frozen plan produced a complete, scored, redacted, and digest-validated public bundle.'}
+                    ? `The frozen plan completed ${runsPerCase} recorded repeats for every case. This is descriptive coverage, not proof of repeatability.`
+                    : 'The frozen plan produced a scored, redacted artifact whose internal files passed the checked-in validator.'}
                 </p>
               </article>
               <article className={styles.limitCard}>
@@ -259,17 +260,17 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
                 <div><dt>Minimum</dt><dd>{score(aggregate.minScore)}</dd></div>
                 <div><dt>Maximum</dt><dd>{score(aggregate.maxScore)}</dd></div>
                 <div><dt>Failed cases</dt><dd>{failed}</dd></div>
-                <div><dt>Repeatability eligible</dt><dd>{aggregateEligible ? 'Yes' : 'No'}</dd></div>
+                <div><dt>Repeated-run aggregate eligible</dt><dd>{aggregateEligible ? 'Yes' : 'No'}</dd></div>
               </dl>
             </article>
           </div>
 
           {aggregateEligible ? (
             <div className={styles.eligibilityNote} role="note">
-              <strong>Within-model repeatability</strong>
+              <strong>Repeated-run scope</strong>
               <p>
-                This repeated aggregate clears the run-count, coverage, scoring, reproducibility, and identity gates for this exact configuration.
-                Only one model is present, so no cross-model comparison exists.
+                This aggregate clears the run-count, coverage, scoring, artifact-disclosure, and provider-reported identity gates for this exact configuration.
+                Only one model is present, so no cross-model comparison exists. The sample does not establish future behavioral repeatability.
               </p>
             </div>
           ) : eligibilityReasons.length > 0 && (
@@ -375,9 +376,9 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
         <div className={styles.rail}>
           <div className={styles.provenanceGrid}>
             <div>
-              <p className={styles.eyebrow}>Provenance and raw artifacts</p>
-              <h2 id="provenance-title">Verify the bundle directly.</h2>
-              <p>Integrity proves these recorded files have not changed. It is not a signature, provider attestation, or proof that the methodology is correct.</p>
+              <p className={styles.eyebrow}>Evidence lane · deterministic bundle verification</p>
+              <h2 id="provenance-title">Check internal bundle consistency directly.</h2>
+              <p>Integrity shows whether the recorded files match their checked-in digest under this validator. It is not a signature, provider or runtime attestation, client authentication, or proof that the methodology is correct.</p>
             </div>
             <dl>
               <div><dt>Public bundle digest</dt><dd>{bundle.integrity.bundleDigest}</dd></div>

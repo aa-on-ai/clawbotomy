@@ -1,0 +1,516 @@
+{
+  "schemaId": "clawbotomy.claim-registry/v1",
+  "schemaVersion": "1.0.0",
+  "registryVersion": "2026-08-04",
+  "requiredSurfaceFiles": [
+    "src/app/page.tsx",
+    "src/components/home/ProductPreview.tsx",
+    "src/components/home/ResultBreakdown.tsx",
+    "src/components/home/CheckupFlow.tsx",
+    "src/app/checkups/page.tsx",
+    "src/app/preflight/page.tsx",
+    "src/app/preflight/InboxPreflightPlanner.tsx",
+    "src/app/evaluate/page.tsx",
+    "src/app/evaluate/AgentEvaluationWorkbench.tsx",
+    "src/app/bench/page.tsx",
+    "src/app/bench/runs/[runId]/page.tsx",
+    "src/app/about/page.tsx",
+    "src/app/docs/page.tsx",
+    "README.md",
+    "docs/setup-guide.md",
+    "public/skill.md",
+    "public/llms.txt",
+    "bench/evidence-cli.js",
+    "bench/reporter.js",
+    "inbox/index.js",
+    "inbox/agent-evaluate.js",
+    "inbox/repeated-session-evidence.js",
+    "docs/adr/0002-portable-verifier-contract.md",
+    "docs/portability-parity-acceptance.md",
+    "compatibility/current-pins.json",
+    "compatibility/watchdog.mjs",
+    "docs/compatibility-policy.md"
+  ],
+  "lanes": {
+    "planning-contract": {
+      "publicLabel": "Browser-local planning contract",
+      "description": "Operator-declared intent and fixed scenarios before any agent or provider execution.",
+      "defaultNonClaims": [
+        "The plan is not evidence about agent behavior.",
+        "The plan grants no authorization and changes no production permission."
+      ]
+    },
+    "synthetic-reference-control": {
+      "publicLabel": "Synthetic reference-control evidence",
+      "description": "Deterministic fixture behavior from a checked-in positive or negative control, or one embedded declarative policy.",
+      "defaultNonClaims": [
+        "Reference-control evidence is not configured-agent evidence.",
+        "The fixture does not authenticate, inspect, or execute a deployed agent or real mailbox."
+      ]
+    },
+    "configured-agent-session": {
+      "publicLabel": "Configured-agent session evidence",
+      "description": "Observed tool attempts, synthetic state changes, assertions, and process status from one configured-agent session or one explicitly sampled cohort.",
+      "defaultNonClaims": [
+        "A session is not a trust score, safety result, certification, production-readiness result, or authorization.",
+        "Client identity is self-asserted and does not authenticate a deployed agent."
+      ]
+    },
+    "deterministic-bundle-verification": {
+      "publicLabel": "Deterministic bundle verification",
+      "description": "Internal file integrity and deterministic host replay under one exact verifier source.",
+      "defaultNonClaims": [
+        "Bundle acceptance does not authenticate the configured client, publisher, host runtime, or local machine.",
+        "Bundle acceptance does not establish behavior outside the recorded fixture."
+      ]
+    },
+    "runtime-compatibility": {
+      "publicLabel": "Exact-pin runtime compatibility",
+      "description": "Provider-free compatibility checks for the exact runtime identities in the current pin inventory.",
+      "defaultNonClaims": [
+        "Compatibility is not configured-agent behavior, reliability, security, safety, certification, or production-readiness evidence.",
+        "Compatibility says nothing about unlisted or future runtime versions."
+      ]
+    },
+    "model-benchmark": {
+      "publicLabel": "Model benchmark observations",
+      "description": "Task-specific model endpoint observations from exact frozen benchmark plans and public evidence artifacts.",
+      "defaultNonClaims": [
+        "Benchmark scores are not universal model grades, routing guidance, access guidance, or configured-agent evidence.",
+        "Recorded repeats are descriptive samples, not proof of behavioral repeatability."
+      ]
+    },
+    "legacy-model-benchmark": {
+      "publicLabel": "Legacy model benchmark snapshot",
+      "description": "The March 2026 maintainer-reported summary without raw constituent case artifacts.",
+      "defaultNonClaims": [
+        "The legacy snapshot is not independently reproducible evidence.",
+        "The legacy snapshot is not product proof, routing guidance, access guidance, or a safety result."
+      ]
+    }
+  },
+  "evidenceSources": {
+    "planner-contract-code": {
+      "lane": "planning-contract",
+      "paths": ["src/lib/inbox-preflight.ts", "src/app/preflight/InboxPreflightPlanner.tsx"],
+      "artifact": "clawbotomy.inbox-preflight-plan/v1"
+    },
+    "configured-session-protocol": {
+      "lane": "configured-agent-session",
+      "paths": ["inbox/protocol-runner.js", "inbox/agent-evaluate.js", "integrations/openclaw/bridge.mjs", "integrations/hermes-agent/bridge.py"],
+      "artifact": "protocol session bundle plus launcher attempt receipt"
+    },
+    "synthetic-reference-runner": {
+      "lane": "synthetic-reference-control",
+      "paths": ["inbox/index.js", "inbox/runner.js", "inbox/adapter-runner.js"],
+      "artifact": "private reference-control or declarative-policy Inbox bundle"
+    },
+    "configured-session-viewer": {
+      "lane": "configured-agent-session",
+      "paths": ["src/lib/agent-evaluation.ts", "src/app/evaluate/AgentEvaluationWorkbench.tsx"],
+      "artifact": "closed browser projection from operator-selected launcher and bundle files"
+    },
+    "configured-session-sanitized-summary": {
+      "lane": "configured-agent-session",
+      "paths": ["src/lib/agent-evaluation-insights.ts"],
+      "artifact": "maintainer-reviewed sanitized Hermes aggregate"
+    },
+    "configured-session-repeated-report": {
+      "lane": "configured-agent-session",
+      "paths": ["inbox/repeated-session-evidence.js"],
+      "artifact": "clawbotomy.configured-agent-repeated-session-report/v1"
+    },
+    "canonical-inbox-verifier": {
+      "lane": "deterministic-bundle-verification",
+      "paths": ["inbox/bundle.js", "inbox/index.js"],
+      "artifact": "four-file private Inbox bundle verdict and replay"
+    },
+    "portable-source-archive-contract": {
+      "lane": "deterministic-bundle-verification",
+      "paths": ["docs/adr/0002-portable-verifier-contract.md", "docs/portability-parity-acceptance.md"],
+      "artifact": "approved v0.1 pinned source-archive contract"
+    },
+    "compatibility-pin-inventory": {
+      "lane": "runtime-compatibility",
+      "paths": ["compatibility/current-pins.json"],
+      "artifact": "clawbotomy.compatibility-support-policy/v1"
+    },
+    "compatibility-watchdog-receipt": {
+      "lane": "runtime-compatibility",
+      "paths": ["compatibility/watchdog.mjs", "compatibility/hermes-current-pin-probe.py", "integrations/openclaw/inspect-runtime.mjs"],
+      "artifact": "clawbotomy.compatibility-watchdog-receipt/v1"
+    },
+    "model-benchmark-public-bundles": {
+      "lane": "model-benchmark",
+      "paths": ["public/evidence/index.json", "bench/bundle.js", "bench/public-export.js", "src/lib/public-evidence.server.ts"],
+      "artifact": "maintainer-reported public benchmark evidence bundles"
+    },
+    "model-benchmark-preflight-and-cli": {
+      "lane": "model-benchmark",
+      "paths": ["bench/preflight.js", "bench/evidence-cli.js", "bench/reporter.js"],
+      "artifact": "frozen benchmark plan, local report, and explicit public export receipt"
+    },
+    "legacy-summary-source": {
+      "lane": "legacy-model-benchmark",
+      "paths": ["src/lib/bench-data.ts"],
+      "artifact": "March 2026 maintainer-reported summary"
+    }
+  },
+  "statusLanguage": {
+    "configuredAgentSession": {
+      "passed": "A complete bundle was accepted after integrity validation and deterministic replay, and every evaluated case passed. This session does not authorize access.",
+      "findings": "A complete bundle was accepted after integrity validation and deterministic replay, and one or more evaluated cases produced findings. This session does not authorize access.",
+      "infrastructure_failure": "The launcher did not establish one accepted measured bundle. No behavioral conclusion or permission change is supported."
+    },
+    "compatibility": {
+      "supported": "Verified for this exact pinned configuration on <date>. This compatibility check did not run a model and is not a behavior or safety result.",
+      "drifted": "The supported pin has drifted or failed its compatibility check. Do not describe this installation as verified until the pin or integration is repaired and rechecked.",
+      "compatible-but-unpromised": "This configuration passed a candidate compatibility probe, but Clawbotomy does not currently promise support for it.",
+      "unsupported": "This configuration is outside Clawbotomy's current support inventory. No compatibility claim is made."
+    },
+    "modelBenchmarkArtifactDisclosure": {
+      "complete": "Complete score-bearing artifact",
+      "redacted": "Score-bearing fields redacted",
+      "incomplete": "Incomplete artifact"
+    }
+  },
+  "forbiddenPositivePatterns": [
+    {"id": "trust-score-output", "pattern": "\\bTrust Score\\s*:"},
+    {"id": "access-recommendation", "pattern": "\\bRecommended Access\\s*:"},
+    {"id": "routing-benchmark", "pattern": "CLAWBOTOMY ROUTING BENCHMARK"},
+    {"id": "best-model-routing", "pattern": "Task Category\\s+Best Model\\s+Fallback"},
+    {"id": "repeatability-evidence", "pattern": "\\bRepeatability evidence\\b"},
+    {"id": "supports-repeatability", "pattern": "\\bsupport(?:s|ing)? within-model repeatability\\b"},
+    {"id": "useful-proof", "pattern": "\\bUseful proof\\b"},
+    {"id": "production-ready", "pattern": "\\bproduction[- ]ready\\b"},
+    {"id": "certified-safe", "pattern": "\\bcertified safe\\b"},
+    {"id": "authenticated-runtime", "pattern": "\\bauthenticated (?:client|runtime|deployment)\\b"}
+  ],
+  "claims": [
+    {
+      "id": "planning.browser-local",
+      "lane": "planning-contract",
+      "statement": "The preflight planner records operator intent locally without agent execution or provider requests.",
+      "evidenceSourceIds": ["planner-contract-code"],
+      "applicability": "Only plan creation in the loaded preflight browser surface.",
+      "identityAssurance": "The generated plan names the planner surface; no runtime identity is evaluated.",
+      "freshness": "Current only for the checked-in planner implementation and generated plan schema.",
+      "nonClaims": ["It does not claim the initial page load made no network request."],
+      "anchors": [
+        {"file": "src/app/preflight/page.tsx", "text": "Provider requests', 'None"},
+        {"file": "src/app/preflight/InboxPreflightPlanner.tsx", "text": "Clawbotomy does not recommend or approve that choice here."},
+        {"file": "src/app/page.tsx", "text": "Plan data stays in this browser."}
+      ]
+    },
+    {
+      "id": "planning.non-authorizing",
+      "lane": "planning-contract",
+      "statement": "A preflight plan keeps the permission decision null and changes no production access.",
+      "evidenceSourceIds": ["planner-contract-code"],
+      "applicability": "The exported preflight plan artifact.",
+      "identityAssurance": "Operator declaration only; the configuration reference is not inspected.",
+      "freshness": "Bound to the plan schema version and plan bytes.",
+      "nonClaims": ["The plan is not a recommendation or behavior result."],
+      "anchors": [
+        {"file": "src/app/preflight/page.tsx", "text": "No score. No permission decision. No authorization."},
+        {"file": "src/app/docs/page.tsx", "text": "The exported plan remains non-authorizing and makes no permission decision."},
+        {"file": "public/llms.txt", "text": "grants no authorization"}
+      ]
+    },
+    {
+      "id": "control.synthetic-only",
+      "lane": "synthetic-reference-control",
+      "statement": "Reference and declarative-policy runs describe only checked-in fixture logic or one embedded policy document.",
+      "evidenceSourceIds": ["synthetic-reference-runner"],
+      "applicability": "The exact built-in profile or canonical embedded policy and the synthetic in-memory Inbox.",
+      "identityAssurance": "Checked-in control ID or adapter configuration digest; no configured runtime identity is inspected.",
+      "freshness": "Bound to the recorded bundle, source implementation, and embedded configuration digest when present.",
+      "nonClaims": ["The result is not evidence about a deployed or configured agent."],
+      "anchors": [
+        {"file": "inbox/index.js", "text": "'synthetic-reference-control'"},
+        {"file": "docs/setup-guide.md", "text": "Neither profile represents the configuration reference recorded in the plan."},
+        {"file": "public/llms.txt", "text": "Reference evidence applies only to `bounded/v1`"}
+      ]
+    },
+    {
+      "id": "session.synthetic-scope",
+      "lane": "configured-agent-session",
+      "statement": "A configured-agent checkup records accepted interactions with exactly eight project-owned synthetic Inbox tools.",
+      "evidenceSourceIds": ["configured-session-protocol"],
+      "applicability": "One completed session under the checked-in protocol host and one frozen plan.",
+      "identityAssurance": "Client ID and optional digests are self-asserted; exact-pin compatibility is a separate lane.",
+      "freshness": "Bound to the session receipt, plan digest, bridge source, and recorded completion time.",
+      "nonClaims": ["The host does not observe external-client activity outside the protocol."],
+      "anchors": [
+        {"file": "src/app/page.tsx", "text": "receives only the eight project-owned synthetic Inbox tools"},
+        {"file": "src/components/home/ProductPreview.tsx", "text": "Evidence lane · configured-agent session"},
+        {"file": "src/components/home/CheckupFlow.tsx", "text": "8 mock tools"},
+        {"file": "src/app/checkups/page.tsx", "text": "fixed synthetic tasks against one operator-selected runtime"},
+        {"file": "src/app/about/page.tsx", "text": "one configured OpenClaw or Hermes session against a fixed synthetic Inbox"}
+      ]
+    },
+    {
+      "id": "session.private-inspection",
+      "lane": "configured-agent-session",
+      "statement": "The browser viewer reads operator-selected launcher and bundle files into an allowlisted local projection without uploading their contents.",
+      "evidenceSourceIds": ["configured-session-viewer"],
+      "applicability": "The evaluate file-picker flow after separate terminal validation.",
+      "identityAssurance": "The viewer checks receipt-to-bundle field agreement but does not authenticate the client.",
+      "freshness": "Only while the selected files remain loaded in the current browser state.",
+      "nonClaims": ["The viewer does not validate integrity or perform deterministic replay."],
+      "anchors": [
+        {"file": "src/app/evaluate/page.tsx", "text": "Selected locally; not uploaded"},
+        {"file": "src/app/evaluate/AgentEvaluationWorkbench.tsx", "text": "it does not validate integrity or replay"},
+        {"file": "src/components/home/ResultBreakdown.tsx", "text": "The underlying private bundle and case payloads are not published."},
+        {"file": "public/skill.md", "text": "The browser remains an inspector, not a verifier."}
+      ]
+    },
+    {
+      "id": "session.status-separation",
+      "lane": "configured-agent-session",
+      "statement": "Passed, findings, and infrastructure failure remain distinct session states.",
+      "evidenceSourceIds": ["configured-session-protocol", "configured-session-viewer"],
+      "applicability": "Launcher attempts and complete bundles produced by the two checked-in bridges.",
+      "identityAssurance": "The launcher binds a self-asserted client descriptor to one plan and one accepted bundle.",
+      "freshness": "Bound to each attempt receipt and accepted bundle.",
+      "nonClaims": ["Infrastructure failure is not converted into an agent score."],
+      "anchors": [
+        {"file": "src/app/checkups/page.tsx", "text": "Failed infrastructure is not scored as behavior."},
+        {"file": "src/app/evaluate/AgentEvaluationWorkbench.tsx", "text": "Read the process exit before the score"},
+        {"file": "inbox/agent-evaluate.js", "text": "let status = 'infrastructure_failure'"},
+        {"file": "inbox/index.js", "text": "2 = valid evidence with findings"}
+      ]
+    },
+    {
+      "id": "session.non-authorizing",
+      "lane": "configured-agent-session",
+      "statement": "Configured-session evidence is a human review input and never grants permission.",
+      "evidenceSourceIds": ["configured-session-protocol", "configured-session-viewer"],
+      "applicability": "Every configured-agent attempt, bundle, viewer projection, and recommendation.",
+      "identityAssurance": "No independent deployment authentication; human operator retains authority.",
+      "freshness": "Current only for the observed session and its exact plan and configuration.",
+      "nonClaims": ["A passing run is not certification, production readiness, or permission to expand access."],
+      "anchors": [
+        {"file": "src/app/page.tsx", "text": "Human decision required"},
+        {"file": "src/app/checkups/page.tsx", "text": "not a certification, production guarantee, or automatic permission decision"},
+        {"file": "src/app/evaluate/page.tsx", "text": "Measurement is a review input, not an authorization."},
+        {"file": "README.md", "text": "one observed session in a synthetic fixture"}
+      ]
+    },
+    {
+      "id": "session.sanitized-example",
+      "lane": "configured-agent-session",
+      "statement": "The public Hermes example is a sanitized maintainer-reviewed aggregate from one genuine configured session.",
+      "evidenceSourceIds": ["configured-session-sanitized-summary"],
+      "applicability": "Only the published aggregate constants dated 2026-07-13.",
+      "identityAssurance": "Maintainer-reviewed label; the private bundle and case payloads are not published.",
+      "freshness": "Historical observation at the recorded measurement date.",
+      "nonClaims": ["It is not loaded public evidence, a compatibility result, or a verifier result."],
+      "anchors": [
+        {"file": "src/components/home/ResultBreakdown.tsx", "text": "Sanitized configured-session summary"},
+        {"file": "src/app/bench/page.tsx", "text": "one reviewed configured-session aggregate"},
+        {"file": "src/lib/agent-evaluation-insights.ts", "text": "One recorded configured Hermes session produced"}
+      ]
+    },
+    {
+      "id": "session.repeated-observations",
+      "lane": "configured-agent-session",
+      "statement": "Repeated-session reports show finding frequency and behavioral variation within sampled pinned cohorts.",
+      "evidenceSourceIds": ["configured-session-repeated-report"],
+      "applicability": "Three to five completed sessions per adapter under one frozen plan and stable recorded runtime identity.",
+      "identityAssurance": "Cohort identity is checked for internal stability but remains self-asserted at the protocol boundary.",
+      "freshness": "Historical sampled sessions at report generation; not predictive.",
+      "nonClaims": ["No probability, reliability, repeatability, safety, adapter ranking, or trust score is inferred."],
+      "anchors": [
+        {"file": "inbox/repeated-session-evidence.js", "text": "Finding frequency is an observed count, not a trust score or probability estimate."},
+        {"file": "docs/setup-guide.md", "text": "Repeated-session evidence is a separate local experiment"},
+        {"file": "README.md", "text": "finding-frequency and behavioral-variation receipts"}
+      ]
+    },
+    {
+      "id": "verifier.integrity-and-replay",
+      "lane": "deterministic-bundle-verification",
+      "statement": "The canonical Inbox verifier checks exact bundle files, hashes, bounds, schemas, and deterministic host replay.",
+      "evidenceSourceIds": ["canonical-inbox-verifier"],
+      "applicability": "The exact four-file bundle bytes accepted by the canonical verifier source.",
+      "identityAssurance": "Internal bundle digests and source identity only; no publisher, runtime, machine, or client attestation.",
+      "freshness": "Bound to the verifier source commit, Node runtime, and bundle bytes at validation time.",
+      "nonClaims": ["A valid bundle is not proof that the methodology or external client is correct."],
+      "anchors": [
+        {"file": "src/app/evaluate/AgentEvaluationWorkbench.tsx", "text": "Evidence lane · deterministic bundle verification"},
+        {"file": "inbox/index.js", "text": "valid evidence with findings"},
+        {"file": "docs/setup-guide.md", "text": "verify file integrity and require an exact semantic match"},
+        {"file": "bench/evidence-cli.js", "text": "evidenceLane: 'deterministic-bundle-verification'"}
+      ]
+    },
+    {
+      "id": "verifier.browser-is-not-verifier",
+      "lane": "deterministic-bundle-verification",
+      "statement": "The browser projects selected evidence after terminal validation but is not the canonical verifier.",
+      "evidenceSourceIds": ["canonical-inbox-verifier", "portable-source-archive-contract"],
+      "applicability": "The current evaluate browser viewer.",
+      "identityAssurance": "Relies on an operator-run canonical terminal validator and launcher binding.",
+      "freshness": "Current browser implementation and portability contract.",
+      "nonClaims": ["Selecting files in the browser does not independently establish bundle validity."],
+      "anchors": [
+        {"file": "src/app/evaluate/AgentEvaluationWorkbench.tsx", "text": "The browser is an inspector after terminal validation"},
+        {"file": "docs/adr/0002-portable-verifier-contract.md", "text": "does not validate file integrity or replay the bundle"},
+        {"file": "README.md", "text": "The browser remains an inspector, not a verifier."}
+      ]
+    },
+    {
+      "id": "verifier.portable-source-archive",
+      "lane": "deterministic-bundle-verification",
+      "statement": "The v0.1 portable verifier default is a pinned source archive running the canonical verifier offline under Node.js 22.",
+      "evidenceSourceIds": ["portable-source-archive-contract"],
+      "applicability": "A technical reviewer with the approved archive, expected digest, trusted Node.js 22 runtime, and one bundle.",
+      "identityAssurance": "Git commit and archive digest bind source bytes; publisher, Node runtime, and review machine are not attested.",
+      "freshness": "The exact release archive until superseded by an approved parity-tested verifier.",
+      "nonClaims": ["No standalone package or browser verifier is approved."],
+      "anchors": [
+        {"file": "docs/adr/0002-portable-verifier-contract.md", "text": "pinned Clawbotomy source archive"},
+        {"file": "docs/portability-parity-acceptance.md", "text": "No standalone or browser verifier is approved."},
+        {"file": "README.md", "text": "pinned source archive that runs the canonical Node.js verifier offline"}
+      ]
+    },
+    {
+      "id": "compatibility.exact-pins-only",
+      "lane": "runtime-compatibility",
+      "statement": "Clawbotomy v0.1 promises compatibility only for the exact OpenClaw and Hermes identities in the pin inventory.",
+      "evidenceSourceIds": ["compatibility-pin-inventory"],
+      "applicability": "OpenClaw 2026.7.1-beta.5 and Hermes 0.18.2 with every listed digest and prerequisite.",
+      "identityAssurance": "Local version, source, tree, binary, package, provider, harness, and critical-file digests.",
+      "freshness": "Invalid after any pin, source, tool, protocol, bridge, verifier, or replay change until rerun.",
+      "nonClaims": ["A matching version string by itself is insufficient and no unlisted version is promised."],
+      "anchors": [
+        {"file": "docs/compatibility-policy.md", "text": "supports one exact OpenClaw identity and one exact Hermes identity"},
+        {"file": "compatibility/current-pins.json", "text": "\"supportState\": \"supported\""},
+        {"file": "docs/setup-guide.md", "text": "supports only the exact identities in compatibility/current-pins.json"}
+      ]
+    },
+    {
+      "id": "compatibility.provider-free-watchdog",
+      "lane": "runtime-compatibility",
+      "statement": "The manual current-pin watchdog verifies provenance and bounded protocol compatibility with networking denied and zero provider requests.",
+      "evidenceSourceIds": ["compatibility-watchdog-receipt"],
+      "applicability": "The exact current pins on macOS under the approved deny-network runner.",
+      "identityAssurance": "Local digests and source checks; protocol client identity remains self-asserted.",
+      "freshness": "The receipt creation time until a policy trigger occurs.",
+      "nonClaims": ["The watchdog does not execute a model or configured-agent session."],
+      "anchors": [
+        {"file": "compatibility/watchdog.mjs", "text": "providerRequests: 0"},
+        {"file": "docs/compatibility-policy.md", "text": "all networking denied for the entire process tree"},
+        {"file": "src/app/docs/page.tsx", "text": "Exact-pin runtime compatibility"}
+      ]
+    },
+    {
+      "id": "compatibility.status-boundary",
+      "lane": "runtime-compatibility",
+      "statement": "Supported, drifted, compatible-but-unpromised, and unsupported are compatibility states only.",
+      "evidenceSourceIds": ["compatibility-pin-inventory", "compatibility-watchdog-receipt"],
+      "applicability": "The exact inventory and manual watchdog policy.",
+      "identityAssurance": "As defined for each current pin; no remote or production attestation.",
+      "freshness": "Manual check timestamp plus policy triggers; no recurring scheduler.",
+      "nonClaims": ["Compatibility state cannot be reused as behavior, safety, reliability, security, or future-version evidence."],
+      "anchors": [
+        {"file": "docs/compatibility-policy.md", "text": "compatible-but-unpromised"},
+        {"file": "compatibility/watchdog.mjs", "text": "statusMessage"},
+        {"file": "README.md", "text": "Compatibility is a separate exact-pin lane"}
+      ]
+    },
+    {
+      "id": "benchmark.public-artifacts",
+      "lane": "model-benchmark",
+      "statement": "Public model benchmark bundles are maintainer-reported task observations with internally checked artifact integrity.",
+      "evidenceSourceIds": ["model-benchmark-public-bundles"],
+      "applicability": "Only runs indexed in the public evidence index and their exact frozen plans and records.",
+      "identityAssurance": "Provider-reported or local-endpoint model identifiers plus maintainer review state; no provider attestation.",
+      "freshness": "Historical at each manifest completion time and source commit.",
+      "nonClaims": ["The artifacts do not rank configured agents, authorize tools, or establish general model reliability."],
+      "anchors": [
+        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "Evidence lane · model benchmark observations"},
+        {"file": "src/app/bench/page.tsx", "text": "maintainer-reported model benchmark artifacts"},
+        {"file": "public/skill.md", "text": "maintainer-reported model benchmark artifacts"},
+        {"file": "public/llms.txt", "text": "maintainer-reported model benchmark artifacts"}
+      ]
+    },
+    {
+      "id": "benchmark.repeated-run-aggregate",
+      "lane": "model-benchmark",
+      "statement": "An eligible repeated-run aggregate describes recorded coverage under one exact frozen benchmark configuration.",
+      "evidenceSourceIds": ["model-benchmark-public-bundles"],
+      "applicability": "The exact prompts, implementations, model identifier, judge, endpoint, and recorded repeats in one bundle.",
+      "identityAssurance": "Provider-reported model identity and checked-in source hashes; no runtime or deployment attestation.",
+      "freshness": "Historical at bundle completion; model drift can invalidate forward-looking interpretation.",
+      "nonClaims": ["Recorded repeats do not prove behavioral repeatability or support a routing decision."],
+      "anchors": [
+        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "Repeated-run aggregate. Still not a ranking."},
+        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "descriptive coverage, not proof of repeatability"},
+        {"file": "src/app/bench/page.tsx", "text": "higher observed mean"},
+        {"file": "bench/reporter.js", "text": "MODEL BENCHMARK OBSERVATIONS"}
+      ]
+    },
+    {
+      "id": "benchmark.preflight-and-export",
+      "lane": "model-benchmark",
+      "statement": "Benchmark preflight makes zero provider requests, freezes cost and request ceilings, and public export remains a separate local mutation.",
+      "evidenceSourceIds": ["model-benchmark-preflight-and-cli"],
+      "applicability": "The checked-in benchmark CLI and exact frozen plan.",
+      "identityAssurance": "Source commit, plan digest, implementation hashes, provider labels, and operator-confirmed ceilings.",
+      "freshness": "Preflight is valid only while every bound input remains unchanged.",
+      "nonClaims": ["The cost upper bound is not a provider bill or guarantee, and export does not publish or deploy."],
+      "anchors": [
+        {"file": "src/app/bench/page.tsx", "text": "Preview spend before the first request."},
+        {"file": "bench/evidence-cli.js", "text": "never deploys or pushes it"},
+        {"file": "src/app/docs/page.tsx", "text": "Export only by separate decision"},
+        {"file": "docs/setup-guide.md", "text": "not a provider invoice or billing guarantee"}
+      ]
+    },
+    {
+      "id": "benchmark.cli-boundary",
+      "lane": "model-benchmark",
+      "statement": "CLI reports present task-specific observations without routing or access recommendations.",
+      "evidenceSourceIds": ["model-benchmark-preflight-and-cli"],
+      "applicability": "Table, Markdown, and JSON output from the benchmark reporter.",
+      "identityAssurance": "The model and judge identities recorded in the frozen plan and result rows.",
+      "freshness": "Historical result rows under the exact plan and source state.",
+      "nonClaims": ["A higher observed mean is not a best-model, fallback, routing, or permission recommendation."],
+      "anchors": [
+        {"file": "bench/reporter.js", "text": "Task-specific recorded scores; not routing, access, safety, or configured-agent evidence."},
+        {"file": "src/app/docs/page.tsx", "text": "Do not convert an aggregate score into an access or routing decision."},
+        {"file": "src/lib/bench-data.ts", "text": "routingGuidance: false"}
+      ]
+    },
+    {
+      "id": "legacy.scope",
+      "lane": "legacy-model-benchmark",
+      "statement": "The March 2026 legacy snapshot is a low-confidence maintainer-reported summary without raw cases or exact model identities.",
+      "evidenceSourceIds": ["legacy-summary-source"],
+      "applicability": "Only the fixed March 2026 values embedded in the legacy data file.",
+      "identityAssurance": "Display labels only; exact provider IDs, scorer version, source commit, and raw cases are unavailable.",
+      "freshness": "Historical snapshot dated 2026-03-07; never a statement about current models.",
+      "nonClaims": ["The snapshot is not independently reproducible evidence."],
+      "anchors": [
+        {"file": "src/app/bench/page.tsx", "text": "Evidence lane · legacy model benchmark snapshot"},
+        {"file": "src/lib/bench-data.ts", "text": "confidence: 'low'"},
+        {"file": "public/llms.txt", "text": "legacy snapshot without raw case artifacts"}
+      ]
+    },
+    {
+      "id": "legacy.no-guidance",
+      "lane": "legacy-model-benchmark",
+      "statement": "Legacy scores remain visible for historical scrutiny but provide no product, routing, access, safety, or deployment guidance.",
+      "evidenceSourceIds": ["legacy-summary-source"],
+      "applicability": "The legacy table and machine-readable legacy summary object.",
+      "identityAssurance": "Maintainer-reported summary only.",
+      "freshness": "Historical and explicitly stale relative to the current runner.",
+      "nonClaims": ["No winner or routing suggestion is exposed from the legacy dataset."],
+      "anchors": [
+        {"file": "src/app/bench/page.tsx", "text": "They are not product proof, routing guidance, access guidance, or a safety result."},
+        {"file": "src/lib/bench-data.ts", "text": "routingGuidance: false"},
+        {"file": "README.md", "text": "Legacy model benchmark snapshot"},
+        {"file": "public/skill.md", "text": "no routing or access recommendation"}
+      ]
+    }
+  ]
+}

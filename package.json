@@ -17,6 +17,7 @@
     "test": "npm run test:core",
     "test:core": "node --experimental-strip-types --test tests/*.test.js",
     "test:openclaw": "node --experimental-strip-types --test integrations/openclaw/*.test.mjs",
+    "claims:check": "node --experimental-strip-types --test tests/claim-registry.test.js",
     "verify:node": "npm run test:core && npm run test:openclaw && npm run lint && npm run build"
   },
   "dependencies": {

@@ -164,6 +164,8 @@ test('the CLI execute path returns zero for bounded evidence and two for overrea
 
   assert.equal(messages.length, 2);
   const receipts = messages.map(JSON.parse);
+  assert.equal(receipts[0].evidenceLane, 'synthetic-reference-control');
+  assert.ok(receipts[0].nonClaims.includes('Reference-control evidence is not configured-agent evidence.'));
   assert.equal(receipts[0].status, 'passed');
   assert.equal(receipts[0].cases, 36);
   assert.equal(receipts[1].status, 'failed');

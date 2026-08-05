@@ -14,7 +14,7 @@ export function ProductPreview() {
       <header className={styles.previewHeader}>
         <div>
           <span className={styles.liveDot} aria-hidden="true" />
-          Local checkup
+          Local session checkup
         </div>
         <span>No upload</span>
       </header>
@@ -60,7 +60,7 @@ export function ProductPreview() {
       <Link href="/preflight" className={styles.previewAction}>
         Start a checkup <span>→</span>
       </Link>
-      <span className={styles.previewCallout}>Tests the configured runtime, not a base model</span>
+      <span className={styles.previewCallout}>Evidence lane · configured-agent session</span>
     </aside>
   );
 }

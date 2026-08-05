@@ -33,7 +33,7 @@ test('compatible eligible bundles produce one bounded Qwen size comparison', asy
   assert.equal(comparison.totalRecords, 50);
   assert.equal(comparison.reviewStatus, 'maintainer-self-reported');
   assert.equal(comparison.authorizationStatus, 'non-authorizing');
-  assert.equal(comparison.leader?.modelAlias, 'local:qwen3:4b');
+  assert.equal(comparison.higherMeanSubject?.modelAlias, 'local:qwen3:4b');
   assert.equal(comparison.meanDelta, 0.7748);
   assert.deepEqual(
     comparison.subjects.map((subject) => ({

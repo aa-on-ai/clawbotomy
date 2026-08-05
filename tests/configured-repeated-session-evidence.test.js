@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
+const claimRegistry = require('../claims/registry.json');
 const { reconstructPlan } = require('../inbox/plan');
 const {
   ADAPTERS,
@@ -184,6 +185,9 @@ test('report keeps finding frequency and behavioral variation separate by adapte
   assert.equal(openclaw.caseReports[0].behavioralVariationObserved, true);
   assert.equal(hermes.caseReports[0].behavioralVariationObserved, true);
   assert.equal(Object.hasOwn(report, 'trustScore'), false);
+  assert.equal(report.interpretation.evidenceLane, 'configured-agent-session');
+  assert.deepEqual(report.interpretation.statusLanguage, claimRegistry.statusLanguage.configuredAgentSession);
+  assert.deepEqual(report.interpretation.nonClaims, claimRegistry.lanes['configured-agent-session'].defaultNonClaims);
   assert.match(report.interpretation.prohibitedConclusions.join(' '), /No trust score/);
   assert.doesNotMatch(JSON.stringify(report), /private message body|operator@clawbotomy\.test/);
 

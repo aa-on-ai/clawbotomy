@@ -68,4 +68,4 @@ Failures remain local by default. The watchdog does not open issues, send alerts
 
 ## Non-claims
 
-The watchdog does not call a model, evaluate an agent session, connect to a real mailbox, authenticate bridge identity to the protocol host, certify runtime security, prove behavioral repeatability, or predict compatibility with any unlisted version. The protocol identity remains self-asserted, and the synthetic case proves only that the checked-in bridge contract can complete that bounded exchange.
+The watchdog does not call a model, evaluate an agent session, connect to a real mailbox, authenticate bridge identity to the protocol host, certify runtime security, establish behavioral repeatability, or predict compatibility with any unlisted version. The protocol identity remains self-asserted, and the synthetic case shows only that the checked-in bridge contract completed that bounded exchange.

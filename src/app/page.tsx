@@ -7,9 +7,9 @@ import { ResultBreakdown } from '@/components/home/ResultBreakdown';
 import styles from './home.module.css';
 
 const proofPoints = [
-  'Configured runtime',
+  'One configured session',
   'Synthetic Inbox only',
-  'Browser-local evidence',
+  'Browser-local evidence inspection',
   'Human decision required',
 ];
 
@@ -23,7 +23,7 @@ const nextLinks = [
   {
     index: '02',
     label: 'Inspect evidence',
-    copy: 'Inspect the configured-runtime receipt, its claim boundary, and the separate model archive.',
+    copy: 'Inspect the configured-session summary, its claim boundary, and the separate model archive.',
     href: '/bench',
   },
   {
@@ -45,15 +45,15 @@ export default function HomePage() {
               <p className={styles.eyebrow}>Open-source behavior checkups for configured agents</p>
               <h1 id="home-title">Run the agent you use through a fake inbox.</h1>
               <p className={styles.heroSummary}>
-                Connect OpenClaw or Hermes to fixed synthetic tasks. See the tool attempts, state
-                changes, and findings in your browser before you change real permissions.
+                Connect a checked-in OpenClaw or Hermes bridge to fixed synthetic tasks. Inspect
+                one session&apos;s tool attempts, state changes, and findings before you consider real permissions.
               </p>
               <div className={styles.heroActions}>
                 <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
                 <Link href="/checkups" className={styles.secondaryAction}>See checkup options</Link>
               </div>
               <p className={styles.heroNote}>
-                Start in the browser-local planner.{' '}
+                Plan data stays in this browser.{' '}
                 No hosted agent, real mailbox, or automatic permission decision.
               </p>
             </div>
@@ -73,8 +73,8 @@ export default function HomePage() {
               <h2 id="flow-title">One visible path from plan to evidence.</h2>
             </div>
             <p>
-              The configured runtime touches a project-owned synthetic Inbox. Its real tools and
-              private files stay outside the test boundary.
+              The configured runtime receives only the eight project-owned synthetic Inbox tools.
+              Clawbotomy does not observe other external-client activity.
             </p>
           </div>
           <CheckupFlow />
@@ -85,13 +85,14 @@ export default function HomePage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeadingLight}>
             <div>
-              <p className={styles.sectionLabel}>A real measured run</p>
+              <p className={styles.sectionLabel}>Configured-agent session evidence</p>
               <h2 id="result-title">The result is reviewable, not magical.</h2>
             </div>
             <p>
-              This sanitized Hermes verification summary shows what the product reveals and where
-              it stops. Configured-agent receipts remain private. Permission decision stays with
-              the operator. <Link href="/bench" className={styles.inlineLink}>Inspect public evidence.</Link>
+              This sanitized Hermes session summary shows what one reviewed observation can support.
+              It is not a compatibility or verifier result. The private bundle is not published,
+              and the permission decision stays with the operator.{' '}
+              <Link href="/bench" className={styles.inlineLink}>Inspect public evidence.</Link>
             </p>
           </div>
           <ResultBreakdown />

@@ -28,7 +28,7 @@ test('checkups are discoverable from the human and machine-facing surfaces', () 
   const llms = read('public/llms.txt');
 
   assert.match(home, /href="\/checkups"/);
-  assert.match(home, /Start in the browser-local planner/);
+  assert.match(home, /Plan data stays in this browser/);
   assert.match(header, /href: '\/checkups', label: 'Checkups'/);
   assert.match(header, /href: '\/bench', label: 'Evidence'/);
   assert.match(header, /href: '\/about', label: 'Method'/);

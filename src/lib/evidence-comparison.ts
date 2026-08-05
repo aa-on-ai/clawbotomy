@@ -41,7 +41,7 @@ export type EvidenceComparison = {
   comparisonId: string;
   category: string;
   subjects: [ComparisonSubject, ComparisonSubject];
-  leader: ComparisonSubject | null;
+  higherMeanSubject: ComparisonSubject | null;
   meanDelta: number;
   caseRows: ComparisonCase[];
   runsPerCase: number;
@@ -186,14 +186,14 @@ function comparePair(left: Candidate, right: Candidate): EvidenceComparison | nu
     [subjects[1].runId, subjects[1].runId === left.bundle.manifest.runId ? leftScores : rightScores],
   ]);
   const meanDelta = Math.round(Math.abs(subjects[0].meanScore - subjects[1].meanScore) * 10_000) / 10_000;
-  const leader = meanDelta > Number.EPSILON ? subjects[0] : null;
+  const higherMeanSubject = meanDelta > Number.EPSILON ? subjects[0] : null;
   const runIds = [left.bundle.manifest.runId, right.bundle.manifest.runId].sort();
 
   return {
     comparisonId: runIds.join(':'),
     category: String(left.aggregate.category || left.bundle.manifest.plan.configuration.tasks[0]),
     subjects,
-    leader,
+    higherMeanSubject,
     meanDelta,
     caseRows: caseIds.map((caseId) => ({
       caseId,

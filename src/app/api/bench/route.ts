@@ -16,7 +16,7 @@ export function GET() {
   const latest = index.runs.slice().sort((a, b) => b.completedAt.localeCompare(a.completedAt))[0] || null;
   return NextResponse.json({
     ...benchData,
-    schemaVersion: '2.0.0',
+    schemaVersion: '3.0.0',
     latestRunId: latest?.runId || null,
     publishedRuns: index.runs,
     evidenceRegistry: {

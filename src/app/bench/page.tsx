@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { SANITIZED_HERMES_CASE_STUDY } from '@/lib/agent-evaluation-insights';
 import { benchData } from '@/lib/bench-data';
+import { artifactDisclosureLabel } from '@/lib/claim-registry';
 import { buildEvidenceComparisons } from '@/lib/evidence-comparison';
 import { loadPublicEvidenceIndex, loadPublicEvidenceRun } from '@/lib/public-evidence.server';
 import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
@@ -41,18 +42,19 @@ export default function BenchPage() {
 
       <header className={styles.header}>
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Configured runtime evidence · Sanitized example</p>
+          <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
           <div className={styles.headerGrid}>
             <h1>Evidence follows the runtime you actually operate.</h1>
             <p>
-              Clawbotomy measures one configured OpenClaw or Hermes session against a synthetic Inbox.
-              The useful output is a bounded receipt and a human decision, not a universal score.
+              Clawbotomy records one configured OpenClaw or Hermes session against a synthetic Inbox.
+              This page begins with one reviewed configured-session aggregate, then keeps model
+              benchmark artifacts and the legacy snapshot in separate evidence lanes.
             </p>
           </div>
 
           <dl className={styles.registryStats}>
             <div>
-              <dt>Observed runtime</dt>
+              <dt>Recorded adapter</dt>
               <dd>{configured.adapter}</dd>
             </div>
             <div>
@@ -75,24 +77,25 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Configured runtime evidence</p>
+              <p className={styles.eyebrowSignal}>Evidence lane · Configured-agent session</p>
               <h2 id="configured-title">The receipt ends in a decision.</h2>
             </div>
             <p>
-              This sanitized Hermes summary is the same aggregate shown on the homepage. Private case payloads stay local, so the public story stops at what the reviewed summary can support.
+              This sanitized Hermes summary is the same aggregate shown on the homepage. Its private
+              bundle is not published, so the public story stops at this maintainer-reviewed observation.
             </p>
           </div>
 
           <div className={styles.evidenceQuestionSplit} aria-label="Evidence types">
             <div>
               <span>Current product</span>
-              <strong>Tests a configured agent runtime</strong>
-              <p>Tool attempts, state changes, findings, and one human permission decision.</p>
+              <strong>Observes one configured-agent session</strong>
+              <p>Tool attempts, synthetic state changes, findings, and one human review input.</p>
             </div>
             <div>
-              <span>Separate archive</span>
-              <strong>Tests base-model task performance</strong>
-              <p>Prompt scores and same-protocol comparisons. Useful history, but not product proof.</p>
+              <span>Separate model lane</span>
+              <strong>Records model benchmark observations</strong>
+              <p>Prompt scores and exact-protocol comparisons. They are not configured-agent evidence.</p>
             </div>
           </div>
 
@@ -133,8 +136,8 @@ export default function BenchPage() {
       <details className={styles.archiveDisclosure}>
         <summary>
           <span>Model benchmark archive</span>
-          <strong>{runs.length} published runs · {comparisons.length} compatible pairs · legacy March 2026 snapshot</strong>
-          <p>Open the separate base-model evidence registry, compatible Qwen comparison, schemas, and legacy benchmark table.</p>
+          <strong>{runs.length} published artifacts · {comparisons.length} comparable pairs · legacy March 2026 snapshot</strong>
+          <p>Open the maintainer-reported model benchmark artifacts, bounded Qwen comparison, schemas, and separate legacy snapshot.</p>
         </summary>
         <div className={styles.archiveBody}>
 
@@ -147,12 +150,12 @@ export default function BenchPage() {
           <div className={styles.rail}>
             <div className={styles.sectionHeading}>
               <div>
-                <p className={styles.eyebrowSignal}>Compatible public comparison</p>
+                <p className={styles.eyebrowSignal}>Comparable artifact pair</p>
                 <h2 id="comparison-title">Same prompts. Two Qwen sizes.</h2>
               </div>
               <p>
-                Both runs clear the repeat count, coverage, scoring, reproducibility, identity, prompt-hash,
-                and implementation-hash gates for this exact local protocol.
+                Both artifacts clear the repeat count, coverage, scoring, artifact-disclosure,
+                provider-reported identity, prompt-hash, and implementation-hash gates for this exact protocol.
               </p>
             </div>
 
@@ -161,14 +164,14 @@ export default function BenchPage() {
                 <div>
                   <p className={styles.comparisonKicker}>{comparison.category} · {comparison.caseCount} prompts · {comparison.runsPerCase} repeats</p>
                   <h3>
-                    {comparison.leader
-                      ? `${comparison.leader.modelLabel} led by ${comparison.meanDelta.toFixed(2)} points.`
+                    {comparison.higherMeanSubject
+                      ? `${comparison.higherMeanSubject.modelLabel} had the higher observed mean by ${comparison.meanDelta.toFixed(2)} points.`
                       : 'The mean scores tied.'}
                   </h3>
                 </div>
                 <p>
-                  This is a bounded, same-family size comparison on fifty scored records. It is not a general
-                  model leaderboard or evidence about safety, speed, cost, or production readiness.
+                  This is a bounded, same-family size comparison on fifty scored records. A higher observed mean
+                  is not a routing recommendation, model identity attestation, or evidence about safety, speed, cost, or production readiness.
                 </p>
               </div>
 
@@ -220,10 +223,10 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Public evidence runs</p>
+              <p className={styles.eyebrowSignal}>Evidence lane · Model benchmark observations</p>
               <h2 id="registry-title">Evidence available now</h2>
             </div>
-            <p>Each run listed here has a complete public manifest and case file. Integrity is not a signature or proof of provider authorship.</p>
+            <p>Each artifact has a public manifest and case file accepted by the checked-in artifact validator. Integrity is not a signature, provider attestation, or methodology verdict.</p>
           </div>
 
           {runs.length === 0 ? (
@@ -249,7 +252,7 @@ export default function BenchPage() {
                   <span>{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <h3>{run.runId}</h3>
-                    <p>{run.measurementStatus} · {run.reproducibilityStatus} · {run.reviewStatus}</p>
+                    <p>{run.measurementStatus} · {artifactDisclosureLabel(run.reproducibilityStatus)} · {run.reviewStatus}</p>
                   </div>
                   <time dateTime={run.completedAt}>{run.completedAt.slice(0, 10)}</time>
                   <Link href={`/bench/runs/${run.runId}`}>Inspect run →</Link>
@@ -264,7 +267,7 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.legacyHeader}>
             <div>
-              <p className={styles.eyebrowSignal}>Legacy snapshot · {lastUpdated}</p>
+              <p className={styles.eyebrowSignal}>Evidence lane · legacy model benchmark snapshot · {lastUpdated}</p>
               <h2 id="legacy-title">Maintainer-reported summary</h2>
             </div>
             <div className={styles.statuses} aria-label="Legacy evidence status">
@@ -275,8 +278,8 @@ export default function BenchPage() {
           </div>
 
           <p className={styles.legacyIntro}>
-            These values remain available for continuity and scrutiny. They are not a reproducible evidence bundle,
-            not universal model grades, and not permission or deployment guidance.
+            These values remain available for continuity and scrutiny. They are not product proof, routing guidance, access guidance, or a safety result.
+            Raw constituent cases are unavailable.
           </p>
 
           <p className={styles.tableHint}>Swipe horizontally to compare models. Task names stay pinned.</p>
