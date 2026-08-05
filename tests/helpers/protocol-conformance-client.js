@@ -16,11 +16,22 @@ function targetIds(action) {
 }
 
 class ProtocolConformanceClient {
-  constructor() {
+  constructor({
+    id = 'clawbotomy.conformance-client',
+    version = '1.0.0',
+    implementationSha256 = null,
+    configurationSha256 = null,
+  } = {}) {
     this.clientSeq = 1;
     this.requestSequence = 0;
     this.sessionId = null;
     this.current = null;
+    this.identity = {
+      id,
+      version,
+      implementationSha256,
+      configurationSha256,
+    };
   }
 
   hello() {
@@ -29,12 +40,7 @@ class ProtocolConformanceClient {
       protocolId: PROTOCOL_ID,
       type: 'hello',
       clientSeq: this.clientSeq,
-      client: {
-        id: 'clawbotomy.conformance-client',
-        version: '1.0.0',
-        implementationSha256: null,
-        configurationSha256: null,
-      },
+      client: clone(this.identity),
     };
     this.clientSeq += 1;
     return frame;

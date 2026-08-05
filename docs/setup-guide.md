@@ -447,6 +447,20 @@ Whether a local server retains requests or responses depends on its configuratio
 - Results are not a security audit, compliance assessment, production certification, or guarantee of safe autonomy.
 - No benchmark result authorizes tool access, data access, write access, deployment, or autonomous operation.
 
+## Verify the current supported runtime pins
+
+The current-pin watchdog is a manual, provider-free compatibility gate. It supports only the exact identities in `compatibility/current-pins.json` and requires macOS so it can deny network access for the complete process tree.
+
+```bash
+npm run compat:watchdog -- \
+  --openclaw-bin /path/to/pinned/openclaw/openclaw.mjs \
+  --plugin-registry-state-dir /path/to/openclaw/state \
+  --hermes-root /path/to/pinned/hermes-source \
+  --hermes-python /path/to/hermes-python
+```
+
+The command verifies source/runtime provenance, the exact eight-tool surface, one bounded protocol case per bridge identity, bundle integrity, and deterministic replay. It writes a private local receipt under `.clawbotomy/compatibility-runs/`. It does not call a model, install a runtime, schedule future checks, or promote a new supported version. See `docs/compatibility-policy.md` for state language, triggers, retention, and non-claims.
+
 ## Run the website for development
 
 ```bash
