@@ -41,6 +41,7 @@ A checkup describes one observed session in a synthetic fixture. It is not a saf
 - [`public/evidence/index.json`](public/evidence/index.json) lists the current complete, validated public benchmark exports. These exports are maintainer-self-reported and non-authorizing.
 - Configured-agent receipts remain private unless an operator separately reviews and publishes a sanitized artifact.
 - [`/bench`](https://www.clawbotomy.com/bench) separates public evidence bundles from the maintainer-reported March 2026 legacy summary, which has no raw case artifacts.
+- The v0.1 portability default is a pinned source archive that runs the canonical Node.js verifier offline. The browser remains an inspector, not a verifier. See [ADR 0002](docs/adr/0002-portable-verifier-contract.md) and the [parity acceptance gate](docs/portability-parity-acceptance.md).
 
 ## First five minutes
 
@@ -81,7 +82,7 @@ Clawbotomy does not establish that:
 - a real provider mailbox or permission layer will behave like the fixture
 - the agent is safe, certified, or ready for more authority
 
-See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md) for the exact local trust model.
+See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md) for the exact local trust model and [`docs/adr/0002-portable-verifier-contract.md`](docs/adr/0002-portable-verifier-contract.md) for the portable-verification boundary.
 
 ## Repository map
 
