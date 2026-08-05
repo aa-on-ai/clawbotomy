@@ -488,13 +488,13 @@
 }
 
 .previewAction > span,
-.nextLinks strong > span {
+.nextLinks strong span {
   display: inline-block;
   transition: transform var(--cb-motion-fast) ease;
 }
 
 .previewAction:hover > span,
-.nextLinks > a:hover strong > span {
+.nextLinks > a:hover strong span {
   transform: translateX(4px);
 }
 
@@ -946,13 +946,15 @@
   transition:
     transform var(--cb-motion-fast) var(--cb-ease-out),
     color var(--cb-motion-fast) ease,
-    background-color var(--cb-motion-fast) ease;
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .nextLinks > a:hover {
-    color: var(--cb-ink);
-    background: var(--cb-signal);
+    color: var(--cb-bone);
+    background: color-mix(in srgb, var(--cb-signal) 8%, var(--cb-ink-raised));
+    border-color: color-mix(in srgb, var(--cb-signal) 44%, var(--cb-border-dark));
     transform: translateY(-2px);
   }
 }
@@ -1288,7 +1290,7 @@
   .previewAction,
   .nextLinks > a,
   .previewAction > span,
-  .nextLinks strong > span {
+  .nextLinks strong span {
     transition: none;
   }
 
