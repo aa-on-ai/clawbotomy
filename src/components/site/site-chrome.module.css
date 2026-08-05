@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  min-height: 76px;
+  min-height: 48px;
   color: var(--cb-bone);
   background: color-mix(in srgb, var(--cb-ink) 94%, transparent);
   border-bottom: 1px solid var(--cb-border-dark);
@@ -18,7 +18,7 @@
 
 .headerInner {
   width: min(var(--cb-rail), calc(100% - (2 * var(--cb-gutter))));
-  min-height: 76px;
+  min-height: 48px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -216,7 +216,7 @@
 
   .navigation {
     position: absolute;
-    inset: 76px 0 auto;
+    inset: 48px 0 auto;
     display: none;
     padding: 12px var(--cb-gutter) 20px;
     grid-template-columns: 1fr 1fr;

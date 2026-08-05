@@ -15,7 +15,7 @@
 
 .hero {
   position: relative;
-  min-height: clamp(600px, calc(88vh - 76px), 760px);
+  min-height: clamp(600px, calc(88vh - 48px), 760px);
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--cb-border-light);
