@@ -14,15 +14,26 @@ No stage grants tool access. No live run auto-publishes, and no export command d
 
 Configured-agent evaluation uses the separate practical local boundary in [ADR 0001](adr/0001-practical-local-trust-boundary.md). It trusts the operator and local runtime environment while treating the model, tool choices, protocol frames, and evidence claims as untrusted.
 
+## Evidence lanes
+
+- **Synthetic reference-control evidence** describes a checked-in positive or negative fixture control, or one embedded declarative policy. It does not inspect or execute a deployed agent.
+- **Configured-agent session evidence** records one observed OpenClaw or Hermes session, or one explicitly sampled repeated-session cohort, against the synthetic Inbox fixture.
+- **Deterministic bundle verification** checks internal file integrity and deterministic replay under the canonical checked-in verifier.
+- **Exact-pin runtime compatibility** checks only the identities in `compatibility/current-pins.json` without provider requests. It is separate from behavior evidence.
+- **Model benchmark observations** describe task-specific endpoint artifacts and do not provide routing or access guidance.
+- **Legacy model benchmark snapshot** preserves the March 2026 maintainer-reported summary without raw case artifacts.
+
+These lanes are not interchangeable. A compatibility receipt cannot support a behavior claim, a model score cannot authorize access, and a browser projection cannot replace terminal verification.
+
 ## Current public evidence state
 
-[`public/evidence/index.json`](../public/evidence/index.json) lists the current complete, validated public benchmark exports. Every entry preserves its source scope, is maintainer-self-reported, and remains non-authorizing.
+[`public/evidence/index.json`](../public/evidence/index.json) lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. Every entry preserves its source scope and remains non-authorizing.
 
 The separate March 2026 legacy summary on `/bench` predates the current evidence-bundle workflow and does not include raw case artifacts needed for independent reproduction. It remains visible for historical context, not as authorization for routing, tools, write access, or autonomous operation.
 
 ## Prerequisites
 
-- Node.js 18 or newer
+- Node.js 22.x
 - Git
 - A bring-your-own provider key for each hosted target or judge selected, or an OpenAI-compatible local model endpoint
 
@@ -146,11 +157,53 @@ npm run agent:evaluate -- \
 
 The launcher has no arbitrary command, module, package, URL, endpoint, or provider option. OpenClaw runtime digests must come from an independent trusted source. The Hermes command derives the interpreter from the selected canonical checkout. Both bridges assert the exact eight-tool inventory and validate a completed bundle before returning a pass or findings receipt.
 
-Attempt receipts are written mode `0600` under `.clawbotomy/evaluation-attempts/`. They contain only fixed adapter/client IDs, a validated non-secret model label, the plan digest, timestamps, process classification, any proven complete-bundle locator/digest, and closed diagnostic category codes. Raw adapter stderr is terminal-only and is never copied into the receipt.
+Attempt receipts are written mode `0600` under `.clawbotomy/evaluation-attempts/`. Completed attempts also bind the bridge-reported runtime version and verified OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest to the exact replay-validated bundle execution subject. Receipts otherwise contain only fixed adapter/client IDs, a validated non-secret model label, the plan digest, timestamps, process classification, any accepted complete-bundle locator/digest, and closed diagnostic category codes. Raw adapter stderr is terminal-only and is never copied into the receipt.
 
 Exit `0` is a complete run whose cases passed. Exit `2` is a complete run with findings. Exit `1` always remains an adapter/process anomaly. If the launcher independently finds exactly one new bundle that passes the checked-in validator and deterministic replay, the bundle keeps its measured pass/findings status while exit `1` remains visible; every other exit-`1` attempt is infrastructure-only and unscored.
 
 Open `/evaluate` and select one launcher-issued `evaluation-attempt-*.json` together with its bound `manifest.json`, `summary.json`, and `cases.jsonl`. The browser requires that receipt-to-bundle binding before displaying a measured status, then derives only closed-contract case/tool/state/assertion/digest receipts in memory. Select one attempt receipt alone to inspect an infrastructure failure with no accepted bundle.
+
+The browser is an inspector after terminal validation. It does not read `integrity.json`, validate bundle integrity, or perform deterministic replay.
+
+### Bounded repeated-session evidence
+
+Repeated-session evidence is a separate local experiment over individually valid configured-agent sessions. It does not turn several sessions into a trust score, probability estimate, repeatability claim, adapter ranking, or permission decision.
+
+Use one frozen plan and choose 3–5 fresh sessions per adapter. Run the cost preflight before provider inference:
+
+```bash
+npm run agent:repeat -- preflight \
+  --experiment-id phase3-search-read-20260804 \
+  --plan .clawbotomy/plans/phase3-search-read.json \
+  --sessions 3 \
+  --openclaw-runtime-version 2026.7.1-beta.5 \
+  --openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
+  --openclaw-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256" \
+  --openclaw-codex-runtime-sha256 "$OPENCLAW_CODEX_RUNTIME_SHA256" \
+  --hermes-runtime-version 0.18.2 \
+  --hermes-git-commit 111544d544d6cf6efed9875e116f2daeb76a1211 \
+  --hermes-source-tree-sha256 "$HERMES_SOURCE_TREE_SHA256" \
+  --incremental-cash-cost-usd 0 \
+  --output .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/preflight.json
+```
+
+The preflight requires a clean committed checkout and records the plan digest, case inventory, pinned runtime identities, session count, maximum model-turn calls, OAuth subscription boundary, and incremental cash ceiling. A zero-dollar ceiling means Clawbotomy supplies no metered API key and expects no incremental token invoice; the runs still consume existing subscription quota that Clawbotomy cannot price.
+
+Run each adapter through `npm run agent:evaluate`, preserving every launcher receipt and complete bundle. Then pass every attempt receipt, including infrastructure failures, to the report command:
+
+```bash
+npm run agent:repeat -- report \
+  --preflight .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/preflight.json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-openclaw-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-openclaw-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-openclaw-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-hermes-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-hermes-....json \
+  --attempt .clawbotomy/evaluation-attempts/evaluation-attempt-hermes-....json \
+  --output .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/report.json
+```
+
+The reporter revalidates integrity and deterministically replays every completed bundle. It rejects incomplete preflight documents, missing runtime pins, launcher-to-bundle identity mismatches, and any completed session whose OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest differ from the frozen preflight. The JSON and Markdown outputs contain only closed identifiers, counts, tool names, assertion IDs, state-change counts, and digests, then pass the local residual-secret scan. Raw event, message, and state text stay in the private source bundles.
 
 The run writes four private files under `.clawbotomy/inbox-runs/<deterministic-run-id>/`:
 
@@ -325,7 +378,7 @@ The exporter:
 5. Writes `public/evidence/run-…/` with public-readable file modes.
 6. Adds the run to `public/evidence/index.json`.
 
-If score-bearing case content is redacted, the public summary is marked accordingly and is not eligible for leaderboard-style conclusions. Regardless of redaction, every exported bundle remains `non-authorizing` and maintainer-self-reported unless an actual independent review occurs.
+If score-bearing case content is redacted, the public summary is marked accordingly and is not eligible for score-bearing comparison. Regardless of redaction, every exported bundle remains `non-authorizing` and maintainer-self-reported unless an actual independent review occurs.
 
 Export does not commit, push, deploy, or contact `clawbotomy.com`. Review the exported files and complete git diff before taking any separate repository or deployment action.
 
@@ -407,6 +460,20 @@ Whether a local server retains requests or responses depends on its configuratio
 - A complete evidence bundle can still encode a weak task design, an unsuitable judge, provider drift, or an unrepresentative sample.
 - Results are not a security audit, compliance assessment, production certification, or guarantee of safe autonomy.
 - No benchmark result authorizes tool access, data access, write access, deployment, or autonomous operation.
+
+## Verify the current supported runtime pins
+
+The current-pin watchdog is a manual, provider-free compatibility gate. Clawbotomy supports only the exact identities in compatibility/current-pins.json and requires macOS so it can deny network access for the complete process tree.
+
+```bash
+npm run compat:watchdog -- \
+  --openclaw-bin /path/to/pinned/openclaw/openclaw.mjs \
+  --plugin-registry-state-dir /path/to/openclaw/state \
+  --hermes-root /path/to/pinned/hermes-source \
+  --hermes-python /path/to/hermes-python
+```
+
+The command verifies source/runtime provenance, the exact eight-tool surface, one bounded protocol case per bridge identity, bundle integrity, and deterministic replay. It writes a private local receipt under `.clawbotomy/compatibility-runs/`. It does not call a model, install a runtime, schedule future checks, or promote a new supported version. See `docs/compatibility-policy.md` for state language, triggers, retention, and non-claims.
 
 ## Run the website for development
 

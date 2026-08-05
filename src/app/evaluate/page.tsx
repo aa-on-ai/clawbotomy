@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 };
 
 const boundaryFacts = [
-  ['Real mailbox', 'Never connected'],
-  ['Private evidence', 'Browser local'],
+  ['Real mailbox', 'Not connected by Clawbotomy'],
+  ['Private evidence', 'Selected locally; not uploaded'],
   ['Client identity', 'Self-asserted'],
   ['Permission decision', 'None'],
 ];
@@ -25,11 +25,11 @@ export default function EvaluatePage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Local agent evaluation · Inbox protocol · Private by default</p>
+              <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
               <h1 id="evaluate-title">Connect the runtime. Keep the evidence local.</h1>
               <p>
-                Launch OpenClaw or Hermes against the same synthetic Inbox, inspect only the
-                receipts you need, and compare measured runs without uploading a private bundle.
+                Launch a checked-in OpenClaw or Hermes bridge against the same synthetic Inbox.
+                Validate the bundle in your terminal, then inspect its local browser projection.
               </p>
               <div className={styles.heroActions}>
                 <Link href="/preflight" className={styles.primaryLink}>Build an Inbox plan</Link>
@@ -52,8 +52,8 @@ export default function EvaluatePage() {
               </dl>
               <p>
                 The local operator, same-UID filesystem, interpreters, Git, dependencies, and
-                canonical runtime checkout are trusted. The model, its tool choices, protocol
-                frames, and evidence claims are not.
+                canonical runtime checkout are assumed inside the local trust boundary. This flow
+                does not attest them. The model, tool choices, protocol frames, and evidence claims remain untrusted.
               </p>
             </aside>
           </div>

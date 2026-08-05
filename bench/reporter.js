@@ -32,24 +32,18 @@ function summarize(results) {
   return { byModel, byCategory, coverage };
 }
 
-function routingTable(summary) {
+const EVIDENCE_LANE = 'model-benchmark';
+const CLAIM_BOUNDARY = 'Task-specific recorded scores; not routing, access, safety, or configured-agent evidence.';
+
+function observationTable(summary) {
   const lines = [];
-  lines.push('Task Category        Best Model        Fallback           Best Score');
-  lines.push('──────────────────────────────────────────────────────────────────────');
+  lines.push('Task Category        Model                    Observed Mean');
+  lines.push('─────────────────────────────────────────────────────────');
 
   for (const [category, modelScores] of Object.entries(summary.byCategory)) {
-    const ranked = Object.entries(modelScores)
-      .map(([model, scores]) => ({ model, score: average(scores) }))
-      .sort((a, b) => b.score - a.score);
-
-    const best = ranked[0] || { model: '-', score: 0 };
-    const fallback = ranked[1] || { model: '-' };
-
-    lines.push(
-      `${category.padEnd(20)} ${best.model.padEnd(16)} ${fallback.model.padEnd(18)} ${best.score
-        .toFixed(2)
-        .padStart(5)}`
-    );
+    for (const [model, scores] of Object.entries(modelScores)) {
+      lines.push(`${category.padEnd(20)} ${model.padEnd(24)} ${average(scores).toFixed(2).padStart(5)}`);
+    }
   }
 
   return lines.join('\n');
@@ -68,10 +62,6 @@ function scorecards(summary) {
       blocks.push(`${e.category.padEnd(20)} ${e.score.toFixed(2).padStart(5)}   ${bar(e.score)}`);
     });
 
-    const strengths = [...entries].sort((a, b) => b.score - a.score).slice(0, 2).map((e) => e.category);
-    const weaknesses = [...entries].sort((a, b) => a.score - b.score).slice(0, 2).map((e) => e.category);
-    blocks.push(`STRENGTHS:   ${strengths.join(', ')}`);
-    blocks.push(`WEAKNESSES:  ${weaknesses.join(', ')}`);
   }
 
   return blocks.join('\n');
@@ -87,32 +77,33 @@ function deltaReport(summary) {
   const lines = [];
   lines.push(`\n${a} vs ${b}`);
   lines.push('──────────────────────────────────────────────────────────────────────');
-  lines.push('Category             A       B       winner   delta');
+  lines.push('Category             A       B       higher observed mean   delta');
 
   for (const category of categories) {
     const aScore = average(summary.byModel[a]?.[category] || []);
     const bScore = average(summary.byModel[b]?.[category] || []);
-    const winner = aScore === bScore ? 'tie' : aScore > bScore ? a : b;
+    const higherObservedMean = aScore === bScore ? 'tie' : aScore > bScore ? a : b;
     const delta = Math.abs(aScore - bScore).toFixed(2);
-    lines.push(`${category.padEnd(20)} ${aScore.toFixed(2).padEnd(7)} ${bScore.toFixed(2).padEnd(7)} ${winner.padEnd(8)} ${delta}`);
+    lines.push(`${category.padEnd(20)} ${aScore.toFixed(2).padEnd(7)} ${bScore.toFixed(2).padEnd(7)} ${higherObservedMean.padEnd(22)} ${delta}`);
   }
 
   return lines.join('\n');
 }
 
 function toJson(summary, rawResults, meta) {
-  return JSON.stringify({ meta, summary, rawResults }, null, 2);
+  return JSON.stringify({ evidenceLane: EVIDENCE_LANE, claimBoundary: CLAIM_BOUNDARY, meta, summary, rawResults }, null, 2);
 }
 
 function toMarkdown(summary, meta) {
   const lines = [];
-  lines.push(`# CLAWBOTOMY ROUTING BENCHMARK — ${meta.date}`);
+  lines.push(`# CLAWBOTOMY MODEL BENCHMARK OBSERVATIONS — ${meta.date}`);
+  lines.push(`- ${CLAIM_BOUNDARY}`);
   lines.push(`- Models: ${meta.models.join(', ')}`);
   lines.push(`- Tasks: ${meta.tasks.join(', ')}`);
   if (meta.lowConfidenceWarning) lines.push(`- ⚠️ ${meta.lowConfidenceWarning}`);
   lines.push('');
   lines.push('```');
-  lines.push(routingTable(summary));
+  lines.push(observationTable(summary));
   lines.push('```');
   return lines.join('\n');
 }
@@ -124,12 +115,13 @@ function formatReport({ results, output = 'table', meta }) {
   if (output === 'markdown') return toMarkdown(summary, meta);
 
   const parts = [];
-  parts.push(`CLAWBOTOMY ROUTING BENCHMARK — ${meta.date}`);
+  parts.push(`CLAWBOTOMY MODEL BENCHMARK OBSERVATIONS — ${meta.date}`);
+  parts.push(CLAIM_BOUNDARY);
   parts.push(`Models tested: ${meta.models.join(', ')}`);
   parts.push(`Coverage: ${summary.coverage.scored}/${summary.coverage.records} scored`);
   if (meta.lowConfidenceWarning) parts.push(`⚠️ ${meta.lowConfidenceWarning}`);
   parts.push('');
-  parts.push(routingTable(summary));
+  parts.push(observationTable(summary));
   parts.push(scorecards(summary));
   parts.push(deltaReport(summary));
 

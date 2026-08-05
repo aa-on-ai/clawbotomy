@@ -1924,6 +1924,7 @@ def main(argv: list[str] | None = None) -> int:
                         "model": MODEL_NAME,
                         "enabledTools": list(plugin.TOOL_NAMES),
                         "implementationSha256": runner.sent_client_hello["client"]["implementationSha256"],
+                        "configurationSha256": runner.sent_client_hello["client"]["configurationSha256"],
                         "receipt": receipt,
                         "exitCode": exit_code,
                     }) + "\n")

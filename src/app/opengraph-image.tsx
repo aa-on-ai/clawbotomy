@@ -99,7 +99,7 @@ export default async function OpenGraphImage() {
             <span style={{ color: '#ef4633', fontSize: 15, fontWeight: 700 }}>[ boundary ]</span>
             <span style={{ marginTop: 12, fontSize: 17, fontWeight: 700 }}>What this flow can claim</span>
             {[
-              ['Real mailbox', 'Never connected'],
+              ['Real mailbox', 'Not connected by Clawbotomy'],
               ['Private evidence', 'Browser local'],
               ['Permission decision', 'None'],
             ].map(([label, value]) => (

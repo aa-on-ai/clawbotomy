@@ -25,7 +25,7 @@ Standalone inspection authenticates the same runtime pins before execution and r
 Run the focused integration tests:
 
 ```bash
-node --experimental-strip-types --test integrations/openclaw/*.test.mjs
+npm run test:openclaw
 node --test tests/inbox-protocol-{adversarial,bundle,host,runner,security}.test.js
 ```
 

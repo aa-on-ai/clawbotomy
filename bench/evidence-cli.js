@@ -2,6 +2,7 @@
 
 const { readBundle } = require('./bundle');
 const { exportPublicBundle } = require('./public-export');
+const claimRegistry = require('../claims/registry.json');
 
 const USAGE = `Clawbotomy evidence tools (offline only)
 
@@ -42,6 +43,8 @@ function main() {
     // eslint-disable-next-line no-console
     console.log(JSON.stringify({
       valid: true,
+      evidenceLane: 'deterministic-bundle-verification',
+      nonClaims: claimRegistry.lanes['deterministic-bundle-verification'].defaultNonClaims,
       runId: bundle.manifest.runId,
       lifecycleStatus: bundle.manifest.lifecycle.status,
       bundleDigest: bundle.integrity.bundleDigest,
@@ -65,6 +68,8 @@ function main() {
   // eslint-disable-next-line no-console
   console.log(JSON.stringify({
     exported: true,
+    evidenceLane: 'model-benchmark',
+    nonClaims: claimRegistry.lanes['model-benchmark'].defaultNonClaims,
     runId: exported.manifest.runId,
     outputDir: exported.outputDir,
     publicBundleDigest: exported.integrity.bundleDigest,

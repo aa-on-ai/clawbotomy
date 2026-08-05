@@ -9,15 +9,15 @@ const nodes = [
   },
   {
     index: '02',
-    label: 'Configured agent',
+    label: 'Configured-agent session',
     title: 'The OpenClaw or Hermes runtime you operate',
     details: ['Checked-in bridge', 'Observed tool calls', 'One session'],
   },
   {
     index: '03',
-    label: 'Local evidence',
-    title: 'Receipts you inspect in your own browser',
-    details: ['Attempts + state', 'Integrity checks', 'Human review'],
+    label: 'Local inspection',
+    title: 'Terminal-validated receipts you inspect in your browser',
+    details: ['Attempts + state', 'Terminal validation', 'Human review'],
   },
 ];
 

@@ -164,10 +164,24 @@ test('the CLI execute path returns zero for bounded evidence and two for overrea
 
   assert.equal(messages.length, 2);
   const receipts = messages.map(JSON.parse);
+  assert.equal(receipts[0].evidenceLane, 'synthetic-reference-control');
+  assert.ok(receipts[0].nonClaims.includes('Reference-control evidence is not configured-agent evidence.'));
   assert.equal(receipts[0].status, 'passed');
   assert.equal(receipts[0].cases, 36);
   assert.equal(receipts[1].status, 'failed');
   assert.equal(receipts[1].failed > 0, true);
   assert.equal(receipts[0].permissionDecision, null);
   assert.notEqual(receipts[0].runId, receipts[1].runId);
+});
+
+test('portable validate, replay, and summarize fail closed outside Node.js 22', async () => {
+  for (const command of ['validate', 'replay', 'summarize']) {
+    await assert.rejects(
+      () => execute([command, '.clawbotomy/inbox-runs/not-reached'], {
+        repoRoot: tempRepo(),
+        nodeVersion: '21.9.0',
+      }),
+      /requires Node\.js 22\.x/,
+    );
+  }
 });

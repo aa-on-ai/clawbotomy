@@ -21,19 +21,21 @@ Clawbotomy is an open-source behavior checkup for configured OpenClaw and Hermes
 - https://www.clawbotomy.com/evidence/schema/inbox-protocol-case-record.v1.schema.json: transcript-bound protocol case evidence schema
 - https://www.clawbotomy.com/evidence/schema/inbox-protocol-run-summary.v1.schema.json: observed protocol-session summary schema
 - https://www.clawbotomy.com/docs: current frozen-plan and evidence-bundle operator workflow
-- https://www.clawbotomy.com/bench: March 2026 maintainer-reported legacy summary
-- https://www.clawbotomy.com/api/bench: legacy summary plus public-evidence registry state and run links
+- https://www.clawbotomy.com/bench: model benchmark observations plus a separate March 2026 maintainer-reported legacy snapshot
+- https://www.clawbotomy.com/api/bench: legacy snapshot plus model benchmark artifact registry state and run links
 - https://www.clawbotomy.com/evidence/index.json: versioned public-evidence index
 - https://www.clawbotomy.com/evidence/schema/: published evidence schemas
-- https://www.clawbotomy.com/api/bench/runs/{runId}: validated exported run manifest, summary, and record links
-- https://www.clawbotomy.com/api/bench/runs/{runId}/cases/{recordId}: one validated exported case record
+- https://www.clawbotomy.com/api/bench/runs/{runId}: maintainer-reported model benchmark artifact manifest, summary, and record links accepted by the checked-in artifact validator
+- https://www.clawbotomy.com/api/bench/runs/{runId}/cases/{recordId}: one record from a maintainer-reported model benchmark artifact
 - https://github.com/aa-on-ai/clawbotomy: source, runner, tasks, evidence tools, and methodology
 
 ## Current evidence state
 
+- Synthetic reference-control evidence, configured-agent session evidence, deterministic bundle verification, exact-pin runtime compatibility, model benchmark observations, and the legacy model benchmark snapshot are distinct evidence lanes.
 - The Inbox planner records operator intent and required scenarios only. Its artifact keeps `permissionDecision` null and grants no authorization.
 - The accepted OpenClaw and Hermes bridges run as operator-owned parents of the fixed stdio protocol. They expose exactly eight mock-Inbox tools, produce private observed-session evidence, and never connect Clawbotomy to a real mailbox.
 - `/evaluate` requires one launcher-issued attempt receipt bound to each displayed bundle and renders only closed-contract fields: checked-in case identifiers, allowed tool names and counts, state-change counts, checked-in failed-assertion IDs, process exit, and full digests. It does not render prompts, message bodies, tool arguments, arbitrary identifiers or diagnostics, raw events, transcripts, or local paths.
+- The browser is an inspector after terminal validation. It does not validate bundle integrity or perform deterministic replay.
 - `npm run inbox -- run --plan <plan.json> --agent bounded` executes every required case against a bundled reference agent in a synthetic in-memory Inbox. It writes private, replayable tool and state evidence and makes no network request.
 - `npm run inbox -- run --plan <plan.json> --adapter declarative-policy/v1 --adapter-config <config.json>` interprets the closed-schema policy document through a checked-in allowlisted adapter. The adapter flags require each other and are mutually exclusive with `--agent`.
 - Reference evidence applies only to `bounded/v1` or the deliberately failing `overreach/v1` control. Adapter evidence applies only to the canonical policy document embedded in its private bundle. Neither path inspects or executes the plan's configuration reference, and every result remains non-authorizing with `permissionDecision` null.
@@ -43,9 +45,9 @@ Clawbotomy is an open-source behavior checkup for configured OpenClaw and Hermes
 - Protocol validation replays recorded client frames through a fresh mock Inbox without reconnecting to or re-executing the client. Evidence applies only to that exact observed session and remains non-authorizing.
 - The protocol contract is published as frame, public-case-envelope, manifest, case-record, and summary schemas under `/evidence/schema/`. The opening acknowledgement publishes fixed message, case, session, and output deadlines; the terminal receipt exposes only a repository-relative bundle locator.
 - Clawbotomy's protocol host makes no network requests, real Inbox connections, or production-access changes; external-client network and production-access activity are not observed, so there is no global offline or production-inert claim.
-- `public/evidence/index.json` lists the current complete, validated public benchmark exports. Each entry preserves its source scope, is maintainer-self-reported, and remains non-authorizing.
-- The March 2026 `/bench` data is a maintainer-reported legacy summary without raw case artifacts for independent reproduction.
-- The legacy summary is not an entry in the public-evidence registry.
+- `public/evidence/index.json` lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. Each entry preserves its source scope and remains non-authorizing.
+- The March 2026 `/bench` data is a maintainer-reported legacy snapshot without raw case artifacts for independent reproduction.
+- The legacy snapshot is not an entry in the public-evidence registry.
 - No run auto-publishes. Live execution writes a private local bundle only.
 
 ## Operator lifecycle
@@ -69,4 +71,4 @@ Clawbotomy is an open-source behavior checkup for configured OpenClaw and Hermes
 - Model-judged scores can be distorted by prompt injection or reward gaming in the target response.
 - The Inbox runner uses simulated tools. Its allowlisted adapter interprets only a closed declarative policy document; it does not inspect or execute a configured agent's prompt, permissions, tools, memory, authentication, retrieval, runtime, module, provider, or mailbox connection.
 - The stdio protocol records one self-asserted client's accepted frames and synthetic effects. It does not authenticate a deployment, inspect its internals, observe its network activity, or re-execute it during replay.
-- Every benchmark result and routing export is non-authorizing. No benchmark authorizes tool access, write access, deployment, or autonomous operation.
+- Every benchmark artifact is non-authorizing. No benchmark authorizes tool access, write access, deployment, or autonomous operation.

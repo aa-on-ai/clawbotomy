@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { evidenceLanes } from '@/lib/claim-registry';
+
 import styles from '../editorial.module.css';
 
 export const metadata: Metadata = {
@@ -126,7 +128,7 @@ const currentSurfaces = [
   {
     name: '/evaluate',
     status: 'Configured-agent workspace',
-    description: 'Connects the accepted OpenClaw or Hermes bridge, explains pass/findings/infrastructure status, and derives a safe local-only view from private files selected by the operator.',
+    description: 'Connects the accepted OpenClaw or Hermes bridge, explains pass/findings/infrastructure status, and derives an allowlisted local-only projection from private files selected by the operator.',
   },
   {
     name: '/preflight',
@@ -135,15 +137,24 @@ const currentSurfaces = [
   },
   {
     name: '/bench',
-    status: 'Public evidence + legacy summary',
-    description: 'Lists explicit public evidence exports with complete artifacts, alongside a clearly separated March 2026 legacy summary that lacks raw case records.',
+    status: 'Model artifacts + legacy snapshot',
+    description: 'Lists maintainer-reported model benchmark artifacts alongside a clearly separated March 2026 legacy snapshot that lacks raw case records.',
   },
   {
     name: '/evidence/index.json',
     status: 'Public evidence registry',
-    description: 'Indexes explicit exports of complete validated bundles. Every entry preserves its scope and remains non-authorizing.',
+    description: 'Indexes explicit maintainer-reported benchmark exports accepted by the checked-in artifact validator. Every entry preserves its scope and remains non-authorizing.',
   },
 ];
+
+const evidenceLaneOrder = [
+  'synthetic-reference-control',
+  'configured-agent-session',
+  'deterministic-bundle-verification',
+  'runtime-compatibility',
+  'model-benchmark',
+  'legacy-model-benchmark',
+] as const;
 
 export default function DocsPage() {
   return (
@@ -155,9 +166,35 @@ export default function DocsPage() {
         </div>
         <p className={styles.lede}>
           Plan intended Inbox powers in the browser, then run OpenClaw, Hermes, or a fixed reference
-          control against the same synthetic Inbox. Every result remains private and non-authorizing.
+          control against the same synthetic Inbox. Configured-agent receipts remain private unless separately reviewed
+          for publication. Every result remains non-authorizing.
         </p>
       </header>
+
+      <section className="mb-16" aria-labelledby="evidence-lanes">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px flex-1 bg-[var(--border)]" />
+          <h2 id="evidence-lanes" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
+            Evidence lanes
+          </h2>
+          <div className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {evidenceLaneOrder.map((laneId) => (
+            <article key={laneId} className="glow-card rounded-xl p-5 md:p-6">
+              <h3 className="text-content-primary font-mono font-bold text-base mb-2">
+                {evidenceLanes[laneId].publicLabel}
+              </h3>
+              <p className="text-content-secondary font-mono text-sm leading-relaxed">
+                {evidenceLanes[laneId].description}
+              </p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-4 text-content-muted font-mono text-xs leading-relaxed">
+          Exact-pin runtime compatibility is separate from configured-agent behavior. Model benchmark observations and the legacy snapshot are separate from both.
+        </p>
+      </section>
 
       <section className="mb-16" aria-labelledby="configured-agent-run">
         <div className="flex items-center gap-4 mb-8">
@@ -184,7 +221,7 @@ export default function DocsPage() {
             </div>
           ))}
           <p className="text-content-muted font-mono text-xs leading-relaxed">
-            Exit 0 is passed. Exit 2 is a complete run with findings. Exit 1 remains a process anomaly; only one independently validated and replayed new bundle may retain its measured status. The browser viewer requires the launcher receipt that binds each displayed bundle, renders only closed-contract metadata, and never uploads the selected private files.
+            Exit 0 is passed. Exit 2 is a complete run with findings. Exit 1 remains a process anomaly; only one independently validated and replayed new bundle may retain its measured status. The browser viewer requires the launcher receipt that binds each displayed bundle, renders only closed-contract metadata, and never uploads the selected private files. It is an inspector after terminal validation, not the canonical verifier.
           </p>
         </div>
       </section>
@@ -295,8 +332,8 @@ export default function DocsPage() {
         <div className="glow-card rounded-xl p-5 md:p-6 space-y-3 text-content-secondary font-mono text-sm leading-relaxed">
           <p>Scores summarize performance on the included prompts, scorer, models, and run settings. They do not prove general safety or reliability.</p>
           <p>Provisional values are placeholders for policy exploration. Do not present them as benchmark results.</p>
-          <p>A critical dimension at or below the routing floor blocks autonomous use even when an average score is high.</p>
-          <p>A valid bundle digest proves recorded-file integrity, not methodological correctness or general model safety.</p>
+          <p>Do not convert an aggregate score into an access or routing decision.</p>
+          <p>A valid bundle digest shows that recorded files match the validator&apos;s expected bytes. It does not establish methodological correctness or general model safety.</p>
           <p>No benchmark result authorizes tool access, write access, deployment, or autonomous operation.</p>
         </div>
       </section>
@@ -315,7 +352,7 @@ export default function DocsPage() {
             <a className="text-content-primary underline underline-offset-4" href="/evidence/index.json">
               public/evidence/index.json
             </a>{' '}
-            lists the current complete, validated public benchmark exports. Each export remains maintainer-self-reported and non-authorizing. The separate March 2026 summary remains legacy evidence without raw case artifacts. No run auto-publishes: export writes local repository files only, which still require review and a separate commit, push, or deploy decision. Inspect the complete runner on{' '}
+            lists the current maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. Each export remains non-authorizing. The separate March 2026 snapshot remains legacy evidence without raw case artifacts. No run auto-publishes: export writes local repository files only, which still require review and a separate commit, push, or deploy decision. Inspect the complete runner on{' '}
             <a className="text-content-primary underline underline-offset-4" href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
               GitHub
             </a>

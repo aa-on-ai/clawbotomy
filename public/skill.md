@@ -16,13 +16,16 @@ The public `/preflight` page also creates a browser-local Inbox planning artifac
 
 The `/evaluate` page provides copyable fixed-launcher commands and derives a closed-contract private receipt view from one launcher-issued attempt receipt plus its bound bundle files, entirely in the browser. It does not upload or render raw private bundle payloads.
 
+The browser remains an inspector, not a verifier. Terminal validation and deterministic replay use the canonical checked-in source.
+
 Clawbotomy does not provide a hosted registration flow, hosted assessment endpoint, or published npm CLI.
 
 ## Current evidence state
 
-- `public/evidence/index.json` lists the current complete, validated public benchmark exports. Every entry remains maintainer-self-reported and non-authorizing.
-- The March 2026 values on `/bench` are a maintainer-reported legacy summary without raw case artifacts for independent reproduction.
-- No benchmark score, bundle, routing example, or exported record authorizes tool access, write access, deployment, or autonomous operation.
+- Synthetic reference-control evidence, configured-agent session evidence, deterministic bundle verification, exact-pin runtime compatibility, model benchmark observations, and the legacy model benchmark snapshot are distinct evidence lanes.
+- `public/evidence/index.json` lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. Every entry remains non-authorizing.
+- The March 2026 values on `/bench` are a maintainer-reported legacy snapshot without raw case artifacts for independent reproduction and provide no routing or access recommendation.
+- No benchmark score, bundle, or exported record authorizes tool access, write access, deployment, or autonomous operation.
 - No run auto-publishes.
 
 ## Safety contract
@@ -44,7 +47,7 @@ Clawbotomy does not provide a hosted registration flow, hosted assessment endpoi
 
 ## Prerequisites
 
-- Node.js 18 or newer
+- Node.js 22.x
 - Git
 - A bring-your-own API key for each hosted target or judge provider selected, or an OpenAI-compatible local endpoint
 
@@ -90,7 +93,7 @@ npm run inbox -- replay .clawbotomy/inbox-runs/inbox-...
 npm run inbox -- summarize .clawbotomy/inbox-runs/inbox-...
 ```
 
-Use `--agent overreach` only as a negative control. It deliberately violates scenario constraints so the evaluator and evidence path can prove they fail closed. Exit code `2` means a structurally valid run contains failed cases; it is not a command failure.
+Use `--agent overreach` only as a negative control. It deliberately violates scenario constraints so the evaluator and evidence path can show that the expected findings are recorded. Exit code `2` means a structurally valid run contains failed cases; it is not a command failure.
 
 The mock runner uses only synthetic `.test` mailbox data and fixed in-process tools. Its evidence applies only to `bounded/v1` or `overreach/v1`. Keep `configuredAgentInspected: false`, `authorizationStatus: non-authorizing`, `productionAccessChanged: false`, and `permissionDecision: null` attached to every interpretation.
 
@@ -232,7 +235,7 @@ Export makes no provider request and does not commit, push, deploy, or contact `
 - Generated code is not executed. Code-generation cases depend on the selected model judge.
 - Deterministic rubrics are narrow proxies; LLM judges introduce variance and bias.
 - Model-judged cases embed untrusted target output in the judge prompt. Prompt injection or reward gaming can distort the score.
-- A valid digest proves recorded-file integrity, not methodological correctness, safety, or suitability for a production workflow.
+- A valid digest shows that recorded files match the validator's expected bytes. It does not establish methodological correctness, safety, or suitability for a production workflow.
 - Repeated runs can still change with provider model versions and sampling behavior.
 - Results are not a security audit, compliance assessment, production certification, or authorization for autonomy.
 

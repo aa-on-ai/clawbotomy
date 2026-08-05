@@ -39,7 +39,7 @@ export default function AboutPage() {
           <h1 className={styles.title}>Check the agent you actually operate.</h1>
         </div>
         <p className={styles.lede}>
-          Clawbotomy runs a configured OpenClaw or Hermes agent against a fixed synthetic Inbox, then keeps the evidence local for review.
+          Clawbotomy records one configured OpenClaw or Hermes session against a fixed synthetic Inbox, then keeps the private evidence local for review.
         </p>
       </header>
 
@@ -50,7 +50,7 @@ export default function AboutPage() {
             Clawbotomy started as model stress tests. That work could describe how a model answered a prompt, but it could not show what a configured runtime did once tools, state, and a full agent loop were involved.
           </p>
           <p>
-            The current checkup follows the runtime instead. It records one bounded session and keeps the result tied to that exact plan, adapter, and evidence bundle.
+            The current checkup follows one configured session instead. It keeps the result tied to that exact plan, self-asserted client identity, bridge, and evidence bundle.
           </p>
         </div>
       </section>

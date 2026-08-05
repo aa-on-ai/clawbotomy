@@ -9,6 +9,12 @@ const evaluationModule = import(
 
 const runId = 'inbox-host-0123456789abcdefabcd';
 const digest = 'a'.repeat(64);
+const openclawRuntimeDigest = 'b'.repeat(64);
+const openclawProviderDigest = 'c'.repeat(64);
+const implementationDigest = 'd'.repeat(64);
+const configurationDigest = 'e'.repeat(64);
+const hermesCommit = '1'.repeat(40);
+const hermesTreeDigest = 'f'.repeat(64);
 
 function makeCase({ status = 'passed', ordinal = 1 } = {}) {
   return {
@@ -285,6 +291,7 @@ const attemptReceiptKeys = [
   'status',
   'completeBundleWritten',
   'bundle',
+  'runtimeProvenance',
   'diagnosticCodes',
 ];
 
@@ -306,12 +313,60 @@ function terminalReceipt({ failed = 0 } = {}) {
   };
 }
 
+function openClawBridgeReceipt({
+  failed = 0,
+  clientConfigurationSha256 = configurationDigest,
+  model = 'ollama/qwen3:1.7b',
+  providerPluginId = 'ollama',
+  codexRuntimeSha256 = null,
+} = {}) {
+  const plugins = [{ pluginId: providerPluginId, runtimeSha256: openclawProviderDigest }];
+  if (codexRuntimeSha256) plugins.push({ pluginId: 'codex', runtimeSha256: codexRuntimeSha256 });
+  return {
+    schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
+    hostExitCode: failed ? 2 : 0,
+    client: {
+      id: 'openclaw.clawbotomy-bridge',
+      version: '2026.7.1-beta.5',
+      implementationSha256: implementationDigest,
+      configurationSha256: clientConfigurationSha256,
+    },
+    model,
+    runtime: {
+      openclaw: {
+        version: '2026.7.1-beta.5',
+        runtimeSha256: openclawRuntimeDigest,
+      },
+      plugins,
+    },
+    run: terminalReceipt({ failed }),
+  };
+}
+
+function hermesBridgeReceipt({ failed = 1 } = {}) {
+  return {
+    runtime: {
+      version: '0.18.2',
+      gitCommit: hermesCommit,
+      sourceTreeSha256: hermesTreeDigest,
+    },
+    provider: 'openai-codex',
+    model: 'gpt-5.6-sol',
+    implementationSha256: implementationDigest,
+    configurationSha256: configurationDigest,
+    receipt: terminalReceipt({ failed }),
+    exitCode: failed ? 2 : 0,
+  };
+}
+
 function replayValidatedBundle({
   failed = 0,
   bundleRunId = runId,
   clientId = 'openclaw.clawbotomy-bridge',
+  clientConfigurationSha256 = configurationDigest,
 } = {}) {
   const cases = 2;
+  const version = clientId === 'hermes-agent.clawbotomy-bridge' ? '0.18.2' : '2026.7.1-beta.5';
   return {
     outputDir: `/trusted/clawbotomy/.clawbotomy/inbox-runs/${bundleRunId}`,
     manifest: {
@@ -319,7 +374,12 @@ function replayValidatedBundle({
       runId: bundleRunId,
       lifecycle: { status: 'complete' },
       plan: { sha256: digest },
-      executionSubject: { id: clientId },
+      executionSubject: {
+        id: clientId,
+        version,
+        implementationSha256: implementationDigest,
+        configurationSha256: clientConfigurationSha256,
+      },
       protocol: { id: 'stdio-jsonl/v1' },
       coreDigest: digest,
     },
@@ -385,6 +445,20 @@ function openClawArgs(extra = []) {
   ];
 }
 
+function openAiOpenClawArgs() {
+  return [
+    '--adapter', 'openclaw',
+    '--plan', './plan.json',
+    '--model', 'openai/gpt-5.6-sol',
+    '--openclaw-bin', '/trusted/openclaw/openclaw.mjs',
+    '--auth-source-agent-dir', '/trusted/openclaw/auth-source',
+    '--plugin-registry-source-state-dir', '/trusted/openclaw/state',
+    '--expected-openclaw-runtime-sha256', openclawRuntimeDigest,
+    '--expected-provider-runtime-sha256', openclawProviderDigest,
+    '--expected-codex-runtime-sha256', implementationDigest,
+  ];
+}
+
 test('agent launcher rejects non-allowlisted adapters and arbitrary launch surfaces', () => {
   assert.throws(
     () => parseEvaluationArgs(['--adapter', 'custom', '--plan', './plan.json']),
@@ -407,10 +481,8 @@ test('agent launcher uses the fixed OpenClaw bridge and writes a closed mode-060
   const calls = [];
   let operatorStdout = '';
   const bridgeStdout = JSON.stringify({
-    schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
-    hostExitCode: 0,
-    run: terminalReceipt(),
-    runtime: { rawCredential: 'must-not-be-copied' },
+    ...openClawBridgeReceipt(),
+    rawCredential: 'must-not-be-copied',
     cases: [{ rawBridgeReceipt: 'must-not-be-copied' }],
   });
   const dependencies = launcherDependencies(t, (command, args, options) => {
@@ -431,6 +503,12 @@ test('agent launcher uses the fixed OpenClaw bridge and writes a closed mode-060
     runId,
     coreDigest: digest,
   });
+  assert.deepEqual(result.receipt.runtimeProvenance, {
+    runtimeVersion: '2026.7.1-beta.5',
+    runtimeSha256: openclawRuntimeDigest,
+    providerRuntimeSha256: openclawProviderDigest,
+    codexRuntimeSha256: null,
+  });
   assert.deepEqual(result.receipt.diagnosticCodes, []);
   assert.equal(operatorStdout, bridgeStdout);
   assert.equal(calls[0].command, '/trusted/node');
@@ -445,12 +523,7 @@ test('agent launcher uses the fixed OpenClaw bridge and writes a closed mode-060
 
 test('agent launcher derives the Hermes interpreter and preserves findings exit code', async (t) => {
   const calls = [];
-  const bridgeStdout = JSON.stringify({
-    provider: 'openai-codex',
-    model: 'gpt-5.6-sol',
-    receipt: terminalReceipt({ failed: 1 }),
-    exitCode: 2,
-  });
+  const bridgeStdout = JSON.stringify(hermesBridgeReceipt());
   const dependencies = launcherDependencies(t, (command, args, options) => {
     calls.push({ command, args, options });
     return fakeBridge({ stdout: bridgeStdout, code: 2 });
@@ -472,6 +545,11 @@ test('agent launcher derives the Hermes interpreter and preserves findings exit 
   assert.equal(result.receipt.status, 'findings');
   assert.equal(result.receipt.modelLabel, 'openai-codex/gpt-5.6-sol');
   assert.equal(result.receipt.completeBundleWritten, true);
+  assert.deepEqual(result.receipt.runtimeProvenance, {
+    runtimeVersion: '0.18.2',
+    gitCommit: hermesCommit,
+    sourceTreeSha256: hermesTreeDigest,
+  });
   assert.equal(calls[0].command, '/trusted/hermes/venv/bin/python');
   assert.deepEqual(calls[0].args.slice(0, 5), [
     '/trusted/clawbotomy/integrations/hermes-agent/bridge.py',
@@ -479,6 +557,25 @@ test('agent launcher derives the Hermes interpreter and preserves findings exit 
     '--plan', '/trusted/clawbotomy/plan.json',
   ]);
   assert.equal(calls[0].options.shell, false);
+});
+
+test('OpenAI OpenClaw attempts preserve runtime, provider, and Codex pins', async (t) => {
+  const bridgeStdout = JSON.stringify(openClawBridgeReceipt({
+    model: 'openai/gpt-5.6-sol',
+    providerPluginId: 'openai',
+    codexRuntimeSha256: implementationDigest,
+  }));
+  const dependencies = launcherDependencies(t, () => fakeBridge({ stdout: bridgeStdout }));
+
+  const result = await runAgentEvaluation(openAiOpenClawArgs(), dependencies);
+
+  assert.equal(result.receipt.status, 'passed');
+  assert.deepEqual(result.receipt.runtimeProvenance, {
+    runtimeVersion: '2026.7.1-beta.5',
+    runtimeSha256: openclawRuntimeDigest,
+    providerRuntimeSha256: openclawProviderDigest,
+    codexRuntimeSha256: implementationDigest,
+  });
 });
 
 test('agent launcher streams bridge diagnostics but persists only closed failure codes', async (t) => {
@@ -585,11 +682,7 @@ test('agent launcher fails closed when more than one new validated bundle matche
 });
 
 test('agent launcher fails closed when exit zero disagrees with a findings bundle', async (t) => {
-  const bridgeStdout = JSON.stringify({
-    schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
-    hostExitCode: 0,
-    run: terminalReceipt(),
-  });
+  const bridgeStdout = JSON.stringify(openClawBridgeReceipt());
   const dependencies = launcherDependencies(t, () => fakeBridge({ stdout: bridgeStdout }), {
     validateBundle: async () => replayValidatedBundle({ failed: 1 }),
   });
@@ -604,11 +697,7 @@ test('agent launcher fails closed when exit zero disagrees with a findings bundl
 });
 
 test('agent launcher fails closed when exit two disagrees with a passing bundle', async (t) => {
-  const bridgeStdout = JSON.stringify({
-    schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
-    hostExitCode: 2,
-    run: terminalReceipt({ failed: 1 }),
-  });
+  const bridgeStdout = JSON.stringify(openClawBridgeReceipt({ failed: 1 }));
   const dependencies = launcherDependencies(t, () => fakeBridge({ stdout: bridgeStdout, code: 2 }));
 
   const result = await runAgentEvaluation(openClawArgs(), dependencies);
@@ -623,11 +712,7 @@ test('agent launcher fails closed when exit two disagrees with a passing bundle'
 test('agent launcher fails closed when stdout names a different validated bundle', async (t) => {
   const secondRunId = 'inbox-host-bbbbbbbbbbbbbbbbbbbb';
   const snapshots = [[], [secondRunId]];
-  const bridgeStdout = JSON.stringify({
-    schemaId: 'clawbotomy.openclaw-bridge-receipt/v2',
-    hostExitCode: 0,
-    run: terminalReceipt(),
-  });
+  const bridgeStdout = JSON.stringify(openClawBridgeReceipt());
   const dependencies = launcherDependencies(t, () => fakeBridge({ stdout: bridgeStdout }), {
     listRunIds: async () => snapshots.shift(),
     validateBundle: async () => replayValidatedBundle({ bundleRunId: secondRunId }),
@@ -638,4 +723,18 @@ test('agent launcher fails closed when stdout names a different validated bundle
   assert.equal(result.receipt.status, 'infrastructure_failure');
   assert.equal(result.receipt.bundle, null);
   assert.deepEqual(result.receipt.diagnosticCodes, ['bridge_bundle_mismatch']);
+});
+
+test('agent launcher fails closed when bridge provenance differs from the validated bundle subject', async (t) => {
+  const bridgeStdout = JSON.stringify(openClawBridgeReceipt({
+    clientConfigurationSha256: '9'.repeat(64),
+  }));
+  const dependencies = launcherDependencies(t, () => fakeBridge({ stdout: bridgeStdout }));
+
+  const result = await runAgentEvaluation(openClawArgs(), dependencies);
+
+  assert.equal(result.receipt.status, 'infrastructure_failure');
+  assert.equal(result.receipt.bundle, null);
+  assert.equal(result.receipt.runtimeProvenance, null);
+  assert.deepEqual(result.receipt.diagnosticCodes, ['bridge_runtime_provenance_mismatch']);
 });

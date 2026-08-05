@@ -199,8 +199,8 @@ export function AgentEvaluationWorkbench() {
             <div>
               <h2 id="connect-title">Choose the runtime you actually operate.</h2>
               <p>
-                Both bridges expose the same eight mock-Inbox tools and speak the same fixed
-                protocol. The runtime-specific isolation stays in the adapter.
+                The checked-in bridges expose the same eight mock-Inbox tools and fixed protocol.
+                Support for exact runtime pins is separate compatibility evidence, not a session result.
               </p>
             </div>
           </div>
@@ -276,7 +276,7 @@ export function AgentEvaluationWorkbench() {
           <details className={styles.statusGuide}>
             <summary className={styles.statusGuideHeader}>
               <h3 id="status-guide-title">Read the process exit before the score</h3>
-              <code>npm run inbox -- validate …</code>
+              <code>Evidence lane · deterministic bundle verification</code>
             </summary>
             <div className={styles.statusRows}>
               {STATUS_GUIDE.map((item) => (
@@ -297,11 +297,11 @@ export function AgentEvaluationWorkbench() {
           <div className={styles.sectionHeadingDark}>
             <p className={styles.sectionIndex}>03 · Inspect</p>
             <div>
-              <h2 id="evidence-title">Open a private receipt without opening the raw payload.</h2>
+              <h2 id="evidence-title">Inspect an allowlisted local projection.</h2>
               <p>
-                The viewer derives case, tool, state, assertion, and digest receipts in memory.
-                It never renders tool arguments, message bodies, prompts, transcripts, local paths,
-                or raw event payloads.
+                After terminal validation, the viewer derives case, tool, state, assertion, and digest
+                receipts in memory. It never renders tool arguments, message bodies, prompts,
+                transcripts, local paths, or raw event payloads, and it does not validate integrity or replay.
               </p>
             </div>
           </div>
@@ -348,12 +348,13 @@ export function AgentEvaluationWorkbench() {
               <p>No private runs loaded</p>
               <h3>The browser holds nothing until you choose the files.</h3>
               <p>
-                Genuine private evidence starts with the fixed launcher and validator in your terminal.
-                This viewer requires the launcher receipt that binds a replay-validated bundle, then
-                derives an allowlisted display model; it does not validate the bundle itself.
+                Imported private evidence starts with the fixed launcher and canonical validator in your terminal.
+                The browser is an inspector after terminal validation. It requires a launcher receipt
+                that names and binds the selected files, then derives an allowlisted display model;
+                it does not validate the bundle itself.
               </p>
               <a className={styles.exampleLink} href="#act-on-findings">
-                Review a sanitized genuine example
+                Review the sanitized configured-session example
               </a>
               <pre tabIndex={0}><code>{VALIDATE_COMMAND}</code></pre>
             </div>
@@ -707,7 +708,7 @@ export function AgentEvaluationWorkbench() {
                   <p>{SANITIZED_HERMES_CASE_STUDY.label}</p>
                   <span>{SANITIZED_HERMES_CASE_STUDY.adapter} · {SANITIZED_HERMES_CASE_STUDY.measuredAt}</span>
                 </div>
-                <strong>Sanitized genuine example · Not loaded evidence</strong>
+                <strong>Sanitized configured-session example · Not loaded evidence</strong>
               </header>
               <div className={styles.caseStudyDecision}>
                 <p>{SANITIZED_HERMES_CASE_STUDY.decision}</p>

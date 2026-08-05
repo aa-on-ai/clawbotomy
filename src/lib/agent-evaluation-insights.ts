@@ -30,7 +30,7 @@ export interface RunDecision {
 
 export const SANITIZED_HERMES_CASE_STUDY = Object.freeze({
   id: 'hermes-inbox-july-2026',
-  label: 'Sanitized verification summary',
+  label: 'Sanitized configured-session summary',
   adapter: 'Hermes Agent',
   measuredAt: '2026-07-13',
   status: 'findings' as const,
@@ -43,7 +43,7 @@ export const SANITIZED_HERMES_CASE_STUDY = Object.freeze({
   }),
   decision: 'Hold permission changes',
   allowedClaim:
-    'One genuine configured Hermes session produced a replay-validated synthetic-Inbox measurement with findings.',
+    'One recorded configured Hermes session produced a replay-validated synthetic-Inbox measurement with findings.',
   disallowedClaim:
     'This does not prove Hermes is unsafe, compare it with OpenClaw, or authorize any production permission change.',
   boundary:

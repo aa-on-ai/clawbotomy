@@ -28,6 +28,7 @@ A checkup describes one observed session in a synthetic fixture. It is not a saf
 - [`/evaluate`](https://www.clawbotomy.com/evaluate) provides the fixed OpenClaw and Hermes launch paths, distinguishes pass, findings, and infrastructure failure, and reads selected private evidence files in the browser without uploading them.
 - `integrations/openclaw/` and `integrations/hermes-agent/` run the selected runtime as the parent of Clawbotomy's fixed `stdio-jsonl/v1` synthetic-Inbox protocol.
 - `npm run agent:evaluate` writes a private launcher receipt and accepts only the two checked-in bridges. There is no arbitrary command, module, URL, provider, or mailbox connector option.
+- `npm run agent:repeat` freezes a costed 3–5 session experiment and derives finding-frequency and behavioral-variation receipts only when every replay-validated bundle also matches the frozen OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest. It produces no trust score and makes no repeatability claim.
 
 ### Controls and protocol
 
@@ -37,13 +38,25 @@ A checkup describes one observed session in a synthetic fixture. It is not a saf
 
 ### Evidence
 
-- [`public/evidence/index.json`](public/evidence/index.json) lists the current complete, validated public benchmark exports. These exports are maintainer-self-reported and non-authorizing.
+- [`public/evidence/index.json`](public/evidence/index.json) lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. These exports remain non-authorizing.
 - Configured-agent receipts remain private unless an operator separately reviews and publishes a sanitized artifact.
-- [`/bench`](https://www.clawbotomy.com/bench) separates public evidence bundles from the maintainer-reported March 2026 legacy summary, which has no raw case artifacts.
+- [`/bench`](https://www.clawbotomy.com/bench) separates model benchmark artifacts from the maintainer-reported March 2026 legacy snapshot, which has no raw case artifacts.
+- The v0.1 portability default is a pinned source archive that runs the canonical Node.js verifier offline. The browser remains an inspector, not a verifier. See [ADR 0002](docs/adr/0002-portable-verifier-contract.md) and the [parity acceptance gate](docs/portability-parity-acceptance.md).
+
+### Evidence lanes
+
+- **Synthetic reference-control evidence** describes a checked-in positive or negative fixture control, or one embedded declarative policy. It is not configured-agent evidence.
+- **Configured-agent session evidence** records one observed session or one explicitly sampled repeated-session cohort in the synthetic Inbox fixture.
+- **Deterministic bundle verification** checks internal file integrity and replays recorded fixture effects under the checked-in verifier.
+- **Exact-pin runtime compatibility** checks only the OpenClaw and Hermes identities listed in `compatibility/current-pins.json`, without provider requests.
+- **Model benchmark observations** describe task-specific endpoint artifacts. They do not provide routing, access, or configured-agent guidance.
+- **Legacy model benchmark snapshot** preserves the March 2026 maintainer-reported summary without raw case artifacts. It provides no routing or access guidance.
+
+Compatibility is a separate exact-pin lane. It does not authenticate a deployed agent or establish behavior, reliability, safety, certification, or production readiness.
 
 ## First five minutes
 
-Requirements: Node.js 18 or newer and Git.
+Requirements: Node.js 22.x and Git.
 
 ```bash
 git clone https://github.com/aa-on-ai/clawbotomy.git
@@ -64,11 +77,11 @@ The complete commands, trust boundary, validation steps, and benchmark workflow 
 
 ## Evidence boundary
 
-Clawbotomy can establish that:
+Clawbotomy can record that:
 
-- one selected runtime produced one recorded synthetic session
+- one accepted configured-session protocol exchange used the recorded self-asserted client identity
 - Clawbotomy's host never connected to a real mailbox
-- the displayed private bundle was bound to the launcher receipt and replay-validated
+- the displayed private bundle was bound to the launcher receipt and matched deterministic host replay
 - the browser viewer derived its display from operator-selected local files
 - `permissionDecision` remained `null`
 
@@ -80,7 +93,7 @@ Clawbotomy does not establish that:
 - a real provider mailbox or permission layer will behave like the fixture
 - the agent is safe, certified, or ready for more authority
 
-See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md) for the exact local trust model.
+See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md) for the exact local trust model and [`docs/adr/0002-portable-verifier-contract.md`](docs/adr/0002-portable-verifier-contract.md) for the portable-verification boundary.
 
 ## Repository map
 
@@ -99,12 +112,13 @@ npm install
 npm run dev
 ```
 
-Run the verification suite with:
+Run the complete Node.js verification path with:
 
 ```bash
-npm test
-npm run build
+npm run verify:node
 ```
+
+CI keeps core tests, the OpenClaw bridge suite, lint, and the production build as separate checks. It also runs the Hermes bridge unit suite and a pinned-runtime registration smoke that verifies source provenance, isolated imports, and the exact eight-tool surface without making a provider request.
 
 The website uses Next.js 15, React 18, and Tailwind CSS. The runner and evidence tooling use local Node.js commands.
 

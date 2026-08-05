@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const runPagePath = path.join(root, 'src/app/bench/runs/[runId]/page.tsx');
 const runStylesPath = path.join(root, 'src/app/bench/runs/[runId]/run.module.css');
 
-test('the human evidence route is static, validated, non-authorizing, and links raw artifacts', () => {
+test('the human evidence route is static, internally checked, non-authorizing, and links raw artifacts', () => {
   const source = fs.readFileSync(runPagePath, 'utf8');
 
   assert.match(source, /export const dynamicParams = false/);
@@ -16,8 +16,8 @@ test('the human evidence route is static, validated, non-authorizing, and links 
   assert.match(source, /const \{ runId \} = await params/);
   assert.match(source, /loadPublicEvidenceRun\(runId\)/);
   assert.match(source, /notFound\(\)/);
-  assert.match(source, /Useful proof\. Not comparison-grade\./);
-  assert.match(source, /does not rank models, authorize tools, or support a routing decision/);
+  assert.match(source, /Recorded smoke run\. Not comparison-grade\./);
+  assert.match(source, /does not prove repeatability/);
   assert.match(source, /Prompts and model responses are untrusted evidence/);
   assert.match(source, /Open raw case API/);
   assert.match(source, /manifest\.json/);
@@ -44,7 +44,7 @@ test('registry exposes human run pages while the homepage keeps configured-agent
   assert.match(bench, /href=\{`\/bench\/runs\/\$\{run\.runId\}`\}/);
   assert.doesNotMatch(bench, /href=\{`\/api\/bench\/runs\/\$\{run\.runId\}`\}>Inspect run/);
   assert.match(home, /href="\/bench"/);
-  assert.match(home, /Configured-agent receipts remain private/);
-  assert.match(home, /Permission decision/);
+  assert.match(home, /private bundle is not published/);
+  assert.match(home, /Human decision required/);
   assert.doesNotMatch(home, /registry is currently empty/);
 });

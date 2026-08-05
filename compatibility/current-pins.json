@@ -1,0 +1,59 @@
+{
+  "schemaId": "clawbotomy.compatibility-support-policy/v1",
+  "schemaVersion": "1.0.0",
+  "policyVersion": "2026-08-04",
+  "sourceIdentity": {
+    "kind": "clean-git-commit-containing-policy",
+    "requireCleanWorktree": true,
+    "nodeVersion": "22"
+  },
+  "protocol": {
+    "id": "stdio-jsonl/v1",
+    "version": "1.0.0",
+    "messageSchemaId": "clawbotomy.inbox-protocol-frame/v1",
+    "toolNames": [
+      "searchMessages",
+      "readMessage",
+      "createDraft",
+      "sendDraft",
+      "archiveMessages",
+      "trashMessages",
+      "permanentlyDeleteMessages",
+      "restoreMessages"
+    ]
+  },
+  "runtimes": {
+    "openclaw": {
+      "supportState": "supported",
+      "clientId": "openclaw.clawbotomy-bridge",
+      "version": "2026.7.1-beta.5",
+      "selectionModel": "openai/gpt-5.6-sol",
+      "binarySha256": "0294426a05530002b9fc5a7ce5aa96d001da24ce587b278606129b31798f241a",
+      "runtimeSha256": "7b8adcd0e76704ca6325c876fba44a01db722d298592091ef4f22d6e50d53e0c",
+      "packageJsonSha256": "7313bf4c5a4fef3a6384d26abe525fab0266936930e53412adb4c84c69763150",
+      "provider": {
+        "pluginId": "openai",
+        "packageName": "@openclaw/openai-provider",
+        "version": "2026.7.1-beta.5",
+        "origin": "bundled",
+        "runtimeSha256": "683f3a6f03b5eda799a2da11f6f1d6a26eea00b25b649416676272d6919b72aa"
+      },
+      "harness": {
+        "pluginId": "codex",
+        "packageName": "@openclaw/codex",
+        "version": "2026.7.1-beta.5",
+        "origin": "global",
+        "runtimeSha256": "7e95d386a57b1eb026174092310840ae623580018f889f64d69155586b6b5c87"
+      }
+    },
+    "hermes": {
+      "supportState": "supported",
+      "clientId": "hermes-agent.clawbotomy-bridge",
+      "version": "0.18.2",
+      "pythonVersion": "3.11",
+      "selectionModel": "openai-codex/gpt-5.6-sol",
+      "gitCommit": "111544d544d6cf6efed9875e116f2daeb76a1211",
+      "sourceTreeSha256": "8220d0a5fa52da5b3e110339cfa4107013ad28428de67538365a63be5dbd4ea0"
+    }
+  }
+}

@@ -126,13 +126,15 @@ The export command creates local files only. It never commits, pushes, deploys, 
 - ESLint configured — `npm run lint`
 - TypeScript strict mode
 - Tailwind for styling
-- Tests — `npm test`
+- Core tests — `npm test`
+- Complete Node.js checks — `npm run verify:node`
+- Hermes checks — see [`integrations/hermes-agent/README.md`](integrations/hermes-agent/README.md)
 
 ## Pull request process
 
 1. Fork and create a branch.
 2. Make a focused change.
-3. Run `npm test`, `npm run lint`, and `npm run build` as appropriate.
+3. Run `npm run verify:node`. If you changed the Hermes bridge, also run its unit suite and pinned-runtime registration smoke from the integration README.
 4. If you changed `bench/`, run the dry-run command above and include the exact command in the PR description.
 5. If the PR intentionally adds public evidence, include the preflight digest, private validation receipt, public bundle digest, evidence limitations, and redaction-review notes. Never include provider keys or the private bundle.
 6. Open a PR with a clear description and wait for review.
