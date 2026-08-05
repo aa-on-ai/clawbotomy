@@ -51,6 +51,7 @@ function preflight() {
     hermes: {
       runtimeVersion: '0.18.2',
       gitCommit: '1'.repeat(40),
+      sourceTreeSha256: DIGEST_C,
     },
     incrementalCashCostUpperBoundUsd: 0,
     createdAt: '2026-08-04T23:30:00.000Z',
@@ -61,6 +62,18 @@ function attempt(adapter, index, { status = 'passed', bundle = true } = {}) {
   const uuid = `${String(index).padStart(8, '0')}-0000-4000-8000-${String(index).padStart(12, '0')}`;
   const runId = `inbox-host-${String(index).padStart(20, '0')}`;
   const expected = ADAPTERS[adapter];
+  const runtimeProvenance = adapter === 'openclaw'
+    ? {
+      runtimeVersion: '2026.7.1-beta.5',
+      runtimeSha256: DIGEST_A,
+      providerRuntimeSha256: DIGEST_B,
+      codexRuntimeSha256: DIGEST_C,
+    }
+    : {
+      runtimeVersion: '0.18.2',
+      gitCommit: '1'.repeat(40),
+      sourceTreeSha256: DIGEST_C,
+    };
   return {
     schemaId: 'clawbotomy.agent-evaluation-attempt/v1',
     schemaVersion: '1.0.0',
@@ -79,6 +92,7 @@ function attempt(adapter, index, { status = 'passed', bundle = true } = {}) {
       runId,
       coreDigest: DIGEST_A,
     } : null,
+    runtimeProvenance: bundle ? runtimeProvenance : null,
     diagnosticCodes: bundle ? [] : ['bridge_exit_1', 'no_unique_validated_bundle'],
   };
 }
@@ -204,6 +218,38 @@ test('report refuses a runtime identity change inside one adapter cohort', () =>
   assert.throws(
     () => buildReport({ ...input, generatedAt: '2026-08-05T00:00:00.000Z' }),
     /runtime identity changed between completed sessions/,
+  );
+});
+
+test('preflight and completed attempts fail closed when runtime pins are missing', () => {
+  const incompletePreflight = structuredClone(preflight());
+  delete incompletePreflight.configurations.openclaw.runtimeSha256;
+  assert.throws(
+    () => validatePreflight(incompletePreflight),
+    /unsupported or missing fields/,
+  );
+
+  const completedAttempt = attempt('hermes', 7);
+  completedAttempt.runtimeProvenance = null;
+  assert.throws(
+    () => parseAttempt(completedAttempt),
+    /must bind verified runtime provenance/,
+  );
+});
+
+test('report rejects OpenClaw and Hermes runtime provenance that differs from preflight pins', () => {
+  const openclawMismatch = reportInputs();
+  openclawMismatch.attempts[0].document.runtimeProvenance.runtimeSha256 = DIGEST_C;
+  assert.throws(
+    () => buildReport({ ...openclawMismatch, generatedAt: '2026-08-05T00:00:00.000Z' }),
+    /runtime provenance (?:changed between completed sessions|does not match the frozen preflight pins)/,
+  );
+
+  const hermesMismatch = reportInputs();
+  hermesMismatch.attempts[3].document.runtimeProvenance.sourceTreeSha256 = DIGEST_A;
+  assert.throws(
+    () => buildReport({ ...hermesMismatch, generatedAt: '2026-08-05T00:00:00.000Z' }),
+    /runtime provenance (?:changed between completed sessions|does not match the frozen preflight pins)/,
   );
 });
 

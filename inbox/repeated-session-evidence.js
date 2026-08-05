@@ -37,6 +37,7 @@ const COMMAND_OPTIONS = Object.freeze({
     'experimentId',
     'hermesGitCommit',
     'hermesRuntimeVersion',
+    'hermesSourceTreeSha256',
     'incrementalCashCostUsd',
     'openclawCodexRuntimeSha256',
     'openclawProviderRuntimeSha256',
@@ -73,6 +74,7 @@ const ATTEMPT_KEYS = Object.freeze([
   'exitCode',
   'modelLabel',
   'planSha256',
+  'runtimeProvenance',
   'schemaId',
   'schemaVersion',
   'startedAt',
@@ -91,6 +93,7 @@ const ALLOWED_DIAGNOSTIC_CODES = new Set([
   'bundle_inspection_failed',
   'bridge_bundle_mismatch',
   'bridge_status_mismatch',
+  'bridge_runtime_provenance_mismatch',
   'replay_validated_bundle_recovered_after_exit_1',
 ]);
 
@@ -247,6 +250,7 @@ function createPreflight({
     modelLabel: ADAPTERS.hermes.modelLabel,
     runtimeVersion: requiredString(hermes?.runtimeVersion, 'Hermes runtime version', 80),
     gitCommit: requiredCommit(hermes?.gitCommit, 'Hermes Git commit'),
+    sourceTreeSha256: requiredDigest(hermes?.sourceTreeSha256, 'Hermes source tree digest'),
     maxTurnsPerCase: ADAPTERS.hermes.maxTurnsPerCase,
   };
   const adapterCalls = {
@@ -302,45 +306,118 @@ function createPreflight({
       publicExportAuthorized: false,
       permissionDecision: null,
     },
-    claimBoundary: [
-      ...claimRegistry.lanes['configured-agent-session'].defaultNonClaims,
-      'This experiment describes only the sampled sessions and pinned configurations.',
-      'Finding frequency is an observed count, not a trust score or probability estimate.',
-      'Behavioral variation does not establish repeatability, safety, certification, or production readiness.',
-      'No real mailbox or production permission boundary is exercised.',
-    ],
+    claimBoundary: expectedClaimBoundary(),
   };
+}
+
+function expectedClaimBoundary() {
+  return [
+    ...claimRegistry.lanes['configured-agent-session'].defaultNonClaims,
+    'This experiment describes only the sampled sessions and pinned configurations.',
+    'Finding frequency is an observed count, not a trust score or probability estimate.',
+    'Behavioral variation does not establish repeatability, safety, certification, or production readiness.',
+    'No real mailbox or production permission boundary is exercised.',
+  ];
 }
 
 function validatePreflight(input) {
   if (!input || input.schemaId !== PREFLIGHT_SCHEMA_ID || input.schemaVersion !== SCHEMA_VERSION) {
     throw new Error('Unsupported repeated-session preflight schema.');
   }
-  requiredString(input.experimentId, 'Experiment ID', 80);
+  exactKeys(input, [
+    'claimBoundary',
+    'configurations',
+    'cost',
+    'createdAt',
+    'design',
+    'evidence',
+    'experimentId',
+    'plan',
+    'schemaId',
+    'schemaVersion',
+    'source',
+    'status',
+  ], 'Repeated-session preflight');
+  const experimentId = requiredString(input.experimentId, 'Experiment ID', 80);
+  if (!SAFE_ID_PATTERN.test(experimentId)) throw new Error('Experiment ID is unsupported.');
   canonicalTime(input.createdAt, 'Preflight createdAt');
   if (input.status !== 'preflight_complete') throw new Error('Repeated-session preflight is incomplete.');
+  exactKeys(input.source, ['clean', 'gitCommit'], 'Preflight source');
   requiredCommit(input.source?.gitCommit, 'Preflight source commit');
   if (input.source?.clean !== true) throw new Error('Preflight source checkout was not clean.');
+  exactKeys(input.plan, ['capabilityIds', 'caseCount', 'caseIds', 'sha256'], 'Preflight plan');
   requiredDigest(input.plan?.sha256, 'Preflight plan digest');
-  integerInRange(input.design?.sessionsPerAdapter, 'Sessions per adapter', MIN_SESSIONS, MAX_SESSIONS);
-  if (!Array.isArray(input.plan?.caseIds) || input.plan.caseIds.length !== input.plan.caseCount || input.plan.caseCount < 1) {
+  if (canonicalStringify(input.plan.capabilityIds) !== canonicalStringify(['search_read'])) {
+    throw new Error('Repeated-session preflight requires the frozen search_read capability.');
+  }
+  if (!Array.isArray(input.plan?.caseIds) || input.plan.caseIds.length !== input.plan.caseCount || input.plan.caseCount !== 5) {
     throw new Error('Preflight case inventory is inconsistent.');
   }
   if (
     new Set(input.plan.caseIds).size !== input.plan.caseIds.length
-    || input.plan.caseIds.some((caseId) => typeof caseId !== 'string' || !CASE_ID_PATTERN.test(caseId))
+    || input.plan.caseIds.some((caseId) => (
+      typeof caseId !== 'string'
+      || !CASE_ID_PATTERN.test(caseId)
+      || !caseId.endsWith(':search_read')
+    ))
   ) {
     throw new Error('Preflight case inventory contains unsupported identifiers.');
   }
+  exactKeys(input.design, [
+    'adapters',
+    'freshSessionRequired',
+    'reportBehavioralVariation',
+    'reportFindingFrequency',
+    'repeatabilityClaimProhibited',
+    'samePlanRequired',
+    'sessionsPerAdapter',
+    'trustScoreProhibited',
+  ], 'Preflight design');
+  const sessions = integerInRange(input.design.sessionsPerAdapter, 'Sessions per adapter', MIN_SESSIONS, MAX_SESSIONS);
+  if (
+    canonicalStringify(input.design.adapters) !== canonicalStringify(['openclaw', 'hermes'])
+    || input.design.freshSessionRequired !== true
+    || input.design.samePlanRequired !== true
+    || input.design.reportFindingFrequency !== true
+    || input.design.reportBehavioralVariation !== true
+    || input.design.trustScoreProhibited !== true
+    || input.design.repeatabilityClaimProhibited !== true
+  ) {
+    throw new Error('Preflight experiment design changed.');
+  }
+  exactKeys(input.configurations, ['hermes', 'openclaw'], 'Preflight configurations');
   for (const [adapter, expected] of Object.entries(ADAPTERS)) {
     const configuration = input.configurations?.[adapter];
+    exactKeys(configuration, adapter === 'openclaw'
+      ? ['clientId', 'codexRuntimeSha256', 'maxTurnsPerCase', 'modelLabel', 'providerRuntimeSha256', 'runtimeSha256', 'runtimeVersion']
+      : ['clientId', 'gitCommit', 'maxTurnsPerCase', 'modelLabel', 'runtimeVersion', 'sourceTreeSha256'],
+    `Preflight ${adapter} configuration`);
     if (configuration?.clientId !== expected.clientId || configuration?.modelLabel !== expected.modelLabel) {
       throw new Error(`Preflight ${adapter} configuration identity is unsupported.`);
     }
     if (configuration.maxTurnsPerCase !== expected.maxTurnsPerCase) {
       throw new Error(`Preflight ${adapter} turn ceiling changed.`);
     }
+    requiredString(configuration.runtimeVersion, `Preflight ${adapter} runtime version`, 80);
+    if (adapter === 'openclaw') {
+      requiredDigest(configuration.runtimeSha256, 'Preflight OpenClaw runtime digest');
+      requiredDigest(configuration.providerRuntimeSha256, 'Preflight OpenClaw provider runtime digest');
+      requiredDigest(configuration.codexRuntimeSha256, 'Preflight OpenClaw Codex runtime digest');
+    } else {
+      requiredCommit(configuration.gitCommit, 'Preflight Hermes Git commit');
+      requiredDigest(configuration.sourceTreeSha256, 'Preflight Hermes source tree digest');
+    }
   }
+  exactKeys(input.cost, [
+    'billingMode',
+    'incrementalCashCostUpperBoundUsd',
+    'meteredTokenInvoiceExpected',
+    'note',
+    'providerApiKeySuppliedByClawbotomy',
+    'providerCallCeilingByAdapter',
+    'providerCallCeilingTotal',
+  ], 'Preflight cost boundary');
+  exactKeys(input.cost.providerCallCeilingByAdapter, ['hermes', 'openclaw'], 'Preflight adapter call ceilings');
   if (
     input.cost?.billingMode !== 'existing-openai-codex-oauth-subscription'
     || input.cost?.providerApiKeySuppliedByClawbotomy !== false
@@ -349,16 +426,62 @@ function validatePreflight(input) {
     throw new Error('Preflight billing boundary is unsupported.');
   }
   finiteMoney(input.cost.incrementalCashCostUpperBoundUsd, 'Preflight cash cost ceiling');
+  const expectedCalls = {
+    openclaw: input.plan.caseCount * sessions * ADAPTERS.openclaw.maxTurnsPerCase,
+    hermes: input.plan.caseCount * sessions * ADAPTERS.hermes.maxTurnsPerCase,
+  };
   if (
-    input.design.trustScoreProhibited !== true
-    || input.design.repeatabilityClaimProhibited !== true
+    canonicalStringify(input.cost.providerCallCeilingByAdapter) !== canonicalStringify(expectedCalls)
+    || input.cost.providerCallCeilingTotal !== expectedCalls.openclaw + expectedCalls.hermes
+    || input.cost.note !== 'The cash estimate covers incremental API charges only. Runs consume existing OpenAI Codex subscription quota, which Clawbotomy cannot price or invoice.'
+  ) {
+    throw new Error('Preflight provider call or billing note boundary changed.');
+  }
+  exactKeys(input.evidence, [
+    'infrastructureFailuresScored',
+    'launcherReceiptsRequired',
+    'permissionDecision',
+    'privateLocalOnly',
+    'publicExportAuthorized',
+    'replayValidatedBundlesRequired',
+  ], 'Preflight evidence boundary');
+  if (
+    input.evidence.launcherReceiptsRequired !== true
+    || input.evidence.replayValidatedBundlesRequired !== true
+    || input.evidence.infrastructureFailuresScored !== false
     || input.evidence?.privateLocalOnly !== true
     || input.evidence?.publicExportAuthorized !== false
     || input.evidence?.permissionDecision !== null
   ) {
     throw new Error('Preflight claim or evidence boundary changed.');
   }
+  if (canonicalStringify(input.claimBoundary) !== canonicalStringify(expectedClaimBoundary())) {
+    throw new Error('Preflight interpretation boundary changed.');
+  }
   return input;
+}
+
+function parseRuntimeProvenance(adapter, input) {
+  if (adapter === 'openclaw') {
+    exactKeys(input, [
+      'codexRuntimeSha256',
+      'providerRuntimeSha256',
+      'runtimeSha256',
+      'runtimeVersion',
+    ], 'OpenClaw launcher runtime provenance');
+    return {
+      runtimeVersion: requiredString(input.runtimeVersion, 'OpenClaw launcher runtime version', 80),
+      runtimeSha256: requiredDigest(input.runtimeSha256, 'OpenClaw launcher runtime digest'),
+      providerRuntimeSha256: requiredDigest(input.providerRuntimeSha256, 'OpenClaw launcher provider runtime digest'),
+      codexRuntimeSha256: requiredDigest(input.codexRuntimeSha256, 'OpenClaw launcher Codex runtime digest'),
+    };
+  }
+  exactKeys(input, ['gitCommit', 'runtimeVersion', 'sourceTreeSha256'], 'Hermes launcher runtime provenance');
+  return {
+    runtimeVersion: requiredString(input.runtimeVersion, 'Hermes launcher runtime version', 80),
+    gitCommit: requiredCommit(input.gitCommit, 'Hermes launcher Git commit'),
+    sourceTreeSha256: requiredDigest(input.sourceTreeSha256, 'Hermes launcher source tree digest'),
+  };
 }
 
 function parseAttempt(input) {
@@ -384,8 +507,11 @@ function parseAttempt(input) {
   for (const code of attempt.diagnosticCodes) {
     if (!ALLOWED_DIAGNOSTIC_CODES.has(code)) throw new Error('Launcher attempt diagnostic code is unsupported.');
   }
+  const runtimeProvenance = attempt.runtimeProvenance === null
+    ? null
+    : parseRuntimeProvenance(attempt.adapter, attempt.runtimeProvenance);
   if (attempt.completeBundleWritten === false) {
-    if (attempt.status !== 'infrastructure_failure' || attempt.bundle !== null) {
+    if (attempt.status !== 'infrastructure_failure' || attempt.bundle !== null || runtimeProvenance !== null) {
       throw new Error('A bundle-less attempt must remain an infrastructure failure.');
     }
     return attempt;
@@ -393,6 +519,7 @@ function parseAttempt(input) {
   if (attempt.completeBundleWritten !== true || !attempt.bundle || attempt.status === 'infrastructure_failure') {
     throw new Error('A completed attempt must bind one measured bundle.');
   }
+  if (!runtimeProvenance) throw new Error('A completed attempt must bind verified runtime provenance.');
   exactKeys(attempt.bundle, ['coreDigest', 'locator', 'runId'], 'Launcher bundle locator');
   if (!RUN_ID_PATTERN.test(attempt.bundle.runId || '')) throw new Error('Launcher bundle run ID is invalid.');
   if (attempt.bundle.locator !== `.clawbotomy/inbox-runs/${attempt.bundle.runId}`) {
@@ -459,7 +586,27 @@ function stableIdentity(samples, adapter, preflight) {
   if (first.version !== preflight.configurations[adapter].runtimeVersion) {
     throw new Error(`${adapter} bundle runtime version does not match preflight.`);
   }
-  return first;
+  const provenances = samples.map((sample) => sample.runtimeProvenance);
+  const firstProvenance = provenances[0];
+  if (!firstProvenance || provenances.some((value) => canonicalStringify(value) !== canonicalStringify(firstProvenance))) {
+    throw new Error(`${adapter} runtime provenance changed between completed sessions.`);
+  }
+  const expectedProvenance = adapter === 'openclaw'
+    ? {
+      runtimeVersion: preflight.configurations.openclaw.runtimeVersion,
+      runtimeSha256: preflight.configurations.openclaw.runtimeSha256,
+      providerRuntimeSha256: preflight.configurations.openclaw.providerRuntimeSha256,
+      codexRuntimeSha256: preflight.configurations.openclaw.codexRuntimeSha256,
+    }
+    : {
+      runtimeVersion: preflight.configurations.hermes.runtimeVersion,
+      gitCommit: preflight.configurations.hermes.gitCommit,
+      sourceTreeSha256: preflight.configurations.hermes.sourceTreeSha256,
+    };
+  if (canonicalStringify(firstProvenance) !== canonicalStringify(expectedProvenance)) {
+    throw new Error(`${adapter} runtime provenance does not match the frozen preflight pins.`);
+  }
+  return { identity: first, runtimeProvenance: firstProvenance };
 }
 
 function adapterReport(adapter, samples, infrastructureAttempts, preflight) {
@@ -467,7 +614,7 @@ function adapterReport(adapter, samples, infrastructureAttempts, preflight) {
   if (samples.length !== expectedSessions) {
     throw new Error(`${adapter} requires exactly ${expectedSessions} completed sessions; found ${samples.length}.`);
   }
-  const identity = stableIdentity(samples, adapter, preflight);
+  const { identity, runtimeProvenance } = stableIdentity(samples, adapter, preflight);
   const caseReports = [];
   for (const caseId of preflight.plan.caseIds) {
     const observations = samples.map((sample) => sample.cases.find((item) => item.caseId === caseId));
@@ -505,6 +652,7 @@ function adapterReport(adapter, samples, infrastructureAttempts, preflight) {
     clientId: ADAPTERS[adapter].clientId,
     modelLabel: ADAPTERS[adapter].modelLabel,
     runtimeIdentity: identity,
+    runtimeProvenance,
     completedSessions: samples.length,
     sessionsWithAnyFindings: samples.filter((sample) => sample.status === 'findings').length,
     infrastructureAttempts: infrastructureAttempts.length,
@@ -522,8 +670,10 @@ function buildReport({ preflight, samples, attempts, generatedAt }) {
   for (const attempt of attempts) {
     const parsed = parseAttempt(attempt.document);
     if (parsed.planSha256 !== preflight.plan.sha256) throw new Error('Launcher attempt plan digest changed from preflight.');
-    if (parsed.completeBundleWritten) completed[parsed.adapter].push(samples.get(parsed.attemptId));
-    else infrastructure[parsed.adapter].push(parsed);
+    if (parsed.completeBundleWritten) {
+      const sample = samples.get(parsed.attemptId);
+      completed[parsed.adapter].push(sample ? { ...sample, runtimeProvenance: parsed.runtimeProvenance } : sample);
+    } else infrastructure[parsed.adapter].push(parsed);
   }
   if (Object.values(completed).some((values) => values.some((item) => !item))) {
     throw new Error('A completed launcher attempt is missing its validated bundle sample.');
@@ -561,6 +711,7 @@ function buildReport({ preflight, samples, attempts, generatedAt }) {
       everyBundleIntegrityChecked: true,
       everyBundleDeterministicallyReplayed: true,
       planDigestMatchedEveryAttemptAndBundle: true,
+      runtimePinsMatchedEveryCompletedSession: true,
       runtimeIdentityStableWithinEachAdapter: true,
       adapterCohortsComparedSeparately: true,
     },
@@ -653,6 +804,7 @@ async function collectReportInputs({ repoRoot, preflight, attemptPaths, validato
       status: document.status,
       runId: document.bundle.runId,
       runtimeIdentity: runtimeIdentity(manifest),
+      runtimeProvenance: document.runtimeProvenance,
       integrityBundleDigest: requiredDigest(validated.integrity?.bundleDigest, 'Bundle integrity digest'),
       cases,
     });
@@ -680,6 +832,7 @@ function renderMarkdown(report) {
       `## ${adapter.adapter}`,
       '',
       `Configuration: \`${adapter.modelLabel}\`, runtime \`${adapter.runtimeIdentity.version}\`, implementation \`${adapter.runtimeIdentity.implementationSha256}\`, configuration \`${adapter.runtimeIdentity.configurationSha256}\``,
+      `Pinned provenance: \`${Object.entries(adapter.runtimeProvenance).map(([key, value]) => `${key}=${value}`).join(', ')}\``,
       `Completed sessions: ${adapter.completedSessions}; sessions with findings: ${adapter.sessionsWithAnyFindings}; infrastructure attempts: ${adapter.infrastructureAttempts}`,
       '',
     );
@@ -739,7 +892,7 @@ async function runPreflight(options, dependencies = {}) {
   const planResult = await planReader(requiredString(options.plan, '--plan'));
   const source = dependencies.inspectSource ? dependencies.inspectSource(repoRoot) : inspectSource(repoRoot);
   const now = dependencies.now || (() => new Date());
-  const preflight = createPreflight({
+  const preflight = validatePreflight(createPreflight({
     experimentId: options.experimentId,
     plan: planResult.plan,
     planDigest: planResult.planDigest,
@@ -754,10 +907,11 @@ async function runPreflight(options, dependencies = {}) {
     hermes: {
       runtimeVersion: options.hermesRuntimeVersion,
       gitCommit: options.hermesGitCommit,
+      sourceTreeSha256: options.hermesSourceTreeSha256,
     },
     incrementalCashCostUpperBoundUsd: options.incrementalCashCostUsd,
     createdAt: now().toISOString(),
-  });
+  }));
   const output = relativePrivatePath(
     repoRoot,
     requiredString(options.output, '--output'),

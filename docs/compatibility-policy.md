@@ -8,6 +8,8 @@ The support promise is intentionally narrow. A version string alone is not an id
 
 The Clawbotomy side of every watchdog receipt is the clean Git commit containing the policy and verifier code. The commit cannot be embedded in the same commit without creating a circular identity, so the watchdog records it at execution time and rejects a dirty worktree.
 
+The current-pin watchdog accepts no alternate policy path. It requires the canonical `compatibility/current-pins.json` file and verifies its bytes against `git show HEAD:compatibility/current-pins.json` before checking a runtime. A different inventory belongs to a separately approved candidate-pin probe and may emit only `compatible-but-unpromised`; it cannot redefine `supported` for the current watchdog.
+
 No other OpenClaw or Hermes version is promised by v0.1.
 
 ## State model

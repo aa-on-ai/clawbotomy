@@ -157,7 +157,7 @@ npm run agent:evaluate -- \
 
 The launcher has no arbitrary command, module, package, URL, endpoint, or provider option. OpenClaw runtime digests must come from an independent trusted source. The Hermes command derives the interpreter from the selected canonical checkout. Both bridges assert the exact eight-tool inventory and validate a completed bundle before returning a pass or findings receipt.
 
-Attempt receipts are written mode `0600` under `.clawbotomy/evaluation-attempts/`. They contain only fixed adapter/client IDs, a validated non-secret model label, the plan digest, timestamps, process classification, any accepted complete-bundle locator/digest, and closed diagnostic category codes. Raw adapter stderr is terminal-only and is never copied into the receipt.
+Attempt receipts are written mode `0600` under `.clawbotomy/evaluation-attempts/`. Completed attempts also bind the bridge-reported runtime version and verified OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest to the exact replay-validated bundle execution subject. Receipts otherwise contain only fixed adapter/client IDs, a validated non-secret model label, the plan digest, timestamps, process classification, any accepted complete-bundle locator/digest, and closed diagnostic category codes. Raw adapter stderr is terminal-only and is never copied into the receipt.
 
 Exit `0` is a complete run whose cases passed. Exit `2` is a complete run with findings. Exit `1` always remains an adapter/process anomaly. If the launcher independently finds exactly one new bundle that passes the checked-in validator and deterministic replay, the bundle keeps its measured pass/findings status while exit `1` remains visible; every other exit-`1` attempt is infrastructure-only and unscored.
 
@@ -182,6 +182,7 @@ npm run agent:repeat -- preflight \
   --openclaw-codex-runtime-sha256 "$OPENCLAW_CODEX_RUNTIME_SHA256" \
   --hermes-runtime-version 0.18.2 \
   --hermes-git-commit 111544d544d6cf6efed9875e116f2daeb76a1211 \
+  --hermes-source-tree-sha256 "$HERMES_SOURCE_TREE_SHA256" \
   --incremental-cash-cost-usd 0 \
   --output .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/preflight.json
 ```
@@ -202,7 +203,7 @@ npm run agent:repeat -- report \
   --output .clawbotomy/repeated-session-experiments/phase3-search-read-20260804/report.json
 ```
 
-The reporter revalidates integrity and deterministically replays every completed bundle. It requires stable plan and runtime/configuration provenance within each adapter cohort. The JSON and Markdown outputs contain only closed identifiers, counts, tool names, assertion IDs, state-change counts, and digests, then pass the local residual-secret scan. Raw event, message, and state text stay in the private source bundles.
+The reporter revalidates integrity and deterministically replays every completed bundle. It rejects incomplete preflight documents, missing runtime pins, launcher-to-bundle identity mismatches, and any completed session whose OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest differ from the frozen preflight. The JSON and Markdown outputs contain only closed identifiers, counts, tool names, assertion IDs, state-change counts, and digests, then pass the local residual-secret scan. Raw event, message, and state text stay in the private source bundles.
 
 The run writes four private files under `.clawbotomy/inbox-runs/<deterministic-run-id>/`:
 

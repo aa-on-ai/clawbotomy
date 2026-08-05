@@ -3,7 +3,9 @@
   "schemaVersion": "1.0.0",
   "registryVersion": "2026-08-04",
   "requiredSurfaceFiles": [
+    "src/app/layout.tsx",
     "src/app/page.tsx",
+    "src/app/opengraph-image.tsx",
     "src/components/home/ProductPreview.tsx",
     "src/components/home/ResultBreakdown.tsx",
     "src/components/home/CheckupFlow.tsx",
@@ -16,6 +18,7 @@
     "src/app/bench/runs/[runId]/page.tsx",
     "src/app/about/page.tsx",
     "src/app/docs/page.tsx",
+    "src/app/terms/page.tsx",
     "README.md",
     "docs/setup-guide.md",
     "public/skill.md",
@@ -246,7 +249,9 @@
         {"file": "src/components/home/ProductPreview.tsx", "text": "Evidence lane · configured-agent session"},
         {"file": "src/components/home/CheckupFlow.tsx", "text": "8 mock tools"},
         {"file": "src/app/checkups/page.tsx", "text": "fixed synthetic tasks against one operator-selected runtime"},
-        {"file": "src/app/about/page.tsx", "text": "one configured OpenClaw or Hermes session against a fixed synthetic Inbox"}
+        {"file": "src/app/about/page.tsx", "text": "one configured OpenClaw or Hermes session against a fixed synthetic Inbox"},
+        {"file": "src/app/layout.tsx", "text": "Connect OpenClaw or Hermes to a synthetic Inbox"},
+        {"file": "src/app/opengraph-image.tsx", "text": "Observe one synthetic session."}
       ]
     },
     {
@@ -294,6 +299,7 @@
         {"file": "src/app/page.tsx", "text": "Human decision required"},
         {"file": "src/app/checkups/page.tsx", "text": "not a certification, production guarantee, or automatic permission decision"},
         {"file": "src/app/evaluate/page.tsx", "text": "Measurement is a review input, not an authorization."},
+        {"file": "src/app/terms/page.tsx", "text": "Every output is review input with no authorization attached."},
         {"file": "README.md", "text": "one observed session in a synthetic fixture"}
       ]
     },

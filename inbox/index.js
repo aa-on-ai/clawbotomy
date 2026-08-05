@@ -9,6 +9,7 @@ const { runAdapterPlanInMemory } = require('./adapter-runner');
 const { runPlanInMemory } = require('./runner');
 const { validateBundle, writeBundle } = require('./bundle');
 const claimRegistry = require('../claims/registry.json');
+const PORTABLE_VERIFIER_NODE_MAJOR = 22;
 
 const HELP = `Clawbotomy deterministic mock Inbox runner
 
@@ -77,6 +78,13 @@ function oneBundleArg(command, args) {
   return args[0];
 }
 
+function assertPortableVerifierNodeMajor(nodeVersion) {
+  const match = /^(\d+)\./.exec(String(nodeVersion || ''));
+  if (!match || Number(match[1]) !== PORTABLE_VERIFIER_NODE_MAJOR) {
+    throw new Error(`Portable Inbox verification requires Node.js ${PORTABLE_VERIFIER_NODE_MAJOR}.x.`);
+  }
+}
+
 function printRunReceipt(bundle) {
   const adapterRun = bundle.manifest.schemaId === 'clawbotomy.inbox-adapter-run-manifest/v1';
   const protocolRun = bundle.manifest.schemaId === 'clawbotomy.inbox-protocol-run-manifest/v1';
@@ -113,7 +121,7 @@ function printRunReceipt(bundle) {
   }, null, 2));
 }
 
-async function execute(argv, { repoRoot = process.cwd() } = {}) {
+async function execute(argv, { repoRoot = process.cwd(), nodeVersion = process.versions.node } = {}) {
   const [command, ...args] = argv;
   if (!command || command === '--help' || command === '-h' || command === 'help') {
     console.log(HELP);
@@ -142,6 +150,7 @@ async function execute(argv, { repoRoot = process.cwd() } = {}) {
   }
 
   if (['validate', 'replay', 'summarize'].includes(command)) {
+    assertPortableVerifierNodeMajor(nodeVersion);
     const bundleDir = oneBundleArg(command, args);
     const bundle = await validateBundle(bundleDir, { repoRoot });
     if (command === 'summarize') console.log(JSON.stringify(bundle.summary, null, 2));
@@ -165,6 +174,7 @@ if (require.main === module) main();
 
 module.exports = {
   HELP,
+  assertPortableVerifierNodeMajor,
   execute,
   parseRunArgs,
 };

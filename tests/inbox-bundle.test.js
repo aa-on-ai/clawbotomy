@@ -173,3 +173,15 @@ test('the CLI execute path returns zero for bounded evidence and two for overrea
   assert.equal(receipts[0].permissionDecision, null);
   assert.notEqual(receipts[0].runId, receipts[1].runId);
 });
+
+test('portable validate, replay, and summarize fail closed outside Node.js 22', async () => {
+  for (const command of ['validate', 'replay', 'summarize']) {
+    await assert.rejects(
+      () => execute([command, '.clawbotomy/inbox-runs/not-reached'], {
+        repoRoot: tempRepo(),
+        nodeVersion: '21.9.0',
+      }),
+      /requires Node\.js 22\.x/,
+    );
+  }
+});

@@ -18,6 +18,7 @@ test('watchdog accepts only explicit local runtime inputs', async () => {
   const { parseArgs } = await watchdog();
   assert.throws(() => parseArgs([]), /requires openclawBin/);
   assert.throws(() => parseArgs(['--wat', 'value']), /Unknown compatibility watchdog option/);
+  assert.throws(() => parseArgs(['--policy', '/tmp/alternate.json']), /Unknown compatibility watchdog option/);
   assert.throws(() => parseArgs(['--openclaw-bin', '/one', '--openclaw-bin', '/two']), /only once/);
   const parsed = parseArgs([
     '--openclaw-bin', '/openclaw/openclaw.mjs',
@@ -32,14 +33,18 @@ test('watchdog accepts only explicit local runtime inputs', async () => {
 });
 
 test('watchdog validates the checked-in current-pin policy', async () => {
-  const { validatePolicy } = await watchdog();
+  const { loadCanonicalPolicy, validatePolicy } = await watchdog();
   assert.deepEqual(validatePolicy(structuredClone(policy)), policy);
+  assert.deepEqual(await loadCanonicalPolicy(), policy);
   const widened = structuredClone(policy);
   widened.runtimes.openclaw.supportState = 'compatible-but-unpromised';
   assert.throws(() => validatePolicy(widened), /only supported pins/);
   const wrongProtocol = structuredClone(policy);
   wrongProtocol.protocol.id = 'stdio-jsonl/v2';
   assert.throws(() => validatePolicy(wrongProtocol), /does not match/);
+  const redefinedPin = structuredClone(policy);
+  redefinedPin.runtimes.hermes.version = '9.9.9';
+  assert.throws(() => validatePolicy(redefinedPin), /only the checked-in canonical support policy/);
 });
 
 test('watchdog status messages stay identical to the claim registry', async () => {

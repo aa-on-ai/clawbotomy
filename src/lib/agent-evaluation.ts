@@ -17,6 +17,7 @@ export const DIAGNOSTIC_GUIDE = {
   bundle_inspection_failed: 'The launcher could not inspect newly written private bundles safely.',
   bridge_bundle_mismatch: 'The terminal receipt and replay-validated bundle did not identify the same run.',
   bridge_status_mismatch: 'The process exit and replay-validated bundle status did not agree.',
+  bridge_runtime_provenance_mismatch: 'The bridge runtime identity did not match the replay-validated bundle execution subject.',
   replay_validated_bundle_recovered_after_exit_1: 'One new bundle validated and replayed despite the abnormal adapter exit.',
 } as const;
 

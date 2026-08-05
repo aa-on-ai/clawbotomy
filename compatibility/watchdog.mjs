@@ -12,6 +12,7 @@ const { canonicalStringify, sha256 } = require("../bench/canonical");
 const { runBundleSelfTest, runSingleCaseProbe } = require("./protocol-probe");
 const { PROTOCOL_ID, PROTOCOL_VERSION, TOOL_NAMES } = require("../inbox/protocols/stdio-jsonl");
 const claimRegistry = require("../claims/registry.json");
+const canonicalPolicyDocument = require("./current-pins.json");
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.dirname(path.dirname(SCRIPT_PATH));
@@ -46,7 +47,6 @@ function safeProtocolProbe(probe) {
 
 function parseArgs(argv) {
   const options = {
-    policy: DEFAULT_POLICY,
     outputRoot: DEFAULT_OUTPUT_ROOT,
     openclawBin: null,
     pluginRegistryStateDir: null,
@@ -57,7 +57,6 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     const mapping = {
-      "--policy": "policy",
       "--output-root": "outputRoot",
       "--openclaw-bin": "openclawBin",
       "--plugin-registry-state-dir": "pluginRegistryStateDir",
@@ -135,6 +134,19 @@ function runText(command, args, { cwd = REPO_ROOT, timeout = 30_000 } = {}) {
   return result.stdout.trim();
 }
 
+function runBytes(command, args, { cwd = REPO_ROOT, timeout = 30_000 } = {}) {
+  const result = spawnSync(command, args, {
+    cwd,
+    env: scrubbedEnvironment(),
+    encoding: null,
+    maxBuffer: 1024 * 1024,
+    timeout,
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(sanitizeDiagnostic(result.stderr || result.stdout));
+  return result.stdout;
+}
+
 function exactObjectKeys(document, keys, label) {
   if (!document || typeof document !== "object" || Array.isArray(document)) {
     throw new Error(`${label} must be an object`);
@@ -168,7 +180,23 @@ function validatePolicy(policy) {
   for (const runtime of Object.values(policy.runtimes || {})) {
     if (runtime?.supportState !== "supported") throw new Error("The current-pin inventory may contain only supported pins");
   }
+  if (canonicalStringify(policy) !== canonicalStringify(canonicalPolicyDocument)) {
+    throw new Error("The current-pin watchdog accepts only the checked-in canonical support policy");
+  }
   return policy;
+}
+
+async function loadCanonicalPolicy() {
+  const policyPath = await realpath(DEFAULT_POLICY);
+  if (policyPath !== DEFAULT_POLICY) {
+    throw new Error("The current-pin policy must be the canonical checked-in file");
+  }
+  const workingBytes = await readFile(policyPath);
+  const committedBytes = runBytes("git", ["show", "HEAD:compatibility/current-pins.json"]);
+  if (!workingBytes.equals(committedBytes)) {
+    throw new Error("The current-pin policy bytes do not match the recorded source commit");
+  }
+  return validatePolicy(JSON.parse(workingBytes.toString("utf8")));
 }
 
 async function assertNetworkDenied() {
@@ -346,8 +374,7 @@ async function writeReceipt(outputRoot, document) {
 }
 
 async function run(options) {
-  const policyPath = await realpath(path.resolve(options.policy));
-  const policy = validatePolicy(JSON.parse(await readFile(policyPath, "utf8")));
+  const policy = await loadCanonicalPolicy();
   const source = sourceIdentity();
   const networkBoundary = await assertNetworkDenied();
   const openclawPolicy = policy.runtimes.openclaw;
@@ -494,6 +521,7 @@ export {
   checkHermes,
   checkOpenClaw,
   compatibilityStatusMessage,
+  loadCanonicalPolicy,
   parseArgs,
   run,
   safeProtocolProbe,

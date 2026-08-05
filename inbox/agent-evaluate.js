@@ -13,6 +13,7 @@ const ATTEMPT_SCHEMA_ID = 'clawbotomy.agent-evaluation-attempt/v1';
 const ATTEMPT_SCHEMA_VERSION = '1.0.0';
 const MAX_CAPTURE_BYTES = 8 * 1024 * 1024;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/;
 const RUN_ID_PATTERN = /^inbox-host-[a-f0-9]{20}$/;
 const UUID_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 
@@ -28,6 +29,7 @@ const DIAGNOSTIC_CODES = Object.freeze({
   BUNDLE_INSPECTION_FAILED: 'bundle_inspection_failed',
   BRIDGE_BUNDLE_MISMATCH: 'bridge_bundle_mismatch',
   BRIDGE_STATUS_MISMATCH: 'bridge_status_mismatch',
+  BRIDGE_RUNTIME_PROVENANCE_MISMATCH: 'bridge_runtime_provenance_mismatch',
   RECOVERED_AFTER_EXIT_1: 'replay_validated_bundle_recovered_after_exit_1',
 });
 
@@ -81,6 +83,11 @@ function requiredText(value, label, maximum = 4096) {
 
 function requiredDigest(value, label) {
   if (!SHA256_PATTERN.test(value || '')) throw new Error(`${label} must be a lowercase SHA-256 digest.`);
+  return value;
+}
+
+function requiredCommit(value, label) {
+  if (!GIT_COMMIT_PATTERN.test(value || '')) throw new Error(`${label} must be a lowercase 40-character Git commit.`);
   return value;
 }
 
@@ -193,7 +200,7 @@ function appendBounded(state, chunk, maximum, { tail = false } = {}) {
   if (bytes.length > remaining) state.truncated = true;
 }
 
-function parseTerminalReceipt(adapter, stdoutText, exitCode) {
+function parseTerminalReceipt(adapter, stdoutText, exitCode, modelLabel) {
   let document;
   try {
     document = JSON.parse(stdoutText.trim());
@@ -205,17 +212,72 @@ function parseTerminalReceipt(adapter, stdoutText, exitCode) {
   }
 
   let terminal;
+  let clientIdentity;
+  let runtimeProvenance;
   if (adapter === 'openclaw') {
     if (
       document.schemaId !== 'clawbotomy.openclaw-bridge-receipt/v2'
       || document.hostExitCode !== exitCode
+      || document.model !== modelLabel
     ) {
       throw new Error('OpenClaw bridge receipt identity or exit code is invalid.');
     }
     terminal = document.run;
+    const client = document.client;
+    const runtime = document.runtime?.openclaw;
+    const plugins = document.runtime?.plugins;
+    const providerId = modelLabel.split('/', 1)[0];
+    const provider = Array.isArray(plugins)
+      ? plugins.find((item) => item?.pluginId === providerId)
+      : null;
+    const codex = Array.isArray(plugins)
+      ? plugins.find((item) => item?.pluginId === 'codex')
+      : null;
+    if (
+      client?.id !== ADAPTERS.openclaw.clientId
+      || client?.version !== runtime?.version
+      || !Array.isArray(plugins)
+      || !provider
+      || (providerId === 'openai' && !codex)
+    ) {
+      throw new Error('OpenClaw bridge receipt omitted verified runtime provenance.');
+    }
+    clientIdentity = {
+      id: client.id,
+      version: requiredText(client.version, 'OpenClaw client version', 80),
+      implementationSha256: requiredDigest(client.implementationSha256, 'OpenClaw implementation digest'),
+      configurationSha256: requiredDigest(client.configurationSha256, 'OpenClaw configuration digest'),
+    };
+    runtimeProvenance = {
+      runtimeVersion: clientIdentity.version,
+      runtimeSha256: requiredDigest(runtime.runtimeSha256, 'OpenClaw runtime digest'),
+      providerRuntimeSha256: requiredDigest(provider.runtimeSha256, 'OpenClaw provider runtime digest'),
+      codexRuntimeSha256: providerId === 'openai'
+        ? requiredDigest(codex.runtimeSha256, 'OpenClaw Codex runtime digest')
+        : null,
+    };
   } else {
-    if (document.exitCode !== exitCode) throw new Error('Hermes bridge receipt exit code is invalid.');
+    if (
+      document.exitCode !== exitCode
+      || document.provider !== 'openai-codex'
+      || document.model !== 'gpt-5.6-sol'
+      || modelLabel !== ADAPTERS.hermes.modelLabel
+    ) {
+      throw new Error('Hermes bridge receipt identity or exit code is invalid.');
+    }
     terminal = document.receipt;
+    const runtime = document.runtime;
+    clientIdentity = {
+      id: ADAPTERS.hermes.clientId,
+      version: requiredText(runtime?.version, 'Hermes client version', 80),
+      implementationSha256: requiredDigest(document.implementationSha256, 'Hermes implementation digest'),
+      configurationSha256: requiredDigest(document.configurationSha256, 'Hermes configuration digest'),
+    };
+    runtimeProvenance = {
+      runtimeVersion: clientIdentity.version,
+      gitCommit: requiredCommit(runtime?.gitCommit, 'Hermes Git commit'),
+      sourceTreeSha256: requiredDigest(runtime?.sourceTreeSha256, 'Hermes source tree digest'),
+    };
   }
 
   if (!terminal || typeof terminal !== 'object' || Array.isArray(terminal)) {
@@ -245,7 +307,7 @@ function parseTerminalReceipt(adapter, stdoutText, exitCode) {
   ) {
     throw new Error('Bridge terminal receipt is not a complete, internally consistent run.');
   }
-  return { locator, runId, coreDigest };
+  return { locator, runId, coreDigest, clientIdentity, runtimeProvenance };
 }
 
 function listRunIds(repoRoot) {
@@ -289,12 +351,18 @@ function safeValidatedBundle(validated, {
   const expectedOutput = path.join(repoRoot, '.clawbotomy', 'inbox-runs', runId);
   const coreDigest = manifest?.coreDigest;
   const totals = summary?.totals;
+  const executionSubject = manifest?.executionSubject;
   if (
     manifest?.schemaId !== 'clawbotomy.inbox-protocol-run-manifest/v1'
     || manifest?.lifecycle?.status !== 'complete'
     || manifest?.runId !== runId
     || manifest?.plan?.sha256 !== planDigest
-    || manifest?.executionSubject?.id !== clientId
+    || executionSubject?.id !== clientId
+    || typeof executionSubject?.version !== 'string'
+    || executionSubject.version.length === 0
+    || executionSubject.version.length > 80
+    || !SHA256_PATTERN.test(executionSubject?.implementationSha256 || '')
+    || !SHA256_PATTERN.test(executionSubject?.configurationSha256 || '')
     || manifest?.protocol?.id !== 'stdio-jsonl/v1'
     || path.resolve(validated?.outputDir || '') !== expectedOutput
     || summary?.runId !== runId
@@ -316,6 +384,12 @@ function safeValidatedBundle(validated, {
   return {
     status: totals.failedCases === 0 ? 'passed' : 'findings',
     bundle: { locator, runId, coreDigest },
+    clientIdentity: {
+      id: executionSubject.id,
+      version: executionSubject.version,
+      implementationSha256: executionSubject.implementationSha256,
+      configurationSha256: executionSubject.configurationSha256,
+    },
   };
 }
 
@@ -363,6 +437,17 @@ function sameBundle(left, right) {
     && left.locator === right.locator
     && left.runId === right.runId
     && left.coreDigest === right.coreDigest
+  );
+}
+
+function sameClientIdentity(left, right) {
+  return Boolean(
+    left
+    && right
+    && left.id === right.id
+    && left.version === right.version
+    && left.implementationSha256 === right.implementationSha256
+    && left.configurationSha256 === right.configurationSha256
   );
 }
 
@@ -465,6 +550,7 @@ async function run(argv, dependencies = {}) {
     : 1;
   let status = 'infrastructure_failure';
   let bundle = null;
+  let runtimeProvenance = null;
   const diagnosticCodes = [];
   const addDiagnosticCode = (code) => {
     if (!diagnosticCodes.includes(code)) diagnosticCodes.push(code);
@@ -488,6 +574,7 @@ async function run(argv, dependencies = {}) {
         options.adapter,
         streams.stdout.buffer.toString('utf8'),
         acceptedExitCode,
+        modelLabel,
       );
     } catch {
       addDiagnosticCode(DIAGNOSTIC_CODES.TERMINAL_RECEIPT_INVALID);
@@ -529,10 +616,13 @@ async function run(argv, dependencies = {}) {
   } else if (stdoutBundle && discovery.accepted) {
     if (!sameBundle(stdoutBundle, discovery.accepted.bundle)) {
       addDiagnosticCode(DIAGNOSTIC_CODES.BRIDGE_BUNDLE_MISMATCH);
+    } else if (!sameClientIdentity(stdoutBundle.clientIdentity, discovery.accepted.clientIdentity)) {
+      addDiagnosticCode(DIAGNOSTIC_CODES.BRIDGE_RUNTIME_PROVENANCE_MISMATCH);
     } else if (acceptedExitCode !== (discovery.accepted.status === 'passed' ? 0 : 2)) {
       addDiagnosticCode(DIAGNOSTIC_CODES.BRIDGE_STATUS_MISMATCH);
     } else {
       ({ status, bundle } = discovery.accepted);
+      runtimeProvenance = stdoutBundle.runtimeProvenance;
     }
   } else if (discovery.diagnosticCode) {
     addDiagnosticCode(discovery.diagnosticCode);
@@ -552,6 +642,7 @@ async function run(argv, dependencies = {}) {
     status,
     completeBundleWritten: bundle !== null,
     bundle,
+    runtimeProvenance,
     diagnosticCodes,
   };
 

@@ -10,6 +10,25 @@ const root = path.resolve(__dirname, '..');
 const registry = JSON.parse(fs.readFileSync(path.join(root, 'claims/registry.json'), 'utf8'));
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 
+function discoverPublicClaimSurfaces(directory = path.join(root, 'src', 'app')) {
+  const discovered = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      discovered.push(...discoverPublicClaimSurfaces(absolute));
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue;
+    const relative = path.relative(root, absolute).split(path.sep).join('/');
+    const source = fs.readFileSync(absolute, 'utf8');
+    const renderedPage = entry.name === 'page.tsx' && !/\bredirect\s*\(/.test(source);
+    const sharedMetadata = relative === 'src/app/layout.tsx';
+    const generatedImage = /\bImageResponse\b/.test(source);
+    if (renderedPage || sharedMetadata || generatedImage) discovered.push(relative);
+  }
+  return discovered.sort();
+}
+
 test('claim registry is complete, lane-scoped, and anchored to live sources', () => {
   assert.equal(registry.schemaId, 'clawbotomy.claim-registry/v1');
   assert.ok(registry.claims.length > 0);
@@ -48,6 +67,15 @@ test('registered public surfaces reject unsupported positive claim language', ()
   for (const rule of registry.forbiddenPositivePatterns) {
     assert.doesNotMatch(source, new RegExp(rule.pattern, 'i'), rule.id);
   }
+});
+
+test('every rendered route, shared metadata surface, and generated social image is registered', () => {
+  const registered = new Set(registry.requiredSurfaceFiles);
+  for (const surface of discoverPublicClaimSurfaces()) {
+    assert.ok(registered.has(surface), `public claim surface bypasses the registry: ${surface}`);
+  }
+  assert.match(read('src/app/opengraph-image.tsx'), /Not connected by Clawbotomy/);
+  assert.doesNotMatch(read('src/app/opengraph-image.tsx'), /Real mailbox', 'Never connected/);
 });
 
 test('evidence lane labels remain visibly distinct on the public surfaces', () => {
