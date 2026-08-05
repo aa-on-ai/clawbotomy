@@ -2,6 +2,7 @@
   min-height: 100vh;
   color: var(--cb-ink);
   background: var(--cb-bone);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .rail {
@@ -395,6 +396,19 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    text-decoration-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .adapterSelector > p a:hover {
+    color: var(--cb-danger);
+    text-decoration-color: currentColor;
+    transform: translateX(2px);
+  }
 }
 
 .launchPanel {
@@ -457,6 +471,9 @@
   gap: 20px;
   cursor: pointer;
   list-style: none;
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
 }
 
 .launchDetails > summary::-webkit-details-marker,
@@ -471,6 +488,21 @@
   right: 22px;
   font-family: var(--font-geist-mono), monospace;
   font-size: 20px;
+  transition:
+    color var(--cb-motion-fast) ease,
+    transform var(--cb-motion-fast) var(--cb-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .launchDetails > summary:hover {
+    color: var(--cb-signal);
+    background: var(--cb-ink-raised);
+  }
+
+  .launchDetails > summary:hover::after,
+  .statusGuide > summary:hover::after {
+    transform: rotate(90deg);
+  }
 }
 
 .launchDetails[open] > summary::after,
@@ -626,6 +658,16 @@
   border-bottom: 1px solid var(--cb-border-light);
   cursor: pointer;
   list-style: none;
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .statusGuideHeader:hover {
+    color: var(--cb-danger);
+    background: rgb(22 19 17 / 4%);
+  }
 }
 
 .statusGuideHeader h3 {
@@ -702,6 +744,7 @@
   padding: var(--cb-section-y) 0;
   color: var(--cb-bone);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .sectionHeadingDark .sectionIndex {
@@ -821,6 +864,19 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .exampleLink:hover {
+    color: var(--cb-signal);
+    border-bottom-color: var(--cb-signal);
+    transform: translateX(2px);
+  }
 }
 
 .viewer {
@@ -1329,6 +1385,21 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .compareEmpty a:hover {
+    color: var(--cb-bone);
+    background: var(--cb-ink);
+    border-color: var(--cb-ink);
+    transform: translateY(-1px);
+  }
 }
 
 .comparisonTable {
@@ -1398,6 +1469,7 @@
   color: var(--cb-bone);
   background: var(--cb-ink);
   border-top: 1px solid var(--cb-border-dark);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .actionWorkspace,
@@ -1779,6 +1851,7 @@
 .limitations {
   color: var(--cb-bone);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .limitations .sectionIndex {
@@ -1818,6 +1891,19 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease,
+    border-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .limitationsLayout a:hover {
+    color: var(--cb-signal);
+    border-bottom-color: var(--cb-signal);
+    transform: translateX(2px);
+  }
 }
 
 @media (max-width: 960px) {
@@ -2193,8 +2279,16 @@
   .secondaryLink,
   .sequence a,
   .adapterSelector label,
+  .adapterSelector > p a,
+  .launchDetails > summary,
+  .launchDetails > summary::after,
+  .statusGuide > summary,
+  .statusGuide > summary::after,
   .commandBlock button,
   .fileButton,
+  .exampleLink,
+  .compareEmpty a,
+  .limitationsLayout a,
   .runIndex button,
   .caseIndex button,
   .runHeaderActions button,
@@ -2205,6 +2299,12 @@
 
   .commandBlock button:hover,
   .commandBlock button:active,
+  .adapterSelector > p a:hover,
+  .launchDetails > summary:hover::after,
+  .statusGuide > summary:hover::after,
+  .exampleLink:hover,
+  .compareEmpty a:hover,
+  .limitationsLayout a:hover,
   .runHeaderActions button:hover,
   .runHeaderActions button:active,
   .recommendationCard button:hover,

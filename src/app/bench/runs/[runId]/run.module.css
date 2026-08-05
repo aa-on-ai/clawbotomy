@@ -3,6 +3,7 @@
   z-index: 2;
   color: var(--cb-bone);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .rail {
@@ -17,6 +18,7 @@
   color: var(--cb-ink);
   background: var(--cb-bone);
   border-bottom: 1px solid var(--cb-border-light);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .hero::after {
@@ -42,6 +44,17 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .backLink:hover {
+    color: var(--cb-danger);
+    transform: translateX(-2px);
+  }
 }
 
 .eyebrow,
@@ -255,6 +268,7 @@
 .casesSection {
   color: var(--cb-ink);
   background: var(--cb-bone);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .casesSection .signalEyebrow {
@@ -425,6 +439,16 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .evidenceDisclosure summary:hover {
+    color: var(--cb-ink);
+    background: var(--cb-signal);
+  }
 }
 
 .evidenceDisclosure summary:focus-visible {
@@ -479,6 +503,17 @@
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+  will-change: transform;
+  transition:
+    transform var(--cb-motion-fast) var(--cb-ease-out),
+    color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rawCaseLink:hover {
+    color: var(--cb-danger);
+    transform: translateX(2px);
+  }
 }
 
 .provenanceSection {
@@ -517,6 +552,16 @@
   font-weight: 700;
   border-right: 1px solid var(--cb-border-dark);
   border-bottom: 1px solid var(--cb-border-dark);
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .artifactLinks a:hover {
+    color: var(--cb-ink);
+    background: var(--cb-signal);
+  }
 }
 
 @media (max-width: 820px) {
@@ -604,5 +649,19 @@
 
   .evidencePair {
     padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .evidenceDisclosure summary,
+  .rawCaseLink,
+  .artifactLinks a {
+    transition: none;
+  }
+
+  .backLink:hover,
+  .rawCaseLink:hover {
+    transform: none;
   }
 }

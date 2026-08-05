@@ -4,6 +4,7 @@
   overflow: clip;
   color: var(--cb-ink);
   background: var(--cb-ink);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .rail {
@@ -19,6 +20,7 @@
   color: var(--cb-ink);
   background: var(--cb-bone);
   border-bottom: 1px solid var(--cb-border-light);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .hero::before {
@@ -196,6 +198,7 @@
   padding: clamp(64px, 8vw, 104px) 0;
   color: var(--cb-ink);
   background: var(--cb-bone);
+  --cb-interaction-color: var(--cb-danger);
 }
 
 .workspace {
@@ -219,6 +222,7 @@
   color: var(--cb-bone);
   background: var(--cb-ink);
   border-left: 1px solid var(--cb-border-light);
+  --cb-interaction-color: var(--cb-signal);
 }
 
 .panelHeader,
@@ -845,6 +849,16 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  transition:
+    color var(--cb-motion-fast) ease,
+    text-decoration-color var(--cb-motion-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .runnerCommand a:hover {
+    color: var(--cb-signal);
+    text-decoration-color: currentColor;
+  }
 }
 
 .runnerCommand a:focus-visible {
@@ -1011,7 +1025,7 @@
 
   .scenarioList summary:hover strong,
   .jsonHeading a:hover {
-    color: var(--cb-signal);
+    color: var(--cb-bone);
   }
 }
 
@@ -1205,7 +1219,8 @@
   .capabilityRow,
   .buildButton,
   .resetButton,
-  .outputActions button {
+  .outputActions button,
+  .runnerCommand a {
     transition: none;
   }
 
