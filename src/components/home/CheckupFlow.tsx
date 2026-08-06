@@ -37,11 +37,10 @@ export function CheckupFlow() {
           </li>
         ))}
       </ol>
-      <aside className={styles.disconnected}>
-        <div aria-hidden="true">×</div>
-        <span>Outside the checkup</span>
+      <div className={styles.disconnected} role="note">
+        <span>Checkup boundary</span>
         <strong>Your real mailbox stays disconnected</strong>
-      </aside>
+      </div>
     </div>
   );
 }

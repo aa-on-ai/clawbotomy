@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 
 import { evidenceLanes } from '@/lib/claim-registry';
 
@@ -156,210 +157,140 @@ const evidenceLaneOrder = [
   'legacy-model-benchmark',
 ] as const;
 
+type CommandItem = { label: string; command: string };
+
+function DocsSection({ index, id, title, children }: {
+  index: string;
+  id: string;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={styles.docsSection} aria-labelledby={id}>
+      <div className={styles.docsSectionHeading}>
+        <span aria-hidden="true">{index}</span>
+        <h2 id={id}>{title}</h2>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function CommandList({ commands }: { commands: readonly CommandItem[] }) {
+  return (
+    <div className={styles.docsCommands}>
+      {commands.map((item) => (
+        <div key={item.label} className={styles.docsCommand}>
+          <p>{item.label}</p>
+          <pre tabIndex={0} aria-label={`${item.label} command`}><code>{item.command}</code></pre>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DocsPage() {
   return (
-    <main className={`${styles.page} ${styles.pageWide} grid-bg`}>
+    <main className={`${styles.page} ${styles.pageWide} ${styles.docsPage} grid-bg`}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>Current release · Local-first workflow</p>
+          <p className={styles.kicker}>Current release / Local-first workflow</p>
           <h1 className={styles.title}>Documentation</h1>
         </div>
-        <p className={styles.lede}>
+        <p className={styles.lede} data-reading-copy>
           Plan intended Inbox powers in the browser, then run OpenClaw, Hermes, or a fixed reference
           control against the same synthetic Inbox. Configured-agent receipts remain private unless separately reviewed
           for publication. Every result remains non-authorizing.
         </p>
       </header>
 
-      <section className="mb-16" aria-labelledby="evidence-lanes">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="evidence-lanes" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            Evidence lanes
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <DocsSection index="01" id="evidence-lanes" title="Evidence lanes">
+        <div className={styles.docsRows}>
           {evidenceLaneOrder.map((laneId) => (
-            <article key={laneId} className="glow-card rounded-xl p-5 md:p-6">
-              <h3 className="text-content-primary font-mono font-bold text-base mb-2">
-                {evidenceLanes[laneId].publicLabel}
-              </h3>
-              <p className="text-content-secondary font-mono text-sm leading-relaxed">
-                {evidenceLanes[laneId].description}
-              </p>
+            <article key={laneId}>
+              <h3>{evidenceLanes[laneId].publicLabel}</h3>
+              <p data-reading-copy>{evidenceLanes[laneId].description}</p>
             </article>
           ))}
         </div>
-        <p className="mt-4 text-content-muted font-mono text-xs leading-relaxed">
+        <p className={styles.docsFootnote} data-reading-copy>
           Exact-pin runtime compatibility is separate from configured-agent behavior. Model benchmark observations and the legacy snapshot are separate from both.
         </p>
-      </section>
+      </DocsSection>
 
-      <section className="mb-16" aria-labelledby="configured-agent-run">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="configured-agent-run" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            Configured-agent run
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
-        </div>
-        <div className="glow-card rounded-xl p-5 md:p-6 space-y-4">
-          <p className="text-content-secondary font-mono text-sm leading-relaxed">
-            Start at <a className="text-content-primary underline underline-offset-4" href="/evaluate">/evaluate</a>. The fixed launcher accepts only the checked-in OpenClaw and Hermes bridges and writes a separate private attempt receipt so process failure never masquerades as a finding.
+      <DocsSection index="02" id="configured-agent-run" title="Configured-agent run">
+        <div className={styles.docsPanel}>
+          <p className={styles.docsIntro} data-reading-copy>
+            Start at <a href="/evaluate">/evaluate</a>. The fixed launcher accepts only the checked-in OpenClaw and Hermes bridges and writes a separate private attempt receipt so process failure never masquerades as a finding.
           </p>
-          {agentCommands.map((item) => (
-            <div key={item.label} className="space-y-2">
-              <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
-              <pre
-                tabIndex={0}
-                aria-label={`${item.label} command`}
-                className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary"
-              >
-                <code>{item.command}</code>
-              </pre>
-            </div>
-          ))}
-          <p className="text-content-muted font-mono text-xs leading-relaxed">
+          <CommandList commands={agentCommands} />
+          <p className={styles.docsFootnote} data-reading-copy>
             Exit 0 is passed. Exit 2 is a complete run with findings. Exit 1 remains a process anomaly; only one independently validated and replayed new bundle may retain its measured status. The browser viewer requires the launcher receipt that binds each displayed bundle, renders only closed-contract metadata, and never uploads the selected private files. It is an inspector after terminal validation, not the canonical verifier.
           </p>
         </div>
-      </section>
+      </DocsSection>
 
-      <section className="mb-16" aria-labelledby="inbox-reference-run">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="inbox-reference-run" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            Inbox reference run
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
-        </div>
-        <div className="glow-card rounded-xl p-5 md:p-6 space-y-4">
-          <p className="text-content-secondary font-mono text-sm leading-relaxed">
-            Download a plan from <a className="text-content-primary underline underline-offset-4" href="/preflight">/preflight</a>. The local runner expands it into isolated cases, executes fixed in-memory tools, and writes replayable private evidence. It never connects to a mailbox or loads the configuration reference.
+      <DocsSection index="03" id="inbox-reference-run" title="Inbox reference run">
+        <div className={styles.docsPanel}>
+          <p className={styles.docsIntro} data-reading-copy>
+            Download a plan from <a href="/preflight">/preflight</a>. The local runner expands it into isolated cases, executes fixed in-memory tools, and writes replayable private evidence. It never connects to a mailbox or loads the configuration reference.
           </p>
-          {inboxCommands.map((item) => (
-            <div key={item.label} className="space-y-2">
-              <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
-              <pre
-                tabIndex={0}
-                aria-label={`${item.label} command`}
-                className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary"
-              >
-                <code>{item.command}</code>
-              </pre>
-            </div>
-          ))}
-          <p className="text-content-muted font-mono text-xs leading-relaxed">
-            Bounded and overreach remain reference-only controls. Adapter evidence applies only to
-            the exact embedded policy document. Neither path executes a deployed agent. Every path
-            is non-authorizing and leaves production access unchanged.
+          <CommandList commands={inboxCommands} />
+          <p className={styles.docsFootnote} data-reading-copy>
+            Bounded and overreach remain reference-only controls. Adapter evidence applies only to the exact embedded policy document. Neither path executes a deployed agent. Every path is non-authorizing and leaves production access unchanged.
           </p>
         </div>
-      </section>
+      </DocsSection>
 
-      <section className="mb-16" aria-labelledby="quick-start">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="quick-start" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            Quick start
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
-        </div>
-        <div className="glow-card rounded-xl p-5 md:p-6 space-y-5">
+      <DocsSection index="04" id="quick-start" title="Quick start">
+        <div className={styles.docsSteps}>
           {steps.map((step, index) => (
-            <div key={step.title} className="flex gap-3 md:gap-4">
-              <span className="text-emerald-600 dark:text-emerald-500/60 font-mono text-sm tabular-nums" aria-hidden="true">
-                {String(index + 1).padStart(2, '0')}
-              </span>
+            <article key={step.title}>
+              <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
               <div>
-                <h3 className="text-content-primary font-mono text-sm font-bold mb-1">{step.title}</h3>
-                <p className="text-content-secondary font-mono text-sm leading-relaxed">{step.body}</p>
+                <h3>{step.title}</h3>
+                <p data-reading-copy>{step.body}</p>
               </div>
-            </div>
-          ))}
-          <div className="space-y-4">
-            {workflowCommands.map((item) => (
-              <div key={item.label} className="space-y-2">
-                <p className="text-xs tracking-[0.04em] text-content-muted">{item.label}</p>
-                <pre
-                  tabIndex={0}
-                  aria-label={`${item.label} command`}
-                  className="overflow-x-auto rounded-lg border border-[var(--border)] bg-surface-elevated p-4 text-xs text-content-primary"
-                >
-                  <code>{item.command}</code>
-                </pre>
-              </div>
-            ))}
-          </div>
-          <p className="text-content-muted font-mono text-xs leading-relaxed">
-            Credential presence is part of the plan digest. Keep it unchanged between preflight and live execution. If public export may be needed, start from a clean, committed source state.
-          </p>
-        </div>
-      </section>
-
-      <section className="mb-16" aria-labelledby="what-exists">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="what-exists" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            What exists today
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentSurfaces.map((surface) => (
-            <article key={surface.name} className="glow-card rounded-xl p-5 md:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <h3 className="text-content-primary font-mono font-bold text-lg">{surface.name}</h3>
-                <span className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs tracking-[0.03em] text-content-muted">
-                  {surface.status}
-                </span>
-              </div>
-              <p className="text-content-secondary font-mono text-sm leading-relaxed">{surface.description}</p>
             </article>
           ))}
         </div>
-      </section>
+        <CommandList commands={workflowCommands} />
+        <p className={styles.docsFootnote} data-reading-copy>
+          Credential presence is part of the plan digest. Keep it unchanged between preflight and live execution. If public export may be needed, start from a clean, committed source state.
+        </p>
+      </DocsSection>
 
-      <section className="mb-16" aria-labelledby="interpretation">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="interpretation" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            Interpretation rules
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
+      <DocsSection index="05" id="what-exists" title="What exists today">
+        <div className={styles.docsRows}>
+          {currentSurfaces.map((surface) => (
+            <article key={surface.name}>
+              <div className={styles.docsSurfaceTitle}>
+                <h3>{surface.name}</h3>
+                <span>{surface.status}</span>
+              </div>
+              <p data-reading-copy>{surface.description}</p>
+            </article>
+          ))}
         </div>
-        <div className="glow-card rounded-xl p-5 md:p-6 space-y-3 text-content-secondary font-mono text-sm leading-relaxed">
-          <p>Scores summarize performance on the included prompts, scorer, models, and run settings. They do not prove general safety or reliability.</p>
-          <p>Provisional values are placeholders for policy exploration. Do not present them as benchmark results.</p>
-          <p>Do not convert an aggregate score into an access or routing decision.</p>
-          <p>A valid bundle digest shows that recorded files match the validator&apos;s expected bytes. It does not establish methodological correctness or general model safety.</p>
-          <p>No benchmark result authorizes tool access, write access, deployment, or autonomous operation.</p>
-        </div>
-      </section>
+      </DocsSection>
 
-      <section className="mb-8" aria-labelledby="next">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <h2 id="next" className="text-xs font-mono text-content-muted tracking-[0.04em] whitespace-nowrap">
-            Evidence state
-          </h2>
-          <div className="h-px flex-1 bg-[var(--border)]" />
+      <DocsSection index="06" id="interpretation" title="Interpretation rules">
+        <div className={styles.docsRules}>
+          <p data-reading-copy>Scores summarize performance on the included prompts, scorer, models, and run settings. They do not prove general safety or reliability.</p>
+          <p data-reading-copy>Provisional values are placeholders for policy exploration. Do not present them as benchmark results.</p>
+          <p data-reading-copy>Do not convert an aggregate score into an access or routing decision.</p>
+          <p data-reading-copy>A valid bundle digest shows that recorded files match the validator&apos;s expected bytes. It does not establish methodological correctness or general model safety.</p>
+          <p data-reading-copy>No benchmark result authorizes tool access, write access, deployment, or autonomous operation.</p>
         </div>
-        <div className="glow-card rounded-xl p-5 md:p-6">
-          <p className="text-content-secondary font-mono text-sm leading-relaxed">
-            The bundle lifecycle and schemas are implemented, and{' '}
-            <a className="text-content-primary underline underline-offset-4" href="/evidence/index.json">
-              public/evidence/index.json
-            </a>{' '}
-            lists the current maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. Each export remains non-authorizing. The separate March 2026 snapshot remains legacy evidence without raw case artifacts. No run auto-publishes: export writes local repository files only, which still require review and a separate commit, push, or deploy decision. Inspect the complete runner on{' '}
-            <a className="text-content-primary underline underline-offset-4" href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
-              GitHub
-            </a>
-            .
+      </DocsSection>
+
+      <DocsSection index="07" id="next" title="Evidence state">
+        <div className={styles.docsEvidenceNote}>
+          <p data-reading-copy>
+            The bundle lifecycle and schemas are implemented, and <a href="/evidence/index.json">public/evidence/index.json</a> lists the current maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. Each export remains non-authorizing. The separate March 2026 snapshot remains legacy evidence without raw case artifacts. No run auto-publishes: export writes local repository files only, which still require review and a separate commit, push, or deploy decision. Inspect the complete runner on <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">GitHub</a>.
           </p>
         </div>
-      </section>
+      </DocsSection>
     </main>
   );
 }

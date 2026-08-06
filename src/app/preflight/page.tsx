@@ -23,7 +23,7 @@ export default function PreflightPage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Planning workspace · Inbox pack · Browser local</p>
+              <p className={styles.eyebrow}>Planning workspace / Inbox pack / Browser local</p>
               <h1 id="preflight-title">Define the powers before you test them.</h1>
               <p>
                 Choose what an agent may read or change. Clawbotomy turns that intent into a
@@ -31,7 +31,7 @@ export default function PreflightPage() {
               </p>
             </div>
 
-            <aside className={styles.boundaryNotice} aria-label="Current planning boundary">
+            <div className={styles.boundaryNotice} role="note" aria-label="Current planning boundary">
               <div className={styles.boundaryTitle}>
                 <span>Current state</span>
                 <strong>Planning only</strong>
@@ -45,10 +45,10 @@ export default function PreflightPage() {
                 ))}
               </dl>
               <p>No deployed agent or module is loaded. No score. No permission decision. No authorization.</p>
-            </aside>
+            </div>
           </div>
         </div>
-        <div className={styles.truthStrip} aria-label="Preflight planner properties">
+        <div className={styles.truthStrip} role="group" aria-label="Preflight planner properties">
           <span>Plan data not uploaded</span>
           <span>No mailbox connected</span>
           <span>Operator intent recorded</span>

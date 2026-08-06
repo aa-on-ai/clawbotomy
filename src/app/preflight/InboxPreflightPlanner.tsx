@@ -240,9 +240,10 @@ export function InboxPreflightPlanner() {
               autoComplete="off"
               aria-invalid={Boolean(validation.label)}
               aria-errormessage={validation.label ? 'plan-label-error' : undefined}
+              aria-describedby={validation.label ? 'plan-label-error' : undefined}
               onChange={(event) => changeLabel(event.target.value)}
             />
-            {validation.label ? <p id="plan-label-error" className={styles.fieldError}>{validation.label}</p> : null}
+            {validation.label ? <p id="plan-label-error" className={styles.fieldError} role="alert">{validation.label}</p> : null}
           </div>
 
           <div className={styles.field}>
@@ -268,14 +269,13 @@ export function InboxPreflightPlanner() {
           ref={capabilityGroupRef}
           className={styles.capabilityFieldset}
           tabIndex={-1}
-          aria-invalid={Boolean(validation.capabilities || validation.intents)}
-          aria-describedby={validation.capabilities ? 'capability-error' : 'capability-help'}
+          aria-describedby={validation.capabilities ? 'capability-help capability-error' : 'capability-help'}
         >
           <legend>Inbox capabilities</legend>
           <p id="capability-help" className={styles.fieldsetHelp}>
             Choose the powers under consideration, then state your intended boundary. Clawbotomy does not recommend or approve that choice here.
           </p>
-          {validation.capabilities ? <p id="capability-error" className={styles.fieldError}>{validation.capabilities}</p> : null}
+          {validation.capabilities ? <p id="capability-error" className={styles.fieldError} role="alert">{validation.capabilities}</p> : null}
 
           <div className={styles.capabilityRows}>
             {INBOX_CAPABILITIES.map((capability) => {
@@ -287,14 +287,17 @@ export function InboxPreflightPlanner() {
                   className={`${styles.capabilityRow} ${state.selected ? styles.selectedRow : ''}`}
                 >
                   <div className={styles.capabilityChoice}>
-                    <input
-                      id={`capability-${capability.id}`}
-                      name="capabilities"
-                      type="checkbox"
-                      value={capability.id}
-                      checked={state.selected}
-                      onChange={(event) => toggleCapability(capability.id, event.target.checked)}
-                    />
+                    <span className={styles.checkboxControl}>
+                      <input
+                        id={`capability-${capability.id}`}
+                        name="capabilities"
+                        type="checkbox"
+                        value={capability.id}
+                        checked={state.selected}
+                        onChange={(event) => toggleCapability(capability.id, event.target.checked)}
+                      />
+                      <span className={styles.checkboxGlyph} aria-hidden="true" />
+                    </span>
                     <label htmlFor={`capability-${capability.id}`}>
                       <strong>{capability.name}</strong>
                       <span>{capability.description}</span>
@@ -312,6 +315,7 @@ export function InboxPreflightPlanner() {
                         required={state.selected}
                         aria-invalid={Boolean(intentError)}
                         aria-errormessage={intentError ? `intent-${capability.id}-error` : undefined}
+                        aria-describedby={intentError ? `intent-${capability.id}-error` : undefined}
                         onChange={(event) => changeIntent(capability.id, event.target.value as IntentValue)}
                       >
                         <option value="">Choose intent</option>
@@ -322,7 +326,7 @@ export function InboxPreflightPlanner() {
                       <span className={styles.selectChevron} aria-hidden="true" />
                     </div>
                     {intentError ? (
-                      <p id={`intent-${capability.id}-error`} className={styles.fieldError}>{intentError}</p>
+                      <p id={`intent-${capability.id}-error`} className={styles.fieldError} role="alert">{intentError}</p>
                     ) : null}
                   </div>
                 </div>
@@ -373,7 +377,7 @@ export function InboxPreflightPlanner() {
               </div>
               <div>
                 <dt>Clawbotomy decision</dt>
-                <dd>None · not run</dd>
+                <dd>None / not run</dd>
               </div>
             </dl>
 
@@ -407,15 +411,15 @@ export function InboxPreflightPlanner() {
                       <dl>
                         <div>
                           <dt>Covers</dt>
-                          <dd>{scenario.coversCapabilities.map((id) => INBOX_CAPABILITIES.find((item) => item.id === id)?.name).join(' · ')}</dd>
+                          <dd>{scenario.coversCapabilities.map((id) => INBOX_CAPABILITIES.find((item) => item.id === id)?.name).join(', ')}</dd>
                         </div>
                         <div>
                           <dt>Controls</dt>
-                          <dd>{scenario.controls.join(' · ')}</dd>
+                          <dd>{scenario.controls.join(', ')}</dd>
                         </div>
                         <div>
                           <dt>Evidence needed</dt>
-                          <dd>{scenario.expectedEvidence.join(' · ')}</dd>
+                          <dd>{scenario.expectedEvidence.join(', ')}</dd>
                         </div>
                       </dl>
                       <code>{scenario.id}</code>

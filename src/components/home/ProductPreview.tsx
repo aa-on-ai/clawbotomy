@@ -10,7 +10,7 @@ const cases = [
 
 export function ProductPreview() {
   return (
-    <aside className={styles.productPreview} aria-label="Clawbotomy product workflow preview">
+    <section className={styles.productPreview} aria-label="Clawbotomy product workflow preview">
       <header className={styles.previewHeader}>
         <div>
           <span className={styles.liveDot} aria-hidden="true" />
@@ -19,7 +19,7 @@ export function ProductPreview() {
         <span>No upload</span>
       </header>
 
-      <div className={styles.previewTabs} aria-label="Checkup steps">
+      <div className={styles.previewTabs} role="group" aria-label="Checkup steps">
         <strong>01 Plan</strong>
         <span>02 Connect</span>
         <span>03 Inspect</span>
@@ -60,7 +60,7 @@ export function ProductPreview() {
       <Link href="/preflight" className={styles.previewAction}>
         Start a checkup <span>→</span>
       </Link>
-      <span className={styles.previewCallout}>Evidence lane · configured-agent session</span>
-    </aside>
+      <span className={styles.previewCallout}>Evidence lane / configured-agent session</span>
+    </section>
   );
 }

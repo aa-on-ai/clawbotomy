@@ -40,7 +40,7 @@ export function ResultBreakdown() {
           <p>{totals.failedCases} of {totals.completedCases} completed cases produced findings.</p>
         </div>
 
-        <div className={styles.resultBar} aria-label={`${totals.passedCases} passed cases and ${totals.failedCases} cases with findings`}>
+        <div className={styles.resultBar} role="img" aria-label={`${totals.passedCases} passed cases and ${totals.failedCases} cases with findings`}>
           <span style={{ width: `${(totals.passedCases / totals.completedCases) * 100}%` }} />
           <strong style={{ width: `${(totals.failedCases / totals.completedCases) * 100}%` }} />
         </div>
@@ -57,7 +57,7 @@ export function ResultBreakdown() {
           <div><span>authorizationStatus</span><code>&quot;non-authorizing&quot;</code></div>
           <div><span><i>03</i> permissionDecision</span><code>null</code></div>
         </div>
-        <footer>Evidence lane · configured-agent session · Private case evidence not published</footer>
+        <footer>Evidence lane / configured-agent session / Private case evidence not published</footer>
       </article>
 
       <ol className={styles.annotationList}>

@@ -8,6 +8,7 @@ import { buildEvidenceComparisons } from '@/lib/evidence-comparison';
 import { loadPublicEvidenceIndex, loadPublicEvidenceRun } from '@/lib/public-evidence.server';
 import { benchDatasetJsonLd, serializeJsonLd } from '@/lib/structured-data';
 
+import { ArchiveDisclosure } from './ArchiveDisclosure';
 import styles from './bench.module.css';
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ export default function BenchPage() {
 
       <header className={styles.header}>
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
+          <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
           <div className={styles.headerGrid}>
             <h1>Evidence follows the runtime you actually operate.</h1>
             <p>
@@ -77,7 +78,7 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane · Configured-agent session</p>
+              <p className={styles.eyebrowSignal}>Evidence lane / Configured-agent session</p>
               <h2 id="configured-title">The receipt ends in a decision.</h2>
             </div>
             <p>
@@ -86,7 +87,7 @@ export default function BenchPage() {
             </p>
           </div>
 
-          <div className={styles.evidenceQuestionSplit} aria-label="Evidence types">
+          <div className={styles.evidenceQuestionSplit} role="group" aria-label="Evidence types">
             <div>
               <span>Current product</span>
               <strong>Observes one configured-agent session</strong>
@@ -123,7 +124,10 @@ export default function BenchPage() {
               <div><span>Not supported</span><p>{configured.disallowedClaim}</p></div>
             </div>
             <footer>
-              <span>{configured.boundary}</span>
+              <div className={styles.claimBoundary}>
+                <span>Claim boundary</span>
+                <p>{configured.boundary}</p>
+              </div>
               <div>
                 <Link href="/preflight">Start a checkup →</Link>
                 <Link href="/evaluate">Open the local viewer →</Link>
@@ -133,13 +137,25 @@ export default function BenchPage() {
         </div>
       </section>
 
-      <details className={styles.archiveDisclosure}>
-        <summary>
-          <span>Model benchmark archive</span>
-          <strong>{runs.length} published artifacts · {comparisons.length} comparable pairs · legacy March 2026 snapshot</strong>
-          <p>Open the maintainer-reported model benchmark artifacts, bounded Qwen comparison, schemas, and separate legacy snapshot.</p>
-        </summary>
+      <ArchiveDisclosure meta={`${runs.length} published artifacts / ${comparisons.length} comparable pairs / legacy March 2026 snapshot`}>
         <div className={styles.archiveBody}>
+
+      <section className={styles.archiveOrientation} aria-labelledby="archive-orientation-title">
+        <div className={styles.rail}>
+          <p className={styles.eyebrowSignal}>Historical evidence lane</p>
+          <div className={styles.archiveOrientationGrid}>
+            <h2 id="archive-orientation-title">Useful history, not the current product claim.</h2>
+            <p>
+              The configured-agent receipt above is the evidence Clawbotomy is built around now. This archive contains maintainer-reported model benchmark artifacts so older model work can be inspected without being mistaken for agent behavior, routing guidance, or authorization.
+            </p>
+          </div>
+          <dl className={styles.archiveGuide}>
+            <div><dt>Why it remains</dt><dd>Preserved artifacts and methodology history</dd></div>
+            <div><dt>What it can show</dt><dd>Bounded observations from frozen model runs</dd></div>
+            <div><dt>What it cannot show</dt><dd>How your configured agent will behave</dd></div>
+          </dl>
+        </div>
+      </section>
 
       {comparison && (
         <section
@@ -150,8 +166,8 @@ export default function BenchPage() {
           <div className={styles.rail}>
             <div className={styles.sectionHeading}>
               <div>
-                <p className={styles.eyebrowSignal}>Comparable artifact pair</p>
-                <h2 id="comparison-title">Same prompts. Two Qwen sizes.</h2>
+                <p className={styles.eyebrowSignal}>Historical comparable artifact pair</p>
+                <h2 id="comparison-title">A bounded Qwen size comparison.</h2>
               </div>
               <p>
                 Both artifacts clear the repeat count, coverage, scoring, artifact-disclosure,
@@ -162,7 +178,7 @@ export default function BenchPage() {
             <article className={styles.comparisonCard}>
               <div className={styles.comparisonLead}>
                 <div>
-                  <p className={styles.comparisonKicker}>{comparison.category} · {comparison.caseCount} prompts · {comparison.runsPerCase} repeats</p>
+                  <p className={styles.comparisonKicker}>{comparison.category} / {comparison.caseCount} prompts / {comparison.runsPerCase} repeats</p>
                   <h3>
                     {comparison.higherMeanSubject
                       ? `${comparison.higherMeanSubject.modelLabel} had the higher observed mean by ${comparison.meanDelta.toFixed(2)} points.`
@@ -192,7 +208,7 @@ export default function BenchPage() {
                 ))}
               </div>
 
-              <div className={styles.caseComparison} aria-label="Prompt-level mean scores">
+              <div className={styles.caseComparison} role="group" aria-label="Prompt-level mean scores">
                 <div className={styles.caseComparisonHeader} aria-hidden="true">
                   <span>Prompt</span>
                   {comparison.subjects.map((subject) => <span key={subject.runId}>{subject.modelLabel}</span>)}
@@ -223,8 +239,8 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane · Model benchmark observations</p>
-              <h2 id="registry-title">Evidence available now</h2>
+              <p className={styles.eyebrowSignal}>Evidence lane / Model benchmark observations</p>
+              <h2 id="registry-title">Published artifact index</h2>
             </div>
             <p>Each artifact has a public manifest and case file accepted by the checked-in artifact validator. Integrity is not a signature, provider attestation, or methodology verdict.</p>
           </div>
@@ -252,7 +268,7 @@ export default function BenchPage() {
                   <span>{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <h3>{run.runId}</h3>
-                    <p>{run.measurementStatus} · {artifactDisclosureLabel(run.reproducibilityStatus)} · {run.reviewStatus}</p>
+                    <p>{run.measurementStatus} / {artifactDisclosureLabel(run.reproducibilityStatus)} / {run.reviewStatus}</p>
                   </div>
                   <time dateTime={run.completedAt}>{run.completedAt.slice(0, 10)}</time>
                   <Link href={`/bench/runs/${run.runId}`}>Inspect run →</Link>
@@ -267,14 +283,14 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.legacyHeader}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane · legacy model benchmark snapshot · {lastUpdated}</p>
-              <h2 id="legacy-title">Maintainer-reported summary</h2>
+              <p className={styles.eyebrowSignal}>Evidence lane / legacy model benchmark snapshot / {lastUpdated}</p>
+              <h2 id="legacy-title">Legacy benchmark snapshot</h2>
             </div>
-            <div className={styles.statuses} aria-label="Legacy evidence status">
-              <span>Low confidence</span>
-              <span>{legacyRuns} runs</span>
-              <span>Raw cases unavailable</span>
-            </div>
+            <dl className={styles.legacyStatus} aria-label="Legacy evidence status">
+              <div><dt>Confidence</dt><dd>Low</dd></div>
+              <div><dt>Recorded runs</dt><dd>{legacyRuns}</dd></div>
+              <div><dt>Raw cases</dt><dd>Unavailable</dd></div>
+            </dl>
           </div>
 
           <p className={styles.legacyIntro}>
@@ -342,7 +358,7 @@ export default function BenchPage() {
         </div>
       </section>
         </div>
-      </details>
+      </ArchiveDisclosure>
     </main>
   );
 }

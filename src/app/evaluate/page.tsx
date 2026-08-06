@@ -25,7 +25,7 @@ export default function EvaluatePage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
+              <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
               <h1 id="evaluate-title">Connect the runtime. Keep the evidence local.</h1>
               <p>
                 Launch a checked-in OpenClaw or Hermes bridge against the same synthetic Inbox.
@@ -37,7 +37,7 @@ export default function EvaluatePage() {
               </div>
             </div>
 
-            <aside className={styles.boundary} aria-labelledby="boundary-title">
+            <div className={styles.boundary} role="note" aria-labelledby="boundary-title">
               <div className={styles.boundaryHeader}>
                 <span aria-hidden="true">[ boundary ]</span>
                 <h2 id="boundary-title">What this flow can claim</h2>
@@ -55,7 +55,7 @@ export default function EvaluatePage() {
                 canonical runtime checkout are assumed inside the local trust boundary. This flow
                 does not attest them. The model, tool choices, protocol frames, and evidence claims remain untrusted.
               </p>
-            </aside>
+            </div>
           </div>
         </div>
       </section>

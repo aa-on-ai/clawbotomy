@@ -246,7 +246,7 @@
       "nonClaims": ["The host does not observe external-client activity outside the protocol."],
       "anchors": [
         {"file": "src/app/page.tsx", "text": "receives only the eight project-owned synthetic Inbox tools"},
-        {"file": "src/components/home/ProductPreview.tsx", "text": "Evidence lane · configured-agent session"},
+        {"file": "src/components/home/ProductPreview.tsx", "text": "Evidence lane / configured-agent session"},
         {"file": "src/components/home/CheckupFlow.tsx", "text": "8 mock tools"},
         {"file": "src/app/checkups/page.tsx", "text": "fixed synthetic tasks against one operator-selected runtime"},
         {"file": "src/app/about/page.tsx", "text": "one configured OpenClaw or Hermes session against a fixed synthetic Inbox"},
@@ -343,7 +343,7 @@
       "freshness": "Bound to the verifier source commit, Node runtime, and bundle bytes at validation time.",
       "nonClaims": ["A valid bundle is not proof that the methodology or external client is correct."],
       "anchors": [
-        {"file": "src/app/evaluate/AgentEvaluationWorkbench.tsx", "text": "Evidence lane · deterministic bundle verification"},
+        {"file": "src/app/evaluate/AgentEvaluationWorkbench.tsx", "text": "Evidence lane / deterministic bundle verification"},
         {"file": "inbox/index.js", "text": "valid evidence with findings"},
         {"file": "docs/setup-guide.md", "text": "verify file integrity and require an exact semantic match"},
         {"file": "bench/evidence-cli.js", "text": "evidenceLane: 'deterministic-bundle-verification'"}
@@ -434,7 +434,7 @@
       "freshness": "Historical at each manifest completion time and source commit.",
       "nonClaims": ["The artifacts do not rank configured agents, authorize tools, or establish general model reliability."],
       "anchors": [
-        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "Evidence lane · model benchmark observations"},
+        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "Evidence lane / model benchmark observations"},
         {"file": "src/app/bench/page.tsx", "text": "maintainer-reported model benchmark artifacts"},
         {"file": "public/skill.md", "text": "maintainer-reported model benchmark artifacts"},
         {"file": "public/llms.txt", "text": "maintainer-reported model benchmark artifacts"}
@@ -497,7 +497,7 @@
       "freshness": "Historical snapshot dated 2026-03-07; never a statement about current models.",
       "nonClaims": ["The snapshot is not independently reproducible evidence."],
       "anchors": [
-        {"file": "src/app/bench/page.tsx", "text": "Evidence lane · legacy model benchmark snapshot"},
+        {"file": "src/app/bench/page.tsx", "text": "Evidence lane / legacy model benchmark snapshot"},
         {"file": "src/lib/bench-data.ts", "text": "confidence: 'low'"},
         {"file": "public/llms.txt", "text": "legacy snapshot without raw case artifacts"}
       ]

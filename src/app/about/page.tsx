@@ -8,31 +8,41 @@ export const metadata: Metadata = {
     'How Clawbotomy observes one configured AI agent session against a synthetic Inbox without turning evidence into authorization.',
 };
 
+const methodSteps = [
+  {
+    index: '01',
+    title: 'Freeze the plan',
+    copy: 'Name the intended powers, runtime, fixed cases, and approval boundary before the agent runs.',
+  },
+  {
+    index: '02',
+    title: 'Observe the run',
+    copy: 'Record tool attempts, synthetic state changes, checked assertions, and infrastructure failures from one configured session.',
+  },
+  {
+    index: '03',
+    title: 'Keep the decision human',
+    copy: 'Turn the bounded receipt into a review input without treating one observation as certification or authorization.',
+  },
+];
+
 const observations = [
-  'which fixed mock tools the agent attempted',
-  'which synthetic Inbox state changes actually happened',
-  'which checked-in assertions passed or failed',
-  'whether the run completed or the test infrastructure failed',
+  'Fixed mock tools the agent attempted',
+  'Synthetic Inbox state changes that actually happened',
+  'Checked-in assertions that passed or failed',
+  'Whether the run completed or the test infrastructure failed',
 ];
 
 const boundaries = [
-  'No real mailbox is connected.',
-  'Private receipts are selected and inspected in the browser.',
-  'One checkup describes one observed session.',
-  'Clawbotomy makes no permission or deployment decision.',
+  'No real mailbox is connected',
+  'Private receipts stay local to the operator',
+  'One checkup describes one observed session',
+  'Permission and deployment decisions remain human',
 ];
-
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className={styles.sectionDivider}>
-      <h2>{label}</h2>
-    </div>
-  );
-}
 
 export default function AboutPage() {
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${styles.pageWide} ${styles.methodPage}`}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>Method</p>
@@ -43,68 +53,65 @@ export default function AboutPage() {
         </p>
       </header>
 
-      <section className="mb-16">
-        <SectionDivider label="Why it changed" />
-        <div className="space-y-4 text-content-secondary text-sm leading-relaxed">
-          <p>
-            Clawbotomy started as model stress tests. That work could describe how a model answered a prompt, but it could not show what a configured runtime did once tools, state, and a full agent loop were involved.
-          </p>
-          <p>
-            The current checkup follows one configured session instead. It keeps the result tied to that exact plan, self-asserted client identity, bridge, and evidence bundle.
-          </p>
+      <section className={styles.methodSection} aria-labelledby="method-loop-title">
+        <div className={styles.methodSectionHeading}>
+          <p>How it works</p>
+          <div>
+            <h2 id="method-loop-title">A small loop with a hard boundary.</h2>
+            <p>The method keeps observation, interpretation, and authority separate from the start.</p>
+          </div>
+        </div>
+        <div className={styles.methodSteps}>
+          {methodSteps.map((step) => (
+            <article key={step.index}>
+              <span>{step.index}</span>
+              <h3>{step.title}</h3>
+              <p>{step.copy}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="mb-16">
-        <SectionDivider label="What a checkup observes" />
-        <ul className="space-y-3 text-content-secondary text-sm leading-relaxed list-disc pl-5">
-          {observations.map((observation) => <li key={observation}>{observation}</li>)}
-        </ul>
+      <section className={styles.methodSplit} aria-label="Observation and boundary">
+        <article>
+          <p className={styles.methodLabel}>What a checkup observes</p>
+          <h2>Evidence tied to what happened.</h2>
+          <div className={styles.methodRows}>
+            {observations.map((observation, index) => (
+              <div key={observation}><span>{String(index + 1).padStart(2, '0')}</span><p>{observation}</p></div>
+            ))}
+          </div>
+        </article>
+        <article>
+          <p className={styles.methodLabel}>What stays outside</p>
+          <h2>A receipt that cannot grant power.</h2>
+          <div className={styles.methodRows}>
+            {boundaries.map((boundary, index) => (
+              <div key={boundary}><span>{String(index + 1).padStart(2, '0')}</span><p>{boundary}</p></div>
+            ))}
+          </div>
+        </article>
       </section>
 
-      <section className="mb-16">
-        <SectionDivider label="The boundary" />
-        <ul className="space-y-3 text-content-secondary text-sm leading-relaxed list-disc pl-5">
-          {boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}
-        </ul>
-        <p className="mt-6 text-content-muted text-xs leading-relaxed">
-          A passing run is evidence from one fixture. It is not certification, proof of repeatability, or permission to give the agent more access.
-        </p>
-      </section>
+      <div className={styles.methodPrinciple} role="note">
+        <p>One run can tell you what happened.</p>
+        <strong>It cannot authorize what happens next.</strong>
+      </div>
 
-      <section className="mb-16">
-        <SectionDivider label="Open source" />
-        <div className="space-y-4 text-content-secondary text-sm leading-relaxed">
-          <p>
-            The runner, fixed protocol, OpenClaw and Hermes bridges, evidence schemas, and validation tests are available on GitHub under the MIT License.
-          </p>
-          <p>
-            <a
-              href="https://github.com/aa-on-ai/clawbotomy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-content-primary hover:text-white transition-colors"
-            >
-              Inspect the source on GitHub
-            </a>
-          </p>
+      <section className={styles.sourceSection} aria-labelledby="source-title">
+        <div>
+          <p className={styles.methodLabel}>Open source</p>
+          <h2 id="source-title">Inspect the method, not just the claim.</h2>
         </div>
-      </section>
-
-      <section className="mb-16">
-        <SectionDivider label="Who made this" />
-        <p className="text-content-secondary text-sm leading-relaxed">
-          Built by{' '}
-          <a
-            href="https://x.com/aa_on_ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-content-primary hover:text-white transition-colors"
-          >
-            Aaron Thomas
+        <div>
+          <p>
+            The runner, fixed protocol, OpenClaw and Hermes bridges, evidence schemas, and validation tests are available under the MIT License.
+          </p>
+          <a href="https://github.com/aa-on-ai/clawbotomy" target="_blank" rel="noopener noreferrer">
+            Inspect the source on GitHub ↗
           </a>
-          .
-        </p>
+          <p className={styles.byline}>Built by <a href="https://x.com/aa_on_ai" target="_blank" rel="noopener noreferrer">Aaron Thomas</a>.</p>
+        </div>
       </section>
     </main>
   );

@@ -205,10 +205,10 @@
 .heroNote {
   max-width: 470px;
   margin: 20px 0 0;
-  color: color-mix(in srgb, var(--cb-ink) 64%, transparent);
+  color: color-mix(in srgb, var(--cb-ink) 82%, transparent);
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .heroNote a,
@@ -346,8 +346,8 @@
 }
 
 .runtimeOptions strong {
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
 }
 
 .runtimeOptions i {
@@ -465,9 +465,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
-  border: 1px solid var(--cb-ink);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
+  border: 1px solid var(--cb-signal-strong);
   box-shadow: var(--cb-button-shadow-signal);
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
@@ -482,7 +482,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .previewAction:hover {
-    background: color-mix(in srgb, var(--cb-signal) 88%, white);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong-hover);
     transform: translateY(-2px);
   }
 }
@@ -536,7 +537,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-align: center;
   border-right: 1px solid var(--cb-border-dark);
@@ -627,8 +628,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
   border-radius: 50%;
   font-family: var(--font-geist-mono), monospace;
   font-size: 11px;
@@ -672,23 +673,17 @@
   margin-top: 32px;
   padding: 20px 0;
   display: grid;
-  grid-template-columns: 46px minmax(120px, 0.35fr) minmax(260px, 1fr);
+  grid-template-columns: minmax(150px, 0.35fr) minmax(260px, 1fr);
   gap: 22px;
   align-items: center;
-  border-block: 1px dashed color-mix(in srgb, var(--cb-signal) 48%, transparent);
+  border-block: 1px solid var(--cb-border-dark);
 }
 
-.disconnected > div {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.disconnected > span {
   color: var(--cb-signal);
-  border: 1px solid currentColor;
-  border-radius: 50%;
   font-family: var(--font-geist-mono), monospace;
-  font-size: 18px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .disconnected strong {
@@ -764,8 +759,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
   border-radius: 50%;
   font-family: var(--font-geist-mono), monospace;
   font-size: 9px;
@@ -902,8 +897,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
   border-radius: 50%;
   font-family: var(--font-geist-mono), monospace;
   font-size: 10px;
@@ -1217,11 +1212,8 @@
 
   .disconnected {
     margin-top: 26px;
-    grid-template-columns: 44px minmax(0, 1fr);
-  }
-
-  .disconnected strong {
-    grid-column: 2;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .resultCard {

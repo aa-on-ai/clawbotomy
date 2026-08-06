@@ -485,16 +485,44 @@
   display: none;
 }
 
-.launchDetailsToggle::after,
-.statusGuide > summary::after {
-  content: '+';
+.launchDetailsIndicator,
+.statusGuideIndicator {
   position: absolute;
+  top: 50%;
   right: 22px;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+  pointer-events: none;
+  transform: translateY(-50%);
   transition:
     color var(--cb-motion-fast) ease,
     transform var(--cb-motion-fast) var(--cb-ease-out);
+}
+
+.launchDetailsIndicator::before,
+.launchDetailsIndicator::after,
+.statusGuideIndicator::before,
+.statusGuideIndicator::after {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: 5px;
+  width: 14px;
+  height: 2px;
+  background: currentColor;
+  transition: opacity var(--cb-motion-fast) ease, transform var(--cb-motion-fast) var(--cb-ease-out);
+}
+
+.launchDetailsIndicator::after,
+.statusGuideIndicator::after {
+  transform: rotate(90deg);
+}
+
+.launchDetailsOpen .launchDetailsIndicator::after,
+.statusGuide[open] .statusGuideIndicator::after {
+  opacity: 0;
+  transform: rotate(0deg);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -503,24 +531,19 @@
     background: var(--cb-ink-raised);
   }
 
-  .launchDetailsToggle:hover::after,
-  .statusGuide > summary:hover::after {
-    transform: rotate(90deg);
+  .launchDetailsToggle:hover .launchDetailsIndicator,
+  .statusGuide > summary:hover .statusGuideIndicator {
+    transform: translateY(-50%) scale(1.08);
   }
 }
 
-.launchDetailsOpen .launchDetailsToggle::after,
-.statusGuide[open] > summary::after {
-  content: '−';
-}
-
 .launchDetailsToggle strong,
-.launchDetailsToggle span {
+.launchDetailsMeta {
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
 }
 
-.launchDetailsToggle span {
+.launchDetailsMeta {
   color: var(--cb-bone-dim);
 }
 
@@ -564,18 +587,11 @@
 }
 
 .prerequisites li {
-  position: relative;
-  padding-left: 22px;
+  padding: 12px 0;
   color: var(--cb-bone-muted);
   font-size: 14px;
   line-height: 1.55;
-}
-
-.prerequisites li::before {
-  content: '—';
-  position: absolute;
-  left: 0;
-  color: var(--cb-signal);
+  border-top: 1px solid var(--cb-border-dark);
 }
 
 .prerequisites > p {
@@ -680,6 +696,10 @@
   transition:
     color var(--cb-motion-fast) ease,
     background-color var(--cb-motion-fast) ease;
+}
+
+.statusGuideHeader h3 {
+  min-width: 0;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1752,12 +1772,14 @@
 }
 
 .caseStudy header strong {
+  max-width: 100%;
   padding: 8px 10px;
   color: var(--cb-bone-muted);
   border: 1px solid var(--cb-border-dark);
   font-family: var(--font-geist-mono), monospace;
   font-size: 10px;
-  white-space: nowrap;
+  line-height: 1.5;
+  white-space: normal;
 }
 
 .caseStudyDecision {
@@ -2097,7 +2119,12 @@
     padding-top: 0;
   }
 
-  .statusGuideHeader,
+  .statusGuideHeader {
+    padding: 18px 64px 18px 0;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .compareEmpty {
     padding: 18px 0;
     align-items: flex-start;
@@ -2240,6 +2267,43 @@
     align-self: flex-start;
   }
 
+  .launchDetailsToggle {
+    min-height: 84px;
+    padding: 16px 58px 16px 18px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .launchDetailsToggle strong {
+    max-width: 100%;
+    line-height: 1.45;
+  }
+
+  .launchDetailsIndicator {
+    right: 18px;
+  }
+
+  .statusGuideHeader {
+    min-height: 92px;
+    padding: 18px 58px 18px 0;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .statusGuideHeader h3 {
+    max-width: 100%;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .statusGuideIndicator {
+    right: 18px;
+  }
+
   .commandBlock > div {
     padding: 14px 16px;
     align-items: flex-start;
@@ -2300,10 +2364,10 @@
   .adapterSelector label,
   .adapterSelector > p a,
   .launchDetailsToggle,
-  .launchDetailsToggle::after,
+  .launchDetailsIndicator,
   .launchDetailsContent,
   .statusGuide > summary,
-  .statusGuide > summary::after,
+  .statusGuideIndicator,
   .commandBlock button,
   .fileButton,
   .exampleLink,
@@ -2320,8 +2384,8 @@
   .commandBlock button:hover,
   .commandBlock button:active,
   .adapterSelector > p a:hover,
-  .launchDetailsToggle:hover::after,
-  .statusGuide > summary:hover::after,
+  .launchDetailsToggle:hover .launchDetailsIndicator,
+  .statusGuide > summary:hover .statusGuideIndicator,
   .exampleLink:hover,
   .compareEmpty a:hover,
   .limitationsLayout a:hover,

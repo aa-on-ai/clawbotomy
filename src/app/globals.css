@@ -9,6 +9,9 @@
   --cb-bone-muted: oklch(0.82 0.015 82);
   --cb-bone-dim: oklch(0.65 0.012 78);
   --cb-signal: oklch(0.6329 0.2075 31.49);
+  --cb-signal-strong: #b23a2b;
+  --cb-signal-strong-hover: #c0442f;
+  --cb-on-signal: var(--cb-bone);
   --cb-danger: oklch(0.52 0.17 29);
   --cb-measured: #6b8c5a;
   --cb-research: #4e3a57;
@@ -151,6 +154,10 @@ body::after {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+:where(ul, ol) {
+  list-style: none;
 }
 
 :where(
@@ -1175,10 +1182,9 @@ img {
   transform: translateY(-2px);
 }
 
-.footer-links a:not(:last-child)::after {
-  content: '·';
-  margin-left: 10px;
-  color: var(--text-tertiary);
+.footer-links a:not(:last-child) {
+  padding-right: 10px;
+  border-right: 1px solid var(--border);
 }
 
 .cta-kicker {

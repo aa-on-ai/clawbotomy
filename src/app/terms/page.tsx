@@ -9,7 +9,7 @@ export default function TermsPage() {
     <main className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>Open-source software · Non-authorizing</p>
+          <p className={styles.kicker}>Open-source software / Non-authorizing</p>
           <h1 className={styles.title}>Terms of Use</h1>
         </div>
         <p className={styles.lede}>
@@ -30,7 +30,7 @@ export default function TermsPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">Data & Privacy</h2>
-          <ul className="text-content-secondary space-y-2 list-disc list-inside">
+          <ul className={styles.policyRows}>
             <li>The public site displays maintainer-published benchmark evidence</li>
             <li>The Inbox planner runs in your browser and does not upload, persist, or transmit its form data</li>
             <li>Selected private evidence is parsed in the browser and is not uploaded; the site creates no user or agent accounts</li>

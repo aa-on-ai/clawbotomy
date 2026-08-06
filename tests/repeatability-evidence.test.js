@@ -57,7 +57,8 @@ test('repeated-run interpretation stays descriptive and groups raw repeats by ca
   assert.match(source, /data-evidence-case-group/);
   assert.match(source, /groupEvidenceRecords\(records\)/);
   assert.match(source, /Inspect repeat \$\{repeatIndex \+ 1\} evidence/);
-  assert.match(source, /runsPerCase > 1 \? 'Every case and repeat'/);
+  assert.match(source, /<EvidenceCaseDisclosure/);
+  assert.match(source, /Review a case, then open its repeats only when needed/);
   assert.match(styles, /\.repeatList/);
   assert.match(styles, /\.repeatHeader/);
   assert.doesNotMatch(source, /support(?:s|ing)? within-model repeatability/);

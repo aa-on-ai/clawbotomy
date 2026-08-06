@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className={styles.footer} aria-label="Site footer">
       <div className={styles.footerInner}>
         <div className={styles.footerStatement}>
-          <span>Clawbotomy · Configured-agent behavior checkups</span>
+          <span>Clawbotomy / Configured-agent behavior checkups</span>
           <strong>Observe the runtime. Then decide what changes.</strong>
         </div>
         <div className={styles.footerMeta}>
