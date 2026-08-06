@@ -84,10 +84,10 @@ test('evidence lane labels remain visibly distinct on the public surfaces', () =
 
   assert.match(read('src/app/docs/page.tsx'), /synthetic-reference-control/);
   assert.match(read('src/app/page.tsx'), /Configured-agent session evidence/);
-  assert.match(read('src/app/evaluate/AgentEvaluationWorkbench.tsx'), /Evidence lane · deterministic bundle verification/);
+  assert.match(read('src/app/evaluate/AgentEvaluationWorkbench.tsx'), /Evidence lane \/ deterministic bundle verification/);
   assert.match(read('src/app/docs/page.tsx'), /Exact-pin runtime compatibility/);
-  assert.match(read('src/app/bench/runs/[runId]/page.tsx'), /Evidence lane · model benchmark observations/);
-  assert.match(read('src/app/bench/page.tsx'), /Evidence lane · legacy model benchmark snapshot/);
+  assert.match(read('src/app/bench/runs/[runId]/page.tsx'), /Evidence lane \/ model benchmark observations/);
+  assert.match(read('src/app/bench/page.tsx'), /Evidence lane \/ legacy model benchmark snapshot/);
 });
 
 test('status language has one registry source across session and compatibility outputs', async () => {

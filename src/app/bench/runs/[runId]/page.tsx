@@ -177,7 +177,7 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
       <header className={styles.hero}>
         <div className={styles.rail}>
           <Link href="/bench" className={styles.backLink}>← Evidence registry</Link>
-          <p className={styles.eyebrow}>Evidence lane · model benchmark observations</p>
+          <p className={styles.eyebrow}>Evidence lane / model benchmark observations</p>
           <div className={styles.heroGrid}>
             <div>
               <h1>{text(model.alias, models[0] || runId)}</h1>
@@ -371,7 +371,7 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
         <div className={styles.rail}>
           <div className={styles.provenanceGrid}>
             <div>
-              <p className={styles.eyebrow}>Evidence lane · deterministic bundle verification</p>
+              <p className={styles.eyebrow}>Evidence lane / deterministic bundle verification</p>
               <h2 id="provenance-title">Check internal bundle consistency directly.</h2>
               <p>Integrity shows whether the recorded files match their checked-in digest under this validator. It is not a signature, provider or runtime attestation, client authentication, or proof that the methodology is correct.</p>
             </div>

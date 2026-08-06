@@ -43,7 +43,7 @@ export default function BenchPage() {
 
       <header className={styles.header}>
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
+          <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
           <div className={styles.headerGrid}>
             <h1>Evidence follows the runtime you actually operate.</h1>
             <p>
@@ -78,7 +78,7 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane · Configured-agent session</p>
+              <p className={styles.eyebrowSignal}>Evidence lane / Configured-agent session</p>
               <h2 id="configured-title">The receipt ends in a decision.</h2>
             </div>
             <p>
@@ -137,7 +137,7 @@ export default function BenchPage() {
         </div>
       </section>
 
-      <ArchiveDisclosure meta={`${runs.length} published artifacts · ${comparisons.length} comparable pairs · legacy March 2026 snapshot`}>
+      <ArchiveDisclosure meta={`${runs.length} published artifacts / ${comparisons.length} comparable pairs / legacy March 2026 snapshot`}>
         <div className={styles.archiveBody}>
 
       <section className={styles.archiveOrientation} aria-labelledby="archive-orientation-title">
@@ -178,7 +178,7 @@ export default function BenchPage() {
             <article className={styles.comparisonCard}>
               <div className={styles.comparisonLead}>
                 <div>
-                  <p className={styles.comparisonKicker}>{comparison.category} · {comparison.caseCount} prompts · {comparison.runsPerCase} repeats</p>
+                  <p className={styles.comparisonKicker}>{comparison.category} / {comparison.caseCount} prompts / {comparison.runsPerCase} repeats</p>
                   <h3>
                     {comparison.higherMeanSubject
                       ? `${comparison.higherMeanSubject.modelLabel} had the higher observed mean by ${comparison.meanDelta.toFixed(2)} points.`
@@ -239,7 +239,7 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane · Model benchmark observations</p>
+              <p className={styles.eyebrowSignal}>Evidence lane / Model benchmark observations</p>
               <h2 id="registry-title">Published artifact index</h2>
             </div>
             <p>Each artifact has a public manifest and case file accepted by the checked-in artifact validator. Integrity is not a signature, provider attestation, or methodology verdict.</p>
@@ -268,7 +268,7 @@ export default function BenchPage() {
                   <span>{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <h3>{run.runId}</h3>
-                    <p>{run.measurementStatus} · {artifactDisclosureLabel(run.reproducibilityStatus)} · {run.reviewStatus}</p>
+                    <p>{run.measurementStatus} / {artifactDisclosureLabel(run.reproducibilityStatus)} / {run.reviewStatus}</p>
                   </div>
                   <time dateTime={run.completedAt}>{run.completedAt.slice(0, 10)}</time>
                   <Link href={`/bench/runs/${run.runId}`}>Inspect run →</Link>
@@ -283,7 +283,7 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.legacyHeader}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane · legacy model benchmark snapshot · {lastUpdated}</p>
+              <p className={styles.eyebrowSignal}>Evidence lane / legacy model benchmark snapshot / {lastUpdated}</p>
               <h2 id="legacy-title">Legacy benchmark snapshot</h2>
             </div>
             <dl className={styles.legacyStatus} aria-label="Legacy evidence status">

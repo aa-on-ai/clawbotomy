@@ -57,7 +57,7 @@ export function ResultBreakdown() {
           <div><span>authorizationStatus</span><code>&quot;non-authorizing&quot;</code></div>
           <div><span><i>03</i> permissionDecision</span><code>null</code></div>
         </div>
-        <footer>Evidence lane · configured-agent session · Private case evidence not published</footer>
+        <footer>Evidence lane / configured-agent session / Private case evidence not published</footer>
       </article>
 
       <ol className={styles.annotationList}>

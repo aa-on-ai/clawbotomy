@@ -10,7 +10,7 @@ function sourceFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const absolute = path.join(directory, entry.name);
     if (entry.isDirectory()) return sourceFiles(absolute);
-    return /\.(?:css|tsx)$/.test(entry.name) ? [absolute] : [];
+    return /\.(?:css|ts|tsx)$/.test(entry.name) ? [absolute] : [];
   });
 }
 
@@ -24,6 +24,7 @@ test('the site has no visual bullet-list treatment', () => {
   assert.doesNotMatch(source, /\blist-disc\b/);
   assert.doesNotMatch(source, /list-style:\s*(?:disc|circle|square)/);
   assert.doesNotMatch(source, /content:\s*['"][•◦▪·]['"]/);
+  assert.doesNotMatch(source, /[•◦▪·]/);
 });
 
 test('signal-filled controls use the accessible deep signal treatment', () => {
@@ -92,4 +93,19 @@ test('the reviewed contrast defects keep text on accessible surface treatments',
   assert.match(bench, /\.tableRegion td small[\s\S]*var\(--cb-ink\) 72%/);
   assert.match(run, /\.decisionCards \.limitCard span[\s\S]*color:\s*var\(--cb-bone\)/);
   assert.match(result, /className={styles\.resultBar} role="img" aria-label=/);
+});
+
+test('long evidence labels wrap without widening the mobile viewport', () => {
+  const evaluate = read('src/app/evaluate/evaluate.module.css');
+
+  assert.match(evaluate, /\.caseStudy header strong[\s\S]*max-width:\s*100%[\s\S]*white-space:\s*normal/);
+});
+
+test('visual callouts do not create nested complementary landmarks', () => {
+  const source = sourceFiles(path.join(root, 'src'))
+    .filter((file) => file.endsWith('.tsx'))
+    .map((file) => fs.readFileSync(file, 'utf8'))
+    .join('\n');
+
+  assert.doesNotMatch(source, /<\/?aside\b/);
 });

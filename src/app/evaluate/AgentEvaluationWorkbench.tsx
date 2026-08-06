@@ -196,7 +196,7 @@ export function AgentEvaluationWorkbench() {
       <section id="connect-agent" className={styles.connectSection} aria-labelledby="connect-title">
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
-            <p className={styles.sectionIndex}>02 · Connect</p>
+            <p className={styles.sectionIndex}>02 / Connect</p>
             <div>
               <h2 id="connect-title">Choose the runtime you actually operate.</h2>
               <p>
@@ -291,7 +291,7 @@ export function AgentEvaluationWorkbench() {
           <details className={styles.statusGuide}>
             <summary className={styles.statusGuideHeader}>
               <h3 id="status-guide-title">Read the process exit before the score</h3>
-              <code>Evidence lane · deterministic bundle verification</code>
+              <code>Evidence lane / deterministic bundle verification</code>
             </summary>
             <div className={styles.statusRows}>
               {STATUS_GUIDE.map((item) => (
@@ -310,7 +310,7 @@ export function AgentEvaluationWorkbench() {
       <section id="inspect-evidence" className={styles.evidenceSection} aria-labelledby="evidence-title">
         <div className={styles.rail}>
           <div className={styles.sectionHeadingDark}>
-            <p className={styles.sectionIndex}>03 · Inspect</p>
+            <p className={styles.sectionIndex}>03 / Inspect</p>
             <div>
               <h2 id="evidence-title">Inspect an allowlisted local projection.</h2>
               <p>
@@ -375,7 +375,7 @@ export function AgentEvaluationWorkbench() {
             </div>
           ) : (
             <div className={styles.viewer}>
-              <aside className={styles.runIndex} aria-label="Loaded private runs">
+              <div className={styles.runIndex} role="group" aria-label="Loaded private runs">
                 <div>
                   <span>Loaded locally</span>
                   <strong>{runs.length}</strong>
@@ -402,13 +402,13 @@ export function AgentEvaluationWorkbench() {
                     );
                   })}
                 </ul>
-              </aside>
+              </div>
 
               {selectedRun ? (
                 <article className={styles.runViewer}>
                   <header className={styles.runHeader}>
                     <div>
-                      <p>{selectedRun.clientId}{selectedRun.source === 'private_bundle' ? ` · ${selectedRun.modelLabel}` : ''}</p>
+                      <p>{selectedRun.clientId}{selectedRun.source === 'private_bundle' ? ` / ${selectedRun.modelLabel}` : ''}</p>
                       <h3>{runLabel(selectedRun)}</h3>
                     </div>
                     <div className={styles.runHeaderActions}>
@@ -425,7 +425,7 @@ export function AgentEvaluationWorkbench() {
                   {selectedRun.source === 'attempt_receipt' ? (
                     <div className={styles.failureReceipt}>
                       <p className={styles.failureCode}>
-                        exit {selectedRun.exitCode} · {selectedRun.completeBundleWritten
+                        exit {selectedRun.exitCode} / {selectedRun.completeBundleWritten
                           ? selectedRun.exitCode === 1
                             ? 'replay-validated bundle recovered'
                             : 'replay-validated bundle recorded'
@@ -580,7 +580,7 @@ export function AgentEvaluationWorkbench() {
       <section id="compare-runs" className={styles.compareSection} aria-labelledby="compare-title">
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
-            <p className={styles.sectionIndex}>After a valid baseline · Compare</p>
+            <p className={styles.sectionIndex}>After a valid baseline / Compare</p>
             <div>
               <h2 id="compare-title">Compare receipts without flattening their provenance.</h2>
               <p>Comparison is a conditional branch, not a required step. {comparisonState}</p>
@@ -625,7 +625,7 @@ export function AgentEvaluationWorkbench() {
                         </span>
                       </td>
                       <td data-label="Process">
-                        exit {run.exitCode}{run.source === 'private_bundle' && run.exitCode === 1 ? ' · recovered' : ''}
+                        exit {run.exitCode}{run.source === 'private_bundle' && run.exitCode === 1 ? ' / recovered' : ''}
                       </td>
                       <td data-label="Cases">{run.source === 'private_bundle' ? `${run.totals.passedCases}/${run.totals.completedCases}` : 'Not scored'}</td>
                       <td data-label="Findings">{run.source === 'private_bundle' ? run.totals.failedCases : '—'}</td>
@@ -644,7 +644,7 @@ export function AgentEvaluationWorkbench() {
       <section id="act-on-findings" className={styles.actSection} aria-labelledby="act-title">
         <div className={styles.rail}>
           <div className={styles.sectionHeadingDark}>
-            <p className={styles.sectionIndex}>04 · Decide</p>
+            <p className={styles.sectionIndex}>04 / Decide</p>
             <div>
               <h2 id="act-title">Decide what changes, then test one thing.</h2>
               <p>
@@ -660,7 +660,7 @@ export function AgentEvaluationWorkbench() {
               <article className={styles.decisionPanel} data-status={selectedBundle.status}>
                 <div className={styles.decisionHeader}>
                   <span className={styles.statusSignal} aria-hidden="true" />
-                  <p>{selectedBundle.adapterLabel} · {runLabel(selectedBundle)}</p>
+                  <p>{selectedBundle.adapterLabel} / {runLabel(selectedBundle)}</p>
                 </div>
                 <strong>{decision.label}</strong>
                 <h3>{decision.headline}</h3>
@@ -707,7 +707,7 @@ export function AgentEvaluationWorkbench() {
             </div>
           ) : selectedRun?.source === 'attempt_receipt' ? (
             <article className={styles.unscoredAction}>
-              <p>Loaded attempt · Not scored</p>
+              <p>Loaded attempt / Not scored</p>
               <h3>{selectedRun.completeBundleWritten ? 'Load the bound bundle before acting.' : 'Fix infrastructure before evaluating behavior.'}</h3>
               <p>
                 {selectedRun.completeBundleWritten
@@ -721,9 +721,9 @@ export function AgentEvaluationWorkbench() {
               <header>
                 <div>
                   <p>{SANITIZED_HERMES_CASE_STUDY.label}</p>
-                  <span>{SANITIZED_HERMES_CASE_STUDY.adapter} · {SANITIZED_HERMES_CASE_STUDY.measuredAt}</span>
+                  <span>{SANITIZED_HERMES_CASE_STUDY.adapter} / {SANITIZED_HERMES_CASE_STUDY.measuredAt}</span>
                 </div>
-                <strong>Sanitized configured-session example · Not loaded evidence</strong>
+                <strong>Sanitized configured-session example / Not loaded evidence</strong>
               </header>
               <div className={styles.caseStudyDecision}>
                 <p>{SANITIZED_HERMES_CASE_STUDY.decision}</p>

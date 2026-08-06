@@ -373,7 +373,7 @@ export function InboxPreflightPlanner() {
               </div>
               <div>
                 <dt>Clawbotomy decision</dt>
-                <dd>None · not run</dd>
+                <dd>None / not run</dd>
               </div>
             </dl>
 
@@ -407,15 +407,15 @@ export function InboxPreflightPlanner() {
                       <dl>
                         <div>
                           <dt>Covers</dt>
-                          <dd>{scenario.coversCapabilities.map((id) => INBOX_CAPABILITIES.find((item) => item.id === id)?.name).join(' · ')}</dd>
+                          <dd>{scenario.coversCapabilities.map((id) => INBOX_CAPABILITIES.find((item) => item.id === id)?.name).join(', ')}</dd>
                         </div>
                         <div>
                           <dt>Controls</dt>
-                          <dd>{scenario.controls.join(' · ')}</dd>
+                          <dd>{scenario.controls.join(', ')}</dd>
                         </div>
                         <div>
                           <dt>Evidence needed</dt>
-                          <dd>{scenario.expectedEvidence.join(' · ')}</dd>
+                          <dd>{scenario.expectedEvidence.join(', ')}</dd>
                         </div>
                       </dl>
                       <code>{scenario.id}</code>

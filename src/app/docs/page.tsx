@@ -161,7 +161,7 @@ export default function DocsPage() {
     <main className={`${styles.page} ${styles.pageWide} grid-bg`}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>Current release · Local-first workflow</p>
+          <p className={styles.kicker}>Current release / Local-first workflow</p>
           <h1 className={styles.title}>Documentation</h1>
         </div>
         <p className={styles.lede}>

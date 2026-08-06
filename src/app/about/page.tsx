@@ -93,10 +93,10 @@ export default function AboutPage() {
         </article>
       </section>
 
-      <aside className={styles.methodPrinciple}>
+      <div className={styles.methodPrinciple} role="note">
         <p>One run can tell you what happened.</p>
         <strong>It cannot authorize what happens next.</strong>
-      </aside>
+      </div>
 
       <section className={styles.sourceSection} aria-labelledby="source-title">
         <div>

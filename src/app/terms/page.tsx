@@ -9,7 +9,7 @@ export default function TermsPage() {
     <main className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>Open-source software · Non-authorizing</p>
+          <p className={styles.kicker}>Open-source software / Non-authorizing</p>
           <h1 className={styles.title}>Terms of Use</h1>
         </div>
         <p className={styles.lede}>

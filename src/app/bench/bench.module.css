@@ -80,7 +80,7 @@
 .registryStats {
   margin: clamp(52px, 7vw, 82px) 0 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) minmax(0, 1fr) minmax(0, 1.15fr);
   border-top: 1px solid var(--cb-border-light);
   border-left: 1px solid var(--cb-border-light);
 }
@@ -112,9 +112,12 @@
 .registryStats dd {
   margin: 20px 0 0;
   font-family: var(--font-geist-mono), monospace;
-  font-size: clamp(1.15rem, 2vw, 1.8rem);
+  font-size: clamp(1.1rem, 1.7vw, 1.55rem);
   font-weight: 650;
-  overflow-wrap: anywhere;
+  line-height: 1.12;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .configuredSection {

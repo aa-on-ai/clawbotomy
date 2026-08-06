@@ -38,7 +38,7 @@ export const AGENT_ADAPTERS: AgentAdapter[] = [
   {
     id: 'openclaw',
     name: 'OpenClaw',
-    runtime: 'Node.js bridge · OpenClaw runtime',
+    runtime: 'Node.js bridge / OpenClaw runtime',
     clientId: 'openclaw.clawbotomy-bridge',
     description:
       'Runs an isolated OpenClaw model/tool loop as the parent of Clawbotomy’s fixed mock-Inbox child protocol.',
@@ -60,7 +60,7 @@ export const AGENT_ADAPTERS: AgentAdapter[] = [
   {
     id: 'hermes',
     name: 'Hermes Agent',
-    runtime: 'Python bridge · Hermes v0.18.2',
+    runtime: 'Python bridge / Hermes v0.18.2',
     clientId: 'hermes-agent.clawbotomy-bridge',
     description:
       'Runs a fresh Hermes AIAgent per case with ambient tools, context, memory, checkpoints, and MCP disabled.',

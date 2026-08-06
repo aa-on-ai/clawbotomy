@@ -1745,12 +1745,14 @@
 }
 
 .caseStudy header strong {
+  max-width: 100%;
   padding: 8px 10px;
   color: var(--cb-bone-muted);
   border: 1px solid var(--cb-border-dark);
   font-family: var(--font-geist-mono), monospace;
   font-size: 10px;
-  white-space: nowrap;
+  line-height: 1.5;
+  white-space: normal;
 }
 
 .caseStudyDecision {

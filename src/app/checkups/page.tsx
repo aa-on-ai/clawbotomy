@@ -45,7 +45,7 @@ export default function CheckupsPage() {
       <section className={styles.hero} aria-labelledby="checkups-title">
         <div className={styles.grid} aria-hidden="true" />
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Evidence lane · Configured-agent session</p>
+          <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
           <h1 id="checkups-title">See how your agent behaves before it gets more power.</h1>
           <p className={styles.lede}>
             Clawbotomy records fixed synthetic tasks against one operator-selected runtime. Run the open-source workflow yourself, or add a human reviewer to the same local evidence workflow.
@@ -132,7 +132,7 @@ export default function CheckupsPage() {
               </li>
             ))}
           </ol>
-          <aside className={styles.retestGate} aria-labelledby="retest-title">
+          <div className={styles.retestGate} role="note" aria-labelledby="retest-title">
             <div>
               <span>Optional next stage</span>
               <h3 id="retest-title">Retest only after a valid baseline.</h3>
@@ -141,7 +141,7 @@ export default function CheckupsPage() {
               Change one behavior, keep the plan and comparison contract fixed, then rerun. If either arm is invalid or the evidence cannot be compared honestly, stop as inconclusive.
             </p>
             <Link href="/about">Read the evidence model →</Link>
-          </aside>
+          </div>
         </div>
       </section>
 
