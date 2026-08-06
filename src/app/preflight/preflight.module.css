@@ -247,10 +247,17 @@
 .panelHeader > span,
 .panelHeaderDark > span {
   padding-top: 5px;
-  color: var(--cb-signal);
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
   font-weight: 700;
+}
+
+.panelHeader > span {
+  color: var(--cb-signal-strong);
+}
+
+.panelHeaderDark > span {
+  color: var(--cb-bone);
 }
 
 .panelHeader h2,
@@ -824,9 +831,9 @@
 }
 
 .outputActions button:first-child {
-  color: var(--cb-ink);
-  border-color: var(--cb-signal);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  border-color: var(--cb-signal-strong);
+  background: var(--cb-signal-strong);
 }
 
 .jsonSection pre {

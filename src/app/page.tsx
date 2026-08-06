@@ -60,7 +60,7 @@ export default function HomePage() {
             <ProductPreview />
           </div>
         </div>
-        <div className={styles.proofStrip} aria-label="Checkup properties">
+        <div className={styles.proofStrip} role="group" aria-label="Checkup properties">
           {proofPoints.map((point) => <span key={point}>{point}</span>)}
         </div>
       </section>

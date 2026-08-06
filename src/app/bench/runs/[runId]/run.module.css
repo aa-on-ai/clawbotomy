@@ -26,9 +26,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent 0 74%, color-mix(in srgb, var(--cb-signal) 24%, transparent) 74% 74.1%, transparent 74.1%),
-    repeating-linear-gradient(to bottom, transparent 0 47px, rgb(22 19 17 / 4%) 47px 48px);
+  background: repeating-linear-gradient(to bottom, transparent 0 47px, rgb(22 19 17 / 4%) 47px 48px);
 }
 
 .hero .rail {
@@ -193,7 +191,7 @@
 }
 
 .decisionCards .limitCard span {
-  color: var(--cb-danger);
+  color: var(--cb-bone);
 }
 
 .scopeGrid {
@@ -246,8 +244,8 @@
   display: grid;
   grid-template-columns: minmax(220px, 0.7fr) 1fr;
   gap: 32px;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
 }
 
 .eligibilityNote strong {
@@ -262,7 +260,12 @@
 }
 
 .eligibilityNote ul {
-  padding-left: 18px;
+  padding: 0;
+}
+
+.eligibilityNote li {
+  padding: 10px 0;
+  border-top: 1px solid rgb(255 255 255 / 22%);
 }
 
 .casesSection {
@@ -301,15 +304,29 @@
   border-bottom: 1px solid var(--cb-border-light);
 }
 
-.caseList article {
+.caseDisclosure {
+  display: block;
+}
+
+.caseDisclosureToggle {
+  width: 100%;
+  min-height: 116px;
+  padding: 0;
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
+  color: var(--cb-ink);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  transition:
+    color var(--cb-motion-fast) ease,
+    background-color var(--cb-motion-fast) ease;
 }
 
 .caseIndex {
-  padding: 30px 12px;
-  display: flex;
-  justify-content: center;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
   color: var(--cb-danger);
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
@@ -317,40 +334,102 @@
   border-right: 1px solid var(--cb-border-light);
 }
 
-.caseBody {
+.caseSummary {
   min-width: 0;
-  padding: 30px clamp(0px, 3vw, 36px);
+  padding: 24px clamp(18px, 3vw, 36px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(164px, auto);
+  gap: clamp(18px, 3vw, 34px);
+  align-items: center;
 }
 
-.caseHeader {
-  display: flex;
-  gap: 28px;
-  align-items: flex-start;
-  justify-content: space-between;
+.caseCategory,
+.caseTitle {
+  display: block;
 }
 
-.caseHeader p,
-.caseHeader h3 {
-  margin: 0;
-}
-
-.caseHeader p {
+.caseCategory {
   margin-bottom: 8px;
   color: color-mix(in srgb, var(--cb-ink) 58%, transparent);
   font-family: var(--font-geist-mono), monospace;
   font-size: 11px;
 }
 
-.caseHeader h3 {
+.caseTitle {
   font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 700;
   letter-spacing: -0.035em;
 }
 
-.caseHeader strong {
-  flex: 0 0 auto;
+.caseSummary > strong {
   color: var(--cb-danger);
   font-family: var(--font-geist-mono), monospace;
   font-size: 18px;
+  white-space: nowrap;
+}
+
+.caseDisclosureState {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  color: color-mix(in srgb, var(--cb-ink) 68%, transparent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.caseDisclosureState i {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
+  font-size: 18px;
+  font-style: normal;
+  transition: transform var(--cb-motion-fast) var(--cb-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .caseDisclosureToggle:hover {
+    background: color-mix(in srgb, var(--cb-signal) 5%, var(--cb-bone));
+  }
+
+  .caseDisclosureToggle:hover .caseDisclosureState {
+    color: var(--cb-ink);
+  }
+
+  .caseDisclosureToggle:hover .caseDisclosureState i {
+    transform: rotate(90deg);
+  }
+}
+
+.caseDisclosureToggle:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--cb-ink);
+  outline-offset: -3px;
+}
+
+.caseDisclosureContent {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--cb-motion-base) ease-in-out;
+}
+
+.caseDisclosureOpen .caseDisclosureContent {
+  grid-template-rows: 1fr;
+}
+
+.caseDisclosureInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.caseBody {
+  padding: 30px clamp(18px, 6vw, 108px) 42px;
+  border-top: 1px solid var(--cb-border-light);
 }
 
 .justification {
@@ -446,8 +525,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .evidenceDisclosure summary:hover {
-    color: var(--cb-ink);
-    background: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong);
   }
 }
 
@@ -559,8 +638,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .artifactLinks a:hover {
-    color: var(--cb-ink);
-    background: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong);
   }
 }
 
@@ -629,7 +708,7 @@
     gap: 8px;
   }
 
-  .caseList article {
+  .caseDisclosureToggle {
     grid-template-columns: 42px minmax(0, 1fr);
   }
 
@@ -637,8 +716,18 @@
     padding-inline: 8px;
   }
 
+  .caseSummary {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 22px 18px;
+  }
+
+  .caseDisclosureState {
+    justify-content: space-between;
+  }
+
   .caseBody {
-    padding: 24px 0 24px 18px;
+    padding: 24px 18px 32px;
   }
 
   .caseHeader,
@@ -654,6 +743,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .backLink,
+  .caseDisclosureToggle,
+  .caseDisclosureState i,
+  .caseDisclosureContent,
   .evidenceDisclosure summary,
   .rawCaseLink,
   .artifactLinks a {
@@ -661,6 +753,7 @@
   }
 
   .backLink:hover,
+  .caseDisclosureToggle:hover .caseDisclosureState i,
   .rawCaseLink:hover {
     transform: none;
   }

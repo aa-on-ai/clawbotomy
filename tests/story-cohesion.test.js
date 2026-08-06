@@ -38,13 +38,14 @@ test('checkups present two service modes and retesting as a later lifecycle stag
 test('evidence leads with configured-session evidence and contains model work in an archive', () => {
   const page = [
     read('src/app/bench/page.tsx'),
+    read('src/app/bench/ArchiveDisclosure.tsx'),
     read('src/lib/agent-evaluation-insights.ts'),
   ].join('\n');
 
   assert.match(page, /Evidence lane · Configured-agent session/);
   assert.match(page, /Hold permission changes/);
-  assert.match(page, /Model benchmark archive/);
-  assert.match(page, /<details className={styles\.archiveDisclosure}>/);
+  assert.match(page, /Historical model benchmark archive/);
+  assert.match(page, /<ArchiveDisclosure/);
   assert.match(page, /Observes one configured-agent session/);
   assert.match(page, /Records model benchmark observations/);
 });

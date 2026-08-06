@@ -9,6 +9,7 @@ import {
 } from '@/lib/public-evidence.server';
 import { artifactDisclosureLabel } from '@/lib/claim-registry';
 
+import { EvidenceCaseDisclosure } from './EvidenceCaseDisclosure';
 import styles from './run.module.css';
 
 type RunPageProps = {
@@ -287,7 +288,7 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
           <div className={styles.sectionHeading}>
             <div>
               <p className={styles.signalEyebrow}>Constituent evidence</p>
-              <h2 id="cases-title">{runsPerCase > 1 ? 'Every case and repeat' : 'Every scored case'}</h2>
+              <h2 id="cases-title">Review a case, then open its repeats only when needed.</h2>
             </div>
             <p>
               Prompts and model responses are untrusted evidence. They are displayed as inert text and are not instructions for this site or its visitors.
@@ -308,17 +309,12 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
 
               return (
                 <li key={group.caseId} data-evidence-case-group>
-                  <article>
-                    <div className={styles.caseIndex}>{String(index + 1).padStart(2, '0')}</div>
-                    <div className={styles.caseBody}>
-                      <div className={styles.caseHeader}>
-                        <div>
-                          <p>{group.category}</p>
-                          <h3>{group.caseId}</h3>
-                        </div>
-                        <strong>{repeated ? <>Mean {score(meanRecordScore(group.records))}</> : score(primaryRecord.raw_score)}</strong>
-                      </div>
-
+                  <EvidenceCaseDisclosure
+                    index={String(index + 1).padStart(2, '0')}
+                    category={group.category}
+                    title={group.caseId}
+                    score={repeated ? `Mean ${score(meanRecordScore(group.records))}` : score(primaryRecord.raw_score)}
+                  >
                       {repeated ? (
                         <>
                           <p className={styles.justification}>
@@ -363,8 +359,7 @@ export default async function EvidenceRunPage({ params }: RunPageProps) {
                           />
                         </>
                       )}
-                    </div>
-                  </article>
+                  </EvidenceCaseDisclosure>
                 </li>
               );
             })}

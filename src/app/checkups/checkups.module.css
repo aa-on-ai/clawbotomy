@@ -403,8 +403,8 @@
   grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr) auto;
   gap: clamp(24px, 4vw, 52px);
   align-items: center;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
 }
 
 .retestGate span {
@@ -491,12 +491,12 @@
 
 .finalCta {
   padding: var(--cb-section-y) 0;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
 }
 
 .finalCta .darkEyebrow {
-  color: var(--cb-ink);
+  color: var(--cb-on-signal);
 }
 
 .finalCta h2 {
@@ -506,6 +506,21 @@
 .finalCta .primaryAction {
   color: var(--cb-bone);
   background: var(--cb-ink);
+}
+
+.finalCta .secondaryAction {
+  color: var(--cb-bone);
+  background: rgb(10 10 10 / 18%);
+  border-color: rgb(242 238 224 / 52%);
+  box-shadow: var(--cb-button-shadow-dark);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .finalCta .secondaryAction:hover {
+    color: var(--cb-bone);
+    background: rgb(10 10 10 / 28%);
+    border-color: rgb(242 238 224 / 76%);
+  }
 }
 
 @media (max-width: 960px) {

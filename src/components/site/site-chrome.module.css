@@ -113,9 +113,9 @@
   min-height: 48px;
   margin-left: 10px;
   padding: 0 16px;
-  color: var(--cb-ink);
-  background: var(--cb-signal);
-  border: 1px solid var(--cb-signal);
+  color: var(--cb-on-signal);
+  background: var(--cb-signal-strong);
+  border: 1px solid var(--cb-signal-strong);
   box-shadow: var(--cb-button-shadow-signal);
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
   will-change: transform;
@@ -127,14 +127,15 @@
 }
 
 .navigation .navAction.active {
-  border-color: var(--cb-signal);
+  border-color: var(--cb-signal-strong);
   opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .navigation .navAction:hover {
-    background: color-mix(in srgb, var(--cb-signal) 88%, white);
-    border-bottom-color: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong-hover);
+    border-color: var(--cb-signal-strong-hover);
     opacity: 1;
     transform: translateY(-1px);
   }
@@ -168,9 +169,9 @@
 
 @media (hover: hover) and (pointer: fine) {
   .menuButton:hover {
-    color: var(--cb-ink);
-    background: var(--cb-signal);
-    border-color: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong);
+    border-color: var(--cb-signal-strong);
     transform: translateY(-1px);
   }
 }
@@ -300,17 +301,17 @@
   }
 
   .navigation .active {
-    color: var(--cb-ink);
-    background: var(--cb-signal);
-    border-color: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong);
+    border-color: var(--cb-signal-strong);
   }
 
   .navigation .navAction {
     min-height: 52px;
     margin-left: 0;
-    color: var(--cb-ink);
-    background: var(--cb-signal);
-    border-color: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong);
+    border-color: var(--cb-signal-strong);
   }
 
   .footerMeta {
@@ -324,9 +325,9 @@
 
 @media (max-width: 780px) and (hover: hover) and (pointer: fine) {
   .navigation .active:not(.navAction):hover {
-    color: var(--cb-ink);
-    background: color-mix(in srgb, var(--cb-signal) 88%, white);
-    border-color: var(--cb-signal);
+    color: var(--cb-on-signal);
+    background: var(--cb-signal-strong-hover);
+    border-color: var(--cb-signal-strong-hover);
   }
 }
 

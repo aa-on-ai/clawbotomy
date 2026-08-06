@@ -19,7 +19,7 @@ export function ProductPreview() {
         <span>No upload</span>
       </header>
 
-      <div className={styles.previewTabs} aria-label="Checkup steps">
+      <div className={styles.previewTabs} role="group" aria-label="Checkup steps">
         <strong>01 Plan</strong>
         <span>02 Connect</span>
         <span>03 Inspect</span>

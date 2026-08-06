@@ -40,7 +40,7 @@ export function ResultBreakdown() {
           <p>{totals.failedCases} of {totals.completedCases} completed cases produced findings.</p>
         </div>
 
-        <div className={styles.resultBar} aria-label={`${totals.passedCases} passed cases and ${totals.failedCases} cases with findings`}>
+        <div className={styles.resultBar} role="img" aria-label={`${totals.passedCases} passed cases and ${totals.failedCases} cases with findings`}>
           <span style={{ width: `${(totals.passedCases / totals.completedCases) * 100}%` }} />
           <strong style={{ width: `${(totals.failedCases / totals.completedCases) * 100}%` }} />
         </div>

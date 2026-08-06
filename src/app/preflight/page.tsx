@@ -48,7 +48,7 @@ export default function PreflightPage() {
             </aside>
           </div>
         </div>
-        <div className={styles.truthStrip} aria-label="Preflight planner properties">
+        <div className={styles.truthStrip} role="group" aria-label="Preflight planner properties">
           <span>Plan data not uploaded</span>
           <span>No mailbox connected</span>
           <span>Operator intent recorded</span>

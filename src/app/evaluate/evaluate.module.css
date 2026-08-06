@@ -564,18 +564,11 @@
 }
 
 .prerequisites li {
-  position: relative;
-  padding-left: 22px;
+  padding: 12px 0;
   color: var(--cb-bone-muted);
   font-size: 14px;
   line-height: 1.55;
-}
-
-.prerequisites li::before {
-  content: '—';
-  position: absolute;
-  left: 0;
-  color: var(--cb-signal);
+  border-top: 1px solid var(--cb-border-dark);
 }
 
 .prerequisites > p {
