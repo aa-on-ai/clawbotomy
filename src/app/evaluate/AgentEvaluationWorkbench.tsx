@@ -255,7 +255,12 @@ export function AgentEvaluationWorkbench() {
                   onClick={() => setSetupOpen((open) => !open)}
                 >
                   <strong>Open setup requirements and command</strong>
-                  <span>{adapter.prerequisites.length} prerequisites</span>
+                  <span className={styles.launchDetailsMeta}>{adapter.prerequisites.length} prerequisites</span>
+                  <span
+                    className={styles.launchDetailsIndicator}
+                    data-testid="disclosure-indicator"
+                    aria-hidden="true"
+                  />
                 </button>
                 <div id="launch-setup-details" className={styles.launchDetailsContent}>
                   <div
@@ -292,6 +297,11 @@ export function AgentEvaluationWorkbench() {
             <summary className={styles.statusGuideHeader}>
               <h3 id="status-guide-title">Read the process exit before the score</h3>
               <code>Evidence lane / deterministic bundle verification</code>
+              <span
+                className={styles.statusGuideIndicator}
+                data-testid="status-guide-indicator"
+                aria-hidden="true"
+              />
             </summary>
             <div className={styles.statusRows}>
               {STATUS_GUIDE.map((item) => (

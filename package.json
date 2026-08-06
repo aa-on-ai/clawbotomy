@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
+    "test:ui": "playwright test",
     "bench": "node bench/index.js",
     "inbox": "node inbox/index.js",
     "agent:evaluate": "node inbox/agent-evaluate.js",
@@ -32,6 +33,8 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.55.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
