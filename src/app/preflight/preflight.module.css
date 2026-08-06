@@ -223,6 +223,7 @@
   background: var(--cb-ink);
   border-left: 1px solid var(--cb-border-light);
   --cb-interaction-color: var(--cb-signal);
+  --cb-panel-inline: clamp(26px, 4vw, 42px);
 }
 
 .panelHeader,
@@ -239,7 +240,7 @@
 }
 
 .panelHeaderDark {
-  padding: clamp(26px, 4vw, 42px);
+  padding: clamp(26px, 4vw, 42px) var(--cb-panel-inline);
   border-bottom: 1px solid var(--cb-border-dark);
 }
 
@@ -319,6 +320,32 @@
   transition: border-color var(--cb-motion-fast) ease, background-color var(--cb-motion-fast) ease;
 }
 
+.selectControl {
+  position: relative;
+}
+
+.intentField select {
+  padding-right: 48px;
+  appearance: none;
+}
+
+.selectChevron {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--cb-ink);
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+}
+
+.intentField select:disabled + .selectChevron {
+  color: color-mix(in srgb, var(--cb-ink) 46%, transparent);
+}
+
 .field input::placeholder {
   color: color-mix(in srgb, var(--cb-ink) 46%, transparent);
   opacity: 1;
@@ -383,16 +410,16 @@
 
 .capabilityRow {
   min-width: 0;
-  padding: 18px 0;
+  margin-inline: -14px;
+  padding: 18px 14px;
   display: grid;
   gap: 16px;
   border-bottom: 1px solid var(--cb-border-light);
+  box-shadow: inset 3px 0 0 transparent;
   transition: background-color var(--cb-motion-fast) ease, box-shadow var(--cb-motion-fast) ease;
 }
 
 .selectedRow {
-  margin-inline: -14px;
-  padding-inline: 14px;
   background: color-mix(in srgb, var(--cb-signal) 6%, transparent);
   box-shadow: inset 3px 0 0 var(--cb-signal);
 }
@@ -514,7 +541,7 @@
 
 .outputStatus {
   min-height: 58px;
-  padding: 14px clamp(26px, 4vw, 42px);
+  padding: 14px var(--cb-panel-inline);
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr);
   gap: 12px;
@@ -596,7 +623,7 @@
 
 .planFacts > div {
   min-width: 0;
-  padding: 22px 18px;
+  padding: 22px var(--cb-panel-inline);
   border-right: 1px solid var(--cb-border-dark);
 }
 
@@ -631,7 +658,7 @@
 .intentSummary,
 .scenarioSection,
 .jsonSection {
-  padding: 32px clamp(26px, 4vw, 42px);
+  padding: 32px var(--cb-panel-inline);
   border-bottom: 1px solid var(--cb-border-dark);
 }
 
@@ -1040,6 +1067,7 @@
   }
 
   .outputPanel {
+    --cb-panel-inline: 22px;
     border-top: 1px solid var(--cb-border-light);
     border-left: 0;
   }
@@ -1103,11 +1131,7 @@
   }
 
   .formPanel,
-  .panelHeaderDark,
-  .outputStatus,
-  .intentSummary,
-  .scenarioSection,
-  .jsonSection {
+  .panelHeader {
     padding-inline: 22px;
   }
 
@@ -1159,12 +1183,12 @@
 }
 
 @media (max-width: 480px) {
+  .outputPanel {
+    --cb-panel-inline: 18px;
+  }
+
   .formPanel,
-  .panelHeaderDark,
-  .outputStatus,
-  .intentSummary,
-  .scenarioSection,
-  .jsonSection {
+  .panelHeader {
     padding-inline: 18px;
   }
 

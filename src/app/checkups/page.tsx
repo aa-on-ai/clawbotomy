@@ -186,7 +186,7 @@ export default function CheckupsPage() {
               rel="noopener noreferrer"
               className={styles.secondaryAction}
             >
-              View source ↗
+              View source
             </a>
           </div>
         </div>

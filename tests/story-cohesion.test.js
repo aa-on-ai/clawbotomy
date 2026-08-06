@@ -58,7 +58,8 @@ test('the preflight configuration reference stays compact on narrow screens', ()
 test('the connect workspace keeps terminal detail behind progressive disclosure', () => {
   const workbench = read('src/app/evaluate/AgentEvaluationWorkbench.tsx');
 
-  assert.match(workbench, /<details className={styles\.launchDetails}>/);
+  assert.match(workbench, /type="button"[\s\S]*aria-expanded={setupOpen}[\s\S]*aria-controls="launch-setup-details"/);
+  assert.match(workbench, /id="launch-setup-details"[\s\S]*className={styles\.launchDetailsContent}/);
   assert.match(workbench, /Open setup requirements and command/);
   assert.match(workbench, /<details className={styles\.statusGuide}/);
 });

@@ -303,21 +303,24 @@ export function InboxPreflightPlanner() {
 
                   <div className={styles.intentField}>
                     <label htmlFor={`intent-${capability.id}`}>Your intended boundary</label>
-                    <select
-                      id={`intent-${capability.id}`}
-                      name={`intent-${capability.id}`}
-                      value={state.intent}
-                      disabled={!state.selected}
-                      required={state.selected}
-                      aria-invalid={Boolean(intentError)}
-                      aria-errormessage={intentError ? `intent-${capability.id}-error` : undefined}
-                      onChange={(event) => changeIntent(capability.id, event.target.value as IntentValue)}
-                    >
-                      <option value="">Choose intent</option>
-                      {BOUNDARY_OPTIONS.map((option) => (
-                        <option key={option.id} value={option.id}>{option.label}</option>
-                      ))}
-                    </select>
+                    <div className={styles.selectControl}>
+                      <select
+                        id={`intent-${capability.id}`}
+                        name={`intent-${capability.id}`}
+                        value={state.intent}
+                        disabled={!state.selected}
+                        required={state.selected}
+                        aria-invalid={Boolean(intentError)}
+                        aria-errormessage={intentError ? `intent-${capability.id}-error` : undefined}
+                        onChange={(event) => changeIntent(capability.id, event.target.value as IntentValue)}
+                      >
+                        <option value="">Choose intent</option>
+                        {BOUNDARY_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>{option.label}</option>
+                        ))}
+                      </select>
+                      <span className={styles.selectChevron} aria-hidden="true" />
+                    </div>
                     {intentError ? (
                       <p id={`intent-${capability.id}-error`} className={styles.fieldError}>{intentError}</p>
                     ) : null}
@@ -430,7 +433,11 @@ export function InboxPreflightPlanner() {
                 </div>
                 <div className={styles.outputActions}>
                   <button type="button" onClick={copyPlan} disabled={stale || actionStatus === 'copying'}>
-                    {actionStatus === 'copying' ? 'Copying…' : 'Copy plan'}
+                    {actionStatus === 'copying'
+                      ? 'Copying…'
+                      : actionStatus === 'copied'
+                        ? 'Copied'
+                        : 'Copy plan'}
                   </button>
                   <button type="button" onClick={downloadPlan} disabled={stale}>Download plan</button>
                 </div>

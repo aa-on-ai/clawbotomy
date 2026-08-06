@@ -48,6 +48,7 @@ function stateChangeTotal(caseReceipt: SafeCaseReceipt) {
 export function AgentEvaluationWorkbench() {
   const [adapterId, setAdapterId] = useState<AdapterId>('openclaw');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [setupOpen, setSetupOpen] = useState(false);
   const [runs, setRuns] = useState<LocalRun[]>([]);
   const [selectedRunKey, setSelectedRunKey] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
@@ -245,31 +246,45 @@ export function AgentEvaluationWorkbench() {
               </div>
               <p className={styles.adapterDescription}>{adapter.description}</p>
 
-              <details className={styles.launchDetails}>
-                <summary>
+              <div className={`${styles.launchDetails} ${setupOpen ? styles.launchDetailsOpen : ''}`}>
+                <button
+                  type="button"
+                  className={styles.launchDetailsToggle}
+                  aria-expanded={setupOpen}
+                  aria-controls="launch-setup-details"
+                  onClick={() => setSetupOpen((open) => !open)}
+                >
                   <strong>Open setup requirements and command</strong>
                   <span>{adapter.prerequisites.length} prerequisites</span>
-                </summary>
-                <div className={styles.prerequisites}>
-                  <h4>Before you launch</h4>
-                  <ul>
-                    {adapter.prerequisites.map((item) => <li key={item}>{item}</li>)}
-                  </ul>
-                  <p>{adapter.trustNote}</p>
-                </div>
+                </button>
+                <div id="launch-setup-details" className={styles.launchDetailsContent}>
+                  <div
+                    className={styles.launchDetailsInner}
+                    aria-hidden={!setupOpen}
+                    inert={!setupOpen}
+                  >
+                    <div className={styles.prerequisites}>
+                      <h4>Before you launch</h4>
+                      <ul>
+                        {adapter.prerequisites.map((item) => <li key={item}>{item}</li>)}
+                      </ul>
+                      <p>{adapter.trustNote}</p>
+                    </div>
 
-                <div className={styles.commandBlock}>
-                  <div>
-                    <h4>Copyable launch command</h4>
-                    <button type="button" onClick={copyCommand}>
-                      {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy command'}
-                    </button>
+                    <div className={styles.commandBlock}>
+                      <div>
+                        <h4>Copyable launch command</h4>
+                        <button type="button" onClick={copyCommand}>
+                          {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy command'}
+                        </button>
+                      </div>
+                      <pre tabIndex={0} aria-label={`${adapter.name} evaluation launch command`}>
+                        <code>{adapter.launchCommand}</code>
+                      </pre>
+                    </div>
                   </div>
-                  <pre tabIndex={0} aria-label={`${adapter.name} evaluation launch command`}>
-                    <code>{adapter.launchCommand}</code>
-                  </pre>
                 </div>
-              </details>
+              </div>
             </article>
           </div>
 
