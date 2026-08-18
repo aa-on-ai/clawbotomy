@@ -459,6 +459,9 @@ if (completed) {
     setInterval(() => {}, 1000);
     await new Promise(() => {});
   }
+} else if (SCENARIO === "termination_wait") {
+  setInterval(() => {}, 1000);
+  await new Promise(() => {});
 }
 `;
 }
@@ -1009,7 +1012,7 @@ test("silent version and post-run host processes time out with no receipt", asyn
 });
 
 test("output-limit failure terminates both children and writes no receipt", async (t) => {
-  const fixture = await createEnvironment(t, { hostScenario: "success", openclawScenario: "output_limit" });
+  const fixture = await createEnvironment(t, { hostScenario: "termination_wait", openclawScenario: "output_limit" });
   await assert.rejects(() => runBridge(fixture.options, fixture.dependencies), /exceeded/i);
   const openclawEvents = await fixture.readLog(fixture.openclawLog);
   const hostEvents = await fixture.readLog(fixture.hostLog);
