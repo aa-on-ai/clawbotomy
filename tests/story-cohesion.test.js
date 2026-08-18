@@ -12,15 +12,15 @@ test('every primary checkup entry starts with the browser-local plan', () => {
   const header = read('src/components/site/SiteHeader.tsx');
   const checkups = read('src/app/checkups/page.tsx');
 
-  assert.match(home, /href="\/preflight" className={styles\.primaryAction}>Start a checkup/);
+  assert.match(home, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
   assert.match(preview, /href="\/preflight"/);
   assert.match(header, /href="\/preflight"/);
-  assert.match(header, /Start a checkup/);
-  assert.match(checkups, /href="\/preflight" className={styles\.primaryAction}>Start a checkup/);
+  assert.match(header, /Plan a checkup/);
+  assert.match(checkups, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
 
   assert.doesNotMatch(home, /href="\/evaluate" className={styles\.primaryAction}/);
   assert.doesNotMatch(preview, /href="\/evaluate"/);
-  assert.doesNotMatch(header, /href="\/evaluate"/);
+  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
   assert.doesNotMatch(checkups, /href="\/evaluate"/);
 });
 

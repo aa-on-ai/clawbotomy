@@ -43,7 +43,7 @@ test('registry exposes human run pages while the homepage keeps configured-agent
 
   assert.match(bench, /href=\{`\/bench\/runs\/\$\{run\.runId\}`\}/);
   assert.doesNotMatch(bench, /href=\{`\/api\/bench\/runs\/\$\{run\.runId\}`\}>Inspect run/);
-  assert.match(home, /href="\/bench"/);
+  assert.match(home, /href="\/evaluate"/);
   assert.match(home, /private bundle is not published/);
   assert.match(home, /Human decision required/);
   assert.doesNotMatch(home, /registry is currently empty/);

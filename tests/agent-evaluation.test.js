@@ -118,7 +118,7 @@ test('adapter catalog exposes exact fixed protocol client IDs and launch command
     'openclaw.clawbotomy-bridge',
     'hermes-agent.clawbotomy-bridge',
   ]);
-  assert.match(AGENT_ADAPTERS[0].launchCommand, /agent:evaluate --[\s\\]+--adapter openclaw/);
+  assert.match(AGENT_ADAPTERS[0].launchCommand, /agent:preflight --[\s\\]+--plan/);
   assert.match(AGENT_ADAPTERS[1].launchCommand, /agent:evaluate --[\s\\]+--adapter hermes/);
 });
 

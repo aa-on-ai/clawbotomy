@@ -129,7 +129,7 @@ export default function BenchPage() {
                 <p>{configured.boundary}</p>
               </div>
               <div>
-                <Link href="/preflight">Start a checkup →</Link>
+                <Link href="/preflight">Plan a checkup →</Link>
                 <Link href="/evaluate">Open the local viewer →</Link>
               </div>
             </footer>

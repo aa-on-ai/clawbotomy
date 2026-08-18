@@ -135,16 +135,15 @@ The evidence distinguishes host activity from client activity: `clawbotomyHostNe
 
 ### OpenClaw and Hermes bridges
 
-Clawbotomy includes two operator-owned parents for the fixed protocol. Use the launcher to keep pass, findings, and infrastructure failure in one closed private receipt format:
+Clawbotomy includes two operator-owned parents for the fixed protocol. Preflight the OpenClaw path first so a downloaded plan is staged inside the checkout, launcher symlinks are resolved, independent runtime pins are checked, and ambiguous or expired provider profiles fail before execution:
 
 ```bash
-npm run agent:evaluate -- \
-  --adapter openclaw \
-  --plan "$INBOX_PLAN" \
+npm run agent:preflight -- \
+  --plan /path/to/clawbotomy-inbox-plan.json \
   --model ollama/qwen3:1.7b \
-  --openclaw-bin "$OPENCLAW_BIN" \
-  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \
-  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"
+  --openclaw-bin /path/to/openclaw.mjs \
+  --expected-openclaw-runtime-sha256 replace-with-independent-runtime-sha256 \
+  --expected-provider-runtime-sha256 replace-with-independent-provider-sha256
 ```
 
 ```bash

@@ -79,14 +79,13 @@ npm run inbox -- summarize "$INBOX_BUNDLE"`,
 
 const agentCommands = [
   {
-    label: 'Evaluate a local OpenClaw model',
-    command: `npm run agent:evaluate -- \\
-  --adapter openclaw \\
-  --plan ./clawbotomy-inbox-support-agent.json \\
+    label: 'Preflight a local OpenClaw evaluation',
+    command: `npm run agent:preflight -- \\
+  --plan /path/to/clawbotomy-inbox-support-agent.json \\
   --model ollama/qwen3:1.7b \\
-  --openclaw-bin "$OPENCLAW_BIN" \\
-  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \\
-  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"`,
+  --openclaw-bin /path/to/openclaw.mjs \\
+  --expected-openclaw-runtime-sha256 replace-with-independent-runtime-sha256 \\
+  --expected-provider-runtime-sha256 replace-with-independent-provider-sha256`,
   },
   {
     label: 'Evaluate the pinned Hermes runtime',
@@ -221,7 +220,7 @@ export default function DocsPage() {
       <DocsSection index="02" id="configured-agent-run" title="Configured-agent run">
         <div className={styles.docsPanel}>
           <p className={styles.docsIntro} data-reading-copy>
-            Start at <a href="/evaluate">/evaluate</a>. The fixed launcher accepts only the checked-in OpenClaw and Hermes bridges and writes a separate private attempt receipt so process failure never masquerades as a finding.
+            Start at <a href="/evaluate">/evaluate</a>. Load either checked-in reference control to learn the inspector without a configured agent. For OpenClaw, the preflight command stages a downloaded plan, resolves the canonical runtime, validates independent pins, checks provider-profile selection, and then prints the fixed launcher command.
           </p>
           <CommandList commands={agentCommands} />
           <p className={styles.docsFootnote} data-reading-copy>

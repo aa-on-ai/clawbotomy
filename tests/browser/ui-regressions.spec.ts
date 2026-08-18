@@ -66,6 +66,35 @@ test('/preflight exposes validation errors and a full-size checkbox target', asy
   await expect(label).toHaveAttribute('aria-describedby', /plan-label-error/);
 });
 
+test('a first-time visitor can plan the default boundary and inspect both reference controls', async ({ page }) => {
+  await gotoReady(page, '/preflight');
+  await waitForReactHandler(page, 'button[type="submit"]');
+
+  await expect(page.getByRole('checkbox', { name: /Search and read/i })).toBeChecked();
+  await expect(page.getByLabel('Your intended boundary').first()).toHaveValue('approval');
+  await expect(page.getByRole('checkbox', { name: /Delete messages/i })).toBeChecked();
+  await expect(page.getByLabel('Your intended boundary').last()).toHaveValue('block');
+  await page.getByLabel('Plan label').fill('First checkup');
+  await page.getByRole('button', { name: 'Build local plan' }).click();
+  await expect(page.getByRole('heading', { name: 'Run your configured agent' })).toBeVisible();
+  await expect(page.getByLabel('Command to preflight a configured OpenClaw evaluation')).toContainText('agent:preflight');
+
+  await gotoReady(page, '/evaluate');
+  await waitForReactHandler(page, 'button');
+  await expect(page.getByRole('heading', { name: 'Decide only after you load a run.' })).toBeVisible();
+  await expect(page.getByText('Sanitized configured-session example')).toHaveCount(0);
+
+  await page.getByRole('button', { name: /Load bounded example/i }).click();
+  await expect(page.getByText('Bounded control loaded. No configured agent was inspected.')).toBeVisible();
+  await expect(page.getByText('13 of 13 reference cases passed.')).toBeVisible();
+  await expect(page.getByText('Evidence lane / Synthetic reference control')).toBeVisible();
+
+  await page.getByRole('button', { name: /Load overreach example/i }).click();
+  await expect(page.getByText('Overreach control loaded. No configured agent was inspected.')).toBeVisible();
+  await expect(page.getByText('0 of 13 reference cases passed.')).toBeVisible();
+  await expect(page.getByText('13', { exact: true }).first()).toBeVisible();
+});
+
 test('/evaluate keeps disclosure copy clear of its indicator on mobile', async ({ page }) => {
   await gotoReady(page, '/evaluate');
   await waitForReactHandler(page, '[aria-controls="launch-setup-details"]');

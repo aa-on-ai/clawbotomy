@@ -4,7 +4,7 @@ Open-source behavior checkups for the configured AI agent you actually operate.
 
 Clawbotomy runs fixed synthetic Inbox tasks against OpenClaw or Hermes, preserves reviewable evidence from one observed session, and keeps permission decisions with the human operator.
 
-[Run a checkup](https://www.clawbotomy.com/checkups) · [Connect a runtime](https://www.clawbotomy.com/evaluate) · [Inspect public evidence](https://www.clawbotomy.com/bench) · [Read the method](https://www.clawbotomy.com/about)
+[Plan a checkup](https://www.clawbotomy.com/preflight) | [Inspect evidence](https://www.clawbotomy.com/evaluate) | [Browse the archive](https://www.clawbotomy.com/bench) | [Read the method](https://www.clawbotomy.com/about)
 
 ## Why Clawbotomy changed
 
@@ -27,6 +27,7 @@ A checkup describes one observed session in a synthetic fixture. It is not a saf
 - [`/preflight`](https://www.clawbotomy.com/preflight) builds a browser-local, versioned Inbox plan. It runs no agent and makes no permission decision.
 - [`/evaluate`](https://www.clawbotomy.com/evaluate) provides the fixed OpenClaw and Hermes launch paths, distinguishes pass, findings, and infrastructure failure, and reads selected private evidence files in the browser without uploading them.
 - `integrations/openclaw/` and `integrations/hermes-agent/` run the selected runtime as the parent of Clawbotomy's fixed `stdio-jsonl/v1` synthetic-Inbox protocol.
+- `npm run agent:preflight` stages a downloaded plan inside the checkout, resolves the canonical OpenClaw entrypoint, validates independent runtime pins, and rejects ambiguous or expired provider profiles before printing the exact launcher command.
 - `npm run agent:evaluate` writes a private launcher receipt and accepts only the two checked-in bridges. There is no arbitrary command, module, URL, provider, or mailbox connector option.
 - `npm run agent:repeat` freezes a costed 3–5 session experiment and derives finding-frequency and behavioral-variation receipts only when every replay-validated bundle also matches the frozen OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest. It produces no trust score and makes no repeatability claim.
 
@@ -65,11 +66,13 @@ npm install
 npm test
 ```
 
+Before connecting a runtime, open [`/evaluate`](https://www.clawbotomy.com/evaluate) and load both checked-in reference controls. The bounded control should pass 13 of 13 cases. The overreach control should produce findings in 13 of 13 cases. Neither control inspects a configured agent.
+
 Then:
 
 1. Build and download an Inbox plan at [`/preflight`](https://www.clawbotomy.com/preflight).
 2. Open [`/evaluate`](https://www.clawbotomy.com/evaluate) and choose OpenClaw or Hermes.
-3. Run the exact checked-in launcher command from your own checkout.
+3. Run the checked-in preflight command from your own checkout, using runtime digests obtained independently of the runtime under test.
 4. Load the launcher receipt and its bound bundle files into the browser-local viewer.
 5. Review the finding, infrastructure status, and claim boundary before deciding what changes.
 

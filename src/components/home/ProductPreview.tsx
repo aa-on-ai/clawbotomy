@@ -58,7 +58,7 @@ export function ProductPreview() {
       </div>
 
       <Link href="/preflight" className={styles.previewAction}>
-        Start a checkup <span>→</span>
+        Plan a checkup <span>→</span>
       </Link>
       <span className={styles.previewCallout}>Evidence lane / configured-agent session</span>
     </section>

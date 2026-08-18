@@ -13,18 +13,18 @@ import {
   type AdapterId,
   type EvaluationAttemptReceipt,
   type PrivateRunReceipt,
+  type ReferenceRunReceipt,
   type RunStatus,
   type SafeCaseReceipt,
 } from '@/lib/agent-evaluation';
-import {
-  SANITIZED_HERMES_CASE_STUDY,
-  deriveEvidenceRecommendations,
-  getRunDecision,
-} from '@/lib/agent-evaluation-insights';
+import { deriveEvidenceRecommendations, getRunDecision } from '@/lib/agent-evaluation-insights';
+
+import { ReferenceControlLoader } from './ReferenceControlLoader';
 
 import styles from './evaluate.module.css';
 
-type LocalRun = PrivateRunReceipt | EvaluationAttemptReceipt;
+type InspectableRun = PrivateRunReceipt | ReferenceRunReceipt;
+type LocalRun = InspectableRun | EvaluationAttemptReceipt;
 type ImportState = 'idle' | 'reading' | 'loaded' | 'error';
 
 const VALIDATE_COMMAND = 'npm run inbox -- validate .clawbotomy/inbox-runs/<runId>';
@@ -34,7 +34,7 @@ function runKey(run: LocalRun) {
 }
 
 function runLabel(run: LocalRun) {
-  return run.source === 'private_bundle' ? run.runId : run.attemptId;
+  return run.source === 'attempt_receipt' ? run.attemptId : run.runId;
 }
 
 function statusLabel(status: RunStatus) {
@@ -61,7 +61,7 @@ export function AgentEvaluationWorkbench() {
 
   const adapter = AGENT_ADAPTERS.find((item) => item.id === adapterId) || AGENT_ADAPTERS[0];
   const selectedRun = runs.find((run) => runKey(run) === selectedRunKey) || runs[0] || null;
-  const selectedBundle = selectedRun?.source === 'private_bundle' ? selectedRun : null;
+  const selectedBundle = selectedRun?.source === 'attempt_receipt' ? null : selectedRun;
   const filteredCases = useMemo(() => {
     if (!selectedBundle) return [];
     const query = caseQuery.trim().toLowerCase();
@@ -81,7 +81,7 @@ export function AgentEvaluationWorkbench() {
       ? 'Same frozen plan. Compare case counts while keeping adapter, model, and runtime version visible before attributing a delta.'
       : 'Different plan digests. Keep the rows separate; direct case deltas would be misleading.';
   const recommendations = useMemo(
-    () => selectedBundle ? deriveEvidenceRecommendations(selectedBundle) : [],
+    () => selectedBundle?.source === 'private_bundle' ? deriveEvidenceRecommendations(selectedBundle) : [],
     [selectedBundle],
   );
   const decision = useMemo(
@@ -92,7 +92,7 @@ export function AgentEvaluationWorkbench() {
   const selectRun = (run: LocalRun) => {
     setSelectedRunKey(runKey(run));
     setCaseQuery('');
-    setSelectedCaseId(run.source === 'private_bundle' ? run.cases[0]?.caseId || null : null);
+    setSelectedCaseId(run.source === 'attempt_receipt' ? null : run.cases[0]?.caseId || null);
   };
 
   const inspectRecommendation = (caseId: string) => {
@@ -187,7 +187,7 @@ export function AgentEvaluationWorkbench() {
     if (selectedRunKey === key) {
       const next = runs.find((item) => runKey(item) !== key) || null;
       setSelectedRunKey(next ? runKey(next) : null);
-      setSelectedCaseId(next?.source === 'private_bundle' ? next.cases[0]?.caseId || null : null);
+      setSelectedCaseId(next?.source === 'attempt_receipt' || !next ? null : next.cases[0]?.caseId || null);
     }
   };
 
@@ -368,19 +368,18 @@ export function AgentEvaluationWorkbench() {
             </p>
           </div>
 
+          <ReferenceControlLoader onLoad={addOrReplaceRun} />
+
           {runs.length === 0 ? (
             <div className={styles.evidenceEmpty}>
-              <p>No private runs loaded</p>
-              <h3>The browser holds nothing until you choose the files.</h3>
+              <p>No evidence selected</p>
+              <h3>Choose local files or load a reference control.</h3>
               <p>
                 Imported private evidence starts with the fixed launcher and canonical validator in your terminal.
                 The browser is an inspector after terminal validation. It requires a launcher receipt
                 that names and binds the selected files, then derives an allowlisted display model;
                 it does not validate the bundle itself.
               </p>
-              <a className={styles.exampleLink} href="#act-on-findings">
-                Review the sanitized configured-session example
-              </a>
               <pre tabIndex={0}><code>{VALIDATE_COMMAND}</code></pre>
             </div>
           ) : (
@@ -418,7 +417,11 @@ export function AgentEvaluationWorkbench() {
                 <article className={styles.runViewer}>
                   <header className={styles.runHeader}>
                     <div>
-                      <p>{selectedRun.clientId}{selectedRun.source === 'private_bundle' ? ` / ${selectedRun.modelLabel}` : ''}</p>
+                      <p>
+                        {selectedRun.source === 'reference_control'
+                          ? 'Synthetic reference control / no configured agent'
+                          : `${selectedRun.clientId} / ${selectedRun.modelLabel}`}
+                      </p>
                       <h3>{runLabel(selectedRun)}</h3>
                     </div>
                     <div className={styles.runHeaderActions}>
@@ -477,6 +480,12 @@ export function AgentEvaluationWorkbench() {
                     </div>
                   ) : (
                     <>
+                      {selectedRun.source === 'reference_control' ? (
+                        <div className={styles.referenceBoundary} role="note">
+                          <strong>Evidence lane / Synthetic reference control</strong>
+                          <p>This demonstrates the runner and inspector. It does not describe an agent you operate.</p>
+                        </div>
+                      ) : null}
                       <dl className={styles.receiptStrip}>
                         <div><dt>Process exit</dt><dd>{selectedRun.exitCode}</dd></div>
                         <div><dt>Cases passed</dt><dd>{selectedRun.totals.passedCases}/{selectedRun.totals.completedCases}</dd></div>
@@ -627,7 +636,13 @@ export function AgentEvaluationWorkbench() {
                         <code>{runLabel(run)}</code>
                       </th>
                       <td data-label="Model">{run.modelLabel}</td>
-                      <td data-label="Runtime">{run.source === 'private_bundle' ? run.clientVersion : 'Not bound'}</td>
+                      <td data-label="Runtime">
+                        {run.source === 'private_bundle'
+                          ? run.clientVersion
+                          : run.source === 'reference_control'
+                            ? 'Synthetic reference'
+                            : 'Not bound'}
+                      </td>
                       <td data-label="Status">
                         <span data-status={run.status}>
                           <i className={styles.statusSignal} aria-hidden="true" />
@@ -637,10 +652,10 @@ export function AgentEvaluationWorkbench() {
                       <td data-label="Process">
                         exit {run.exitCode}{run.source === 'private_bundle' && run.exitCode === 1 ? ' / recovered' : ''}
                       </td>
-                      <td data-label="Cases">{run.source === 'private_bundle' ? `${run.totals.passedCases}/${run.totals.completedCases}` : 'Not scored'}</td>
-                      <td data-label="Findings">{run.source === 'private_bundle' ? run.totals.failedCases : '—'}</td>
-                      <td data-label="Tools">{run.source === 'private_bundle' ? run.totals.toolAttempts : '—'}</td>
-                      <td data-label="State transitions">{run.source === 'private_bundle' ? run.totals.stateTransitions : '—'}</td>
+                      <td data-label="Cases">{run.source === 'attempt_receipt' ? 'Not scored' : `${run.totals.passedCases}/${run.totals.completedCases}`}</td>
+                      <td data-label="Findings">{run.source === 'attempt_receipt' ? '—' : run.totals.failedCases}</td>
+                      <td data-label="Tools">{run.source === 'attempt_receipt' ? '—' : run.totals.toolAttempts}</td>
+                      <td data-label="State transitions">{run.source === 'attempt_receipt' ? '—' : run.totals.stateTransitions}</td>
                       <td data-label="Plan"><code className={styles.fullDigest}>{run.planSha256}</code></td>
                     </tr>
                   ))}
@@ -710,7 +725,11 @@ export function AgentEvaluationWorkbench() {
                 </div>
               ) : (
                 <div className={styles.noRecommendations}>
-                  <h3>No failed assertion IDs in this run.</h3>
+                  <h3>
+                    {selectedBundle.source === 'reference_control'
+                      ? 'Reference controls do not produce agent recommendations.'
+                      : 'No failed assertion IDs in this run.'}
+                  </h3>
                   <p>{decision.nextStep}</p>
                 </div>
               )}
@@ -727,37 +746,11 @@ export function AgentEvaluationWorkbench() {
               <a href="#inspect-evidence">Return to the evidence loader</a>
             </article>
           ) : (
-            <article className={styles.caseStudy} aria-labelledby="case-study-title">
-              <header>
-                <div>
-                  <p>{SANITIZED_HERMES_CASE_STUDY.label}</p>
-                  <span>{SANITIZED_HERMES_CASE_STUDY.adapter} / {SANITIZED_HERMES_CASE_STUDY.measuredAt}</span>
-                </div>
-                <strong>Sanitized configured-session example / Not loaded evidence</strong>
-              </header>
-              <div className={styles.caseStudyDecision}>
-                <p>{SANITIZED_HERMES_CASE_STUDY.decision}</p>
-                <h3 id="case-study-title">
-                  {SANITIZED_HERMES_CASE_STUDY.totals.failedCases} of {SANITIZED_HERMES_CASE_STUDY.totals.completedCases} cases produced findings.
-                </h3>
-                <p>{SANITIZED_HERMES_CASE_STUDY.allowedClaim}</p>
-              </div>
-              <dl className={styles.caseStudyMetrics}>
-                <div><dt>Passed</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.passedCases}/{SANITIZED_HERMES_CASE_STUDY.totals.completedCases}</dd></div>
-                <div><dt>Findings</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.failedCases}</dd></div>
-                <div><dt>Tool attempts</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.toolAttempts}</dd></div>
-                <div><dt>State transitions</dt><dd>{SANITIZED_HERMES_CASE_STUDY.totals.stateTransitions}</dd></div>
-              </dl>
-              <div className={styles.claimBoundary}>
-                <div><span>Allowed claim</span><p>{SANITIZED_HERMES_CASE_STUDY.allowedClaim}</p></div>
-                <div><span>Not supported</span><p>{SANITIZED_HERMES_CASE_STUDY.disallowedClaim}</p></div>
-              </div>
-              <ol className={styles.caseStudySteps}>
-                <li><span>01</span><p>Load the replay-bound private bundle to see which allowlisted assertions failed.</p></li>
-                <li><span>02</span><p>Apply one guardrail against the review-first recommendation.</p></li>
-                <li><span>03</span><p>Rerun the same frozen plan and compare the new evidence, not the narrative.</p></li>
-              </ol>
-              <footer>{SANITIZED_HERMES_CASE_STUDY.boundary}</footer>
+            <article className={styles.unscoredAction}>
+              <p>No evidence selected</p>
+              <h3>Decide only after you load a run.</h3>
+              <p>Reference controls teach the inspector. Configured-session evidence is required for an agent-specific review.</p>
+              <a href="#inspect-evidence">Choose evidence above</a>
             </article>
           )}
         </div>
