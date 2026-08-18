@@ -1,0 +1,1 @@
+`AgentEvaluationWorkbench.tsx` remains far above the 150-line component guideline. The new reference-control loader was extracted, but splitting the existing inspector, comparison, and decision workspaces would widen issue 32 and risk unrelated behavior, so that cleanup remains a separate refactor.

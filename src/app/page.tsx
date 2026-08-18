@@ -16,7 +16,7 @@ const proofPoints = [
 const nextLinks = [
   {
     index: '01',
-    label: 'Start a checkup',
+    label: 'Plan a checkup',
     copy: 'Build a plan, choose OpenClaw or Hermes, and open the local evidence workflow.',
     href: '/preflight',
   },
@@ -24,7 +24,7 @@ const nextLinks = [
     index: '02',
     label: 'Inspect evidence',
     copy: 'Inspect the configured-session summary, its claim boundary, and the separate model archive.',
-    href: '/bench',
+    href: '/evaluate',
   },
   {
     index: '03',
@@ -49,7 +49,7 @@ export default function HomePage() {
                 one session&apos;s tool attempts, state changes, and findings before you consider real permissions.
               </p>
               <div className={styles.heroActions}>
-                <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
+                <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
                 <Link href="/checkups" className={styles.secondaryAction}>See checkup options</Link>
               </div>
               <p className={styles.heroNote}>
@@ -92,7 +92,7 @@ export default function HomePage() {
               This sanitized Hermes session summary shows what one reviewed observation can support.
               It is not a compatibility or verifier result. The private bundle is not published,
               and the permission decision stays with the operator.{' '}
-              <Link href="/bench" className={styles.inlineLink}>Inspect public evidence.</Link>
+              <Link href="/evaluate" className={styles.inlineLink}>Inspect evidence.</Link>
             </p>
           </div>
           <ResultBreakdown />

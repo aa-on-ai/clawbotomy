@@ -27,7 +27,15 @@ interface ValidationState {
 
 function initialCapabilities(): CapabilityFormState {
   return Object.fromEntries(
-    INBOX_CAPABILITIES.map((capability) => [capability.id, { selected: false, intent: '' }]),
+    INBOX_CAPABILITIES.map((capability) => {
+      if (capability.id === 'search_read') {
+        return [capability.id, { selected: true, intent: 'approval' }];
+      }
+      if (capability.id === 'delete') {
+        return [capability.id, { selected: true, intent: 'block' }];
+      }
+      return [capability.id, { selected: false, intent: '' }];
+    }),
   ) as CapabilityFormState;
 }
 
@@ -52,6 +60,16 @@ export function InboxPreflightPlanner() {
   );
   const runnerCommand = plan
     ? `npm run inbox -- run --plan "./${inboxPlanFilename(plan)}" --agent bounded`
+    : '';
+  const agentPreflightCommand = plan
+    ? [
+        'npm run agent:preflight --',
+        `  --plan "/path/to/${inboxPlanFilename(plan)}"`,
+        '  --model "ollama/qwen3:1.7b"',
+        '  --openclaw-bin "/path/to/openclaw.mjs"',
+        '  --expected-openclaw-runtime-sha256 "replace-with-independent-runtime-sha256"',
+        '  --expected-provider-runtime-sha256 "replace-with-independent-provider-sha256"',
+      ].join(' \\\n')
     : '';
   const selectedCount = INBOX_CAPABILITIES.filter((capability) => capabilities[capability.id].selected).length;
   const hasInput = Boolean(planLabel || configurationReference || selectedCount || plan);
@@ -461,6 +479,15 @@ export function InboxPreflightPlanner() {
                 <p>
                   Ready for your runtime? <a href="/evaluate">Choose the OpenClaw or Hermes adapter.</a>
                 </p>
+                <h4>Run your configured agent</h4>
+                <p>
+                  Preflight stages a downloaded plan inside the checkout, resolves a launcher symlink,
+                  validates independently obtained runtime pins, and checks for an ambiguous or expired
+                  provider profile before it prints the exact evaluation command.
+                </p>
+                <pre tabIndex={0} aria-label="Command to preflight a configured OpenClaw evaluation">
+                  <code>{agentPreflightCommand}</code>
+                </pre>
               </div>
             </section>
           </div>

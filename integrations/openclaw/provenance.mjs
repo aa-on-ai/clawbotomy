@@ -602,6 +602,63 @@ export function copyInferenceAuthStore(sourceAgentDir, targetAgentDir, model) {
   };
 }
 
+export function inspectInferenceAuthStore(sourceAgentDir, model, { now = Date.now } = {}) {
+  const { provider } = parseModel(model);
+  const sourcePath = path.join(sourceAgentDir, "openclaw-agent.sqlite");
+  if (!existsSync(sourcePath)) throw new Error(`OpenClaw auth source database not found: ${sourcePath}`);
+  const source = new DatabaseSync(sourcePath, { readOnly: true });
+  try {
+    const storeRows = source.prepare("SELECT store_key, store_json FROM auth_profile_store").all();
+    const primaryStore = storeRows.filter((row) => row.store_key === "primary");
+    if (primaryStore.length !== 1) throw new Error("OpenClaw auth source requires exactly one primary model profile store");
+    const store = parseStrictJson(primaryStore[0].store_json, "OpenClaw auth profile store");
+    assertExactKeys(store, ["version", "profiles"], "OpenClaw auth profile store");
+    if (!isPlainObject(store.profiles)) throw new Error("OpenClaw auth profile store profiles must be an object");
+    const matches = Object.entries(store.profiles).filter(([, profile]) => profile?.provider === provider);
+    if (matches.length !== 1) throw new Error(`OpenClaw auth source requires exactly one ${provider} profile; found ${matches.length}`);
+    const [[selectedProfileId, selectedProfile]] = matches;
+    if (!isPlainObject(selectedProfile) || typeof selectedProfile.type !== "string") {
+      throw new Error("Selected OpenClaw auth profile is malformed");
+    }
+    if (selectedProfile.type === "oauth") {
+      if (
+        typeof selectedProfile.access !== "string"
+        || !selectedProfile.access
+        || typeof selectedProfile.refresh !== "string"
+        || !selectedProfile.refresh
+      ) {
+        throw new Error("Selected OpenClaw OAuth profile is incomplete");
+      }
+      const expiresAt = selectedProfile.expires ?? selectedProfile.expiresAt;
+      if (expiresAt !== undefined) {
+        const expiry = typeof expiresAt === "number" ? expiresAt : Date.parse(String(expiresAt));
+        if (!Number.isFinite(expiry)) throw new Error("Selected OpenClaw OAuth profile expiration is invalid");
+        if (expiry <= Number(now())) throw new Error("Selected OpenClaw OAuth profile is expired");
+      }
+    } else if (typeof selectedProfile.key !== "string" || !selectedProfile.key) {
+      throw new Error("Selected OpenClaw API-key profile is incomplete");
+    }
+
+    const stateRows = source.prepare("SELECT state_key, state_json FROM auth_profile_state").all();
+    const primaryState = stateRows.filter((row) => row.state_key === "primary");
+    if (primaryState.length !== 1) throw new Error("OpenClaw auth source requires exactly one primary profile state row");
+    const state = parseStrictJson(primaryState[0].state_json, "OpenClaw auth profile state");
+    assertExactKeys(state, ["version", "order"], "OpenClaw auth profile state");
+    const providerOrder = state.order?.[provider];
+    if (!Array.isArray(providerOrder) || providerOrder.filter((id) => id === selectedProfileId).length !== 1) {
+      throw new Error("Selected OpenClaw auth profile is missing or ambiguous in provider order");
+    }
+    return {
+      provider,
+      type: selectedProfile.type,
+      profileIdSha256: sha256(selectedProfileId),
+      status: "ready",
+    };
+  } finally {
+    source.close();
+  }
+}
+
 function chmodSync0600(filePath) {
   chmodSync(filePath, 0o600);
 }

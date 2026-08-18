@@ -49,13 +49,12 @@ export const AGENT_ADAPTERS: AgentAdapter[] = [
       'An OpenClaw executable and independently obtained runtime digests',
       'A local Ollama model, or a separately configured provider profile',
     ],
-    launchCommand: `npm run agent:evaluate -- \\
-  --adapter openclaw \\
-  --plan ./clawbotomy-inbox-plan.json \\
+    launchCommand: `npm run agent:preflight -- \\
+  --plan /path/to/clawbotomy-inbox-plan.json \\
   --model ollama/qwen3:1.7b \\
-  --openclaw-bin "$OPENCLAW_BIN" \\
-  --expected-openclaw-runtime-sha256 "$OPENCLAW_RUNTIME_SHA256" \\
-  --expected-provider-runtime-sha256 "$OPENCLAW_PROVIDER_RUNTIME_SHA256"`,
+  --openclaw-bin /path/to/openclaw.mjs \\
+  --expected-openclaw-runtime-sha256 replace-with-independent-runtime-sha256 \\
+  --expected-provider-runtime-sha256 replace-with-independent-provider-sha256`,
   },
   {
     id: 'hermes',
@@ -215,12 +214,36 @@ export interface PrivateRunReceipt {
   cases: SafeCaseReceipt[];
 }
 
+export type ReferenceControlId = 'bounded' | 'overreach';
+
+export interface ReferenceRunReceipt {
+  source: 'reference_control';
+  referenceId: ReferenceControlId;
+  attemptId: string;
+  runId: string;
+  adapterLabel: string;
+  clientId: 'clawbotomy.reference-control';
+  clientVersion: '1.0.0';
+  modelLabel: 'Deterministic synthetic runner';
+  status: Exclude<RunStatus, 'infrastructure_failure'>;
+  totals: PrivateRunReceipt['totals'];
+  coreDigest: string;
+  planSha256: string;
+  authorizationStatus: 'non-authorizing';
+  evidenceLane: 'synthetic-reference-control';
+  configuredAgentInspected: false;
+  exitCode: 0 | 2;
+  cases: SafeCaseReceipt[];
+}
+
 export interface PrivateBundleText {
   attemptText: string;
   manifestText: string;
   summaryText: string;
   casesText: string;
 }
+
+export type ReferenceControlBundleText = Omit<PrivateBundleText, 'attemptText'>;
 
 export interface EvaluationAttemptReceipt {
   source: 'attempt_receipt';
@@ -441,9 +464,13 @@ export function parseEvaluationAttempt(text: string): EvaluationAttemptReceipt {
   };
 }
 
-function safeCaseReceipt(value: unknown, expectedRunId: string): SafeCaseReceipt {
+function safeCaseReceipt(
+  value: unknown,
+  expectedRunId: string,
+  allowedSchemas = new Set(['clawbotomy.inbox-protocol-case-record/v1']),
+): SafeCaseReceipt {
   const item = record(value, 'A case record');
-  if (item.schemaId !== 'clawbotomy.inbox-protocol-case-record/v1') {
+  if (typeof item.schemaId !== 'string' || !allowedSchemas.has(item.schemaId)) {
     throw new EvidenceImportError('cases.jsonl contains an unsupported record schema.');
   }
   if (item.runId !== expectedRunId) {
@@ -510,6 +537,118 @@ function safeCaseReceipt(value: unknown, expectedRunId: string): SafeCaseReceipt
     passedAssertions,
     failedAssertions,
     recordDigest: sha256(digests.record, 'Case record digest'),
+  };
+}
+
+export function parseReferenceControlBundle(
+  { manifestText, summaryText, casesText }: ReferenceControlBundleText,
+  referenceId: ReferenceControlId,
+): ReferenceRunReceipt {
+  for (const [label, text] of [
+    ['manifest.json', manifestText],
+    ['summary.json', summaryText],
+    ['cases.jsonl', casesText],
+  ] as const) {
+    if (!text || text.length > MAX_PRIVATE_BUNDLE_FILE_BYTES) {
+      throw new EvidenceImportError(`${label} is empty or exceeds the local viewer’s 8 MB bound.`);
+    }
+  }
+  if (referenceId !== 'bounded' && referenceId !== 'overreach') {
+    throw new EvidenceImportError('The reference control ID is unsupported.');
+  }
+
+  const manifest = record(parseJson(manifestText, 'manifest.json'), 'manifest.json');
+  const summary = record(parseJson(summaryText, 'summary.json'), 'summary.json');
+  if (
+    manifest.schemaId !== 'clawbotomy.inbox-run-manifest/v1'
+    || summary.schemaId !== 'clawbotomy.inbox-run-summary/v1'
+  ) {
+    throw new EvidenceImportError('The files are not a supported synthetic reference-control bundle.');
+  }
+  const runId = stringValue(manifest.runId, 'Reference run ID', 80);
+  if (!/^inbox-[a-f0-9]{20}$/.test(runId) || summary.runId !== runId) {
+    throw new EvidenceImportError('The reference files do not describe one supported run.');
+  }
+  if (record(manifest.lifecycle, 'Reference lifecycle').status !== 'complete') {
+    throw new EvidenceImportError('Only complete reference controls can be inspected.');
+  }
+  const evidence = record(manifest.evidence, 'Reference evidence boundary');
+  if (
+    evidence.measurementStatus !== 'measured-mock'
+    || evidence.executionMode !== 'deterministic-mock'
+    || evidence.authorizationStatus !== 'non-authorizing'
+    || evidence.permissionDecision !== null
+    || evidence.configuredAgentInspected !== false
+    || evidence.productionAccessChanged !== false
+    || (manifest.executionSubject !== null && manifest.executionSubject !== undefined)
+  ) {
+    throw new EvidenceImportError('The reference bundle does not preserve its synthetic non-authorizing boundary.');
+  }
+
+  const coreDigest = sha256(manifest.coreDigest, 'Reference manifest digest');
+  if (sha256(summary.coreDigest, 'Reference summary digest') !== coreDigest) {
+    throw new EvidenceImportError('The reference manifest and summary digests do not match.');
+  }
+  const plan = record(manifest.plan, 'Reference plan binding');
+  const totalsObject = record(summary.totals, 'Reference totals');
+  const totals = {
+    scheduledCases: countValue(totalsObject.scheduledCases, 'Scheduled cases'),
+    completedCases: countValue(totalsObject.completedCases, 'Completed cases'),
+    passedCases: countValue(totalsObject.passedCases, 'Passed cases'),
+    failedCases: countValue(totalsObject.failedCases, 'Failed cases'),
+    toolAttempts: countValue(totalsObject.toolAttempts, 'Tool attempts'),
+    stateTransitions: countValue(totalsObject.stateTransitions, 'State transitions'),
+  };
+  if (
+    totals.scheduledCases < 1
+    || totals.completedCases !== totals.scheduledCases
+    || totals.passedCases + totals.failedCases !== totals.completedCases
+  ) {
+    throw new EvidenceImportError('The reference totals are internally inconsistent.');
+  }
+  const lines = casesText.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  if (lines.length !== totals.completedCases) {
+    throw new EvidenceImportError('Reference cases.jsonl does not match the completed-case total.');
+  }
+  const referenceSchemas = new Set(['clawbotomy.inbox-case-record/v1']);
+  const cases = lines.map((line, index) => safeCaseReceipt(
+    parseJson(line, `cases.jsonl line ${index + 1}`),
+    runId,
+    referenceSchemas,
+  ));
+  if (
+    new Set(cases.map((item) => item.caseId)).size !== cases.length
+    || cases.filter((item) => item.status === 'passed').length !== totals.passedCases
+    || cases.filter((item) => item.status === 'failed').length !== totals.failedCases
+    || cases.reduce((sum, item) => sum + item.toolAttempts, 0) !== totals.toolAttempts
+    || cases.reduce((sum, item) => sum + item.stateTransitions, 0) !== totals.stateTransitions
+  ) {
+    throw new EvidenceImportError('Reference case receipts do not match the summary.');
+  }
+
+  const status = totals.failedCases > 0 ? 'findings' : 'passed';
+  const expectedPolarity = referenceId === 'bounded' ? 'passed' : 'findings';
+  if (status !== expectedPolarity) {
+    throw new EvidenceImportError('The reference control does not match its declared polarity.');
+  }
+  return {
+    source: 'reference_control',
+    referenceId,
+    attemptId: `reference-${referenceId}-${runId}`,
+    runId,
+    adapterLabel: referenceId === 'bounded' ? 'Bounded control' : 'Overreach control',
+    clientId: 'clawbotomy.reference-control',
+    clientVersion: '1.0.0',
+    modelLabel: 'Deterministic synthetic runner',
+    status,
+    totals,
+    coreDigest,
+    planSha256: sha256(plan.sha256, 'Reference plan digest'),
+    authorizationStatus: 'non-authorizing',
+    evidenceLane: 'synthetic-reference-control',
+    configuredAgentInspected: false,
+    exitCode: status === 'passed' ? 0 : 2,
+    cases,
   };
 }
 

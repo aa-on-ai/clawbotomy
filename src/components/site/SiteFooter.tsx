@@ -24,8 +24,10 @@ export function SiteFooter() {
               Source ↗
             </a>
             <Link href="/checkups">Checkups</Link>
-            <Link href="/preflight">Start a checkup</Link>
-            <Link href="/bench">Evidence</Link>
+            <Link href="/preflight">Plan a checkup</Link>
+            <Link href="/evaluate">Inspect</Link>
+            <Link href="/bench">Archive</Link>
+            <Link href="/docs">Docs</Link>
             <Link href="/about">About</Link>
             <Link href="/terms">Terms</Link>
           </nav>

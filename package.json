@@ -12,6 +12,7 @@
     "bench": "node bench/index.js",
     "inbox": "node inbox/index.js",
     "agent:evaluate": "node inbox/agent-evaluate.js",
+    "agent:preflight": "node inbox/agent-preflight.js",
     "agent:repeat": "node inbox/repeated-session-evidence.js",
     "compat:watchdog": "node compatibility/watchdog.mjs",
     "evidence": "node bench/evidence-cli.js",

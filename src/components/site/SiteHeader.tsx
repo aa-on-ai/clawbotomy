@@ -8,7 +8,7 @@ import styles from './site-chrome.module.css';
 
 const links = [
   { href: '/checkups', label: 'Checkups' },
-  { href: '/bench', label: 'Evidence' },
+  { href: '/evaluate', label: 'Inspect' },
   { href: '/about', label: 'Method' },
 ];
 
@@ -76,7 +76,7 @@ export function SiteHeader() {
             aria-current={pathname === '/preflight' ? 'page' : undefined}
             className={`${styles.navAction} ${pathname === '/preflight' ? styles.active : ''}`}
           >
-            Start a checkup
+            Plan a checkup
           </Link>
         </nav>
       </div>

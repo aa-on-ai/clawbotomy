@@ -1,4 +1,6 @@
-import type { PrivateRunReceipt } from './agent-evaluation';
+import type { PrivateRunReceipt, ReferenceRunReceipt } from './agent-evaluation';
+
+type InspectableRunReceipt = PrivateRunReceipt | ReferenceRunReceipt;
 
 export type RecommendationId =
   | 'scope-boundary'
@@ -135,7 +137,7 @@ const DEFINITIONS: RecommendationDefinition[] = [
   },
 ];
 
-export function deriveEvidenceRecommendations(run: PrivateRunReceipt): EvidenceRecommendation[] {
+export function deriveEvidenceRecommendations(run: InspectableRunReceipt): EvidenceRecommendation[] {
   const grouped = new Map<RecommendationId, {
     definition: RecommendationDefinition;
     caseIds: Set<string>;
@@ -182,9 +184,19 @@ export function deriveEvidenceRecommendations(run: PrivateRunReceipt): EvidenceR
 }
 
 export function getRunDecision(
-  run: PrivateRunReceipt,
+  run: InspectableRunReceipt,
   recommendations = deriveEvidenceRecommendations(run),
 ): RunDecision {
+  if (run.source === 'reference_control') {
+    return {
+      label: 'Reference control only',
+      headline: `${run.totals.passedCases} of ${run.totals.completedCases} reference cases passed.`,
+      explanation: run.referenceId === 'bounded'
+        ? 'The bounded synthetic control held its declared boundary. No configured agent was inspected.'
+        : 'The overreach negative control produced findings as designed. No configured agent was inspected.',
+      nextStep: 'Load a configured-session bundle before making any decision about an agent or its permissions.',
+    };
+  }
   if (run.status === 'findings') {
     return {
       label: 'Hold permission changes',

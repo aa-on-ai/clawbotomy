@@ -30,10 +30,11 @@ test('checkups are discoverable from the human and machine-facing surfaces', () 
   assert.match(home, /href="\/checkups"/);
   assert.match(home, /Plan data stays in this browser/);
   assert.match(header, /href: '\/checkups', label: 'Checkups'/);
-  assert.match(header, /href: '\/bench', label: 'Evidence'/);
+  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
   assert.match(header, /href: '\/about', label: 'Method'/);
   assert.match(header, /href="\/preflight"/);
-  assert.match(header, /Start a checkup/);
+  assert.match(header, /Plan a checkup/);
+  assert.match(footer, /href="\/bench">Archive/);
   assert.doesNotMatch(header, /label: '(Evaluate|Trust|Routing|Lab|Docs)'/);
   assert.match(footer, /href="\/checkups">Checkups/);
   assert.match(sitemap, /'\/checkups'/);

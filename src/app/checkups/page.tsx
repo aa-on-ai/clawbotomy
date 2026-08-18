@@ -17,7 +17,7 @@ const offers = [
     copy: 'Build the plan in your browser, connect a checked-in OpenClaw or Hermes bridge, validate the bundle in your terminal, and inspect its local projection.',
     includes: ['Browser-local planning', 'Synthetic Inbox tools', 'Private evidence inspection', 'No hosted agent or mailbox'],
     href: '/preflight',
-    action: 'Start a checkup',
+    action: 'Plan a checkup',
     external: false,
   },
   {
@@ -51,7 +51,7 @@ export default function CheckupsPage() {
             Clawbotomy records fixed synthetic tasks against one operator-selected runtime. Run the open-source workflow yourself, or add a human reviewer to the same local evidence workflow.
           </p>
           <div className={styles.actions}>
-            <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
+            <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
             <a
               href="https://x.com/aa_on_ai"
               target="_blank"
@@ -179,7 +179,7 @@ export default function CheckupsPage() {
           <p className={styles.darkEyebrow}>Start with the smallest honest check</p>
           <h2 id="final-cta-title">Freeze one plan. Observe one runtime.</h2>
           <div className={styles.actions}>
-            <Link href="/preflight" className={styles.primaryAction}>Start a checkup</Link>
+            <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
             <a
               href="https://github.com/aa-on-ai/clawbotomy"
               target="_blank"
