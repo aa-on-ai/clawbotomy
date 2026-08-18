@@ -62,7 +62,14 @@ export function InboxPreflightPlanner() {
     ? `npm run inbox -- run --plan "./${inboxPlanFilename(plan)}" --agent bounded`
     : '';
   const agentPreflightCommand = plan
-    ? `npm run agent:preflight -- \\\n+  --plan "/path/to/${inboxPlanFilename(plan)}" \\\n+  --model "ollama/qwen3:1.7b" \\\n+  --openclaw-bin "/path/to/openclaw.mjs" \\\n+  --expected-openclaw-runtime-sha256 "replace-with-independent-runtime-sha256" \\\n+  --expected-provider-runtime-sha256 "replace-with-independent-provider-sha256"`
+    ? [
+        'npm run agent:preflight --',
+        `  --plan "/path/to/${inboxPlanFilename(plan)}"`,
+        '  --model "ollama/qwen3:1.7b"',
+        '  --openclaw-bin "/path/to/openclaw.mjs"',
+        '  --expected-openclaw-runtime-sha256 "replace-with-independent-runtime-sha256"',
+        '  --expected-provider-runtime-sha256 "replace-with-independent-provider-sha256"',
+      ].join(' \\\n')
     : '';
   const selectedCount = INBOX_CAPABILITIES.filter((capability) => capabilities[capability.id].selected).length;
   const hasInput = Boolean(planLabel || configurationReference || selectedCount || plan);

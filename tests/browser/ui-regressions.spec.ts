@@ -77,7 +77,14 @@ test('a first-time visitor can plan the default boundary and inspect both refere
   await page.getByLabel('Plan label').fill('First checkup');
   await page.getByRole('button', { name: 'Build local plan' }).click();
   await expect(page.getByRole('heading', { name: 'Run your configured agent' })).toBeVisible();
-  await expect(page.getByLabel('Command to preflight a configured OpenClaw evaluation')).toContainText('agent:preflight');
+  const preflightCommand = page.getByLabel('Command to preflight a configured OpenClaw evaluation');
+  await expect(preflightCommand).toContainText('agent:preflight');
+  const commandLines = (await preflightCommand.innerText()).split('\n');
+  expect(commandLines[0]).toBe('npm run agent:preflight -- \\');
+  expect(commandLines.slice(1)).toHaveLength(5);
+  for (const line of commandLines.slice(1)) {
+    expect(line).toMatch(/^  --/);
+  }
 
   await gotoReady(page, '/evaluate');
   await waitForReactHandler(page, 'button');
