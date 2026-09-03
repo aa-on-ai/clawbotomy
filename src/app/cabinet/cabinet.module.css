@@ -3,9 +3,9 @@
   z-index: 2;
   min-height: 100vh;
   padding: 72px 0 96px;
-  color: #9a9a94;
-  background: var(--ph-void);
-  font-family: var(--font-plex-sans), var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--ph-mute);
+  background: var(--ph-iron);
+  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
 }
 
 .rail {
@@ -15,25 +15,25 @@
 
 .kicker {
   margin: 0 0 12px;
-  color: #8a8a84;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  color: var(--ph-mute);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .title {
-  max-width: 16ch;
+  width: 100%;
   margin: 0 0 16px;
   color: var(--ph-paper);
-  font-size: clamp(2rem, 3.4vw, 2.6rem);
+  font-size: clamp(2.1rem, 4vw, 2.8rem);
   font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 
 .lede {
   max-width: 62ch;
-  margin: 0 0 40px;
-  font-size: 1.02rem;
-  line-height: 1.65;
+  margin: 0 0 32px;
+  font-size: 1.08rem;
+  line-height: 1.6;
 }

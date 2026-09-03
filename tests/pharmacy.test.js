@@ -72,18 +72,26 @@ test('the homepage is the night cabinet, not the checkup machine', () => {
   assert.doesNotMatch(readme, /\[Plan a checkup\]/);
 });
 
-test('the homepage drawer is a quiet accession ledger, not a jar card grid', () => {
+test('the homepage drawer is a filing inventory, not a design-system table', () => {
   const home = read('src/app/page.tsx');
-  const styles = read('src/components/pharmacy/pharmacy.module.css');
+  const homeStyles = read('src/app/pharmacy-home.module.css');
+  const layout = read('src/app/layout.tsx');
   const table = read('src/components/pharmacy/AccessionTable.tsx');
+  const specimens = read('src/lib/pharmacy/specimens.ts');
 
   assert.match(home, /AccessionTable/);
-  assert.match(table, /<table/);
   assert.match(table, /REFUSED×Gemini/);
-  assert.match(styles, /border-collapse:\s*collapse/);
-  assert.match(styles, /\.table th,\s*\.table td \{[^}]*border-bottom:\s*1px solid #2a2a26;/s);
-  assert.doesNotMatch(read('src/app/pharmacy-home.module.css'), /linear-gradient/);
-  assert.doesNotMatch(read('src/app/pharmacy-home.module.css'), /box-shadow/);
+  assert.match(table, /chaosMark/);
+  assert.match(specimens, /CHAOS_MARKS = \['quiet', 'faint', 'noted', 'marked', 'wild'\]/);
+  assert.doesNotMatch(table, /<table/);
+  assert.doesNotMatch(table, /····|▪▪|ChaosMarks/);
+  assert.match(layout, /Newsreader/);
+  assert.match(layout, /Fragment_Mono/);
+  assert.doesNotMatch(layout, /IBM_Plex/);
+  assert.doesNotMatch(homeStyles, /#6fffb0/i);
+  assert.doesNotMatch(homeStyles, /linear-gradient/);
+  assert.doesNotMatch(homeStyles, /box-shadow/);
+  assert.doesNotMatch(homeStyles, /grid-template-columns:\s*1fr 1fr/);
 });
 
 test('the proposed pipe is labeled and not implemented as a live CLI', () => {

@@ -12,6 +12,12 @@ export type Specimen = {
   jarFill: string;
 };
 
+export const CHAOS_MARKS = ['quiet', 'faint', 'noted', 'marked', 'wild'] as const;
+
+export function chaosMark(value: Specimen['chaos']): (typeof CHAOS_MARKS)[number] {
+  return CHAOS_MARKS[value - 1];
+}
+
 export type RefusalExhibit = {
   substanceSlug: string;
   modelSlug: FlagshipSlug;

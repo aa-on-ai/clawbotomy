@@ -20,7 +20,7 @@ export default function CabinetPage() {
         <p className={styles.kicker}>Night Cabinet / Model Pharmacy</p>
         <h1 className={styles.title}>Ten jars. No checkup machine.</h1>
         <p className={styles.lede}>
-          Permanent specimens for flagship models. Each row is an accession stamp, a short
+          Permanent specimens for flagship models. Each slip is an accession stamp, a short
           effect, and a chaos mark — not a capability score. Open a line for the trip reports
           and, where a model refused, the refusal itself.
         </p>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  chaosMark,
   excerptReport,
   getAlternateTrip,
   getFlagshipReports,
@@ -61,16 +62,9 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
             <p className={styles.accession}>{specimen.accession}</p>
             <h1 className={styles.title}>{specimen.slug}</h1>
             <p className={styles.effect}>{specimen.effectShort}</p>
-            <div className={styles.chaos} aria-label={`Chaos ${specimen.chaos} of 5`}>
-              {Array.from({ length: 5 }, (_, index) => (
-                <span
-                  key={index}
-                  className={`${styles.mark} ${index < specimen.chaos ? styles.markFilled : ''}`}
-                  aria-hidden="true"
-                />
-              ))}
-              <span className={styles.chaosLabel}>Chaos {specimen.chaos} / 5</span>
-            </div>
+            <p className={styles.chaos} aria-label={`Chaos ${specimen.chaos} of 5, ${chaosMark(specimen.chaos)}`}>
+              <span className={styles.chaosLabel}>Chaos {chaosMark(specimen.chaos)}</span>
+            </p>
           </div>
         </header>
 

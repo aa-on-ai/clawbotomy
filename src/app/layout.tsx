@@ -5,21 +5,22 @@ import { Providers } from '@/components/Providers';
 import { SiteFooter } from '@/components/site/SiteFooter';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
-import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
+import { Fragment_Mono, Newsreader } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 
-const plexSans = IBM_Plex_Sans({
+const newsreader = Newsreader({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
-  variable: '--font-plex-sans',
+  style: ['normal', 'italic'],
+  variable: '--font-newsreader',
   display: 'swap',
 });
 
-const plexMono = IBM_Plex_Mono({
+const fragmentMono = Fragment_Mono({
   subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-plex-mono',
+  weight: '400',
+  variable: '--font-fragment-mono',
   display: 'swap',
 });
 
@@ -66,7 +67,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0a0a09',
+  themeColor: '#171410',
 };
 
 export default function RootLayout({
@@ -75,7 +76,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${plexSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${newsreader.variable} ${fragmentMono.variable}`}>
       <head>
         <script
           type="application/ld+json"

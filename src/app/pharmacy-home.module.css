@@ -2,9 +2,9 @@
   position: relative;
   z-index: 2;
   overflow: clip;
-  color: #9a9a94;
-  background: var(--ph-void);
-  font-family: var(--font-plex-sans), var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--ph-mute);
+  background: var(--ph-iron);
+  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
 }
 
 .rail {
@@ -13,24 +13,24 @@
 }
 
 .hero {
-  padding: 72px 0 0;
+  padding: 56px 0 0;
 }
 
 .headline {
-  max-width: 18ch;
-  margin: 0 0 20px;
+  width: 100%;
+  margin: 0 0 22px;
   color: var(--ph-paper);
-  font-size: clamp(2rem, 3.6vw, 2.85rem);
+  font-size: clamp(2.35rem, 5.4vw, 3.55rem);
   font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
 }
 
 .subhead {
-  max-width: 62ch;
+  width: 100%;
   margin: 0;
-  font-size: 1.02rem;
-  line-height: 1.65;
+  font-size: 1.12rem;
+  line-height: 1.55;
 }
 
 .subhead strong {
@@ -40,69 +40,97 @@
 
 .doors {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-  margin: 48px 0 0;
-  border-top: 1px solid #2a2a26;
-  border-bottom: 1px solid #2a2a26;
+  grid-template-columns: minmax(0, 1.7fr) minmax(13rem, 0.68fr);
+  gap: 20px 28px;
+  align-items: start;
+  margin: 44px 0 0;
 }
 
 .door {
-  min-height: 0;
-  padding: 28px 0 32px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: inherit;
-  background: transparent;
-  border: 0;
   text-decoration: none;
 }
 
-.doorPrimary {
-  padding-right: 32px;
+.doorHuman {
+  padding: 26px 28px 30px 22px;
+  color: var(--ph-ink);
+  background: var(--ph-paper);
+  clip-path: polygon(0 3%, 98% 0, 100% 96%, 2% 100%);
+  transform: rotate(-0.7deg);
 }
 
-.doorMuted {
-  padding-left: 32px;
-  border-left: 1px solid #2a2a26;
+.doorModel {
+  margin-top: 36px;
+  padding: 14px 14px 16px;
+  color: var(--ph-ink);
+  background: #f4efe4;
+  border: 2px solid var(--ph-red);
+  border-top-width: 11px;
+  transform: rotate(0.45deg);
 }
 
 .doorLabel {
   margin: 0;
-  color: #6a6a64;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
 }
 
-.doorPrimary .doorLabel {
-  color: var(--ph-phosphor);
+.doorHuman .doorLabel {
+  color: var(--ph-red);
+  font-style: italic;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.doorModel .doorLabel {
+  color: var(--ph-red);
 }
 
 .door h2 {
   margin: 0;
-  color: var(--ph-paper);
-  font-size: 1.35rem;
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  color: var(--ph-ink);
 }
 
-.doorMuted h2 {
-  color: #c8c8c2;
-  font-size: 1.2rem;
+.doorHuman h2 {
+  font-size: 2.15rem;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.doorModel h2 {
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
+  font-size: 1.02rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
 }
 
 .door p {
   margin: 0;
-  max-width: 32ch;
-  line-height: 1.5;
+  max-width: 34ch;
+  line-height: 1.45;
 }
 
-.cabinetBar {
-  margin-top: 28px;
-  padding: 0;
-  display: grid;
-  gap: 10px;
+.doorCue {
+  margin-top: 10px;
+  width: fit-content;
+  color: var(--ph-red);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 1.02rem;
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.doorModel .doorCue {
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-style: normal;
 }
 
 .cabinetButton,
@@ -112,46 +140,34 @@
   padding: 0;
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   background: transparent;
   border: 0;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
-.cabinetButton {
-  color: var(--ph-phosphor);
-}
-
+.cabinetButton,
 .pipeButton {
-  color: #9a9a94;
-  cursor: pointer;
-}
-
-.cabinetBar p {
-  margin: 0;
-  max-width: 62ch;
-  font-size: 15px;
-  line-height: 1.6;
+  color: var(--ph-red);
 }
 
 .pipe {
-  margin-top: 48px;
-  padding: 28px 0 0;
+  margin-top: 52px;
+  padding: 0;
   display: grid;
   gap: 12px;
-  border-top: 1px solid #2a2a26;
   scroll-margin-top: 72px;
 }
 
 .pipeKicker {
   margin: 0;
-  color: #8a8a84;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  color: var(--ph-red);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .pipeCopy {
@@ -161,13 +177,13 @@
 }
 
 .pipeCode {
-  margin: 8px 0 0;
-  padding: 14px 16px;
+  margin: 4px 0 0;
+  padding: 12px 14px;
   overflow-x: auto;
-  color: var(--ph-phosphor);
-  background: transparent;
-  border: 1px solid #2a2a26;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  color: var(--ph-ink);
+  background: var(--ph-paper);
+  border: 1px solid var(--ph-ink);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 14px;
 }
 
@@ -176,122 +192,79 @@
 }
 
 .sectionKicker {
-  margin: 0 0 12px;
-  color: #8a8a84;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  margin: 0 0 10px;
+  color: var(--ph-mute);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.04em;
-}
-
-.stayKicker {
-  color: #8a8a84;
-}
-
-.dieKicker {
-  color: var(--ph-amber);
+  letter-spacing: 0.03em;
 }
 
 .why h2,
-.split h2 {
-  max-width: 22ch;
+.keepKill h2 {
+  width: 100%;
+  max-width: none;
   margin: 0 0 16px;
   color: var(--ph-paper);
-  font-size: clamp(1.55rem, 2.6vw, 2rem);
+  font-size: clamp(1.7rem, 3.2vw, 2.25rem);
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.18;
   letter-spacing: -0.018em;
 }
 
 .why p,
-.split > p {
-  max-width: 62ch;
-  margin: 0 0 14px;
+.keepKill p {
+  max-width: 68ch;
+  margin: 0 0 16px;
   line-height: 1.7;
 }
 
-.divider {
-  height: 0;
-  margin: 40px 0;
-  background: transparent;
-  border: 0;
-  border-top: 1px solid #2a2a26;
+.keepKill {
+  margin-top: 36px;
 }
 
-.compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 40px;
-  margin-top: 28px;
-  padding-top: 28px;
-  border-top: 1px solid #2a2a26;
-}
-
-.stayBox,
-.dieBox {
-  padding: 0;
-  display: grid;
-  gap: 18px;
-  background: transparent;
-  border: 0;
-}
-
-.dieBox {
-  padding-left: 40px;
-  border-left: 1px solid #2a2a26;
-}
-
-.row {
-  display: grid;
-  gap: 4px;
-}
-
-.row strong {
+.stayLine {
   color: var(--ph-paper);
-  font-size: 15px;
-  font-weight: 500;
 }
 
-.row span {
-  color: #9a9a94;
-  font-size: 14px;
-  line-height: 1.45;
+.dieLine {
+  max-width: 52ch;
+  color: var(--ph-red);
+}
+
+.dieLine strong,
+.stayLine strong {
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
 }
 
 .drawer {
-  padding: 56px 0 96px;
-}
-
-.drawerKicker {
-  margin: 0 0 16px;
-  color: #8a8a84;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  padding: 48px 0 96px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .cabinetButton:hover,
   .pipeButton:hover,
-  .door:hover h2 {
+  .doorHuman:hover .doorCue,
+  .doorModel:hover .doorCue {
     color: var(--ph-paper);
+  }
+
+  .doorHuman:hover .doorCue,
+  .doorModel:hover .doorCue {
+    color: var(--ph-ink);
   }
 }
 
 @media (max-width: 720px) {
-  .doors,
-  .compare {
+  .doors {
     grid-template-columns: 1fr;
   }
 
-  .doorPrimary,
-  .doorMuted,
-  .dieBox {
-    padding: 24px 0;
-    border-left: 0;
-  }
-
-  .doorMuted,
-  .dieBox {
-    border-top: 1px solid #2a2a26;
+  .doorModel {
+    width: 88%;
+    margin-top: 8px;
+    justify-self: end;
   }
 }

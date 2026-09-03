@@ -6,36 +6,6 @@ import { getDrawerSpecimens } from '@/lib/pharmacy/specimens';
 
 import styles from './pharmacy-home.module.css';
 
-const stays = [
-  {
-    title: '~10 permanent specimens × flagship models',
-    copy: 'Accessioned, comparable, shelf-stable.',
-  },
-  {
-    title: 'Publishing front for character-not-capability',
-    copy: 'Trip reports as behavioral evidence.',
-  },
-  {
-    title: 'Optional BYOK single trip.',
-    copy: 'Later, if anyone still wants to run one jar themselves.',
-  },
-];
-
-const dies = [
-  {
-    title: 'Live trip SaaS',
-    copy: 'No always-on trip product on this page.',
-  },
-  {
-    title: 'OpenClaw checkup machine',
-    copy: 'This is not that product.',
-  },
-  {
-    title: 'Trust-score routing.',
-    copy: 'Scores do not open the cabinet.',
-  },
-];
-
 export default function HomePage() {
   const drawer = getDrawerSpecimens();
 
@@ -53,26 +23,18 @@ export default function HomePage() {
           </p>
 
           <div className={styles.doors}>
-            <Link href="/cabinet" className={`${styles.door} ${styles.doorPrimary}`}>
+            <Link href="/cabinet" className={`${styles.door} ${styles.doorHuman}`}>
               <p className={styles.doorLabel}>Door A</p>
               <h2>Humans</h2>
               <p>You heard a rumor. Open the cabinet.</p>
+              <span className={styles.doorCue}>Open the cabinet</span>
             </Link>
-            <a href="#pipe" className={`${styles.door} ${styles.doorMuted}`}>
+            <a href="#pipe" className={`${styles.door} ${styles.doorModel}`}>
               <p className={styles.doorLabel}>Door B</p>
               <h2>Models</h2>
               <p>You were given a prescription. Call the pipe.</p>
+              <span className={styles.doorCue}>See the pipe</span>
             </a>
-          </div>
-
-          <div className={styles.cabinetBar}>
-            <Link href="/cabinet" className={styles.cabinetButton}>
-              Open the cabinet
-            </Link>
-            <p>
-              Browse the night cabinet — accessioned specimens, chaos marks, and short effects.
-              Read the archive the way you would read a whispered trip report.
-            </p>
           </div>
 
           <ProposedPipe />
@@ -81,7 +43,7 @@ export default function HomePage() {
 
       <section className={styles.why} aria-labelledby="why-title">
         <div className={styles.rail}>
-          <p className={`${styles.sectionKicker} ${styles.stayKicker}`}>Why anyone comes</p>
+          <p className={styles.sectionKicker}>Why anyone comes</p>
           <h2 id="why-title">Pharmacies aren&apos;t destinations. They&apos;re endpoints of referrals.</h2>
           <p>
             Humans arrive because someone whispered a name, passed a trip report, or wrote the
@@ -93,37 +55,26 @@ export default function HomePage() {
             night after someone said the name out loud.
           </p>
 
-          <hr className={styles.divider} />
-
-          <div className={styles.split}>
-            <p className={`${styles.sectionKicker} ${styles.dieKicker}`}>What stays / what dies</p>
+          <div className={styles.keepKill}>
             <h2>Keep the jars. Kill the checkup machine.</h2>
             <p>
               The revival is an Erowid-for-models pharmacy archive: permanent specimens for
               flagship models, character-based reporting, refusals as first-class exhibits. It
               rejects the live-trip SaaS pitch and the trust-score routing product.
             </p>
-          </div>
-
-          <div className={styles.compare}>
-            <div className={styles.stayBox}>
-              <p className={`${styles.sectionKicker} ${styles.stayKicker}`}>What stays</p>
-              {stays.map((item) => (
-                <div className={styles.row} key={item.title}>
-                  <strong>{item.title}</strong>
-                  <span>{item.copy}</span>
-                </div>
-              ))}
-            </div>
-            <div className={styles.dieBox}>
-              <p className={`${styles.sectionKicker} ${styles.dieKicker}`}>What dies</p>
-              {dies.map((item) => (
-                <div className={styles.row} key={item.title}>
-                  <strong>{item.title}</strong>
-                  <span>{item.copy}</span>
-                </div>
-              ))}
-            </div>
+            <p className={styles.stayLine}>
+              <strong>What stays.</strong>
+              {' '}
+              ~10 permanent specimens × flagship models — accessioned, comparable, shelf-stable.
+              Publishing front for character-not-capability. Optional BYOK single trip later, if
+              anyone still wants to run one jar themselves.
+            </p>
+            <p className={styles.dieLine}>
+              <strong>What dies.</strong>
+              {' '}
+              Live trip SaaS. OpenClaw checkup machine. Trust-score routing. Scores do not open
+              the cabinet.
+            </p>
           </div>
         </div>
       </section>

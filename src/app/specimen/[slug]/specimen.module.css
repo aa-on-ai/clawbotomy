@@ -3,9 +3,9 @@
   z-index: 2;
   min-height: 100vh;
   padding: 56px 0 96px;
-  color: #9a9a94;
-  background: var(--ph-void);
-  font-family: var(--font-plex-sans), var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--ph-mute);
+  background: var(--ph-iron);
+  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
 }
 
 .rail {
@@ -18,28 +18,22 @@
   display: inline-flex;
   align-items: center;
   margin-bottom: 28px;
-  color: var(--ph-phosphor);
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  color: var(--ph-red);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.03em;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
   align-items: start;
   margin-bottom: 40px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid #2a2a26;
 }
 
 .jar {
-  width: 16px;
-  min-height: 16px;
-  margin-top: 8px;
-  background: var(--jar-fill, #2a2a26);
-  border: 1px solid #2a2a26;
+  display: none;
 }
 
 .jarHighlight,
@@ -49,61 +43,50 @@
 
 .accession {
   margin: 0 0 8px;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  width: fit-content;
+  padding: 2px 6px;
+  color: var(--ph-red);
+  border: 1px solid var(--ph-red);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .title {
   margin: 0 0 10px;
   color: var(--ph-paper);
-  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-size: clamp(2rem, 4vw, 2.6rem);
   font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.018em;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
 }
 
 .effect {
-  margin: 0 0 14px;
-  font-size: 1.02rem;
+  margin: 0 0 10px;
+  font-size: 1.08rem;
   line-height: 1.55;
 }
 
 .chaos {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-
-.mark {
-  width: 6px;
-  height: 6px;
-  background: transparent;
-  border: 1px solid #4a4a46;
-}
-
-.markFilled {
-  background: var(--ph-amber);
-  border-color: var(--ph-amber);
+  margin: 0;
 }
 
 .chaosLabel {
-  margin-left: 8px;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  color: var(--ph-paper);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
 }
 
 .section {
   margin-bottom: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #2a2a26;
+  padding-top: 8px;
 }
 
 .modelName {
   margin: 0 0 8px;
   color: var(--ph-paper);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 500;
 }
 
@@ -111,18 +94,18 @@
 .alternateLabel,
 .gapLabel {
   margin: 0 0 10px;
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .exhibitLabel {
-  color: #8a8a84;
+  color: var(--ph-mute);
 }
 
 .alternateLabel,
 .gapLabel {
-  color: var(--ph-amber);
+  color: var(--ph-red);
 }
 
 .refusal {
@@ -133,10 +116,10 @@
 
 .status {
   margin: 0 0 12px;
-  color: var(--ph-amber);
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  color: var(--ph-red);
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .quote,
@@ -150,7 +133,7 @@
 
 .quote {
   color: var(--ph-paper);
-  font-size: 1.02rem;
+  font-size: 1.08rem;
 }
 
 .note,
@@ -167,7 +150,7 @@
   display: flex;
   align-items: center;
   color: var(--ph-paper);
-  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-family: var(--font-fragment-mono), ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -176,10 +159,4 @@
 .gap {
   padding: 0;
   border: 0;
-}
-
-@media (max-width: 640px) {
-  .hero {
-    grid-template-columns: 16px minmax(0, 1fr);
-  }
 }
