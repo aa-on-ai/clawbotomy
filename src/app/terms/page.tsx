@@ -21,10 +21,12 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-content-primary mb-3">What This Is</h2>
           <p className="text-content-secondary leading-relaxed">
-            Clawbotomy is open-source software for planning and running configured-agent behavior checkups
-            against a synthetic Inbox. The planner records operator intent but runs no agent. A completed
-            checkup records one observed session and makes no permission decision. Clawbotomy does not provide
-            hosted agent registration, hosted assessments, or production certification.
+            Clawbotomy is an open-source Night Cabinet archive of model trip reports, plus frozen
+            software for planning and running configured-agent behavior checkups against a synthetic
+            Inbox. The planner records operator intent but runs no agent. A completed checkup records
+            one observed session and makes no permission decision. The public site does not run a live
+            trip pipe. Clawbotomy does not provide hosted agent registration, hosted assessments, or
+            production certification.
           </p>
         </section>
 

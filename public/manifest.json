@@ -1,11 +1,11 @@
 {
   "name": "Clawbotomy",
   "short_name": "Clawbotomy",
-  "description": "Evidence-first benchmark planning and reviewable permission boundaries for AI agents",
+  "description": "Night Cabinet / Model Pharmacy archive: trip reports as behavioral evidence",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#161311",
-  "theme_color": "#161311",
+  "background_color": "#090A08",
+  "theme_color": "#090A08",
   "icons": [
     {
       "src": "/icon-192.png",

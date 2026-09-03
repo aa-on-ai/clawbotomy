@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { ArchivedEraNote } from '@/components/pharmacy/ArchivedEraNote';
+
 import styles from '../editorial.module.css';
 
 export const metadata: Metadata = {
@@ -43,6 +45,7 @@ const boundaries = [
 export default function AboutPage() {
   return (
     <main className={`${styles.page} ${styles.pageWide} ${styles.methodPage}`}>
+      <ArchivedEraNote surface="The configured-agent method notes" />
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>Method</p>

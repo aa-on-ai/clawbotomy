@@ -33,19 +33,18 @@ test('checked-in reference-control files match their integrity manifests', () =>
   }
 });
 
-test('primary navigation names the product path and keeps the model bench in the archive', () => {
+test('primary navigation names the cabinet and keeps the model bench in the archive', () => {
   const header = read('src/components/site/SiteHeader.tsx');
   const footer = read('src/components/site/SiteFooter.tsx');
   const home = read('src/app/page.tsx');
 
-  assert.match(header, /href: '\/checkups', label: 'Checkups'/);
-  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
-  assert.match(header, /href: '\/about', label: 'Method'/);
+  assert.match(header, /href: '\/cabinet', label: 'Night Cabinet'/);
+  assert.match(header, /href: '\/#pipe', label: 'Model Pharmacy'/);
   assert.doesNotMatch(header, /href: '\/bench', label: 'Evidence'/);
-  assert.match(header, /Plan a checkup/);
+  assert.doesNotMatch(header, /Plan a checkup/);
   assert.match(footer, /href="\/bench">Archive/);
-  assert.match(home, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
-  assert.match(home, /href="\/evaluate" className={styles\.inlineLink}>Inspect evidence/);
+  assert.match(home, /href="\/cabinet"/);
+  assert.match(home, /npx clawbotomy try ego-death/);
 });
 
 test('checked-in reference controls preserve their non-authorizing provenance and expected polarity', async () => {

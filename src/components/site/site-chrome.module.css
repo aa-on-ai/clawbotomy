@@ -3,9 +3,9 @@
   top: 0;
   z-index: 50;
   min-height: 48px;
-  color: var(--cb-bone);
-  background: color-mix(in srgb, var(--cb-ink) 94%, transparent);
-  border-bottom: 1px solid var(--cb-border-dark);
+  color: var(--ph-paper);
+  background: color-mix(in srgb, var(--ph-void) 94%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
   backdrop-filter: blur(14px);
 }
 
@@ -35,6 +35,18 @@
   line-height: 1;
   will-change: transform;
   transition: transform var(--cb-motion-fast) var(--cb-ease-out);
+}
+
+.brandMark {
+  min-height: 32px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--ph-paper) 72%, transparent);
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 
 .brandName {
@@ -91,22 +103,23 @@
   }
 
   .brand:hover .brandName,
+  .brand:hover .brandMark,
   .navigation a:not(.navAction):hover {
-    color: var(--cb-signal);
+    color: var(--ph-phosphor);
   }
 
   .brand:hover .brandMode {
-    color: color-mix(in srgb, var(--cb-signal) 72%, currentColor);
+    color: color-mix(in srgb, var(--ph-phosphor) 72%, currentColor);
   }
 
   .navigation a:not(.navAction):hover {
-    background: color-mix(in srgb, var(--cb-signal) 8%, transparent);
-    border-bottom-color: var(--cb-signal);
+    background: color-mix(in srgb, var(--ph-phosphor) 8%, transparent);
+    border-bottom-color: var(--ph-phosphor);
   }
 }
 
 .navigation .active {
-  border-bottom-color: var(--cb-signal);
+  border-bottom-color: var(--ph-phosphor);
 }
 
 .navigation .navAction {
@@ -184,9 +197,9 @@
 .footer {
   position: relative;
   z-index: 2;
-  color: var(--cb-bone);
-  background: var(--cb-ink);
-  border-top: 1px solid var(--cb-border-dark);
+  color: var(--ph-rhodium);
+  background: var(--ph-void);
+  border-top: 1px solid color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
 }
 
 .footerInner {
@@ -256,7 +269,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .footerMeta nav a:hover {
-    color: var(--cb-signal);
+    color: var(--ph-phosphor);
     transform: translateY(-1px);
   }
 }

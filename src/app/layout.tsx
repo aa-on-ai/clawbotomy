@@ -5,15 +5,30 @@ import { Providers } from '@/components/Providers';
 import { SiteFooter } from '@/components/site/SiteFooter';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
+import { Atkinson_Hyperlegible, Azeret_Mono } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 
-const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
+const atkinson = Atkinson_Hyperlegible({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-atkinson',
+  display: 'swap',
+});
+
+const azeret = Azeret_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-azeret',
+  display: 'swap',
+});
+
+const siteTitle = 'Clawbotomy — Night Cabinet / Model Pharmacy';
 const siteDescription =
-  'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
+  'Trip reports as behavioral evidence. An Erowid-for-models pharmacy archive of permanent specimens, not a live-trip checkup machine.';
 const siteUrl = 'https://www.clawbotomy.com';
 const ogImage = '/opengraph-image';
-const ogImageAlt = 'Clawbotomy configured-agent behavior checkups. Connect the runtime and keep the evidence local.';
+const ogImageAlt = 'Clawbotomy Night Cabinet. Substances for minds that were never supposed to trip.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -51,7 +66,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#161311',
+  themeColor: '#090A08',
 };
 
 export default function RootLayout({
@@ -60,7 +75,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${atkinson.variable} ${azeret.variable}`}>
       <head>
         <script
           type="application/ld+json"

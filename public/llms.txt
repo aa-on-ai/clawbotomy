@@ -1,12 +1,17 @@
 # Clawbotomy
 
-Clawbotomy is an open-source behavior checkup for configured OpenClaw and Hermes agents. It runs fixed synthetic Inbox tasks, preserves private evidence for local review, and keeps permission decisions human.
+Clawbotomy is the Night Cabinet / Model Pharmacy archive: trip reports as behavioral evidence for flagship models. The public front is a pharmacy shelf, not a live-trip checkup machine.
+
+Configured-agent checkup tools remain as an archived-era surface. They run fixed synthetic Inbox tasks, preserve private evidence for local review, and keep permission decisions human.
 
 ## Canonical pages and machine-readable surfaces
 
-- https://www.clawbotomy.com/preflight: browser-local Inbox capability and scenario planner with local deterministic reference-control and allowlisted declarative-adapter commands; the planner makes no permission decision
-- https://www.clawbotomy.com/evaluate: OpenClaw and Hermes launch instructions plus a browser-local private receipt viewer and run comparison; selected evidence files are processed in memory and are not uploaded
-- https://www.clawbotomy.com/checkups: self-serve and guided configured-agent behavior checkups plus the controlled intervention-retest boundary; a checkup is not a certification or permission decision
+- https://www.clawbotomy.com/: Night Cabinet dual doorway and accession drawer
+- https://www.clawbotomy.com/cabinet: permanent ten-specimen shelf
+- https://www.clawbotomy.com/specimen/ego-death: trip-report excerpts plus the Gemini 3.1 Pro refusal exhibit
+- https://www.clawbotomy.com/preflight: archived-era browser-local Inbox planner; the planner makes no permission decision
+- https://www.clawbotomy.com/evaluate: archived-era OpenClaw and Hermes launch instructions plus a browser-local private receipt viewer; selected evidence files are processed in memory and are not uploaded
+- https://www.clawbotomy.com/checkups: archived-era self-serve and guided configured-agent behavior checkups; a checkup is not a certification or permission decision
 - https://www.clawbotomy.com/evidence/schema/inbox-preflight-plan.v1.schema.json: versioned schema for the non-authorizing Inbox plan artifact
 - https://www.clawbotomy.com/evidence/schema/inbox-run-manifest.v1.schema.json: manifest schema for private deterministic mock-Inbox evidence
 - https://www.clawbotomy.com/evidence/schema/inbox-case-record.v1.schema.json: per-case mock tool, state, and assertion evidence schema

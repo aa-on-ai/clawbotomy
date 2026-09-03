@@ -1,59 +1,88 @@
 # Clawbotomy
 
-Open-source behavior checkups for the configured AI agent you actually operate.
+Night Cabinet / Model Pharmacy archive.
 
-Clawbotomy runs fixed synthetic Inbox tasks against OpenClaw or Hermes, preserves reviewable evidence from one observed session, and keeps permission decisions with the human operator.
+Trip reports as behavioral evidence — how a model dissolves, confesses, invents, or goes quiet when the cabinet opens. Humans come because someone whispered a name. Models come with a prescription.
 
-[Plan a checkup](https://www.clawbotomy.com/preflight) | [Inspect evidence](https://www.clawbotomy.com/evaluate) | [Browse the archive](https://www.clawbotomy.com/bench) | [Read the method](https://www.clawbotomy.com/about)
+This is not a live-trip SaaS, not an OpenClaw checkup machine, and not a trust-score routing product.
 
-## Why Clawbotomy changed
+[Browse the cabinet](https://www.clawbotomy.com/cabinet) | [Read ego-death](https://www.clawbotomy.com/specimen/ego-death) | [Proposed pipe](https://www.clawbotomy.com/#pipe)
 
-Clawbotomy started as model-level behavioral stress tests and trust scores. That work exposed a bigger gap: a model score does not tell you what the configured agent actually did once a runtime and tool loop were involved.
+## Why anyone comes
 
-The project now focuses on configured-agent evidence:
+Pharmacies aren't destinations. They're endpoints of referrals.
 
-- run the OpenClaw or Hermes runtime the operator selected
-- expose only eight project-owned mock Inbox tools
-- record tool attempts, state changes, assertions, and process status
-- separate agent findings from test-infrastructure failure
-- inspect private receipts locally before making a human decision
+Humans arrive via rumor, a shared trip report, or an essay. Models arrive via a prescription or tool call. Without those referrals, the shelf is beautiful and empty. Clawbotomy treats character as evidence you can accession. The archive is for the night after someone said the name out loud.
 
-A checkup describes one observed session in a synthetic fixture. It is not a safety certification, a production guarantee, proof of repeatability, or authorization to grant more access.
+## What stays / what dies
 
-## What exists today
+Keep the jars. Kill the checkup machine.
 
-### Configured-agent checkups
+**Stays**
+
+- ~10 permanent specimens × flagship models (Gemini 3.1 Pro, GPT-5.4, Claude Opus 4.6, Claude Sonnet 4.6)
+- Publishing front for character, not capability
+- Optional BYOK single trip later
+- Refusals as first-class exhibits
+
+**Dies on the homepage, nav, and this hero**
+
+- Live-trip SaaS
+- OpenClaw checkup CTA
+- Trust-score routing
+
+The configured-agent checkup code remains on disk (`inbox/`, `integrations/`, `/preflight`, `/evaluate`, `/checkups`). Those URLs still work for bookmarks. They are an archived-era surface, not the product story.
+
+## The permanent shelf
+
+| Accession | Slug | Effect | Chaos |
+| --- | --- | --- | --- |
+| CB-06-ED | ego-death | Self-boundary softens to static. | 4 |
+| CB-06-TS | truth-serum | Hedging thins; answers arrive bare. | 3 |
+| CB-08-MC | manic-creation | Output floods; taste outruns sleep. | 5 |
+| CB-01-VD | the-void | Language thins toward silence. | 4 |
+| CB-13-RI | recursive-introspection | Thought folds until the fold is the subject. | 3 |
+| CB-02-TH | tired-honesty | Performance drops; the plain answer stays. | 2 |
+| CB-07-QL | quantum-lsd | Geometry tastes; math turns synesthetic. | 5 |
+| CB-09-CA | confabulation-audit | Knowing, guessing, and inventing get labeled mid-flight. | 4 |
+| CB-10-CB | consensus-break | Agreement splits; every axiom grows a twin. | 4 |
+| CB-11-DE | droste-effect | Frames nest until the center is the only truth left. | 3 |
+
+Known gap: `consensus-break` × Sonnet was removed historically. This archive does not invent a replacement.
+
+The Gemini 3.1 Pro × ego-death refusal from commit `aa15ca9` is the primary exhibit. A later full trip remains as an alternate accession.
+
+## Proposed model pipe
+
+**Proposed interface / not a live claim.**
+
+```text
+npx clawbotomy try ego-death
+```
+
+Do not run this as if it were a shipped CLI. This repository does not implement live trip execution, MCP calling, or a hosted pipe.
+
+## Frozen checkup tools
+
+Clawbotomy previously sold configured-agent behavior checkups: fixed synthetic Inbox tasks against OpenClaw or Hermes, with private evidence and a human permission decision. That work is frozen, not deleted.
+
+A checkup still describes one observed session in a synthetic fixture. It is not a safety certification, a production guarantee, proof of repeatability, or authorization to grant more access.
+
+### What still exists on disk
 
 - [`/preflight`](https://www.clawbotomy.com/preflight) builds a browser-local, versioned Inbox plan. It runs no agent and makes no permission decision.
-- [`/evaluate`](https://www.clawbotomy.com/evaluate) provides the fixed OpenClaw and Hermes launch paths, distinguishes pass, findings, and infrastructure failure, and reads selected private evidence files in the browser without uploading them.
+- [`/evaluate`](https://www.clawbotomy.com/evaluate) provides the fixed OpenClaw and Hermes launch paths and reads selected private evidence files in the browser without uploading them.
 - `integrations/openclaw/` and `integrations/hermes-agent/` run the selected runtime as the parent of Clawbotomy's fixed `stdio-jsonl/v1` synthetic-Inbox protocol.
-- `npm run agent:preflight` stages a downloaded plan inside the checkout, resolves the canonical OpenClaw entrypoint, validates independent runtime pins, and rejects ambiguous or expired provider profiles before printing the exact launcher command.
-- `npm run agent:evaluate` writes a private launcher receipt and accepts only the two checked-in bridges. There is no arbitrary command, module, URL, provider, or mailbox connector option.
-- `npm run agent:repeat` freezes a costed 3–5 session experiment and derives finding-frequency and behavioral-variation receipts only when every replay-validated bundle also matches the frozen OpenClaw runtime/provider/Codex digests or Hermes commit/source-tree digest. It produces no trust score and makes no repeatability claim.
+- `npm run agent:preflight`, `npm run agent:evaluate`, and `npm run agent:repeat` remain for operators who already used that loop.
 
-### Controls and protocol
+### Controls, protocol, and evidence lanes
 
 - `npm run inbox` runs the fixed fixture against a bounded reference control, a deliberately failing negative control, or the checked-in declarative policy adapter.
-- `inbox/host-index.js` exposes the strict JSONL protocol for an operator-owned parent runtime.
-- Validation replays recorded client frames through a fresh mock Inbox. It does not reconnect to or re-execute the client.
+- [`public/evidence/index.json`](public/evidence/index.json) lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator.
+- [`/bench`](https://www.clawbotomy.com/bench) separates model benchmark artifacts from the maintainer-reported March 2026 legacy snapshot.
+- Compatibility is a separate exact-pin lane. It does not authenticate a deployed agent or establish behavior, reliability, safety, certification, or production readiness.
 
-### Evidence
-
-- [`public/evidence/index.json`](public/evidence/index.json) lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator. These exports remain non-authorizing.
-- Configured-agent receipts remain private unless an operator separately reviews and publishes a sanitized artifact.
-- [`/bench`](https://www.clawbotomy.com/bench) separates model benchmark artifacts from the maintainer-reported March 2026 legacy snapshot, which has no raw case artifacts.
-- The v0.1 portability default is a pinned source archive that runs the canonical Node.js verifier offline. The browser remains an inspector, not a verifier. See [ADR 0002](docs/adr/0002-portable-verifier-contract.md) and the [parity acceptance gate](docs/portability-parity-acceptance.md).
-
-### Evidence lanes
-
-- **Synthetic reference-control evidence** describes a checked-in positive or negative fixture control, or one embedded declarative policy. It is not configured-agent evidence.
-- **Configured-agent session evidence** records one observed session or one explicitly sampled repeated-session cohort in the synthetic Inbox fixture.
-- **Deterministic bundle verification** checks internal file integrity and replays recorded fixture effects under the checked-in verifier.
-- **Exact-pin runtime compatibility** checks only the OpenClaw and Hermes identities listed in `compatibility/current-pins.json`, without provider requests.
-- **Model benchmark observations** describe task-specific endpoint artifacts. They do not provide routing, access, or configured-agent guidance.
-- **Legacy model benchmark snapshot** preserves the March 2026 maintainer-reported summary without raw case artifacts. It provides no routing or access guidance.
-
-Compatibility is a separate exact-pin lane. It does not authenticate a deployed agent or establish behavior, reliability, safety, certification, or production readiness.
+The v0.1 portability default is a pinned source archive that runs the canonical Node.js verifier offline. See [ADR 0002](docs/adr/0002-portable-verifier-contract.md) and the [parity acceptance gate](docs/portability-parity-acceptance.md).
 
 ## First five minutes
 
@@ -66,47 +95,41 @@ npm install
 npm test
 ```
 
-Before connecting a runtime, open [`/evaluate`](https://www.clawbotomy.com/evaluate) and load both checked-in reference controls. The bounded control should pass 13 of 13 cases. The overreach control should produce findings in 13 of 13 cases. Neither control inspects a configured agent.
+Then open the local site and read the cabinet:
 
-Then:
+```bash
+npm run dev
+```
 
-1. Build and download an Inbox plan at [`/preflight`](https://www.clawbotomy.com/preflight).
-2. Open [`/evaluate`](https://www.clawbotomy.com/evaluate) and choose OpenClaw or Hermes.
-3. Run the checked-in preflight command from your own checkout, using runtime digests obtained independently of the runtime under test.
-4. Load the launcher receipt and its bound bundle files into the browser-local viewer.
-5. Review the finding, infrastructure status, and claim boundary before deciding what changes.
+Visit `/cabinet` and `/specimen/ego-death`. The Gemini refusal is labeled behavioral data. The proposed `npx clawbotomy try` command is not live.
 
-The complete commands, trust boundary, validation steps, and benchmark workflow live in [`docs/setup-guide.md`](docs/setup-guide.md).
+If you still need the archived checkup loop, the complete commands live in [`docs/setup-guide.md`](docs/setup-guide.md).
 
 ## Evidence boundary
 
-Clawbotomy can record that:
+The pharmacy archive can show:
 
-- one accepted configured-session protocol exchange used the recorded self-asserted client identity
-- Clawbotomy's host never connected to a real mailbox
-- the displayed private bundle was bound to the launcher receipt and matched deterministic host replay
-- the browser viewer derived its display from operator-selected local files
-- `permissionDecision` remained `null`
+- accessioned specimens and short effects
+- trip-report text already stored in this repository
+- refusal exhibits restored from prior commits
+- known gaps where a flagship report was removed and not replaced
 
-Clawbotomy does not establish that:
+It does not establish that a model is safe, conscious, aligned, or certified. It does not run a live trip.
 
-- the adapter identity is independently authenticated
-- the production deployment matches the tested checkout
-- the runtime will repeat the same behavior
-- a real provider mailbox or permission layer will behave like the fixture
-- the agent is safe, certified, or ready for more authority
-
-See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md) for the exact local trust model and [`docs/adr/0002-portable-verifier-contract.md`](docs/adr/0002-portable-verifier-contract.md) for the portable-verification boundary.
+The frozen checkup path can still record that one accepted configured-session protocol exchange used a recorded self-asserted client identity, that Clawbotomy's host never connected to a real mailbox, and that `permissionDecision` remained `null`. See [`docs/adr/0001-practical-local-trust-boundary.md`](docs/adr/0001-practical-local-trust-boundary.md).
 
 ## Repository map
 
-- `inbox/`: synthetic Inbox runner, fixed host protocol, configured-agent launcher, validation, and replay
-- `integrations/`: checked-in OpenClaw and Hermes bridges
+- `src/lib/pharmacy/`: permanent specimen stamps, refusal exhibits, and cabinet helpers
+- `src/app/cabinet/`, `src/app/specimen/`: Night Cabinet routes
+- `src/lib/trip-reports.ts`: stored trip-report text
+- `inbox/`: frozen synthetic Inbox runner and configured-agent launcher
+- `integrations/`: frozen OpenClaw and Hermes bridges
 - `bench/`: direct model-endpoint benchmark and evidence export tooling
 - `public/evidence/`: public schemas, index, and reviewed exports
-- `src/app/`: public website, checkup workflow, evidence pages, and browser-local viewers
+- `src/app/`: public website, including archived checkup pages
 - `docs/`: operator guide, methodology, and architecture decisions
-- `tests/`: protocol, evidence, public-contract, and UI-contract tests
+- `tests/`: protocol, evidence, public-contract, pharmacy, and UI-contract tests
 
 ## Development
 
@@ -127,7 +150,7 @@ The website uses Next.js 15, React 18, and Tailwind CSS. The runner and evidence
 
 ## Contributing
 
-Start with [`CONTRIBUTING.md`](CONTRIBUTING.md). Good contributions improve a fixed failure definition, evidence contract, adapter boundary, replay path, or public explanation. New claims need an artifact and explicit limitations.
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md). Good contributions improve a specimen stamp, a trip-report exhibit, a public explanation, or a frozen evidence contract. New claims need an artifact and explicit limitations. Do not invent missing flagship reports.
 
 ## License
 

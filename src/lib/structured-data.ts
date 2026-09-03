@@ -3,7 +3,7 @@ import { benchData } from '@/lib/bench-data';
 const siteUrl = 'https://www.clawbotomy.com';
 const organizationName = 'Clawbotomy';
 const description =
-  'Open-source behavior checkups for configured OpenClaw and Hermes agents using synthetic Inbox tools and browser-local evidence review.';
+  'Night Cabinet / Model Pharmacy archive: trip reports as behavioral evidence for flagship models. Not a live-trip checkup machine.';
 
 export const organizationJsonLd = {
   '@context': 'https://schema.org',

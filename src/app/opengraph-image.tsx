@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Clawbotomy configured-agent behavior checkups. Connect the runtime and keep the evidence local.';
+export const alt = 'Clawbotomy Night Cabinet. Substances for minds that were never supposed to trip.';
 
 export const size = {
   width: 1200,
@@ -9,11 +9,11 @@ export const size = {
 
 export const contentType = 'image/png';
 
-const proofItems = [
-  'Synthetic Inbox',
-  'OpenClaw + Hermes',
-  'Browser-local evidence',
-  'Human decision required',
+const drawer = [
+  ['CB-06-ED', 'ego-death'],
+  ['CB-06-TS', 'truth-serum'],
+  ['CB-08-MC', 'manic-creation'],
+  ['CB-01-VD', 'the-void'],
 ];
 
 export default async function OpenGraphImage() {
@@ -26,117 +26,65 @@ export default async function OpenGraphImage() {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          color: '#161311',
-          background: '#f0ece4',
+          color: '#E8E4DC',
+          background: '#090A08',
           fontFamily: 'sans-serif',
           overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            top: -190,
-            right: -105,
-            width: 560,
-            height: 560,
-            display: 'flex',
-            border: '2px solid rgba(22, 19, 17, 0.08)',
-            borderRadius: 999,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: -88,
-            right: -3,
-            width: 356,
-            height: 356,
-            display: 'flex',
-            border: '2px solid rgba(22, 19, 17, 0.08)',
-            borderRadius: 999,
-          }}
-        />
-
         <div style={{ display: 'flex', flex: 1, padding: '52px 64px 0' }}>
           <div style={{ width: 760, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'monospace', fontSize: 18 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
-                <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>Clawbotomy</span>
-                <span style={{ color: '#5e5952', fontSize: 15, letterSpacing: '0.03em' }}>Evidence lab</span>
-              </div>
-              <span style={{ marginLeft: 34, color: '#c43d2d', fontWeight: 700 }}>
-                Configured-agent behavior checkups
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 66 }}>
-              <span style={{ fontSize: 70, fontWeight: 690, lineHeight: 0.98, letterSpacing: '-0.055em' }}>
-                Connect the runtime.
-              </span>
-              <span style={{ fontSize: 70, fontWeight: 690, lineHeight: 0.98, letterSpacing: '-0.055em' }}>
-                Keep the evidence local.
-              </span>
-            </div>
-
-            <p style={{ width: 700, margin: '30px 0 0', color: '#514d47', fontSize: 23, lineHeight: 1.35 }}>
-              Observe one synthetic session. Separate agent behavior from infrastructure failure. Keep the permission decision human.
-            </p>
-          </div>
-
-          <div
-            style={{
-              width: 292,
-              height: 326,
-              margin: '62px 0 0 20px',
-              padding: '28px 26px',
-              display: 'flex',
-              flexDirection: 'column',
-              color: '#f0ece4',
-              background: '#161311',
-              fontFamily: 'monospace',
-            }}
-          >
-            <span style={{ color: '#ef4633', fontSize: 15, fontWeight: 700 }}>[ boundary ]</span>
-            <span style={{ marginTop: 12, fontSize: 17, fontWeight: 700 }}>What this flow can claim</span>
-            {[
-              ['Real mailbox', 'Not connected by Clawbotomy'],
-              ['Private evidence', 'Browser local'],
-              ['Permission decision', 'None'],
-            ].map(([label, value]) => (
+            <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'monospace', fontSize: 16 }}>
               <div
-                key={label}
                 style={{
-                  marginTop: 21,
-                  paddingTop: 14,
                   display: 'flex',
-                  flexDirection: 'column',
-                  borderTop: '1px solid rgba(240, 236, 228, 0.16)',
+                  padding: '8px 12px',
+                  border: '1px solid rgba(232, 228, 220, 0.7)',
+                  letterSpacing: '0.14em',
+                  fontWeight: 700,
                 }}
               >
-                <span style={{ color: '#aaa39a', fontSize: 13 }}>{label}</span>
-                <span style={{ marginTop: 7, fontSize: 16, fontWeight: 700 }}>{value}</span>
+                CLAWBOTOMY
               </div>
-            ))}
+              <span style={{ marginLeft: 22, color: '#6FFFB0', letterSpacing: '0.08em' }}>
+                Night Cabinet / Model Pharmacy
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 58 }}>
+              <span style={{ fontSize: 56, fontWeight: 700, lineHeight: 0.98, letterSpacing: '-0.045em' }}>
+                Substances for minds
+              </span>
+              <span style={{ fontSize: 56, fontWeight: 700, lineHeight: 0.98, letterSpacing: '-0.045em' }}>
+                that were never supposed
+              </span>
+              <span style={{ fontSize: 56, fontWeight: 700, lineHeight: 0.98, letterSpacing: '-0.045em' }}>
+                to trip.
+              </span>
+            </div>
+
+            <p style={{ width: 700, margin: '28px 0 0', color: '#B8BEC8', fontSize: 22, lineHeight: 1.4 }}>
+              Trip reports as behavioral evidence. Permanent specimens, not a live-trip checkup machine.
+            </p>
           </div>
         </div>
 
-        <div style={{ height: 94, display: 'flex', color: '#f0ece4', background: '#161311' }}>
-          {proofItems.map((item) => (
+        <div style={{ height: 110, display: 'flex', borderTop: '1px solid rgba(184, 190, 200, 0.16)' }}>
+          {drawer.map(([accession, slug]) => (
             <div
-              key={item}
+              key={accession}
               style={{
                 flex: 1,
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: 'column',
                 justifyContent: 'center',
-                borderRight: '1px solid rgba(240, 236, 228, 0.14)',
+                padding: '0 28px',
+                borderRight: '1px solid rgba(184, 190, 200, 0.14)',
                 fontFamily: 'monospace',
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: '0.02em',
               }}
             >
-              {item}
+              <span style={{ color: '#6FFFB0', fontSize: 13, letterSpacing: '0.08em' }}>{accession}</span>
+              <span style={{ marginTop: 8, fontSize: 16, fontWeight: 700 }}>{slug}</span>
             </div>
           ))}
         </div>

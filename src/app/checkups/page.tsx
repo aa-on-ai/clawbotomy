@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { ArchivedEraNote } from '@/components/pharmacy/ArchivedEraNote';
+
 import styles from './checkups.module.css';
 
 export const metadata: Metadata = {
@@ -42,6 +44,7 @@ const workflow = [
 export default function CheckupsPage() {
   return (
     <main className={styles.page}>
+      <ArchivedEraNote surface="The checkup workflow" />
       <section className={styles.hero} aria-labelledby="checkups-title">
         <div className={styles.grid} aria-hidden="true" />
         <div className={styles.rail}>

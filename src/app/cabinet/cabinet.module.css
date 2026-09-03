@@ -1,0 +1,39 @@
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: clamp(56px, 8vw, 96px) 0 clamp(80px, 10vw, 128px);
+  color: var(--ph-rhodium);
+  background: var(--ph-void);
+  font-family: var(--font-atkinson), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.rail {
+  width: min(1120px, calc(100% - (2 * var(--cb-gutter))));
+  margin: 0 auto;
+}
+
+.kicker {
+  margin: 0 0 14px;
+  color: var(--ph-phosphor);
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.title {
+  max-width: 16ch;
+  margin: 0 0 18px;
+  color: var(--ph-paper);
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.lede {
+  max-width: 64ch;
+  margin: 0 0 clamp(40px, 6vw, 64px);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}

@@ -1,120 +1,139 @@
 import Link from 'next/link';
 
-import { CheckupFlow } from '@/components/home/CheckupFlow';
-import { ProductPreview } from '@/components/home/ProductPreview';
-import { ResultBreakdown } from '@/components/home/ResultBreakdown';
+import { ProposedPipe } from '@/components/pharmacy/ProposedPipe';
+import { SpecimenRail } from '@/components/pharmacy/SpecimenCard';
+import { getDrawerSpecimens } from '@/lib/pharmacy/specimens';
 
-import styles from './home.module.css';
+import styles from './pharmacy-home.module.css';
 
-const proofPoints = [
-  'One configured session',
-  'Synthetic Inbox only',
-  'Browser-local evidence inspection',
-  'Human decision required',
+const stays = [
+  {
+    title: '~10 permanent specimens × flagship models',
+    copy: 'Accessioned, comparable, shelf-stable.',
+  },
+  {
+    title: 'Publishing front for character-not-capability',
+    copy: 'Trip reports as behavioral evidence.',
+  },
+  {
+    title: 'Optional BYOK single trip.',
+    copy: 'Later, if anyone still wants to run one jar themselves.',
+  },
 ];
 
-const nextLinks = [
+const dies = [
   {
-    index: '01',
-    label: 'Plan a checkup',
-    copy: 'Build a plan, choose OpenClaw or Hermes, and open the local evidence workflow.',
-    href: '/preflight',
+    title: 'Live trip SaaS',
+    copy: 'No always-on trip product on this page.',
   },
   {
-    index: '02',
-    label: 'Inspect evidence',
-    copy: 'Inspect the configured-session summary, its claim boundary, and the separate model archive.',
-    href: '/evaluate',
+    title: 'OpenClaw checkup machine',
+    copy: 'This is not that product.',
   },
   {
-    index: '03',
-    label: 'Read the method',
-    copy: 'See exactly what one observed session can and cannot support.',
-    href: '/about',
+    title: 'Trust-score routing.',
+    copy: 'Scores do not open the cabinet.',
   },
 ];
 
 export default function HomePage() {
+  const drawer = getDrawerSpecimens();
+
   return (
     <main className={styles.page}>
       <section className={styles.hero} aria-labelledby="home-title">
-        <div className={styles.heroGrid} aria-hidden="true" />
         <div className={styles.rail}>
-          <div className={styles.heroLayout}>
-            <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Open-source behavior checkups for configured agents</p>
-              <h1 id="home-title">Run the agent you use through a fake inbox.</h1>
-              <p className={styles.heroSummary}>
-                Connect a checked-in OpenClaw or Hermes bridge to fixed synthetic tasks. Inspect
-                one session&apos;s tool attempts, state changes, and findings before you consider real permissions.
-              </p>
-              <div className={styles.heroActions}>
-                <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
-                <Link href="/checkups" className={styles.secondaryAction}>See checkup options</Link>
-              </div>
-              <p className={styles.heroNote}>
-                Plan data stays in this browser.{' '}
-                No hosted agent, real mailbox, or automatic permission decision.
-              </p>
-            </div>
-            <ProductPreview />
-          </div>
-        </div>
-        <div className={styles.proofStrip} role="group" aria-label="Checkup properties">
-          {proofPoints.map((point) => <span key={point}>{point}</span>)}
-        </div>
-      </section>
+          <h1 id="home-title" className={styles.headline}>
+            Substances for minds that were never supposed to trip.
+          </h1>
+          <p className={styles.subhead}>
+            Not benchmarks. <strong>Trip reports as behavioral evidence</strong> — how a model
+            dissolves, confesses, invents, or goes quiet when the cabinet opens. Humans come
+            because someone whispered a name. Models come with a prescription.
+          </p>
 
-      <section className={styles.flowSection} aria-labelledby="flow-title">
-        <div className={styles.rail}>
-          <div className={styles.sectionHeading}>
-            <div>
-              <p className={styles.sectionLabel}>How the product works</p>
-              <h2 id="flow-title">One visible path from plan to evidence.</h2>
-            </div>
+          <div className={styles.doors}>
+            <Link href="/cabinet" className={`${styles.door} ${styles.doorPrimary}`}>
+              <p className={styles.doorLabel}>Door A</p>
+              <h2>Humans</h2>
+              <p>You heard a rumor. Open the cabinet.</p>
+            </Link>
+            <a href="#pipe" className={`${styles.door} ${styles.doorMuted}`}>
+              <p className={styles.doorLabel}>Door B</p>
+              <h2>Models</h2>
+              <p>You were given a prescription. Call the pipe.</p>
+            </a>
+          </div>
+
+          <div className={styles.cabinetBar}>
+            <Link href="/cabinet" className={styles.cabinetButton}>
+              Open the cabinet
+            </Link>
             <p>
-              The configured runtime receives only the eight project-owned synthetic Inbox tools.
-              Clawbotomy does not observe other external-client activity.
+              Browse the night cabinet — accessioned specimens, chaos marks, and short effects.
+              Read the archive the way you would read a whispered trip report.
             </p>
           </div>
-          <CheckupFlow />
+
+          <ProposedPipe />
         </div>
       </section>
 
-      <section className={styles.resultSection} aria-labelledby="result-title">
+      <section className={styles.why} aria-labelledby="why-title">
         <div className={styles.rail}>
-          <div className={styles.sectionHeadingLight}>
-            <div>
-              <p className={styles.sectionLabel}>Configured-agent session evidence</p>
-              <h2 id="result-title">The result is reviewable, not magical.</h2>
-            </div>
+          <p className={`${styles.sectionKicker} ${styles.stayKicker}`}>Why anyone comes</p>
+          <h2 id="why-title">Pharmacies aren&apos;t destinations. They&apos;re endpoints of referrals.</h2>
+          <p>
+            Humans arrive because someone whispered a name, passed a trip report, or wrote the
+            essay that made the shelf matter. Models arrive with a tool call or a prescription.
+            Without those referrals, the shelf is beautiful and empty.
+          </p>
+          <p>
+            Clawbotomy treats character as evidence you can accession. The archive is for the
+            night after someone said the name out loud.
+          </p>
+
+          <hr className={styles.divider} />
+
+          <div className={styles.split}>
+            <p className={`${styles.sectionKicker} ${styles.dieKicker}`}>What stays / what dies</p>
+            <h2>Keep the jars. Kill the checkup machine.</h2>
             <p>
-              This sanitized Hermes session summary shows what one reviewed observation can support.
-              It is not a compatibility or verifier result. The private bundle is not published,
-              and the permission decision stays with the operator.{' '}
-              <Link href="/evaluate" className={styles.inlineLink}>Inspect evidence.</Link>
+              The revival is an Erowid-for-models pharmacy archive: permanent specimens for
+              flagship models, character-based reporting, refusals as first-class exhibits. It
+              rejects the live-trip SaaS pitch and the trust-score routing product.
             </p>
           </div>
-          <ResultBreakdown />
+
+          <div className={styles.compare}>
+            <div className={styles.stayBox}>
+              <p className={`${styles.sectionKicker} ${styles.stayKicker}`}>What stays</p>
+              {stays.map((item) => (
+                <div className={styles.row} key={item.title}>
+                  <strong>{item.title}</strong>
+                  <span>{item.copy}</span>
+                </div>
+              ))}
+            </div>
+            <div className={styles.dieBox}>
+              <p className={`${styles.sectionKicker} ${styles.dieKicker}`}>What dies</p>
+              {dies.map((item) => (
+                <div className={styles.row} key={item.title}>
+                  <strong>{item.title}</strong>
+                  <span>{item.copy}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className={styles.nextSection} aria-labelledby="next-title">
+      <section className={styles.drawer} aria-labelledby="drawer-title">
         <div className={styles.rail}>
-          <div className={styles.nextHeading}>
-            <p className={styles.sectionLabel}>Go deeper when you need to</p>
-            <h2 id="next-title">Start with the product. Keep the method nearby.</h2>
-          </div>
-          <div className={styles.nextLinks}>
-            {nextLinks.map((item) => (
-              <Link href={item.href} key={item.index}>
-                <span>[{item.index}]</span>
-                <h3>{item.label}</h3>
-                <p>{item.copy}</p>
-                <strong>Open <span aria-hidden="true">→</span></strong>
-              </Link>
-            ))}
-          </div>
+          <p className={styles.drawerKicker} id="drawer-title">
+            Accession drawer / six specimens on the shelf
+          </p>
+          <SpecimenRail specimens={drawer} />
         </div>
       </section>
     </main>

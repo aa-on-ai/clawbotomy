@@ -7,12 +7,13 @@ export function SiteFooter() {
     <footer className={styles.footer} aria-label="Site footer">
       <div className={styles.footerInner}>
         <div className={styles.footerStatement}>
-          <span>Clawbotomy / Configured-agent behavior checkups</span>
-          <strong>Observe the runtime. Then decide what changes.</strong>
+          <span>Clawbotomy / Night Cabinet / Model Pharmacy archive</span>
+          <strong>Pharmacies aren&apos;t destinations. They&apos;re endpoints of referrals.</strong>
         </div>
         <div className={styles.footerMeta}>
           <p>
-            Open-source local evaluation and guided behavior checkups. Controlled retests come only after a valid baseline. Evidence remains private and non-authorizing.
+            Trip reports as behavioral evidence. Permanent specimens for flagship models. Checkup
+            tools stay on disk as an archived-era surface — not the front door.
           </p>
           <nav aria-label="Footer navigation">
             <a
@@ -23,12 +24,12 @@ export function SiteFooter() {
             >
               Source ↗
             </a>
-            <Link href="/checkups">Checkups</Link>
-            <Link href="/preflight">Plan a checkup</Link>
-            <Link href="/evaluate">Inspect</Link>
-            <Link href="/bench">Archive</Link>
-            <Link href="/docs">Docs</Link>
+            <Link href="/cabinet">Cabinet</Link>
+            <Link href="/specimen/ego-death">Specimens</Link>
             <Link href="/about">About</Link>
+            <Link href="/docs">Docs</Link>
+            <Link href="/bench">Archive</Link>
+            <Link href="/checkups">Archived checkups</Link>
             <Link href="/terms">Terms</Link>
           </nav>
         </div>

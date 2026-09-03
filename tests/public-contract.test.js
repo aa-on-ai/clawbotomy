@@ -90,8 +90,9 @@ test('the Inbox planner is discoverable and remains explicitly non-authorizing',
     read('src/app/preflight/page.tsx'),
   ]);
 
-  assert.match(home, /href="\/preflight"/);
+  assert.match(home, /href="\/cabinet"/);
   assert.match(sitemap, /'\/preflight'/);
+  assert.match(sitemap, /'\/cabinet'/);
   assert.match(llms, /permissionDecision.*null/);
   assert.match(planner, /permissionDecision: null/);
   assert.match(planner, /authorizationStatus: 'none'/);

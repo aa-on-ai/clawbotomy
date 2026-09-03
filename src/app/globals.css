@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 :root {
+  --ph-void: #090A08;
+  --ph-rhodium: #B8BEC8;
+  --ph-bruise: #5C3D6E;
+  --ph-phosphor: #6FFFB0;
+  --ph-amber: #C47A2C;
+  --ph-paper: #E8E4DC;
   --cb-ink: oklch(0.1448 0 0);
   --cb-ink-raised: oklch(0.2 0.01 60);
   --cb-bone: oklch(0.9465 0.0099 87.47);

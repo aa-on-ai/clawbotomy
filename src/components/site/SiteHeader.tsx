@@ -7,16 +7,14 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './site-chrome.module.css';
 
 const links = [
-  { href: '/checkups', label: 'Checkups' },
-  { href: '/evaluate', label: 'Inspect' },
-  { href: '/about', label: 'Method' },
+  { href: '/cabinet', label: 'Night Cabinet' },
+  { href: '/#pipe', label: 'Model Pharmacy' },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const isHome = pathname === '/';
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -34,11 +32,10 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header className={`${styles.header} ${isHome ? styles.signal : ''}`}>
+    <header className={styles.header}>
       <div className={styles.headerInner}>
         <Link href="/" className={styles.brand} aria-label="Clawbotomy home">
-          <span className={styles.brandName}>Clawbotomy</span>
-          <span className={styles.brandMode}>Evidence lab</span>
+          <span className={styles.brandMark}>Clawbotomy</span>
         </Link>
 
         <button
@@ -59,25 +56,20 @@ export function SiteHeader() {
           aria-label="Primary navigation"
         >
           {links.map((link) => {
-            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const active = link.href.startsWith('/#')
+              ? pathname === '/'
+              : pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                aria-current={active ? 'page' : undefined}
-                className={active ? styles.active : undefined}
+                aria-current={link.href.startsWith('/#') ? undefined : active ? 'page' : undefined}
+                className={active && !link.href.startsWith('/#') ? styles.active : undefined}
               >
                 {link.label}
               </Link>
             );
           })}
-          <Link
-            href="/preflight"
-            aria-current={pathname === '/preflight' ? 'page' : undefined}
-            className={`${styles.navAction} ${pathname === '/preflight' ? styles.active : ''}`}
-          >
-            Plan a checkup
-          </Link>
         </nav>
       </div>
     </header>

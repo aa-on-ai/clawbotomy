@@ -1,0 +1,295 @@
+.page {
+  position: relative;
+  z-index: 2;
+  overflow: clip;
+  color: var(--ph-rhodium);
+  background: var(--ph-void);
+  font-family: var(--font-atkinson), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.rail {
+  width: min(1120px, calc(100% - (2 * var(--cb-gutter))));
+  margin: 0 auto;
+}
+
+.hero {
+  padding: clamp(56px, 8vw, 104px) 0 clamp(36px, 5vw, 56px);
+}
+
+.headline {
+  max-width: 16ch;
+  margin: 0 0 22px;
+  color: var(--ph-paper);
+  font-size: clamp(2.6rem, 6vw, 5.1rem);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.subhead {
+  max-width: 62ch;
+  margin: 0;
+  font-size: clamp(1.02rem, 1.7vw, 1.18rem);
+  line-height: 1.65;
+}
+
+.subhead strong {
+  color: var(--ph-paper);
+  font-weight: 700;
+}
+
+.doors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: clamp(36px, 5vw, 56px) 0 0;
+}
+
+.door {
+  min-height: 168px;
+  padding: 22px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 22%, transparent);
+  color: inherit;
+  background: transparent;
+  text-decoration: none;
+}
+
+.doorPrimary {
+  border-color: var(--ph-phosphor);
+}
+
+.doorLabel {
+  margin: 0;
+  color: var(--ph-phosphor);
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.doorMuted .doorLabel {
+  color: color-mix(in srgb, var(--ph-rhodium) 70%, transparent);
+}
+
+.door h2 {
+  margin: 0;
+  color: var(--ph-paper);
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.doorMuted h2 {
+  color: color-mix(in srgb, var(--ph-paper) 62%, var(--ph-rhodium));
+}
+
+.door p {
+  margin: 0;
+  max-width: 28ch;
+  line-height: 1.5;
+}
+
+.cabinetBar {
+  margin-top: clamp(28px, 4vw, 40px);
+  padding: 22px 24px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  background: color-mix(in srgb, #141614 86%, var(--ph-void));
+  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
+}
+
+.cabinetButton,
+.pipeButton {
+  min-height: 48px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: transparent;
+  text-decoration: none;
+}
+
+.cabinetButton {
+  color: var(--ph-phosphor);
+  border: 1px solid var(--ph-phosphor);
+}
+
+.pipeButton {
+  width: fit-content;
+  color: var(--ph-amber);
+  border: 1px solid var(--ph-amber);
+  cursor: pointer;
+}
+
+.cabinetBar p {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.pipe {
+  margin-top: clamp(22px, 3vw, 32px);
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 18%, transparent);
+  scroll-margin-top: 80px;
+}
+
+.pipeKicker {
+  margin: 0;
+  color: var(--ph-amber);
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.pipeCopy {
+  margin: 0;
+  max-width: 68ch;
+  line-height: 1.6;
+}
+
+.pipeCode {
+  margin: 0;
+  padding: 18px 20px;
+  overflow-x: auto;
+  color: var(--ph-phosphor);
+  background: #070806;
+  border: 1px solid var(--ph-phosphor);
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 15px;
+}
+
+.why {
+  padding: clamp(72px, 9vw, 120px) 0;
+  border-top: 1px solid color-mix(in srgb, var(--ph-rhodium) 12%, transparent);
+}
+
+.sectionKicker {
+  margin: 0 0 14px;
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.stayKicker {
+  color: var(--ph-phosphor);
+}
+
+.dieKicker {
+  color: var(--ph-amber);
+}
+
+.why h2,
+.split h2 {
+  max-width: 18ch;
+  margin: 0 0 18px;
+  color: var(--ph-paper);
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.why p,
+.split > p {
+  max-width: 68ch;
+  margin: 0 0 16px;
+  line-height: 1.7;
+}
+
+.divider {
+  height: 1px;
+  margin: clamp(40px, 6vw, 64px) 0;
+  background: color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
+  border: 0;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.stayBox,
+.dieBox {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+  background: color-mix(in srgb, #101210 80%, var(--ph-void));
+  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 16%, transparent);
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+}
+
+.row strong {
+  color: var(--ph-paper);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.row span {
+  color: var(--ph-rhodium);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.drawer {
+  padding: 0 0 clamp(80px, 10vw, 128px);
+}
+
+.drawerKicker {
+  margin: 0 0 18px;
+  color: color-mix(in srgb, var(--ph-rhodium) 62%, transparent);
+  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cabinetButton:hover,
+  .pipeButton:hover,
+  .door:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.cabinetButton:active,
+.pipeButton:active,
+.door:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 820px) {
+  .doors,
+  .compare,
+  .cabinetBar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cabinetButton,
+  .pipeButton,
+  .door,
+  .cabinetButton:hover,
+  .pipeButton:hover,
+  .door:hover {
+    transition: none;
+    transform: none;
+  }
+}

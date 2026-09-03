@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { ArchivedEraNote } from '@/components/pharmacy/ArchivedEraNote';
+
 import { AgentEvaluationWorkbench } from './AgentEvaluationWorkbench';
 import styles from './evaluate.module.css';
 
@@ -20,6 +22,7 @@ const boundaryFacts = [
 export default function EvaluatePage() {
   return (
     <main className={styles.page}>
+      <ArchivedEraNote surface="The evidence inspector" />
       <section className={styles.hero} aria-labelledby="evaluate-title">
         <div className={styles.heroField} aria-hidden="true" />
         <div className={styles.rail}>
