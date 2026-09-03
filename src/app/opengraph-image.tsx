@@ -79,7 +79,6 @@ export default async function OpenGraphImage() {
                   letterSpacing: '0.04em',
                   border: '1px solid #b42318',
                   padding: '2px 6px',
-                  width: 'fit-content',
                 }}
               >
                 {accession}
