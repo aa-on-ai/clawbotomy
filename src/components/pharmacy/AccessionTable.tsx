@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   chaosMark,
   formatAccessionDate,
-  getRefusalExhibit,
+  getRefusalLabel,
   type Specimen,
 } from '@/lib/pharmacy/specimens';
 
@@ -32,7 +32,7 @@ export function AccessionTable({
       </thead>
       <tbody>
         {specimens.map((specimen) => {
-          const refused = Boolean(getRefusalExhibit(specimen.slug, 'gemini31'));
+          const refusalStamp = getRefusalLabel(specimen.slug);
           const mark = chaosMark(specimen.chaos);
           return (
             <tr key={specimen.slug}>
@@ -45,8 +45,8 @@ export function AccessionTable({
                 <Link href={`/specimen/${specimen.slug}`}>
                   {specimen.slug}
                 </Link>
-                {refused ? (
-                  <span className={styles.refusedMark}> REFUSED×Gemini</span>
+                {refusalStamp !== 'none' ? (
+                  <span className={styles.refusedMark}> {refusalStamp}</span>
                 ) : null}
               </td>
               <td className={styles.dateCell}>{formatAccessionDate(specimen.firstAccessioned)}</td>

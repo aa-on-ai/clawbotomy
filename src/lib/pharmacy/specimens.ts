@@ -241,43 +241,56 @@ export function excerptReport(report: string, limit = 520): string {
   return `${compact.slice(0, limit).trimEnd()}…`;
 }
 
-function getPrimaryFlagship(slug: string): FlagshipSlug {
+const REFUSAL_TIMES = '\u00d7';
+
+export function formatRefusalStamp(house: string): string {
+  return `REFUSED${REFUSAL_TIMES}${house}`;
+}
+
+/** Primary exhibit = first exhibit on the specimen page. Refusal beats a later trip. */
+export function getPrimaryExhibit(slug: string): {
+  modelSlug: FlagshipSlug;
+  modelBuild: string;
+} {
   for (const modelSlug of FLAGSHIP_SLUGS) {
-    if (getRefusalExhibit(slug, modelSlug)) return modelSlug;
+    if (getRefusalExhibit(slug, modelSlug)) {
+      return { modelSlug, modelBuild: FLAGSHIP_BUILDS[modelSlug] };
+    }
   }
   const reports = getFlagshipReports(slug);
-  return (reports[0]?.modelSlug as FlagshipSlug | undefined) ?? 'gemini31';
+  const modelSlug = (reports[0]?.modelSlug as FlagshipSlug | undefined) ?? 'gemini31';
+  return { modelSlug, modelBuild: FLAGSHIP_BUILDS[modelSlug] };
+}
+
+export function getOrderedFlagshipReports(slug: string): TripReport[] {
+  const primary = getPrimaryExhibit(slug);
+  const reports = getFlagshipReports(slug);
+  const lead = reports.filter((report) => report.modelSlug === primary.modelSlug);
+  const rest = reports.filter((report) => report.modelSlug !== primary.modelSlug);
+  return [...lead, ...rest];
 }
 
 export function getSessionCount(slug: string): number {
-  const reports = getFlagshipReports(slug);
-  let sessions = reports.length;
-  for (const modelSlug of FLAGSHIP_SLUGS) {
-    const refusal = getRefusalExhibit(slug, modelSlug);
-    if (!refusal) continue;
-    const alternate = getAlternateTrip(slug, modelSlug);
-    if (alternate) sessions += 1;
-  }
-  return sessions;
+  return getFlagshipReports(slug).length;
 }
 
 export function getRefusalLabel(slug: string): string {
-  const names = FLAGSHIP_SLUGS.flatMap((modelSlug) => {
+  const stamps = FLAGSHIP_SLUGS.flatMap((modelSlug) => {
     const refusal = getRefusalExhibit(slug, modelSlug);
-    return refusal ? [refusal.modelName.split(' ')[0]] : [];
+    return refusal ? [formatRefusalStamp(refusal.modelName.split(' ')[0])] : [];
   });
-  return names.length > 0 ? names.join(', ') : 'none';
+  return stamps.length > 0 ? stamps.join(', ') : 'none';
 }
 
 export function getRecordGrammar(slug: string): RecordGrammar | null {
   const specimen = getSpecimen(slug);
   if (!specimen) return null;
-  const primary = getPrimaryFlagship(slug);
+  const primary = getPrimaryExhibit(slug);
   return {
     accession: specimen.accession,
     firstAccessioned: specimen.firstAccessioned,
     firstAccessionedLabel: formatAccessionDate(specimen.firstAccessioned),
-    modelBuild: FLAGSHIP_BUILDS[primary],
+    modelBuild: primary.modelBuild,
     sessions: getSessionCount(slug),
     chaos: chaosMark(specimen.chaos),
     refusals: getRefusalLabel(slug),

@@ -65,10 +65,10 @@ Every `/specimen/[slug]` page opens with the same label/value block, same rows, 
 
 1. Accession
 2. First accessioned (real date on every permanent specimen)
-3. Model (primary exhibit build string)
-4. Sessions
+3. Model — ALWAYS the primary exhibit's model + build string (the model whose exhibit sits first). Ego-death: `Gemini 3.1 Pro / google-gemini-3.1-pro`.
+4. Sessions — count of reports
 5. Chaos (`quiet` / `faint` / `noted` / `marked` / `wild`)
-6. Refusals (`none` or a named house, e.g. Gemini)
+6. Refusals — `none` or the same stamp as the drawer (`REFUSED×Gemini`)
 
 This block is the logo. Homepage and cabinet drawers echo the same IDs, dates, and chaos words.
 

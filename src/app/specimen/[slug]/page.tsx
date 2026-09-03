@@ -6,8 +6,8 @@ import { ArchiveShell } from '@/components/pharmacy/ArchiveShell';
 import { RecordGrammar } from '@/components/pharmacy/RecordGrammar';
 import {
   getAlternateTrip,
-  getFlagshipReports,
   getKnownGaps,
+  getOrderedFlagshipReports,
   getRecordGrammar,
   getRefusalExhibit,
   getSpecimen,
@@ -44,7 +44,7 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
   if (!specimen) notFound();
 
   const record = getRecordGrammar(slug);
-  const reports = getFlagshipReports(slug);
+  const reports = getOrderedFlagshipReports(slug);
   const gaps = getKnownGaps(slug);
 
   return (

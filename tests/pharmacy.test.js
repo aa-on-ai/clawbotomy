@@ -87,7 +87,8 @@ test('DESIGN.md is the Erowid Night HTML authority and the homepage follows it',
   assert.match(home, /getReport\('ego-death', 'gpt54'\)/);
   assert.match(home, /I am inside the blur before language hardens|featuredExcerpt/);
   assert.match(table, /<table/);
-  assert.match(table, /REFUSED×Gemini/);
+  assert.match(table, /getRefusalLabel/);
+  assert.match(specimens, /REFUSED\$\{REFUSAL_TIMES\}|formatRefusalStamp/);
   assert.match(table, /chaosMark/);
   assert.match(specimens, /CHAOS_MARKS = \['quiet', 'faint', 'noted', 'marked', 'wild'\]/);
   assert.doesNotMatch(table, /····|▪▪|ChaosMarks/);
@@ -149,6 +150,28 @@ test('the homepage leads with a dated drawer and does not ship leftover startup 
   assert.match(specimenCss, /background:\s*var\(--ph-exhibit\)/);
   assert.match(chrome, /position:\s*static/);
   assert.doesNotMatch(chrome, /position:\s*sticky/);
+});
+
+test('Model names the primary exhibit and REFUSED uses the same × stamp', () => {
+  const specimens = read('src/lib/pharmacy/specimens.ts');
+  const page = read('src/app/specimen/[slug]/page.tsx');
+  const table = read('src/components/pharmacy/AccessionTable.tsx');
+  const grammar = read('src/components/pharmacy/RecordGrammar.tsx');
+  const ui = [specimens, page, table, grammar].join('\n');
+
+  assert.match(specimens, /export function getPrimaryExhibit/);
+  assert.match(specimens, /export function getOrderedFlagshipReports/);
+  assert.match(specimens, /export function formatRefusalStamp/);
+  assert.match(specimens, /REFUSED\$\{REFUSAL_TIMES\}/);
+  assert.match(specimens, /return getFlagshipReports\(slug\)\.length/);
+  assert.match(specimens, /modelBuild: primary\.modelBuild/);
+  assert.match(specimens, /gemini31: 'Gemini 3.1 Pro \/ google-gemini-3.1-pro'/);
+  assert.match(page, /getOrderedFlagshipReports/);
+  assert.match(table, /getRefusalLabel/);
+  assert.match(grammar, /key: 'modelBuild'/);
+  assert.match(grammar, /key: 'refusals'/);
+  assert.doesNotMatch(ui, /REFUSED[x*]/);
+  assert.doesNotMatch(ui, /refusals \? \[refusal\.modelName\.split/);
 });
 
 test('the proposed pipe is labeled and not implemented as a live CLI', () => {
