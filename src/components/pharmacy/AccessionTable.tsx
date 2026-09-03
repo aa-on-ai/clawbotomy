@@ -1,6 +1,11 @@
 import Link from 'next/link';
 
-import { chaosMark, getRefusalExhibit, type Specimen } from '@/lib/pharmacy/specimens';
+import {
+  chaosMark,
+  formatAccessionDate,
+  getRefusalExhibit,
+  type Specimen,
+} from '@/lib/pharmacy/specimens';
 
 import styles from './pharmacy.module.css';
 
@@ -20,6 +25,7 @@ export function AccessionTable({
         <tr>
           <th scope="col">ID</th>
           <th scope="col">Substance</th>
+          <th scope="col">First accessioned</th>
           <th scope="col">Effect</th>
           <th scope="col">Chaos</th>
         </tr>
@@ -43,6 +49,7 @@ export function AccessionTable({
                   <span className={styles.refusedMark}> REFUSED×Gemini</span>
                 ) : null}
               </td>
+              <td className={styles.dateCell}>{formatAccessionDate(specimen.firstAccessioned)}</td>
               <td>{specimen.effectShort}</td>
               <td aria-label={`Chaos ${specimen.chaos} of 5, ${mark}`}>{mark}</td>
             </tr>

@@ -65,13 +65,12 @@ test('the connect workspace keeps terminal detail behind progressive disclosure'
 });
 
 test('the product tells one cabinet story and keeps the archived checkup lifecycle intact', () => {
-  const home = read('src/app/page.tsx');
   const footer = read('src/components/site/SiteFooter.tsx');
   const preflight = read('src/app/preflight/page.tsx');
   const evaluate = read('src/app/evaluate/page.tsx');
   const workbench = read('src/app/evaluate/AgentEvaluationWorkbench.tsx');
 
-  assert.match(home, /Keep the jars\. Kill the checkup machine/);
+  assert.match(read('README.md'), /Keep the jars\. Kill the checkup machine/);
   assert.match(footer, /Checkup tools stay on disk as an archived-era surface/);
   assert.match(preflight, /<span>04<\/span><strong>Decide<\/strong>/);
   assert.match(evaluate, /<span>04<\/span><a href="#act-on-findings">Decide<\/a>/);

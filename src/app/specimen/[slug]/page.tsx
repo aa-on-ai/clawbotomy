@@ -3,12 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ArchiveShell } from '@/components/pharmacy/ArchiveShell';
+import { RecordGrammar } from '@/components/pharmacy/RecordGrammar';
 import {
-  chaosMark,
-  excerptReport,
   getAlternateTrip,
   getFlagshipReports,
   getKnownGaps,
+  getRecordGrammar,
   getRefusalExhibit,
   getSpecimen,
   getSpecimenSlugs,
@@ -43,6 +43,7 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
   const specimen = getSpecimen(slug);
   if (!specimen) notFound();
 
+  const record = getRecordGrammar(slug);
   const reports = getFlagshipReports(slug);
   const gaps = getKnownGaps(slug);
 
@@ -54,13 +55,11 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
         </Link>
 
         <header className={styles.hero}>
-          <p className={styles.accession}>{specimen.accession}</p>
           <h1 className={styles.title}>{specimen.slug}</h1>
           <p className={styles.effect}>{specimen.effectShort}</p>
-          <p className={styles.chaos} aria-label={`Chaos ${specimen.chaos} of 5, ${chaosMark(specimen.chaos)}`}>
-            Chaos {chaosMark(specimen.chaos)}
-          </p>
         </header>
+
+        {record ? <RecordGrammar record={record} /> : null}
 
         {reports.map((report) => {
           const refusal = getRefusalExhibit(slug, report.modelSlug);
@@ -80,22 +79,16 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
                   <p className={styles.note}>{refusal.note}</p>
                 </div>
               ) : (
-                <>
-                  <p className={styles.excerpt}>{excerptReport(report.report)}</p>
-                  <details className={styles.fullReport}>
-                    <summary>Full trip report</summary>
-                    <p className={styles.report}>{report.report}</p>
-                  </details>
-                </>
+                <p className={styles.report}>{report.report}</p>
               )}
 
               {alternate ? (
-                <details className={styles.fullReport}>
-                  <summary className={styles.alternateLabel}>
+                <section className={styles.alternate} aria-label="Alternate accession">
+                  <p className={styles.alternateLabel}>
                     Alternate accession — later session (not the primary exhibit)
-                  </summary>
+                  </p>
                   <p className={styles.report}>{alternate.report}</p>
-                </details>
+                </section>
               ) : null}
             </article>
           );

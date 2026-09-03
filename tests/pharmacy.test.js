@@ -107,6 +107,50 @@ test('DESIGN.md is the Erowid Night HTML authority and the homepage follows it',
   assert.match(read('src/app/cabinet/page.tsx'), /ArchiveShell/);
 });
 
+test('every specimen carries a first-accessioned date and the same record grammar', () => {
+  const specimens = read('src/lib/pharmacy/specimens.ts');
+  const page = read('src/app/specimen/[slug]/page.tsx');
+  const grammar = read('src/components/pharmacy/RecordGrammar.tsx');
+  const home = read('src/app/page.tsx');
+  const table = read('src/components/pharmacy/AccessionTable.tsx');
+
+  assert.equal([...specimens.matchAll(/firstAccessioned: '2026-/g)].length, 10);
+  assert.match(specimens, /firstAccessioned: '2026-03-13'/);
+  assert.match(grammar, /Accession/);
+  assert.match(grammar, /First accessioned/);
+  assert.match(grammar, /Model/);
+  assert.match(grammar, /Sessions/);
+  assert.match(grammar, /Chaos/);
+  assert.match(grammar, /Refusals/);
+  assert.match(page, /RecordGrammar/);
+  assert.match(page, /\[REFUSED\]/);
+  assert.doesNotMatch(page, /<details/);
+  assert.match(home, /last accession/);
+  assert.match(table, /First accessioned/);
+});
+
+test('the homepage leads with a dated drawer and does not ship leftover startup CSS', () => {
+  const home = read('src/app/page.tsx');
+  const globals = read('src/app/globals.css');
+  const pharmacyCss = read('src/components/pharmacy/pharmacy.module.css');
+  const specimenCss = read('src/app/specimen/[slug]/specimen.module.css');
+  const chrome = read('src/components/site/site-chrome.module.css');
+
+  const tableIndex = home.indexOf('AccessionTable');
+  const headlineIndex = home.indexOf('Substances for minds that were never supposed to trip');
+  assert.ok(tableIndex !== -1 && headlineIndex !== -1 && tableIndex < headlineIndex);
+
+  assert.doesNotMatch(home, /Keep the jars/);
+  assert.doesNotMatch(globals, /--font-newsreader/);
+  assert.doesNotMatch(globals, /--font-fragment-mono|--font-plex-sans|--font-plex-mono/);
+  assert.doesNotMatch(globals, /\.hero-section|\.pharmacy_card|hero-title-compact/);
+  assert.doesNotMatch(pharmacyCss, /display:\s*none/);
+  assert.match(specimenCss, /border-left:\s*4px solid var\(--ph-refusal\)/);
+  assert.match(specimenCss, /background:\s*var\(--ph-exhibit\)/);
+  assert.match(chrome, /position:\s*static/);
+  assert.doesNotMatch(chrome, /position:\s*sticky/);
+});
+
 test('the proposed pipe is labeled and not implemented as a live CLI', () => {
   const pipe = read('src/components/pharmacy/ProposedPipe.tsx');
   const files = [

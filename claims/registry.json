@@ -547,7 +547,7 @@
         {"file": "src/app/layout.tsx", "text": "not a live-trip checkup machine"},
         {"file": "src/app/opengraph-image.tsx", "text": "not a live-trip checkup machine"},
         {"file": "src/app/cabinet/page.tsx", "text": "Ten jars. No checkup machine."},
-        {"file": "src/app/specimen/[slug]/page.tsx", "text": "Full trip report"},
+        {"file": "src/app/specimen/[slug]/page.tsx", "text": "RecordGrammar"},
         {"file": "src/lib/pharmacy/specimens.ts", "text": "CB-13-RI"},
         {"file": "README.md", "text": "permanent specimens"}
       ]

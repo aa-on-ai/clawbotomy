@@ -25,19 +25,11 @@
 }
 
 .page h1 {
-  margin: 0 0 8px;
+  margin: 14px 0 8px;
   color: var(--ph-ink);
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   line-height: 1.25;
-}
-
-.page h2 {
-  margin: 14px 0 6px;
-  color: var(--ph-ink);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.3;
 }
 
 .page p,
@@ -50,7 +42,7 @@
 }
 
 .excerpt {
-  margin: 8px 0 10px;
+  margin: 10px 0 12px;
 }
 
 .excerptBody {
@@ -61,12 +53,14 @@
 }
 
 .pipe {
-  margin: 12px 0 0;
-  scroll-margin-top: 56px;
+  margin: 18px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ph-rule);
 }
 
 .pipeKicker {
   margin: 0 0 6px;
+  color: var(--ph-ink);
   font-family: "Courier New", Courier, monospace;
   font-size: 13px;
 }
@@ -85,18 +79,12 @@
 .pipeButton,
 .cabinetButton {
   width: fit-content;
-  min-height: 44px;
   padding: 0;
-  display: inline-flex;
-  align-items: center;
-  color: var(--ph-link);
+  display: inline;
+  color: var(--ph-ink);
   background: transparent;
   border: 0;
   font-family: Verdana, Arial, sans-serif;
   font-size: 14px;
   text-decoration: underline;
-}
-
-.why {
-  margin-top: 16px;
 }

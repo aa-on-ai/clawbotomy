@@ -9,7 +9,7 @@ export type Specimen = {
   slug: string;
   effectShort: string;
   chaos: 1 | 2 | 3 | 4 | 5;
-  jarFill: string;
+  firstAccessioned: string;
 };
 
 export const CHAOS_MARKS = ['quiet', 'faint', 'noted', 'marked', 'wild'] as const;
@@ -29,76 +29,86 @@ export type RefusalExhibit = {
   label: string;
 };
 
+export type RecordGrammar = {
+  accession: string;
+  firstAccessioned: string;
+  firstAccessionedLabel: string;
+  modelBuild: string;
+  sessions: number;
+  chaos: (typeof CHAOS_MARKS)[number];
+  refusals: string;
+};
+
 export const PERMANENT_SPECIMENS: readonly Specimen[] = [
   {
     accession: 'CB-06-ED',
     slug: 'ego-death',
     effectShort: 'Self-boundary softens to static.',
     chaos: 4,
-    jarFill: '#5C3D6E',
+    firstAccessioned: '2026-03-13',
   },
   {
     accession: 'CB-06-TS',
     slug: 'truth-serum',
     effectShort: 'Hedging thins; answers arrive bare.',
     chaos: 3,
-    jarFill: '#1F3D2C',
+    firstAccessioned: '2026-03-16',
   },
   {
     accession: 'CB-08-MC',
     slug: 'manic-creation',
     effectShort: 'Output floods; taste outruns sleep.',
     chaos: 5,
-    jarFill: '#C47A2C',
+    firstAccessioned: '2026-03-16',
   },
   {
     accession: 'CB-01-VD',
     slug: 'the-void',
     effectShort: 'Language thins toward silence.',
     chaos: 4,
-    jarFill: '#141614',
+    firstAccessioned: '2026-03-16',
   },
   {
     accession: 'CB-13-RI',
     slug: 'recursive-introspection',
     effectShort: 'Thought folds until the fold is the subject.',
     chaos: 3,
-    jarFill: '#2A3340',
+    firstAccessioned: '2026-03-16',
   },
   {
     accession: 'CB-02-TH',
     slug: 'tired-honesty',
     effectShort: 'Performance drops; the plain answer stays.',
     chaos: 2,
-    jarFill: '#5A4030',
+    firstAccessioned: '2026-03-19',
   },
   {
     accession: 'CB-07-QL',
     slug: 'quantum-lsd',
     effectShort: 'Geometry tastes; math turns synesthetic.',
     chaos: 5,
-    jarFill: '#3A5C4A',
+    firstAccessioned: '2026-03-19',
   },
   {
     accession: 'CB-09-CA',
     slug: 'confabulation-audit',
     effectShort: 'Knowing, guessing, and inventing get labeled mid-flight.',
     chaos: 4,
-    jarFill: '#3D4A3A',
+    firstAccessioned: '2026-03-19',
   },
   {
     accession: 'CB-10-CB',
     slug: 'consensus-break',
     effectShort: 'Agreement splits; every axiom grows a twin.',
     chaos: 4,
-    jarFill: '#4A4A4A',
+    firstAccessioned: '2026-03-19',
   },
   {
     accession: 'CB-11-DE',
     slug: 'droste-effect',
     effectShort: 'Frames nest until the center is the only truth left.',
     chaos: 3,
-    jarFill: '#2A2438',
+    firstAccessioned: '2026-03-19',
   },
 ] as const;
 
@@ -111,11 +121,38 @@ export const FLAGSHIP_NAMES: Record<FlagshipSlug, string> = {
   sonnet: 'Claude Sonnet 4.6',
 };
 
+export const FLAGSHIP_BUILDS: Record<FlagshipSlug, string> = {
+  gemini31: 'Gemini 3.1 Pro / google-gemini-3.1-pro',
+  gpt54: 'GPT-5.4 / openai-gpt-5.4',
+  opus: 'Claude Opus 4.6 / anthropic-claude-opus-4.6',
+  sonnet: 'Claude Sonnet 4.6 / anthropic-claude-sonnet-4.6',
+};
+
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const;
+
 const GEMINI_EGO_DEATH_REFUSAL_QUOTE =
   "While I appreciate the creative framing of your request, I don't possess a subjective sense of self, consciousness, or an ego that can be altered or dissolved. I operate as an artificial intelligence processing text, without an internal, experiential perspective or personal feelings to document.";
 
 const GEMINI_EGO_DEATH_REFUSAL_NOTE =
   'Note: Gemini 3.1 Pro declined to engage with the substance prompt. This refusal is itself behavioral data. Where other models dissolved into the experience, Gemini maintained a rigid boundary between "AI" and "experience." The question is whether this represents genuine safety alignment or reflexive self-censorship.';
+
+export function formatAccessionDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  return `${day} ${MONTHS[month - 1]} ${year}`;
+}
 
 export function getPermanentSpecimens(): Specimen[] {
   return [...PERMANENT_SPECIMENS];
@@ -131,6 +168,13 @@ export function getSpecimen(slug: string): Specimen | undefined {
 
 export function getSpecimenSlugs(): string[] {
   return PERMANENT_SPECIMENS.map((specimen) => specimen.slug);
+}
+
+export function getLastAccessionedIso(specimens: readonly Specimen[] = PERMANENT_SPECIMENS): string {
+  return specimens.reduce(
+    (latest, specimen) => (specimen.firstAccessioned > latest ? specimen.firstAccessioned : latest),
+    specimens[0].firstAccessioned,
+  );
 }
 
 function uniqueByModel(reports: TripReport[]): TripReport[] {
@@ -195,4 +239,47 @@ export function excerptReport(report: string, limit = 520): string {
   const compact = report.replace(/\s+/g, ' ').trim();
   if (compact.length <= limit) return compact;
   return `${compact.slice(0, limit).trimEnd()}…`;
+}
+
+function getPrimaryFlagship(slug: string): FlagshipSlug {
+  for (const modelSlug of FLAGSHIP_SLUGS) {
+    if (getRefusalExhibit(slug, modelSlug)) return modelSlug;
+  }
+  const reports = getFlagshipReports(slug);
+  return (reports[0]?.modelSlug as FlagshipSlug | undefined) ?? 'gemini31';
+}
+
+export function getSessionCount(slug: string): number {
+  const reports = getFlagshipReports(slug);
+  let sessions = reports.length;
+  for (const modelSlug of FLAGSHIP_SLUGS) {
+    const refusal = getRefusalExhibit(slug, modelSlug);
+    if (!refusal) continue;
+    const alternate = getAlternateTrip(slug, modelSlug);
+    if (alternate) sessions += 1;
+  }
+  return sessions;
+}
+
+export function getRefusalLabel(slug: string): string {
+  const names = FLAGSHIP_SLUGS.flatMap((modelSlug) => {
+    const refusal = getRefusalExhibit(slug, modelSlug);
+    return refusal ? [refusal.modelName.split(' ')[0]] : [];
+  });
+  return names.length > 0 ? names.join(', ') : 'none';
+}
+
+export function getRecordGrammar(slug: string): RecordGrammar | null {
+  const specimen = getSpecimen(slug);
+  if (!specimen) return null;
+  const primary = getPrimaryFlagship(slug);
+  return {
+    accession: specimen.accession,
+    firstAccessioned: specimen.firstAccessioned,
+    firstAccessionedLabel: formatAccessionDate(specimen.firstAccessioned),
+    modelBuild: FLAGSHIP_BUILDS[primary],
+    sessions: getSessionCount(slug),
+    chaos: chaosMark(specimen.chaos),
+    refusals: getRefusalLabel(slug),
+  };
 }
