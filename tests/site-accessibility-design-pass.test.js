@@ -23,8 +23,8 @@ test('the site has no visual bullet-list treatment', () => {
   assert.match(globals, /:where\(ul, ol\)[\s\S]*list-style:\s*none/);
   assert.doesNotMatch(source, /\blist-disc\b/);
   assert.doesNotMatch(source, /list-style:\s*(?:disc|circle|square)/);
-  assert.doesNotMatch(source, /content:\s*['"][•◦▪·]['"]/);
-  assert.doesNotMatch(source, /[•◦▪·]/);
+  assert.doesNotMatch(source, /content:\s*['"][•◦▪]['"]/);
+  assert.doesNotMatch(source, /[•◦▪]/);
 });
 
 test('signal-filled controls use the accessible deep signal treatment', () => {

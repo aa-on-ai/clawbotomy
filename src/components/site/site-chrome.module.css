@@ -4,9 +4,8 @@
   z-index: 50;
   min-height: 48px;
   color: var(--ph-paper);
-  background: color-mix(in srgb, var(--ph-void) 94%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
-  backdrop-filter: blur(14px);
+  background: var(--ph-void);
+  border-bottom: 1px solid #2a2a26;
 }
 
 .signal {
@@ -17,7 +16,7 @@
 }
 
 .headerInner {
-  width: min(var(--cb-rail), calc(100% - (2 * var(--cb-gutter))));
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
   min-height: 48px;
   margin: 0 auto;
   display: grid;
@@ -39,14 +38,13 @@
 
 .brandMark {
   min-height: 32px;
-  padding: 0 10px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--ph-paper) 72%, transparent);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .brandName {
@@ -84,17 +82,15 @@
   padding: 0 13px;
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.035em;
+  font-weight: 400;
+  letter-spacing: 0.03em;
   text-transform: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 1px solid transparent;
   transition:
     color var(--cb-motion-fast) ease,
-    background-color var(--cb-motion-fast) ease,
-    border-color var(--cb-motion-fast) ease,
-    opacity var(--cb-motion-fast) ease;
+    border-color var(--cb-motion-fast) ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -105,21 +101,20 @@
   .brand:hover .brandName,
   .brand:hover .brandMark,
   .navigation a:not(.navAction):hover {
-    color: var(--ph-phosphor);
+    color: var(--ph-paper);
   }
 
   .brand:hover .brandMode {
-    color: color-mix(in srgb, var(--ph-phosphor) 72%, currentColor);
+    color: #c8c8c2;
   }
 
   .navigation a:not(.navAction):hover {
-    background: color-mix(in srgb, var(--ph-phosphor) 8%, transparent);
-    border-bottom-color: var(--ph-phosphor);
+    border-bottom-color: #6a6a64;
   }
 }
 
 .navigation .active {
-  border-bottom-color: var(--ph-phosphor);
+  border-bottom-color: var(--ph-paper);
 }
 
 .navigation .navAction {
@@ -197,38 +192,39 @@
 .footer {
   position: relative;
   z-index: 2;
-  color: var(--ph-rhodium);
+  color: #9a9a94;
   background: var(--ph-void);
-  border-top: 1px solid color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
+  border-top: 1px solid #2a2a26;
 }
 
 .footerInner {
-  width: min(var(--cb-rail), calc(100% - (2 * var(--cb-gutter))));
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
   margin: 0 auto;
-  padding: clamp(64px, 8vw, 112px) 0 36px;
+  padding: 56px 0 32px;
 }
 
 .footerStatement {
-  padding-bottom: clamp(48px, 7vw, 88px);
+  padding-bottom: 28px;
   display: grid;
-  gap: 18px;
-  border-bottom: 1px solid var(--cb-border-dark);
+  gap: 10px;
+  border-bottom: 1px solid #2a2a26;
 }
 
 .footerStatement span,
 .footerMeta nav a {
-  font-family: var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.03em;
   text-transform: none;
 }
 
 .footerStatement strong {
-  max-width: 900px;
-  font-size: clamp(2rem, 3.4vw, 3rem);
-  font-weight: 650;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  max-width: 36ch;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--ph-paper);
   text-wrap: balance;
 }
 
@@ -269,8 +265,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .footerMeta nav a:hover {
-    color: var(--ph-phosphor);
-    transform: translateY(-1px);
+    color: var(--ph-paper);
   }
 }
 

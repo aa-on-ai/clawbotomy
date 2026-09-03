@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
+import { AccessionTable } from '@/components/pharmacy/AccessionTable';
 import { ProposedPipe } from '@/components/pharmacy/ProposedPipe';
-import { SpecimenRail } from '@/components/pharmacy/SpecimenCard';
 import { getDrawerSpecimens } from '@/lib/pharmacy/specimens';
 
 import styles from './pharmacy-home.module.css';
@@ -130,10 +130,11 @@ export default function HomePage() {
 
       <section className={styles.drawer} aria-labelledby="drawer-title">
         <div className={styles.rail}>
-          <p className={styles.drawerKicker} id="drawer-title">
-            Accession drawer / six specimens on the shelf
-          </p>
-          <SpecimenRail specimens={drawer} />
+          <AccessionTable
+            specimens={drawer}
+            caption="Accession drawer / six specimens on the shelf"
+            captionId="drawer-title"
+          />
         </div>
       </section>
     </main>

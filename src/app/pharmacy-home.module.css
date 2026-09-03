@@ -2,130 +2,131 @@
   position: relative;
   z-index: 2;
   overflow: clip;
-  color: var(--ph-rhodium);
+  color: #9a9a94;
   background: var(--ph-void);
-  font-family: var(--font-atkinson), var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-plex-sans), var(--font-geist-sans), system-ui, sans-serif;
 }
 
 .rail {
-  width: min(1120px, calc(100% - (2 * var(--cb-gutter))));
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
   margin: 0 auto;
 }
 
 .hero {
-  padding: clamp(56px, 8vw, 104px) 0 clamp(36px, 5vw, 56px);
+  padding: 72px 0 0;
 }
 
 .headline {
-  max-width: 16ch;
-  margin: 0 0 22px;
+  max-width: 18ch;
+  margin: 0 0 20px;
   color: var(--ph-paper);
-  font-size: clamp(2.6rem, 6vw, 5.1rem);
-  font-weight: 700;
-  line-height: 0.96;
-  letter-spacing: -0.045em;
-  text-wrap: balance;
+  font-size: clamp(2rem, 3.6vw, 2.85rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 .subhead {
   max-width: 62ch;
   margin: 0;
-  font-size: clamp(1.02rem, 1.7vw, 1.18rem);
+  font-size: 1.02rem;
   line-height: 1.65;
 }
 
 .subhead strong {
   color: var(--ph-paper);
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .doors {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: clamp(36px, 5vw, 56px) 0 0;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  margin: 48px 0 0;
+  border-top: 1px solid #2a2a26;
+  border-bottom: 1px solid #2a2a26;
 }
 
 .door {
-  min-height: 168px;
-  padding: 22px 24px 24px;
+  min-height: 0;
+  padding: 28px 0 32px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 22%, transparent);
+  gap: 8px;
   color: inherit;
   background: transparent;
+  border: 0;
   text-decoration: none;
 }
 
 .doorPrimary {
-  border-color: var(--ph-phosphor);
+  padding-right: 32px;
+}
+
+.doorMuted {
+  padding-left: 32px;
+  border-left: 1px solid #2a2a26;
 }
 
 .doorLabel {
   margin: 0;
-  color: var(--ph-phosphor);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  color: #6a6a64;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
-.doorMuted .doorLabel {
-  color: color-mix(in srgb, var(--ph-rhodium) 70%, transparent);
+.doorPrimary .doorLabel {
+  color: var(--ph-phosphor);
 }
 
 .door h2 {
   margin: 0;
   color: var(--ph-paper);
-  font-size: clamp(1.8rem, 3vw, 2.3rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
 .doorMuted h2 {
-  color: color-mix(in srgb, var(--ph-paper) 62%, var(--ph-rhodium));
+  color: #c8c8c2;
+  font-size: 1.2rem;
 }
 
 .door p {
   margin: 0;
-  max-width: 28ch;
+  max-width: 32ch;
   line-height: 1.5;
 }
 
 .cabinetBar {
-  margin-top: clamp(28px, 4vw, 40px);
-  padding: 22px 24px;
+  margin-top: 28px;
+  padding: 0;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 22px;
-  align-items: center;
-  background: color-mix(in srgb, #141614 86%, var(--ph-void));
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
+  gap: 10px;
 }
 
 .cabinetButton,
 .pipeButton {
-  min-height: 48px;
-  padding: 0 16px;
+  width: fit-content;
+  min-height: 44px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   background: transparent;
-  text-decoration: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .cabinetButton {
   color: var(--ph-phosphor);
-  border: 1px solid var(--ph-phosphor);
 }
 
 .pipeButton {
-  width: fit-content;
-  color: var(--ph-amber);
-  border: 1px solid var(--ph-amber);
+  color: #9a9a94;
   cursor: pointer;
 }
 
@@ -133,57 +134,57 @@
   margin: 0;
   max-width: 62ch;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .pipe {
-  margin-top: clamp(22px, 3vw, 32px);
-  padding: 24px;
+  margin-top: 48px;
+  padding: 28px 0 0;
   display: grid;
-  gap: 16px;
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 18%, transparent);
-  scroll-margin-top: 80px;
+  gap: 12px;
+  border-top: 1px solid #2a2a26;
+  scroll-margin-top: 72px;
 }
 
 .pipeKicker {
   margin: 0;
-  color: var(--ph-amber);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  color: #8a8a84;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
 }
 
 .pipeCopy {
   margin: 0;
-  max-width: 68ch;
+  max-width: 62ch;
   line-height: 1.6;
 }
 
 .pipeCode {
-  margin: 0;
-  padding: 18px 20px;
+  margin: 8px 0 0;
+  padding: 14px 16px;
   overflow-x: auto;
   color: var(--ph-phosphor);
-  background: #070806;
-  border: 1px solid var(--ph-phosphor);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
-  font-size: 15px;
+  background: transparent;
+  border: 1px solid #2a2a26;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 14px;
 }
 
 .why {
-  padding: clamp(72px, 9vw, 120px) 0;
-  border-top: 1px solid color-mix(in srgb, var(--ph-rhodium) 12%, transparent);
+  padding: 64px 0 0;
 }
 
 .sectionKicker {
-  margin: 0 0 14px;
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  margin: 0 0 12px;
+  color: #8a8a84;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
 }
 
 .stayKicker {
-  color: var(--ph-phosphor);
+  color: #8a8a84;
 }
 
 .dieKicker {
@@ -192,104 +193,105 @@
 
 .why h2,
 .split h2 {
-  max-width: 18ch;
-  margin: 0 0 18px;
+  max-width: 22ch;
+  margin: 0 0 16px;
   color: var(--ph-paper);
-  font-size: clamp(2rem, 4vw, 3.1rem);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  font-size: clamp(1.55rem, 2.6vw, 2rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.018em;
 }
 
 .why p,
 .split > p {
-  max-width: 68ch;
-  margin: 0 0 16px;
+  max-width: 62ch;
+  margin: 0 0 14px;
   line-height: 1.7;
 }
 
 .divider {
-  height: 1px;
-  margin: clamp(40px, 6vw, 64px) 0;
-  background: color-mix(in srgb, var(--ph-rhodium) 14%, transparent);
+  height: 0;
+  margin: 40px 0;
+  background: transparent;
   border: 0;
+  border-top: 1px solid #2a2a26;
 }
 
 .compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 0 40px;
   margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid #2a2a26;
 }
 
 .stayBox,
 .dieBox {
-  padding: 22px;
+  padding: 0;
   display: grid;
   gap: 18px;
-  background: color-mix(in srgb, #101210 80%, var(--ph-void));
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 16%, transparent);
+  background: transparent;
+  border: 0;
+}
+
+.dieBox {
+  padding-left: 40px;
+  border-left: 1px solid #2a2a26;
 }
 
 .row {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .row strong {
   color: var(--ph-paper);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .row span {
-  color: var(--ph-rhodium);
+  color: #9a9a94;
   font-size: 14px;
   line-height: 1.45;
 }
 
 .drawer {
-  padding: 0 0 clamp(80px, 10vw, 128px);
+  padding: 56px 0 96px;
 }
 
 .drawerKicker {
-  margin: 0 0 18px;
-  color: color-mix(in srgb, var(--ph-rhodium) 62%, transparent);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  margin: 0 0 16px;
+  color: #8a8a84;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .cabinetButton:hover,
   .pipeButton:hover,
-  .door:hover {
-    transform: translateY(-1px);
+  .door:hover h2 {
+    color: var(--ph-paper);
   }
 }
 
-.cabinetButton:active,
-.pipeButton:active,
-.door:active {
-  transform: translateY(1px);
-}
-
-@media (max-width: 820px) {
+@media (max-width: 720px) {
   .doors,
-  .compare,
-  .cabinetBar {
+  .compare {
     grid-template-columns: 1fr;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .cabinetButton,
-  .pipeButton,
-  .door,
-  .cabinetButton:hover,
-  .pipeButton:hover,
-  .door:hover {
-    transition: none;
-    transform: none;
+  .doorPrimary,
+  .doorMuted,
+  .dieBox {
+    padding: 24px 0;
+    border-left: 0;
+  }
+
+  .doorMuted,
+  .dieBox {
+    border-top: 1px solid #2a2a26;
   }
 }

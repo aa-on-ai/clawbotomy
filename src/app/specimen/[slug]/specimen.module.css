@@ -2,14 +2,14 @@
   position: relative;
   z-index: 2;
   min-height: 100vh;
-  padding: clamp(48px, 7vw, 88px) 0 clamp(80px, 10vw, 128px);
-  color: var(--ph-rhodium);
+  padding: 56px 0 96px;
+  color: #9a9a94;
   background: var(--ph-void);
-  font-family: var(--font-atkinson), var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-plex-sans), var(--font-geist-sans), system-ui, sans-serif;
 }
 
 .rail {
-  width: min(880px, calc(100% - (2 * var(--cb-gutter))));
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
   margin: 0 auto;
 }
 
@@ -19,80 +19,67 @@
   align-items: center;
   margin-bottom: 28px;
   color: var(--ph-phosphor);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: 148px minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
-  margin-bottom: clamp(40px, 6vw, 64px);
+  margin-bottom: 40px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #2a2a26;
 }
 
 .jar {
-  position: relative;
-  isolation: isolate;
-  min-height: 148px;
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, rgb(232 228 220 / 8%) 0%, transparent 42%),
-    #101210;
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 16%, transparent);
+  width: 16px;
+  min-height: 16px;
+  margin-top: 8px;
+  background: var(--jar-fill, #2a2a26);
+  border: 1px solid #2a2a26;
 }
 
-.jarHighlight {
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 48%;
-  height: 40%;
-  background: linear-gradient(140deg, rgb(232 228 220 / 10%), transparent 70%);
-}
-
+.jarHighlight,
 .jarFill {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 24%;
-  background: var(--jar-fill);
+  display: none;
 }
 
 .accession {
-  margin: 0 0 10px;
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  margin: 0 0 8px;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
 }
 
 .title {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   color: var(--ph-paper);
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.035em;
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.018em;
 }
 
 .effect {
-  margin: 0 0 16px;
-  font-size: 1.08rem;
+  margin: 0 0 14px;
+  font-size: 1.02rem;
   line-height: 1.55;
 }
 
 .chaos {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   align-items: center;
 }
 
 .mark {
-  width: 8px;
-  height: 8px;
-  background: color-mix(in srgb, var(--ph-rhodium) 22%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 28%, transparent);
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  border: 1px solid #4a4a46;
 }
 
 .markFilled {
@@ -102,57 +89,54 @@
 
 .chaosLabel {
   margin-left: 8px;
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .section {
-  margin-bottom: 36px;
-  padding-top: 28px;
-  border-top: 1px solid color-mix(in srgb, var(--ph-rhodium) 12%, transparent);
+  margin-bottom: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #2a2a26;
 }
 
 .modelName {
   margin: 0 0 8px;
   color: var(--ph-paper);
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 500;
 }
 
 .exhibitLabel,
 .alternateLabel,
 .gapLabel {
-  margin: 0 0 12px;
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  margin: 0 0 10px;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
 }
 
 .exhibitLabel {
-  color: var(--ph-phosphor);
+  color: #8a8a84;
 }
 
-.alternateLabel {
-  color: var(--ph-amber);
-}
-
+.alternateLabel,
 .gapLabel {
   color: var(--ph-amber);
 }
 
 .refusal {
-  padding: 20px;
-  background: color-mix(in srgb, #101210 86%, var(--ph-void));
-  border: 1px solid color-mix(in srgb, var(--ph-phosphor) 28%, transparent);
+  padding: 0;
+  background: transparent;
+  border: 0;
 }
 
 .status {
   margin: 0 0 12px;
-  color: var(--ph-phosphor);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  color: var(--ph-amber);
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
 }
 
 .quote,
@@ -183,23 +167,19 @@
   display: flex;
   align-items: center;
   color: var(--ph-paper);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   cursor: pointer;
 }
 
 .gap {
-  padding: 18px 20px;
-  border: 1px dashed color-mix(in srgb, var(--ph-amber) 40%, transparent);
+  padding: 0;
+  border: 0;
 }
 
 @media (max-width: 640px) {
   .hero {
-    grid-template-columns: 1fr;
-  }
-
-  .jar {
-    min-height: 120px;
+    grid-template-columns: 16px minmax(0, 1fr);
   }
 }

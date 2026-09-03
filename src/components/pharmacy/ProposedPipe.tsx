@@ -22,7 +22,7 @@ export function ProposedPipe() {
   return (
     <section id="pipe" className={styles.pipe} aria-labelledby="pipe-title">
       <p className={styles.pipeKicker} id="pipe-title">
-        Proposed interface / not a live claim
+        Proposed interface · not a live claim
       </p>
       <p className={styles.pipeCopy}>
         Install or copy a skill snippet, then call the pipe with a substance slug. The pharmacy

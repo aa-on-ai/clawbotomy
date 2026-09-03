@@ -16,7 +16,10 @@ test('the permanent shelf has ten stamped specimens and a six-jar drawer', () =>
   assert.match(specimens, /slug: 'recursive-introspection'/);
   assert.match(specimens, /export const DRAWER_SPECIMEN_COUNT = 6/);
   assert.match(home, /getDrawerSpecimens/);
+  assert.match(home, /AccessionTable/);
+  assert.doesNotMatch(home, /SpecimenRail/);
   assert.match(cabinet, /getPermanentSpecimens/);
+  assert.match(cabinet, /AccessionTable/);
   assert.equal([...specimens.matchAll(/accession: 'CB-/g)].length, 10);
 });
 
@@ -69,11 +72,18 @@ test('the homepage is the night cabinet, not the checkup machine', () => {
   assert.doesNotMatch(readme, /\[Plan a checkup\]/);
 });
 
-test('jar cards keep long slugs from breaking the rail', () => {
+test('the homepage drawer is a quiet accession ledger, not a jar card grid', () => {
+  const home = read('src/app/page.tsx');
   const styles = read('src/components/pharmacy/pharmacy.module.css');
-  assert.match(styles, /\.card \{[^}]*min-height:\s*292px;/s);
-  assert.match(styles, /\.name \{[^}]*min-height:\s*2\.7em;[^}]*-webkit-line-clamp:\s*2;/s);
-  assert.match(styles, /\.effect \{[^}]*min-height:\s*2\.8em;[^}]*-webkit-line-clamp:\s*2;/s);
+  const table = read('src/components/pharmacy/AccessionTable.tsx');
+
+  assert.match(home, /AccessionTable/);
+  assert.match(table, /<table/);
+  assert.match(table, /REFUSED×Gemini/);
+  assert.match(styles, /border-collapse:\s*collapse/);
+  assert.match(styles, /\.table th,\s*\.table td \{[^}]*border-bottom:\s*1px solid #2a2a26;/s);
+  assert.doesNotMatch(read('src/app/pharmacy-home.module.css'), /linear-gradient/);
+  assert.doesNotMatch(read('src/app/pharmacy-home.module.css'), /box-shadow/);
 });
 
 test('the proposed pipe is labeled and not implemented as a live CLI', () => {
@@ -84,7 +94,7 @@ test('the proposed pipe is labeled and not implemented as a live CLI', () => {
     'package.json',
   ].map(read).join('\n');
 
-  assert.match(pipe, /Proposed interface \/ not a live claim/);
+  assert.match(pipe, /Proposed interface · not a live claim/);
   assert.match(pipe, /not implemented in this archive/);
   assert.doesNotMatch(files, /"bin"\s*:/);
   assert.doesNotMatch(read('package.json'), /clawbotomy try/);

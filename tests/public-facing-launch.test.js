@@ -51,7 +51,7 @@ test('the homepage leads with the night cabinet and a proposed-only pipe', () =>
   const homepage = [
     'src/app/page.tsx',
     'src/components/pharmacy/ProposedPipe.tsx',
-    'src/components/pharmacy/SpecimenCard.tsx',
+    'src/components/pharmacy/AccessionTable.tsx',
   ].map(read).join('\n');
 
   assert.match(homepage, /Substances for minds that were never supposed to trip/);

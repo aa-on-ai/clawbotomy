@@ -5,21 +5,21 @@ import { Providers } from '@/components/Providers';
 import { SiteFooter } from '@/components/site/SiteFooter';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
-import { Atkinson_Hyperlegible, Azeret_Mono } from 'next/font/google';
+import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 
-const atkinson = Atkinson_Hyperlegible({
+const plexSans = IBM_Plex_Sans({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-atkinson',
+  weight: ['400', '500', '600'],
+  variable: '--font-plex-sans',
   display: 'swap',
 });
 
-const azeret = Azeret_Mono({
+const plexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-azeret',
+  weight: ['400', '500'],
+  variable: '--font-plex-mono',
   display: 'swap',
 });
 
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#090A08',
+  themeColor: '#0a0a09',
 };
 
 export default function RootLayout({
@@ -75,7 +75,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${atkinson.variable} ${azeret.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${plexSans.variable} ${plexMono.variable}`}>
       <head>
         <script
           type="application/ld+json"

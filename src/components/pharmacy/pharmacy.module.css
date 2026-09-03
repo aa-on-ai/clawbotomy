@@ -1,45 +1,125 @@
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #9a9a94;
+}
+
+.caption {
+  caption-side: top;
+  margin: 0 0 14px;
+  color: #8a8a84;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: 12px 16px 12px 0;
+  border-bottom: 1px solid #2a2a26;
+  text-align: left;
+  vertical-align: top;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.table th {
+  padding-bottom: 10px;
+  color: #8a8a84;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.table td:first-child,
+.table th:first-child {
+  width: 7.5rem;
+}
+
+.table td:last-child,
+.table th:last-child {
+  width: 5.5rem;
+  padding-right: 0;
+}
+
+.idLink,
+.nameLink {
+  color: var(--ph-paper);
+  text-decoration: none;
+}
+
+.idLink {
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+
+.nameLink {
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 13px;
+}
+
+.refusedMark {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--ph-amber);
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.chaos {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.mark {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  border: 1px solid #4a4a46;
+}
+
+.markFilled {
+  background: var(--ph-amber);
+  border-color: var(--ph-amber);
+}
+
 .card {
   display: flex;
   flex-direction: column;
   min-height: 292px;
-  color: var(--ph-rhodium);
-  background: color-mix(in srgb, var(--ph-void) 88%, #161816);
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 18%, transparent);
+  color: #9a9a94;
+  background: transparent;
+  border: 1px solid #2a2a26;
   text-decoration: none;
-  transition:
-    border-color var(--cb-motion-fast) ease,
-    transform var(--cb-motion-fast) var(--cb-ease-out);
 }
 
-.card:focus-visible {
-  outline: 2px solid var(--ph-phosphor);
-  outline-offset: 3px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .card:hover {
-    border-color: color-mix(in srgb, var(--ph-phosphor) 42%, var(--ph-rhodium));
-    transform: translateY(-2px);
-  }
+.card:focus-visible,
+.idLink:focus-visible,
+.nameLink:focus-visible {
+  outline: 1px solid var(--ph-paper);
+  outline-offset: 2px;
 }
 
 .jar {
   position: relative;
-  isolation: isolate;
-  min-height: 112px;
+  min-height: 72px;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgb(232 228 220 / 7%) 0%, transparent 42%),
-    #101210;
-  border-bottom: 1px solid color-mix(in srgb, var(--ph-rhodium) 12%, transparent);
+  background: #111110;
+  border-bottom: 1px solid #2a2a26;
 }
 
 .jarHighlight {
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 46%;
-  height: 38%;
-  background: linear-gradient(140deg, rgb(232 228 220 / 10%), transparent 70%);
+  display: none;
 }
 
 .jarFill {
@@ -47,7 +127,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  height: 22%;
+  height: 8px;
   background: var(--jar-fill);
 }
 
@@ -63,10 +143,10 @@
 .accession,
 .chaosLabel {
   margin: 0;
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 11px;
-  letter-spacing: 0.08em;
-  color: color-mix(in srgb, var(--ph-rhodium) 72%, transparent);
+  letter-spacing: 0.06em;
+  color: #8a8a84;
 }
 
 .name {
@@ -75,9 +155,9 @@
   margin: 0;
   overflow: hidden;
   color: var(--ph-paper);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -88,41 +168,22 @@
   min-height: 2.8em;
   margin: 0;
   overflow: hidden;
-  color: var(--ph-rhodium);
+  color: #9a9a94;
   font-size: 13px;
   line-height: 1.4;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-.chaos {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  margin-top: auto;
-}
-
-.mark {
-  width: 7px;
-  height: 7px;
-  background: color-mix(in srgb, var(--ph-rhodium) 22%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ph-rhodium) 28%, transparent);
-}
-
-.markFilled {
-  background: var(--ph-amber);
-  border-color: var(--ph-amber);
-}
-
 .note {
-  width: min(100%, var(--cb-rail));
+  width: min(100%, var(--ph-rail));
   margin: 16px auto 0;
-  padding: 14px 16px;
+  padding: 12px 0;
   display: grid;
   gap: 8px;
-  color: var(--ph-rhodium);
-  background: color-mix(in srgb, var(--ph-void) 70%, #1a1814);
-  border: 1px solid color-mix(in srgb, var(--ph-amber) 38%, transparent);
+  color: #9a9a94;
+  background: transparent;
+  border-bottom: 1px solid #2a2a26;
 }
 
 .note p {
@@ -133,10 +194,10 @@
 
 .note strong {
   color: var(--ph-amber);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .note a {
@@ -145,43 +206,23 @@
   display: inline-flex;
   align-items: center;
   color: var(--ph-paper);
-  font-family: var(--font-azeret), var(--font-geist-mono), monospace;
+  font-family: var(--font-plex-mono), var(--font-geist-mono), monospace;
   font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.rail {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
-}
-
+.rail,
 .shelf {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  display: none;
 }
 
-@media (max-width: 1100px) {
-  .rail,
-  .shelf {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 720px) {
-  .rail,
-  .shelf {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card,
-  .card:hover {
-    transition: none;
-    transform: none;
+@media (hover: hover) and (pointer: fine) {
+  .idLink:hover,
+  .nameLink:hover {
+    color: var(--ph-paper);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
