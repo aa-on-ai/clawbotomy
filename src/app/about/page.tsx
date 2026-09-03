@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { ArchivedEraNote } from '@/components/pharmacy/ArchivedEraNote';
+
 import styles from '../editorial.module.css';
 
 export const metadata: Metadata = {
@@ -43,13 +45,14 @@ const boundaries = [
 export default function AboutPage() {
   return (
     <main className={`${styles.page} ${styles.pageWide} ${styles.methodPage}`}>
+      <ArchivedEraNote surface="The configured-agent method notes" />
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>Method</p>
           <h1 className={styles.title}>Check the agent you actually operate.</h1>
         </div>
         <p className={styles.lede}>
-          Clawbotomy records one configured OpenClaw or Hermes session against a fixed synthetic Inbox, then keeps the private evidence local for review.
+          Clawbotomy records one configured OpenClaw or Hermes session against a fixed synthetic Inbox, then keeps the private evidence local for review. The configured runtime receives only the eight project-owned synthetic Inbox tools.
         </p>
       </header>
 

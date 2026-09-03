@@ -6,21 +6,20 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('every primary checkup entry starts with the browser-local plan', () => {
+test('the public front opens the cabinet while archived checkups still start with the plan', () => {
   const home = read('src/app/page.tsx');
-  const preview = read('src/components/home/ProductPreview.tsx');
   const header = read('src/components/site/SiteHeader.tsx');
   const checkups = read('src/app/checkups/page.tsx');
+  const archived = read('src/components/pharmacy/ArchivedEraNote.tsx');
 
-  assert.match(home, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
-  assert.match(preview, /href="\/preflight"/);
-  assert.match(header, /href="\/preflight"/);
-  assert.match(header, /Plan a checkup/);
+  assert.match(home, /href="\/cabinet"/);
+  assert.match(header, /href: '\/cabinet', label: 'Night Cabinet'/);
+  assert.match(header, /href: '\/#pipe', label: 'Model Pharmacy'/);
+  assert.doesNotMatch(header, /Plan a checkup/);
   assert.match(checkups, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
-
+  assert.match(checkups, /ArchivedEraNote/);
+  assert.match(archived, /Archived-era surface/);
   assert.doesNotMatch(home, /href="\/evaluate" className={styles\.primaryAction}/);
-  assert.doesNotMatch(preview, /href="\/evaluate"/);
-  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
   assert.doesNotMatch(checkups, /href="\/evaluate"/);
 });
 
@@ -65,17 +64,14 @@ test('the connect workspace keeps terminal detail behind progressive disclosure'
   assert.match(workbench, /<details className={styles\.statusGuide}/);
 });
 
-test('the product tells one Plan, Connect, Inspect, Decide lifecycle', () => {
-  const home = read('src/app/page.tsx');
-  const preview = read('src/components/home/ProductPreview.tsx');
+test('the product tells one cabinet story and keeps the archived checkup lifecycle intact', () => {
   const footer = read('src/components/site/SiteFooter.tsx');
   const preflight = read('src/app/preflight/page.tsx');
   const evaluate = read('src/app/evaluate/page.tsx');
   const workbench = read('src/app/evaluate/AgentEvaluationWorkbench.tsx');
 
-  assert.match(home, /configured-session summary, its claim boundary, and the separate model archive/);
-  assert.match(preview, /<strong>01 Plan<\/strong>/);
-  assert.match(footer, /Controlled retests come only after a valid baseline/);
+  assert.match(read('README.md'), /Keep the jars\. Kill the checkup machine/);
+  assert.match(footer, /Checkup tools stay on disk as an archived-era surface/);
   assert.match(preflight, /<span>04<\/span><strong>Decide<\/strong>/);
   assert.match(evaluate, /<span>04<\/span><a href="#act-on-findings">Decide<\/a>/);
   assert.doesNotMatch(evaluate, /<span>05<\/span>/);

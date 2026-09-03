@@ -1,0 +1,61 @@
+import Link from 'next/link';
+
+import {
+  chaosMark,
+  formatAccessionDate,
+  getRefusalLabel,
+  type Specimen,
+} from '@/lib/pharmacy/specimens';
+
+import styles from './pharmacy.module.css';
+
+export function AccessionTable({
+  specimens,
+  caption,
+  captionId,
+}: {
+  specimens: Specimen[];
+  caption: string;
+  captionId?: string;
+}) {
+  return (
+    <table className={styles.table}>
+      <caption className={styles.caption} id={captionId}>{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Substance</th>
+          <th scope="col">First accessioned</th>
+          <th scope="col">Effect</th>
+          <th scope="col">Chaos</th>
+        </tr>
+      </thead>
+      <tbody>
+        {specimens.map((specimen) => {
+          const refusalStamp = getRefusalLabel(specimen.slug);
+          const mark = chaosMark(specimen.chaos);
+          return (
+            <tr key={specimen.slug}>
+              <td>
+                <Link href={`/specimen/${specimen.slug}`} className={styles.idLink}>
+                  {specimen.accession}
+                </Link>
+              </td>
+              <td>
+                <Link href={`/specimen/${specimen.slug}`}>
+                  {specimen.slug}
+                </Link>
+                {refusalStamp !== 'none' ? (
+                  <span className={styles.refusedMark}> {refusalStamp}</span>
+                ) : null}
+              </td>
+              <td className={styles.dateCell}>{formatAccessionDate(specimen.firstAccessioned)}</td>
+              <td>{specimen.effectShort}</td>
+              <td aria-label={`Chaos ${specimen.chaos} of 5, ${mark}`}>{mark}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}

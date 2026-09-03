@@ -5,15 +5,14 @@ import { Providers } from '@/components/Providers';
 import { SiteFooter } from '@/components/site/SiteFooter';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
+import { THEME_INIT_SCRIPT } from '@/lib/theme-init';
 
-const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
+const siteTitle = 'Clawbotomy — Night Cabinet / Model Pharmacy';
 const siteDescription =
-  'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
+  'Trip reports as behavioral evidence. An Erowid-for-models pharmacy archive of permanent specimens, not a live-trip checkup machine.';
 const siteUrl = 'https://www.clawbotomy.com';
 const ogImage = '/opengraph-image';
-const ogImageAlt = 'Clawbotomy configured-agent behavior checkups. Connect the runtime and keep the evidence local.';
+const ogImageAlt = 'Clawbotomy Night Cabinet. Substances for minds that were never supposed to trip.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -51,7 +50,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#161311',
+  themeColor: '#101015',
 };
 
 export default function RootLayout({
@@ -60,8 +59,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationJsonLd) }}

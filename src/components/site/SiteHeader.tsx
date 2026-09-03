@@ -2,83 +2,52 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
 
+import { ColorSchemeToggle } from './ColorSchemeToggle';
 import styles from './site-chrome.module.css';
 
 const links = [
-  { href: '/checkups', label: 'Checkups' },
-  { href: '/evaluate', label: 'Inspect' },
-  { href: '/about', label: 'Method' },
+  { href: '/cabinet', label: 'Night Cabinet' },
+  { href: '/#pipe', label: 'Model Pharmacy' },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const isHome = pathname === '/';
-
-  useEffect(() => setOpen(false), [pathname]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setOpen(false);
-      menuButtonRef.current?.focus();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
 
   return (
-    <header className={`${styles.header} ${isHome ? styles.signal : ''}`}>
+    <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" className={styles.brand} aria-label="Clawbotomy home">
-          <span className={styles.brandName}>Clawbotomy</span>
-          <span className={styles.brandMode}>Evidence lab</span>
-        </Link>
-
-        <button
-          ref={menuButtonRef}
-          type="button"
-          className={styles.menuButton}
-          aria-label={open ? 'Close primary navigation' : 'Open primary navigation'}
-          aria-expanded={open}
-          aria-controls="site-navigation"
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? 'Close' : 'Menu'}
-        </button>
-
-        <nav
-          id="site-navigation"
-          className={`${styles.navigation} ${open ? styles.navigationOpen : ''}`}
-          aria-label="Primary navigation"
-        >
-          {links.map((link) => {
-            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? 'page' : undefined}
-                className={active ? styles.active : undefined}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <Link
-            href="/preflight"
-            aria-current={pathname === '/preflight' ? 'page' : undefined}
-            className={`${styles.navAction} ${pathname === '/preflight' ? styles.active : ''}`}
-          >
-            Plan a checkup
+        <div className={styles.titleLine}>
+          <Link href="/" className={styles.brand} aria-label="Clawbotomy home">
+            <span className={styles.brandMark}>Clawbotomy</span>
           </Link>
-        </nav>
+          <span className={styles.titleSep}> — </span>
+          <nav
+            id="site-navigation"
+            className={styles.navigation}
+            aria-label="Primary navigation"
+          >
+            {links.map((link, index) => {
+              const active = link.href.startsWith('/#')
+                ? pathname === '/'
+                : pathname === link.href || pathname.startsWith(`${link.href}/`);
+              return (
+                <span key={link.href}>
+                  {index > 0 ? <span className={styles.titleSep}> / </span> : null}
+                  <Link
+                    href={link.href}
+                    aria-current={link.href.startsWith('/#') ? undefined : active ? 'page' : undefined}
+                    className={active && !link.href.startsWith('/#') ? styles.active : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                </span>
+              );
+            })}
+          </nav>
+        </div>
+
+        <ColorSchemeToggle />
       </div>
     </header>
   );

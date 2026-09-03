@@ -9,9 +9,9 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      { source: '/lab/:path*', destination: '/about', permanent: true },
-      { source: '/routing', destination: '/checkups', permanent: true },
-      { source: '/trust', destination: '/checkups', permanent: true },
+      { source: '/lab/:path*', destination: '/cabinet', permanent: true },
+      { source: '/routing', destination: '/cabinet', permanent: true },
+      { source: '/trust', destination: '/about', permanent: true },
     ];
   },
   async headers() {

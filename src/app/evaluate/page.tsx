@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { ArchivedEraNote } from '@/components/pharmacy/ArchivedEraNote';
+
 import { AgentEvaluationWorkbench } from './AgentEvaluationWorkbench';
 import styles from './evaluate.module.css';
 
@@ -20,6 +22,7 @@ const boundaryFacts = [
 export default function EvaluatePage() {
   return (
     <main className={styles.page}>
+      <ArchivedEraNote surface="The evidence inspector" />
       <section className={styles.hero} aria-labelledby="evaluate-title">
         <div className={styles.heroField} aria-hidden="true" />
         <div className={styles.rail}>
@@ -29,7 +32,8 @@ export default function EvaluatePage() {
               <h1 id="evaluate-title">Connect the runtime. Keep the evidence local.</h1>
               <p>
                 Launch a checked-in OpenClaw or Hermes bridge against the same synthetic Inbox.
-                Validate the bundle in your terminal, then inspect its local browser projection.
+                Observe one synthetic session. Validate the bundle in your terminal, then inspect
+                its local browser projection.
               </p>
               <div className={styles.heroActions}>
                 <Link href="/preflight" className={styles.primaryLink}>Build an Inbox plan</Link>

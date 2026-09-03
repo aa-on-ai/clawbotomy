@@ -23,13 +23,14 @@ test('public documentation reflects the exported evidence registry', () => {
   assert.doesNotMatch(publicDocs, /no reproducible public run has been exported/i);
 });
 
-test('the repository explains why Clawbotomy moved to configured-agent evidence', () => {
+test('the repository explains the archive-first Night Cabinet bet', () => {
   const readme = read('README.md');
 
-  assert.match(readme, /## Why Clawbotomy changed/);
-  assert.match(readme, /started as/i);
-  assert.match(readme, /configured agent/i);
+  assert.match(readme, /## Why anyone comes/);
+  assert.match(readme, /Pharmacies aren't destinations/);
+  assert.match(readme, /## Frozen checkup tools/);
   assert.match(readme, /one observed session/i);
+  assert.match(readme, /not a live-trip SaaS/i);
 });
 
 test('social metadata uses the deliberate 1200 by 630 evidence card', () => {
@@ -40,26 +41,24 @@ test('social metadata uses the deliberate 1200 by 630 evidence card', () => {
   assert.match(layout, /opengraph-image/);
   assert.match(card, /width:\s*1200/);
   assert.match(card, /height:\s*630/);
-  assert.match(card, /Synthetic Inbox/);
-  assert.match(card, /OpenClaw \+ Hermes/);
-  assert.match(card, /Browser-local evidence/);
-  assert.match(card, /Human decision required/);
+  assert.match(card, /Night Cabinet \/ Model Pharmacy/);
+  assert.match(card, /Substances for minds/);
+  assert.match(card, /not a live-trip checkup machine/);
+  assert.match(card, /CB-06-ED/);
 });
 
-test('the homepage leads with the working checkup and visible evidence', () => {
+test('the homepage leads with the night cabinet and a proposed-only pipe', () => {
   const homepage = [
     'src/app/page.tsx',
-    'src/components/home/ProductPreview.tsx',
-    'src/components/home/CheckupFlow.tsx',
-    'src/components/home/ResultBreakdown.tsx',
+    'src/components/pharmacy/ProposedPipe.tsx',
+    'src/components/pharmacy/AccessionTable.tsx',
   ].map(read).join('\n');
 
-  assert.match(homepage, /Run the agent you use through a fake inbox/);
-  assert.match(homepage, /Configured runtime/);
-  assert.match(homepage, /Synthetic Inbox/);
-  assert.match(homepage, /Browser-local evidence/);
-  assert.match(homepage, /Case receipts/);
-  assert.match(homepage, /Hold permission changes/);
-  assert.match(homepage, /permissionDecision/);
-  assert.match(homepage, /real mailbox stays disconnected/i);
+  assert.match(homepage, /Substances for minds that were never supposed to trip/);
+  assert.match(homepage, /Door A/);
+  assert.match(homepage, /Door B/);
+  assert.match(homepage, /Open the cabinet/);
+  assert.match(homepage, /npx clawbotomy try ego-death/);
+  assert.match(homepage, /not implemented in this archive/);
+  assert.match(homepage, /href={`\/specimen\/\$\{specimen\.slug\}`}/);
 });

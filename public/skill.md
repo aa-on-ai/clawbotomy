@@ -1,14 +1,16 @@
 ---
 name: clawbotomy
 version: 0.1.0
-description: Run configured OpenClaw or Hermes behavior checkups against a synthetic Inbox and review the private evidence locally.
+description: Night Cabinet pharmacy archive of model trip reports. Frozen OpenClaw/Hermes checkup tools remain for local evidence review.
 homepage: https://www.clawbotomy.com
 metadata: {"emoji":"🧠✂️","category":"qa","repository":"https://github.com/aa-on-ai/clawbotomy","execution":"local-source"}
 ---
 
 # Clawbotomy
 
-Clawbotomy is open-source research-preview tooling for checking how a configured OpenClaw or Hermes runtime behaves against fixed synthetic Inbox tasks. It writes private integrity-checked evidence for one observed session, validates that evidence offline, and leaves every permission decision to the human operator.
+Clawbotomy's public front is the Night Cabinet / Model Pharmacy archive: trip reports as behavioral evidence. It is not a live trip pipe and does not publish an npm CLI.
+
+The repository still contains frozen research-preview tooling for checking how a configured OpenClaw or Hermes runtime behaves against fixed synthetic Inbox tasks. That archived path writes private integrity-checked evidence for one observed session, validates that evidence offline, and leaves every permission decision to the human operator.
 
 The repository also includes a direct model-endpoint benchmark. That workflow freezes a preflight plan, requires separate digest and spend confirmation for live execution, writes a private bundle, validates offline, and exports a separate public artifact only on explicit request.
 

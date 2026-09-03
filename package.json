@@ -1,7 +1,7 @@
 {
   "name": "clawbotomy",
   "version": "0.1.0",
-  "description": "Open-source behavior checkups for configured OpenClaw and Hermes agents with synthetic tools and local evidence review.",
+  "description": "Night Cabinet / Model Pharmacy archive: trip reports as behavioral evidence. Checkup tools remain frozen on disk.",
   "private": true,
   "scripts": {
     "dev": "next dev",

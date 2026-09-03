@@ -1,0 +1,104 @@
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  color: var(--ph-ink);
+  background: var(--ph-ground);
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.page a:link {
+  color: var(--ph-link);
+}
+
+.page a:visited {
+  color: var(--ph-visited);
+}
+
+.back {
+  display: inline;
+  margin-bottom: 8px;
+}
+
+.hero {
+  margin: 0 0 8px;
+}
+
+.title {
+  margin: 0 0 4px;
+  color: var(--ph-ink);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.effect {
+  margin: 0 0 8px;
+}
+
+.section {
+  margin: 16px 0 0;
+}
+
+.modelName {
+  margin: 0 0 6px;
+  color: var(--ph-ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.exhibitLabel,
+.alternateLabel,
+.gapLabel {
+  margin: 0 0 6px;
+  color: var(--ph-ink);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.status {
+  margin: 0 0 8px;
+  color: var(--ph-refusal);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.quote,
+.note {
+  margin: 0;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.note {
+  margin-top: 10px;
+  color: var(--ph-ink);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.report {
+  margin: 0;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.alternate {
+  margin-top: 12px;
+}
+
+.refusal {
+  padding: 10px 12px;
+  color: var(--ph-ink);
+  background: var(--ph-exhibit);
+  border: 1px solid var(--ph-rule);
+  border-left: 4px solid var(--ph-refusal);
+}
+
+.gap {
+  padding: 8px 10px;
+  border: 1px solid var(--ph-rule);
+  background: var(--ph-exhibit);
+}

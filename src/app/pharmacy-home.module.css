@@ -1,0 +1,90 @@
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  color: var(--ph-ink);
+  background: var(--ph-ground);
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.page a:link {
+  color: var(--ph-link);
+}
+
+.page a:visited {
+  color: var(--ph-visited);
+}
+
+.page a:focus-visible,
+.pipeButton:focus-visible,
+.pipeCode:focus-visible {
+  outline: 2px solid var(--ph-link);
+  outline-offset: 2px;
+}
+
+.page h1 {
+  margin: 14px 0 8px;
+  color: var(--ph-ink);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.page p,
+.pipeCopy {
+  margin: 0 0 8px;
+}
+
+.page strong {
+  font-weight: 700;
+}
+
+.excerpt {
+  margin: 10px 0 12px;
+}
+
+.excerptBody {
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.pipe {
+  margin: 18px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ph-rule);
+}
+
+.pipeKicker {
+  margin: 0 0 6px;
+  color: var(--ph-ink);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.pipeCode {
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  color: var(--ph-ink);
+  background: transparent;
+  border: 1px solid var(--ph-rule);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.pipeButton,
+.cabinetButton {
+  width: fit-content;
+  padding: 0;
+  display: inline;
+  color: var(--ph-ink);
+  background: transparent;
+  border: 0;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  text-decoration: underline;
+}

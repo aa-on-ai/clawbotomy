@@ -1,0 +1,30 @@
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  color: var(--ph-ink);
+  background: var(--ph-ground);
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.page a:link {
+  color: var(--ph-link);
+}
+
+.page a:visited {
+  color: var(--ph-visited);
+}
+
+.title {
+  margin: 0 0 8px;
+  color: var(--ph-ink);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.lede {
+  margin: 0 0 10px;
+}

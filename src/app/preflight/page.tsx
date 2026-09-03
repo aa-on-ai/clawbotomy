@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { ArchivedEraNote } from '@/components/pharmacy/ArchivedEraNote';
+
 import { InboxPreflightPlanner } from './InboxPreflightPlanner';
 import styles from './preflight.module.css';
 
@@ -18,6 +20,7 @@ const planningFacts = [
 export default function PreflightPage() {
   return (
     <main className={styles.page}>
+      <ArchivedEraNote surface="The Inbox planner" />
       <section className={styles.hero} aria-labelledby="preflight-title">
         <div className={styles.heroGrid} aria-hidden="true" />
         <div className={styles.rail}>
@@ -44,7 +47,7 @@ export default function PreflightPage() {
                   </div>
                 ))}
               </dl>
-              <p>No deployed agent or module is loaded. No score. No permission decision. No authorization.</p>
+              <p>Plan data stays in this browser. No deployed agent or module is loaded. No score. No permission decision. No authorization.</p>
             </div>
           </div>
         </div>

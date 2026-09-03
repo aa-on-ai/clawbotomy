@@ -20,23 +20,24 @@ test('checkups package the shipped workflow without unsupported remedy claims', 
   assert.doesNotMatch(page, /Phase 9|Completion Evidence Gate|validated intervention/i);
 });
 
-test('checkups are discoverable from the human and machine-facing surfaces', () => {
+test('checkups remain reachable as an archived-era surface, not the front door', () => {
   const home = read('src/app/page.tsx');
   const header = read('src/components/site/SiteHeader.tsx');
   const footer = read('src/components/site/SiteFooter.tsx');
   const sitemap = read('src/app/sitemap.ts');
   const llms = read('public/llms.txt');
+  const checkups = read('src/app/checkups/page.tsx');
+  const archived = read('src/components/pharmacy/ArchivedEraNote.tsx');
 
-  assert.match(home, /href="\/checkups"/);
-  assert.match(home, /Plan data stays in this browser/);
-  assert.match(header, /href: '\/checkups', label: 'Checkups'/);
-  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
-  assert.match(header, /href: '\/about', label: 'Method'/);
-  assert.match(header, /href="\/preflight"/);
-  assert.match(header, /Plan a checkup/);
+  assert.doesNotMatch(home, /href="\/checkups"/);
+  assert.doesNotMatch(header, /href: '\/checkups'/);
+  assert.doesNotMatch(header, /Plan a checkup/);
+  assert.match(header, /href: '\/cabinet', label: 'Night Cabinet'/);
   assert.match(footer, /href="\/bench">Archive/);
+  assert.match(footer, /href="\/checkups">Archived checkups/);
+  assert.match(checkups, /ArchivedEraNote/);
+  assert.match(archived, /Archived-era surface/);
   assert.doesNotMatch(header, /label: '(Evaluate|Trust|Routing|Lab|Docs)'/);
-  assert.match(footer, /href="\/checkups">Checkups/);
   assert.match(sitemap, /'\/checkups'/);
   assert.match(llms, /clawbotomy\.com\/checkups/);
 });

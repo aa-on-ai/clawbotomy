@@ -74,7 +74,7 @@ test('every rendered route, shared metadata surface, and generated social image 
   for (const surface of discoverPublicClaimSurfaces()) {
     assert.ok(registered.has(surface), `public claim surface bypasses the registry: ${surface}`);
   }
-  assert.match(read('src/app/opengraph-image.tsx'), /Not connected by Clawbotomy/);
+  assert.match(read('src/app/opengraph-image.tsx'), /not a live-trip checkup machine/);
   assert.doesNotMatch(read('src/app/opengraph-image.tsx'), /Real mailbox', 'Never connected/);
 });
 
@@ -83,7 +83,8 @@ test('evidence lane labels remain visibly distinct on the public surfaces', () =
   assert.equal(new Set(labels).size, labels.length);
 
   assert.match(read('src/app/docs/page.tsx'), /synthetic-reference-control/);
-  assert.match(read('src/app/page.tsx'), /Configured-agent session evidence/);
+  assert.match(read('src/app/checkups/page.tsx'), /Configured-agent session/);
+  assert.match(read('src/app/page.tsx'), /Trip reports as behavioral evidence/);
   assert.match(read('src/app/evaluate/AgentEvaluationWorkbench.tsx'), /Evidence lane \/ deterministic bundle verification/);
   assert.match(read('src/app/docs/page.tsx'), /Exact-pin runtime compatibility/);
   assert.match(read('src/app/bench/runs/[runId]/page.tsx'), /Evidence lane \/ model benchmark observations/);

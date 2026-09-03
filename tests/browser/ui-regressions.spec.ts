@@ -3,6 +3,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 const primaryRoutes = [
   '/',
+  '/cabinet',
+  '/specimen/ego-death',
   '/about',
   '/checkups',
   '/preflight',
