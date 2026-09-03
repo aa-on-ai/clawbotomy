@@ -96,6 +96,15 @@ test('DESIGN.md is the Erowid Night HTML authority and the homepage follows it',
   assert.doesNotMatch(homeStyles, /Newsreader|Fragment Mono|linear-gradient|box-shadow|clip-path|rotate\(/);
   assert.match(homeStyles, /Verdana, Arial/);
   assert.match(homeStyles, /:visited/);
+  assert.match(homeStyles, /white-space:\s*normal/);
+  assert.match(design, /#0645ad/i);
+  assert.match(design, /#ffffff/);
+  assert.match(design, /prefers-color-scheme/);
+  assert.match(read('src/components/pharmacy/pharmacy.module.css'), /border:\s*1px solid var\(--ph-rule\)/);
+  assert.match(read('src/components/site/SiteHeader.tsx'), /ColorSchemeToggle/);
+  assert.match(read('src/lib/theme-init.ts'), /ph-theme/);
+  assert.match(read('src/app/specimen/[slug]/page.tsx'), /ArchiveShell/);
+  assert.match(read('src/app/cabinet/page.tsx'), /ArchiveShell/);
 });
 
 test('the proposed pipe is labeled and not implemented as a live CLI', () => {

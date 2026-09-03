@@ -5,8 +5,8 @@
   color: var(--ph-ink);
   background: var(--ph-ground);
   font-family: Verdana, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .page a:link {
@@ -24,80 +24,56 @@
   outline-offset: 2px;
 }
 
-.shell {
-  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
-  margin: 20px var(--cb-gutter) 64px;
-  display: grid;
-  grid-template-columns: 9.5rem minmax(0, 1fr);
-  gap: 8px 28px;
-  align-items: start;
-}
-
-.index {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 4px;
-  font-family: "Courier New", Courier, monospace;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.index p {
-  margin: 0 0 6px;
+.page h1 {
+  margin: 0 0 8px;
   color: var(--ph-ink);
-}
-
-.document h1 {
-  margin: 0 0 12px;
-  color: var(--ph-ink);
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.25;
 }
 
-.document h2 {
-  margin: 22px 0 10px;
+.page h2 {
+  margin: 14px 0 6px;
   color: var(--ph-ink);
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
-.document p,
-.excerpt p,
+.page p,
 .pipeCopy {
-  margin: 0 0 12px;
-  max-width: 62ch;
+  margin: 0 0 8px;
 }
 
-.document strong {
+.page strong {
   font-weight: 700;
 }
 
 .excerpt {
-  margin: 16px 0 18px;
+  margin: 8px 0 10px;
 }
 
-.excerpt p:last-child {
-  margin-bottom: 0;
-  font-size: 14px;
+.excerptBody {
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .pipe {
-  margin: 22px 0 0;
-  scroll-margin-top: 64px;
+  margin: 12px 0 0;
+  scroll-margin-top: 56px;
 }
 
 .pipeKicker {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-family: "Courier New", Courier, monospace;
   font-size: 13px;
 }
 
 .pipeCode {
-  margin: 0 0 8px;
-  padding: 8px 10px;
+  margin: 0 0 6px;
+  padding: 6px 8px;
   overflow-x: auto;
   color: var(--ph-ink);
   background: transparent;
@@ -117,27 +93,10 @@
   background: transparent;
   border: 0;
   font-family: Verdana, Arial, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   text-decoration: underline;
 }
 
 .why {
-  margin-top: 28px;
-}
-
-@media (max-width: 720px) {
-  .shell {
-    grid-template-columns: 1fr;
-  }
-
-  .index {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px 12px;
-  }
-
-  .index p {
-    width: 100%;
-    margin-bottom: 0;
-  }
+  margin-top: 16px;
 }

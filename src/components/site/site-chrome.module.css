@@ -27,13 +27,27 @@
 }
 
 .headerInner {
-  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
   min-height: 48px;
   margin: 0 var(--cb-gutter);
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 32px;
+  gap: 10px 12px;
+}
+
+.titleLine {
+  margin: 0;
+  min-height: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.titleSep {
+  color: var(--ph-ink);
 }
 
 .brand {
@@ -81,25 +95,32 @@
 }
 
 .navigation {
-  justify-self: end;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: inline;
+  font-size: 13px;
 }
 
 .navigation a {
   min-height: 48px;
-  padding: 0 13px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   font-family: Verdana, Arial, sans-serif;
   font-size: 13px;
   font-weight: 400;
   text-transform: none;
-  border-bottom: 1px solid transparent;
-  transition:
-    color var(--cb-motion-fast) ease,
-    border-color var(--cb-motion-fast) ease;
+  border-bottom: 0;
+  text-decoration: underline;
+}
+
+.schemeToggle {
+  min-height: 48px;
+  padding: 0;
+  color: var(--ph-link);
+  background: transparent;
+  border: 0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  text-decoration: underline;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -118,12 +139,12 @@
   }
 
   .navigation a:not(.navAction):hover {
-    border-bottom-color: #6a6a64;
+    color: var(--ph-ink);
   }
 }
 
 .navigation .active {
-  border-bottom-color: var(--ph-paper);
+  font-weight: 700;
 }
 
 .navigation .navAction {
@@ -208,9 +229,9 @@
 }
 
 .footerInner {
-  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
   margin: 0 var(--cb-gutter);
-  padding: 28px 0 32px;
+  padding: 16px 0 20px;
 }
 
 .footerStatement {
@@ -284,8 +305,12 @@
 
 @media (max-width: 780px) {
   .headerInner {
-    grid-template-columns: 1fr auto;
-    gap: 16px;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+  }
+
+  .titleSep {
+    display: none;
   }
 
   .menuButton {

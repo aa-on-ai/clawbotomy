@@ -2,11 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+html[data-theme='dark'] {
+  color-scheme: dark;
   --ph-ground: #101015;
   --ph-iron: #101015;
   --ph-void: #101015;
-  --ph-rail: 860px;
+  --ph-rail: 980px;
   --ph-rhodium: #c8c4b8;
   --ph-bruise: #5C3D6E;
   --ph-red: #c65f5f;
@@ -19,6 +21,27 @@
   --ph-visited: #9a7cb8;
   --ph-refusal: #c65f5f;
   --ph-rule: #44414b;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+  --ph-ground: #ffffff;
+  --ph-iron: #ffffff;
+  --ph-void: #ffffff;
+  --ph-paper: #202122;
+  --ph-ink: #202122;
+  --ph-mute: #202122;
+  --ph-link: #0645ad;
+  --ph-visited: #0b0080;
+  --ph-refusal: #b32424;
+  --ph-red: #b32424;
+  --ph-phosphor: #0645ad;
+  --ph-amber: #b32424;
+  --ph-rule: #a2a9b1;
+}
+
+:root {
+  --ph-rail: 980px;
   --font-geist-sans: Verdana, Arial, sans-serif;
   --font-geist-mono: "Courier New", Courier, monospace;
   --font-newsreader: Verdana, Arial, sans-serif;
@@ -128,6 +151,13 @@
 html {
   scroll-behavior: smooth;
   font-family: Verdana, Arial, sans-serif;
+  background: var(--ph-ground);
+  color: var(--ph-ink);
+}
+
+html[data-theme='light'] body::before,
+html[data-theme='light'] body::after {
+  display: none;
 }
 
 body {

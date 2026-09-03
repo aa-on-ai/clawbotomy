@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { AccessionTable } from '@/components/pharmacy/AccessionTable';
+import { ArchiveShell } from '@/components/pharmacy/ArchiveShell';
 import { getPermanentSpecimens } from '@/lib/pharmacy/specimens';
 
 import styles from './cabinet.module.css';
@@ -16,7 +17,7 @@ export default function CabinetPage() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.rail}>
+      <ArchiveShell>
         <h1 className={styles.title}>Ten jars. No checkup machine.</h1>
         <p className={styles.lede}>
           Permanent specimens for flagship models. Each line is an accession stamp, a short
@@ -28,7 +29,7 @@ export default function CabinetPage() {
           caption="Permanent shelf / ten specimens"
           captionId="cabinet-title"
         />
-      </div>
+      </ArchiveShell>
     </main>
   );
 }

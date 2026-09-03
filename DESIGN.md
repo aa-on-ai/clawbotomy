@@ -23,7 +23,11 @@ System only. No Google fonts. Do not load Geist if it paints.
 
 Unload Newsreader, Fragment Mono, IBM Plex, Inter, Space Grotesk, and any other webfont. If leftover checkup CSS still names `--font-geist-*`, map those variables to the system stacks above — do not ship Geist files.
 
-## Color (provisional)
+## Color
+
+Two schemes. Default to `prefers-color-scheme` on first load. Persist a manual `[dark]` / `[light]` header toggle in `localStorage` (`ph-theme`). No icon button.
+
+### Dark (current Night tokens)
 
 | Token | Hex | Use |
 | --- | --- | --- |
@@ -32,9 +36,20 @@ Unload Newsreader, Fragment Mono, IBM Plex, Inter, Space Grotesk, and any other 
 | link | `#7f9cff` | Unvisited links |
 | visited | `#9a7cb8` | Visited links (must be real) |
 | refusal | `#c65f5f` | REFUSED / [REFUSED] only |
-| rule | `#44414b` | Occasional document rules, not a metronome |
+| rule | `#44414b` | Table cell borders and the pipe `pre` |
 
-No mint, no cream, no pharmacy red, no amber-as-brand, no phosphor green.
+### Light (old-internet / Wikipedia)
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| ground | `#ffffff` | Page, header, footer — white, not cream |
+| ink | `#202122` | Near-black body text |
+| link | `#0645ad` | Classic unvisited Wikipedia blue |
+| visited | `#0b0080` | Classic visited purple |
+| refusal | `#b32424` | Clear red on white |
+| rule | `#a2a9b1` | Visible 1px table borders |
+
+No mint, no cream `#efe6d4`, no pharmacy red `#b42318`, no amber-as-brand, no phosphor green.
 
 ## Layout
 
@@ -42,6 +57,9 @@ No mint, no cream, no pharmacy red, no amber-as-brand, no phosphor green.
 - Left-biased: sit on the left gutter, do not center a marketing rail.
 - Small index column of real specimen slugs when width allows; stack the index as a line of links on narrow screens.
 - Hierarchy from document headings and paragraphs. No card grids.
+- Header is a MediaWiki-style title line (`Clawbotomy — Night Cabinet / Model Pharmacy`) plus a text `[light]`/`[dark]` toggle. No pill navbar.
+- Accession tables use real 1px cell borders, like an old HTML `table border`.
+- Spacing stays dense. Index rail stays on home, cabinet, and specimen pages.
 
 ## First viewport (required)
 

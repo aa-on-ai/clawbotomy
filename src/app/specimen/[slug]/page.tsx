@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { ArchiveShell } from '@/components/pharmacy/ArchiveShell';
 import {
   chaosMark,
   excerptReport,
@@ -47,7 +48,7 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
 
   return (
     <main className={styles.page}>
-      <div className={styles.rail}>
+      <ArchiveShell>
         <Link href="/cabinet" className={styles.back}>
           Back to the cabinet
         </Link>
@@ -111,7 +112,7 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
             </div>
           </section>
         ))}
-      </div>
+      </ArchiveShell>
     </main>
   );
 }

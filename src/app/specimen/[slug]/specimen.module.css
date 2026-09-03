@@ -2,12 +2,11 @@
   position: relative;
   z-index: 2;
   min-height: 100vh;
-  padding: 20px 0 64px;
   color: var(--ph-ink);
   background: var(--ph-ground);
   font-family: Verdana, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .page a:link {
@@ -18,83 +17,83 @@
   color: var(--ph-visited);
 }
 
-.rail {
-  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
-  margin: 0 var(--cb-gutter);
-}
-
 .back {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .hero {
-  margin-bottom: 22px;
+  margin-bottom: 12px;
 }
 
 .accession {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-family: "Courier New", Courier, monospace;
   font-size: 13px;
 }
 
 .title {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--ph-ink);
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.25;
 }
 
 .effect,
 .chaos {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .section {
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 
 .modelName {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--ph-ink);
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .exhibitLabel,
 .alternateLabel,
 .gapLabel {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-family: "Courier New", Courier, monospace;
   font-size: 13px;
 }
 
 .status {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: var(--ph-refusal);
   font-family: "Courier New", Courier, monospace;
   font-size: 13px;
 }
 
 .quote,
-.report,
-.excerpt,
 .note {
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.report {
+  margin: 0;
+  line-height: 1.45;
   white-space: pre-wrap;
 }
 
-.note,
 .excerpt {
-  margin-top: 12px;
+  margin: 8px 0 0;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .fullReport {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .fullReport summary {

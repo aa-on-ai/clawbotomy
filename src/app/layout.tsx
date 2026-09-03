@@ -5,6 +5,7 @@ import { Providers } from '@/components/Providers';
 import { SiteFooter } from '@/components/site/SiteFooter';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
+import { THEME_INIT_SCRIPT } from '@/lib/theme-init';
 
 const siteTitle = 'Clawbotomy — Night Cabinet / Model Pharmacy';
 const siteDescription =
@@ -60,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationJsonLd) }}

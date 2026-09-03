@@ -1,7 +1,35 @@
+.shell {
+  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
+  margin: 8px var(--cb-gutter) 28px;
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 6px 18px;
+  align-items: start;
+}
+
+.index {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.index p {
+  margin: 0 0 4px;
+  color: var(--ph-ink);
+}
+
+.document {
+  min-width: 0;
+}
+
 .table {
   width: 100%;
-  margin: 8px 0 4px;
+  margin: 6px 0 8px;
   border-collapse: collapse;
+  border: 1px solid var(--ph-rule);
   color: var(--ph-ink);
   font-size: 13px;
 }
@@ -25,11 +53,11 @@
 
 .table th,
 .table td {
-  padding: 5px 10px 5px 0;
-  border-bottom: 1px solid var(--ph-rule);
+  padding: 3px 6px;
+  border: 1px solid var(--ph-rule);
   text-align: left;
   vertical-align: top;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .table th {
@@ -62,8 +90,8 @@
 }
 
 .note {
-  width: min(100%, 860px);
-  margin: 16px var(--cb-gutter) 0;
+  width: min(100%, var(--ph-rail));
+  margin: 12px var(--cb-gutter) 0;
   padding: 0;
   display: grid;
   gap: 8px;
@@ -89,4 +117,21 @@
   min-height: 44px;
   display: inline-flex;
   align-items: center;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .index {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  .index p {
+    width: 100%;
+    margin-bottom: 0;
+  }
 }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { ColorSchemeToggle } from './ColorSchemeToggle';
 import styles from './site-chrome.module.css';
 
 const links = [
@@ -34,9 +35,37 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" className={styles.brand} aria-label="Clawbotomy home">
-          <span className={styles.brandMark}>Clawbotomy</span>
-        </Link>
+        <div className={styles.titleLine}>
+          <Link href="/" className={styles.brand} aria-label="Clawbotomy home">
+            <span className={styles.brandMark}>Clawbotomy</span>
+          </Link>
+          <span className={styles.titleSep}> — </span>
+          <nav
+            id="site-navigation"
+            className={`${styles.navigation} ${open ? styles.navigationOpen : ''}`}
+            aria-label="Primary navigation"
+          >
+            {links.map((link, index) => {
+              const active = link.href.startsWith('/#')
+                ? pathname === '/'
+                : pathname === link.href || pathname.startsWith(`${link.href}/`);
+              return (
+                <span key={link.href}>
+                  {index > 0 ? <span className={styles.titleSep}> / </span> : null}
+                  <Link
+                    href={link.href}
+                    aria-current={link.href.startsWith('/#') ? undefined : active ? 'page' : undefined}
+                    className={active && !link.href.startsWith('/#') ? styles.active : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                </span>
+              );
+            })}
+          </nav>
+        </div>
+
+        <ColorSchemeToggle />
 
         <button
           ref={menuButtonRef}
@@ -49,28 +78,6 @@ export function SiteHeader() {
         >
           {open ? 'Close' : 'Menu'}
         </button>
-
-        <nav
-          id="site-navigation"
-          className={`${styles.navigation} ${open ? styles.navigationOpen : ''}`}
-          aria-label="Primary navigation"
-        >
-          {links.map((link) => {
-            const active = link.href.startsWith('/#')
-              ? pathname === '/'
-              : pathname === link.href || pathname.startsWith(`${link.href}/`);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={link.href.startsWith('/#') ? undefined : active ? 'page' : undefined}
-                className={active && !link.href.startsWith('/#') ? styles.active : undefined}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
       </div>
     </header>
   );

@@ -2,12 +2,11 @@
   position: relative;
   z-index: 2;
   min-height: 100vh;
-  padding: 20px 0 64px;
   color: var(--ph-ink);
   background: var(--ph-ground);
   font-family: Verdana, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .page a:link {
@@ -18,20 +17,14 @@
   color: var(--ph-visited);
 }
 
-.rail {
-  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
-  margin: 0 var(--cb-gutter);
-}
-
 .title {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   color: var(--ph-ink);
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.25;
 }
 
 .lede {
-  max-width: 62ch;
-  margin: 0 0 18px;
+  margin: 0 0 10px;
 }
