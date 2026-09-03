@@ -73,16 +73,16 @@ A checkup still describes one observed session in a synthetic fixture. It is not
 - [`/preflight`](https://www.clawbotomy.com/preflight) builds a browser-local, versioned Inbox plan. It runs no agent and makes no permission decision.
 - [`/evaluate`](https://www.clawbotomy.com/evaluate) provides the fixed OpenClaw and Hermes launch paths and reads selected private evidence files in the browser without uploading them.
 - `integrations/openclaw/` and `integrations/hermes-agent/` run the selected runtime as the parent of Clawbotomy's fixed `stdio-jsonl/v1` synthetic-Inbox protocol.
-- `npm run agent:preflight`, `npm run agent:evaluate`, and `npm run agent:repeat` remain for operators who already used that loop.
+- `npm run agent:preflight`, `npm run agent:evaluate`, and `npm run agent:repeat` remain for operators who already used that loop. `npm run agent:repeat` freezes a costed 3–5 session experiment and derives finding-frequency and behavioral-variation receipts only when every replay-validated bundle also matches the frozen runtime identity.
 
 ### Controls, protocol, and evidence lanes
 
 - `npm run inbox` runs the fixed fixture against a bounded reference control, a deliberately failing negative control, or the checked-in declarative policy adapter.
 - [`public/evidence/index.json`](public/evidence/index.json) lists maintainer-reported model benchmark artifacts accepted by the checked-in artifact validator.
-- [`/bench`](https://www.clawbotomy.com/bench) separates model benchmark artifacts from the maintainer-reported March 2026 legacy snapshot.
+- [`/bench`](https://www.clawbotomy.com/bench) separates model benchmark artifacts from the maintainer-reported March 2026 Legacy model benchmark snapshot.
 - Compatibility is a separate exact-pin lane. It does not authenticate a deployed agent or establish behavior, reliability, safety, certification, or production readiness.
 
-The v0.1 portability default is a pinned source archive that runs the canonical Node.js verifier offline. See [ADR 0002](docs/adr/0002-portable-verifier-contract.md) and the [parity acceptance gate](docs/portability-parity-acceptance.md).
+The v0.1 portability default is a pinned source archive that runs the canonical Node.js verifier offline. The browser remains an inspector, not a verifier. See [ADR 0002](docs/adr/0002-portable-verifier-contract.md) and the [parity acceptance gate](docs/portability-parity-acceptance.md).
 
 ## First five minutes
 

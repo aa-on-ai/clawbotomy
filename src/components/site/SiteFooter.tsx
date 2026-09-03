@@ -12,8 +12,7 @@ export function SiteFooter() {
         </div>
         <div className={styles.footerMeta}>
           <p>
-            Trip reports as behavioral evidence. Permanent specimens for flagship models. Checkup
-            tools stay on disk as an archived-era surface — not the front door.
+            Trip reports as behavioral evidence. Permanent specimens for flagship models. Checkup tools stay on disk as an archived-era surface — not the front door.
           </p>
           <nav aria-label="Footer navigation">
             <a

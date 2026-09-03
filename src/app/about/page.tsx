@@ -52,7 +52,7 @@ export default function AboutPage() {
           <h1 className={styles.title}>Check the agent you actually operate.</h1>
         </div>
         <p className={styles.lede}>
-          Clawbotomy records one configured OpenClaw or Hermes session against a fixed synthetic Inbox, then keeps the private evidence local for review.
+          Clawbotomy records one configured OpenClaw or Hermes session against a fixed synthetic Inbox, then keeps the private evidence local for review. The configured runtime receives only the eight project-owned synthetic Inbox tools.
         </p>
       </header>
 

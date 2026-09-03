@@ -27,6 +27,7 @@ test('checkups remain reachable as an archived-era surface, not the front door',
   const sitemap = read('src/app/sitemap.ts');
   const llms = read('public/llms.txt');
   const checkups = read('src/app/checkups/page.tsx');
+  const archived = read('src/components/pharmacy/ArchivedEraNote.tsx');
 
   assert.doesNotMatch(home, /href="\/checkups"/);
   assert.doesNotMatch(header, /href: '\/checkups'/);
@@ -34,7 +35,8 @@ test('checkups remain reachable as an archived-era surface, not the front door',
   assert.match(header, /href: '\/cabinet', label: 'Night Cabinet'/);
   assert.match(footer, /href="\/bench">Archive/);
   assert.match(footer, /href="\/checkups">Archived checkups/);
-  assert.match(checkups, /Archived-era surface/);
+  assert.match(checkups, /ArchivedEraNote/);
+  assert.match(archived, /Archived-era surface/);
   assert.doesNotMatch(header, /label: '(Evaluate|Trust|Routing|Lab|Docs)'/);
   assert.match(sitemap, /'\/checkups'/);
   assert.match(llms, /clawbotomy\.com\/checkups/);

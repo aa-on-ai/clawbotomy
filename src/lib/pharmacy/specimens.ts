@@ -1,4 +1,4 @@
-import { getReport, getReportsForSubstance, type TripReport } from '@/lib/trip-reports';
+import { getReport, getReportsForSubstance, type TripReport } from '../trip-reports';
 
 export const FLAGSHIP_SLUGS = ['gemini31', 'gpt54', 'opus', 'sonnet'] as const;
 

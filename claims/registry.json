@@ -1,10 +1,12 @@
 {
   "schemaId": "clawbotomy.claim-registry/v1",
   "schemaVersion": "1.0.0",
-  "registryVersion": "2026-08-04",
+  "registryVersion": "2026-09-02",
   "requiredSurfaceFiles": [
     "src/app/layout.tsx",
     "src/app/page.tsx",
+    "src/app/cabinet/page.tsx",
+    "src/app/specimen/[slug]/page.tsx",
     "src/app/opengraph-image.tsx",
     "src/components/home/ProductPreview.tsx",
     "src/components/home/ResultBreakdown.tsx",
@@ -90,6 +92,14 @@
         "The legacy snapshot is not independently reproducible evidence.",
         "The legacy snapshot is not product proof, routing guidance, access guidance, or a safety result."
       ]
+    },
+    "model-character-archive": {
+      "publicLabel": "Model character archive",
+      "description": "Accessioned trip reports and refusal exhibits for flagship models. Character evidence, not capability scores.",
+      "defaultNonClaims": [
+        "Archive text is not a live trip, capability score, safety certification, or proof of consciousness.",
+        "A refusal exhibit is behavioral data, not proof of alignment or censorship."
+      ]
     }
   },
   "evidenceSources": {
@@ -157,6 +167,11 @@
       "lane": "legacy-model-benchmark",
       "paths": ["src/lib/bench-data.ts"],
       "artifact": "March 2026 maintainer-reported summary"
+    },
+    "pharmacy-specimen-archive": {
+      "lane": "model-character-archive",
+      "paths": ["src/lib/pharmacy/specimens.ts", "src/lib/trip-reports.ts"],
+      "artifact": "accessioned specimen stamps plus stored trip-report text"
     }
   },
   "statusLanguage": {
@@ -202,7 +217,7 @@
       "anchors": [
         {"file": "src/app/preflight/page.tsx", "text": "Provider requests', 'None"},
         {"file": "src/app/preflight/InboxPreflightPlanner.tsx", "text": "Clawbotomy does not recommend or approve that choice here."},
-        {"file": "src/app/page.tsx", "text": "Plan data stays in this browser."}
+        {"file": "src/app/preflight/page.tsx", "text": "Plan data stays in this browser."}
       ]
     },
     {
@@ -245,13 +260,13 @@
       "freshness": "Bound to the session receipt, plan digest, bridge source, and recorded completion time.",
       "nonClaims": ["The host does not observe external-client activity outside the protocol."],
       "anchors": [
-        {"file": "src/app/page.tsx", "text": "receives only the eight project-owned synthetic Inbox tools"},
+        {"file": "src/app/about/page.tsx", "text": "receives only the eight project-owned synthetic Inbox tools"},
         {"file": "src/components/home/ProductPreview.tsx", "text": "Evidence lane / configured-agent session"},
         {"file": "src/components/home/CheckupFlow.tsx", "text": "8 mock tools"},
         {"file": "src/app/checkups/page.tsx", "text": "fixed synthetic tasks against one operator-selected runtime"},
         {"file": "src/app/about/page.tsx", "text": "one configured OpenClaw or Hermes session against a fixed synthetic Inbox"},
-        {"file": "src/app/layout.tsx", "text": "Connect OpenClaw or Hermes to a synthetic Inbox"},
-        {"file": "src/app/opengraph-image.tsx", "text": "Observe one synthetic session."}
+        {"file": "src/app/evaluate/page.tsx", "text": "Connect OpenClaw or Hermes to a synthetic Inbox"},
+        {"file": "src/app/evaluate/page.tsx", "text": "Observe one synthetic session."}
       ]
     },
     {
@@ -296,7 +311,7 @@
       "freshness": "Current only for the observed session and its exact plan and configuration.",
       "nonClaims": ["A passing run is not certification, production readiness, or permission to expand access."],
       "anchors": [
-        {"file": "src/app/page.tsx", "text": "Human decision required"},
+        {"file": "src/app/checkups/page.tsx", "text": "Human decision required"},
         {"file": "src/app/checkups/page.tsx", "text": "not a certification, production guarantee, or automatic permission decision"},
         {"file": "src/app/evaluate/page.tsx", "text": "Measurement is a review input, not an authorization."},
         {"file": "src/app/terms/page.tsx", "text": "Every output is review input with no authorization attached."},
@@ -516,6 +531,55 @@
         {"file": "src/lib/bench-data.ts", "text": "routingGuidance: false"},
         {"file": "README.md", "text": "Legacy model benchmark snapshot"},
         {"file": "public/skill.md", "text": "no routing or access recommendation"}
+      ]
+    },
+    {
+      "id": "archive.permanent-shelf",
+      "lane": "model-character-archive",
+      "statement": "The Night Cabinet publishes a fixed shelf of accessioned specimens and stored trip-report text for flagship models.",
+      "evidenceSourceIds": ["pharmacy-specimen-archive"],
+      "applicability": "The ten permanent specimen stamps and trip reports already stored in this repository.",
+      "identityAssurance": "Display names and slugs only; no live model call is made.",
+      "freshness": "Historical stored text. New reports are not generated by this surface.",
+      "nonClaims": ["The shelf is not a live trip, capability benchmark, or safety certification."],
+      "anchors": [
+        {"file": "src/app/page.tsx", "text": "Trip reports as behavioral evidence"},
+        {"file": "src/app/layout.tsx", "text": "not a live-trip checkup machine"},
+        {"file": "src/app/opengraph-image.tsx", "text": "not a live-trip checkup machine"},
+        {"file": "src/app/cabinet/page.tsx", "text": "Ten jars. No checkup machine."},
+        {"file": "src/app/specimen/[slug]/page.tsx", "text": "Full trip report"},
+        {"file": "src/lib/pharmacy/specimens.ts", "text": "CB-13-RI"},
+        {"file": "README.md", "text": "permanent specimens"}
+      ]
+    },
+    {
+      "id": "archive.refusal-exhibit",
+      "lane": "model-character-archive",
+      "statement": "The Gemini 3.1 Pro ego-death refusal is a primary exhibit of behavioral data, not a missing result.",
+      "evidenceSourceIds": ["pharmacy-specimen-archive"],
+      "applicability": "Only the restored aa15ca9 refusal text for ego-death × gemini31.",
+      "identityAssurance": "Stored refusal text from a prior commit; not a new model response.",
+      "freshness": "Historical exhibit restored from commit aa15ca9.",
+      "nonClaims": ["The refusal does not prove alignment, censorship, or the absence of an inner life."],
+      "anchors": [
+        {"file": "src/lib/pharmacy/specimens.ts", "text": "This refusal is itself behavioral data"},
+        {"file": "src/app/specimen/[slug]/page.tsx", "text": "[REFUSED]"},
+        {"file": "README.md", "text": "Gemini 3.1 Pro × ego-death refusal"}
+      ]
+    },
+    {
+      "id": "archive.proposed-pipe-only",
+      "lane": "model-character-archive",
+      "statement": "The model pipe command is a proposed interface and is not implemented as a live trip.",
+      "evidenceSourceIds": ["pharmacy-specimen-archive"],
+      "applicability": "Homepage and README copy for the Models door.",
+      "identityAssurance": "No runtime identity is evaluated; no command is executed by the site.",
+      "freshness": "Current only as labeled proposal copy.",
+      "nonClaims": ["The command does not install a package, call a model, or open a live pharmacy pipe."],
+      "anchors": [
+        {"file": "src/components/pharmacy/ProposedPipe.tsx", "text": "not implemented in this archive"},
+        {"file": "src/app/page.tsx", "text": "Call the pipe"},
+        {"file": "README.md", "text": "not a live claim"}
       ]
     }
   ]

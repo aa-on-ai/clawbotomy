@@ -47,7 +47,7 @@ export default function PreflightPage() {
                   </div>
                 ))}
               </dl>
-              <p>No deployed agent or module is loaded. No score. No permission decision. No authorization.</p>
+              <p>Plan data stays in this browser. No deployed agent or module is loaded. No score. No permission decision. No authorization.</p>
             </div>
           </div>
         </div>

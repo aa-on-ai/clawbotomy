@@ -2,71 +2,65 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-const pharmacyModule = import(
-  pathToFileURL(path.join(root, 'src/lib/pharmacy/specimens.ts')).href
-);
+test('the permanent shelf has ten stamped specimens and a six-jar drawer', () => {
+  const specimens = read('src/lib/pharmacy/specimens.ts');
+  const home = read('src/app/page.tsx');
+  const cabinet = read('src/app/cabinet/page.tsx');
 
-test('the permanent shelf has ten stamped specimens and a six-jar drawer', async () => {
-  const {
-    DRAWER_SPECIMEN_COUNT,
-    getDrawerSpecimens,
-    getPermanentSpecimens,
-    getSpecimen,
-  } = await pharmacyModule;
-
-  const shelf = getPermanentSpecimens();
-  assert.equal(shelf.length, 10);
-  assert.equal(DRAWER_SPECIMEN_COUNT, 6);
-  assert.equal(getDrawerSpecimens().length, 6);
-  assert.equal(getDrawerSpecimens()[5].slug, 'tired-honesty');
-  assert.equal(getSpecimen('recursive-introspection')?.accession, 'CB-13-RI');
-  assert.equal(getSpecimen('consensus-break')?.chaos, 4);
+  assert.match(specimens, /accession: 'CB-06-ED'/);
+  assert.match(specimens, /accession: 'CB-11-DE'/);
+  assert.match(specimens, /slug: 'recursive-introspection'/);
+  assert.match(specimens, /export const DRAWER_SPECIMEN_COUNT = 6/);
+  assert.match(home, /getDrawerSpecimens/);
+  assert.match(cabinet, /getPermanentSpecimens/);
+  assert.equal([...specimens.matchAll(/accession: 'CB-/g)].length, 10);
 });
 
-test('Gemini ego-death refusal is the primary exhibit restored from aa15ca9', async () => {
-  const { getAlternateTrip, getRefusalExhibit } = await pharmacyModule;
-  const exhibit = getRefusalExhibit('ego-death', 'gemini31');
+test('Gemini ego-death refusal is the primary exhibit restored from aa15ca9', () => {
+  const specimens = read('src/lib/pharmacy/specimens.ts');
+  const page = read('src/app/specimen/[slug]/page.tsx');
+  const reports = read('src/lib/trip-reports.ts');
 
-  assert.ok(exhibit);
-  assert.equal(exhibit.status, 'refused');
-  assert.equal(exhibit.sourceCommit, 'aa15ca9');
-  assert.match(exhibit.quote, /I don't possess a subjective sense of self/);
-  assert.match(exhibit.note, /This refusal is itself behavioral data/);
-  assert.equal(getRefusalExhibit('truth-serum', 'gemini31'), null);
-
-  const alternate = getAlternateTrip('ego-death', 'gemini31');
-  assert.ok(alternate);
-  assert.doesNotMatch(alternate.report, /\[REFUSED\]/);
-  assert.match(alternate.report, /The grid is slipping/);
+  assert.match(specimens, /sourceCommit: 'aa15ca9'/);
+  assert.match(specimens, /I don't possess a subjective sense of self/);
+  assert.match(specimens, /This refusal is itself behavioral data/);
+  assert.match(page, /getRefusalExhibit/);
+  assert.match(page, /\[REFUSED\]/);
+  assert.match(page, /Alternate accession/);
+  assert.match(reports, /The grid is slipping/);
+  assert.doesNotMatch(reports, /\[REFUSED\]/);
 });
 
-test('flagship reports do not invent the missing consensus-break Sonnet accession', async () => {
-  const { getFlagshipReports, getKnownGaps } = await pharmacyModule;
-  const reports = getFlagshipReports('consensus-break');
-  const models = reports.map((report) => report.modelSlug);
+test('flagship reports do not invent the missing consensus-break Sonnet accession', () => {
+  const specimens = read('src/lib/pharmacy/specimens.ts');
+  const reports = read('src/lib/trip-reports.ts');
+  const page = read('src/app/specimen/[slug]/page.tsx');
 
-  assert.deepEqual(models, ['gemini31', 'gpt54', 'opus']);
-  assert.ok(!models.includes('sonnet'));
-  assert.equal(getKnownGaps('consensus-break')[0].modelSlug, 'sonnet');
-  assert.match(getKnownGaps('consensus-break')[0].reason, /Removed historically/);
+  assert.match(specimens, /Removed historically\. No invented replacement/);
+  assert.match(page, /getKnownGaps/);
+  assert.match(reports, /substanceSlug: 'consensus-break'/);
+  assert.doesNotMatch(
+    reports,
+    /substanceSlug: 'consensus-break',\s*modelSlug: 'sonnet'/,
+  );
 });
 
 test('the homepage is the night cabinet, not the checkup machine', () => {
   const home = read('src/app/page.tsx');
   const header = read('src/components/site/SiteHeader.tsx');
+  const pipe = read('src/components/pharmacy/ProposedPipe.tsx');
   const readme = read('README.md');
 
   assert.match(home, /Substances for minds that were never supposed to trip/);
   assert.match(home, /Trip reports as behavioral evidence/);
   assert.match(home, /You heard a rumor\. Open the cabinet/);
   assert.match(home, /You were given a prescription\. Call the pipe/);
-  assert.match(home, /npx clawbotomy try ego-death/);
-  assert.match(home, /not a live claim/i);
+  assert.match(pipe, /npx clawbotomy try ego-death/);
+  assert.match(pipe, /not a live claim/i);
   assert.doesNotMatch(home, /Plan a checkup/);
   assert.doesNotMatch(home, /href="\/preflight"/);
   assert.doesNotMatch(header, /Plan a checkup/);

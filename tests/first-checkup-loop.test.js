@@ -44,7 +44,7 @@ test('primary navigation names the cabinet and keeps the model bench in the arch
   assert.doesNotMatch(header, /Plan a checkup/);
   assert.match(footer, /href="\/bench">Archive/);
   assert.match(home, /href="\/cabinet"/);
-  assert.match(home, /npx clawbotomy try ego-death/);
+  assert.match(read('src/components/pharmacy/ProposedPipe.tsx'), /npx clawbotomy try ego-death/);
 });
 
 test('checked-in reference controls preserve their non-authorizing provenance and expected polarity', async () => {

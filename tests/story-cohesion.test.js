@@ -10,13 +10,15 @@ test('the public front opens the cabinet while archived checkups still start wit
   const home = read('src/app/page.tsx');
   const header = read('src/components/site/SiteHeader.tsx');
   const checkups = read('src/app/checkups/page.tsx');
+  const archived = read('src/components/pharmacy/ArchivedEraNote.tsx');
 
   assert.match(home, /href="\/cabinet"/);
   assert.match(header, /href: '\/cabinet', label: 'Night Cabinet'/);
   assert.match(header, /href: '\/#pipe', label: 'Model Pharmacy'/);
   assert.doesNotMatch(header, /Plan a checkup/);
   assert.match(checkups, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
-  assert.match(checkups, /Archived-era surface/);
+  assert.match(checkups, /ArchivedEraNote/);
+  assert.match(archived, /Archived-era surface/);
   assert.doesNotMatch(home, /href="\/evaluate" className={styles\.primaryAction}/);
   assert.doesNotMatch(checkups, /href="\/evaluate"/);
 });
