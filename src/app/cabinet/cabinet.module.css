@@ -2,38 +2,36 @@
   position: relative;
   z-index: 2;
   min-height: 100vh;
-  padding: 72px 0 96px;
-  color: var(--ph-mute);
-  background: var(--ph-iron);
-  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
+  padding: 20px 0 64px;
+  color: var(--ph-ink);
+  background: var(--ph-ground);
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.page a:link {
+  color: var(--ph-link);
+}
+
+.page a:visited {
+  color: var(--ph-visited);
 }
 
 .rail {
-  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
-  margin: 0 auto;
-}
-
-.kicker {
-  margin: 0 0 12px;
-  color: var(--ph-mute);
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.03em;
+  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
+  margin: 0 var(--cb-gutter);
 }
 
 .title {
-  width: 100%;
-  margin: 0 0 16px;
-  color: var(--ph-paper);
-  font-size: clamp(2.1rem, 4vw, 2.8rem);
-  font-weight: 500;
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  margin: 0 0 12px;
+  color: var(--ph-ink);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .lede {
   max-width: 62ch;
-  margin: 0 0 32px;
-  font-size: 1.08rem;
-  line-height: 1.6;
+  margin: 0 0 18px;
 }

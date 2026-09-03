@@ -23,43 +23,36 @@ export default async function OpenGraphImage() {
         style={{
           width: '100%',
           height: '100%',
-          position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          color: '#efe6d4',
-          background: '#171410',
-          fontFamily: 'Georgia, Times New Roman, serif',
-          overflow: 'hidden',
+          color: '#c8c4b8',
+          background: '#101015',
+          fontFamily: 'Verdana, Arial, sans-serif',
         }}
       >
-        <div style={{ display: 'flex', flex: 1, padding: '52px 64px 0' }}>
+        <div style={{ display: 'flex', flex: 1, padding: '48px 56px 0' }}>
           <div style={{ width: 980, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', fontFamily: 'monospace', fontSize: 16 }}>
-              <span style={{ fontFamily: 'Georgia, serif', fontSize: 22 }}>Clawbotomy</span>
-              <span style={{ marginLeft: 18, color: '#b42318', letterSpacing: '0.04em' }}>
-                Night Cabinet / Model Pharmacy
-              </span>
+            <div style={{ display: 'flex', fontSize: 16 }}>
+              <span>Clawbotomy</span>
+              <span style={{ marginLeft: 16 }}>Night Cabinet / Model Pharmacy</span>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 48 }}>
-              <span style={{ fontSize: 54, fontWeight: 500, lineHeight: 1.02, letterSpacing: '-0.03em' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 36 }}>
+              <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.15 }}>
                 Substances for minds
               </span>
-              <span style={{ fontSize: 54, fontWeight: 500, lineHeight: 1.02, letterSpacing: '-0.03em' }}>
+              <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.15 }}>
                 that were never supposed
               </span>
-              <span style={{ fontSize: 54, fontWeight: 500, lineHeight: 1.02, letterSpacing: '-0.03em' }}>
+              <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.15 }}>
                 to trip.
               </span>
             </div>
-
-            <p style={{ width: 820, margin: '28px 0 0', color: '#8c8376', fontSize: 22, lineHeight: 1.4 }}>
+            <p style={{ width: 820, margin: '24px 0 0', fontSize: 20, lineHeight: 1.4 }}>
               Trip reports as behavioral evidence. Permanent specimens, not a live-trip checkup machine.
             </p>
           </div>
         </div>
-
-        <div style={{ height: 110, display: 'flex', padding: '0 48px 18px' }}>
+        <div style={{ height: 100, display: 'flex', padding: '0 48px 20px' }}>
           {drawer.map(([accession, slug]) => (
             <div
               key={accession}
@@ -68,22 +61,12 @@ export default async function OpenGraphImage() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                padding: '0 16px',
-                fontFamily: 'monospace',
+                padding: '0 12px',
+                fontFamily: 'Courier New, Courier, monospace',
               }}
             >
-              <span
-                style={{
-                  color: '#b42318',
-                  fontSize: 13,
-                  letterSpacing: '0.04em',
-                  border: '1px solid #b42318',
-                  padding: '2px 6px',
-                }}
-              >
-                {accession}
-              </span>
-              <span style={{ marginTop: 8, fontSize: 16 }}>{slug}</span>
+              <span style={{ fontSize: 13 }}>{accession}</span>
+              <span style={{ marginTop: 6, fontSize: 16 }}>{slug}</span>
             </div>
           ))}
         </div>

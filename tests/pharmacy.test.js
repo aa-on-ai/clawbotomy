@@ -72,26 +72,30 @@ test('the homepage is the night cabinet, not the checkup machine', () => {
   assert.doesNotMatch(readme, /\[Plan a checkup\]/);
 });
 
-test('the homepage drawer is a filing inventory, not a design-system table', () => {
+test('DESIGN.md is the Erowid Night HTML authority and the homepage follows it', () => {
   const home = read('src/app/page.tsx');
   const homeStyles = read('src/app/pharmacy-home.module.css');
   const layout = read('src/app/layout.tsx');
   const table = read('src/components/pharmacy/AccessionTable.tsx');
   const specimens = read('src/lib/pharmacy/specimens.ts');
+  const design = read('DESIGN.md');
+  const product = read('PRODUCT.md');
 
+  assert.match(design, /Erowid Night HTML/);
+  assert.match(product, /impeccable:product-schema 1/);
   assert.match(home, /AccessionTable/);
+  assert.match(home, /getReport\('ego-death', 'gpt54'\)/);
+  assert.match(home, /I am inside the blur before language hardens|featuredExcerpt/);
+  assert.match(table, /<table/);
   assert.match(table, /REFUSED×Gemini/);
   assert.match(table, /chaosMark/);
   assert.match(specimens, /CHAOS_MARKS = \['quiet', 'faint', 'noted', 'marked', 'wild'\]/);
-  assert.doesNotMatch(table, /<table/);
   assert.doesNotMatch(table, /····|▪▪|ChaosMarks/);
-  assert.match(layout, /Newsreader/);
-  assert.match(layout, /Fragment_Mono/);
-  assert.doesNotMatch(layout, /IBM_Plex/);
-  assert.doesNotMatch(homeStyles, /#6fffb0/i);
-  assert.doesNotMatch(homeStyles, /linear-gradient/);
-  assert.doesNotMatch(homeStyles, /box-shadow/);
-  assert.doesNotMatch(homeStyles, /grid-template-columns:\s*1fr 1fr/);
+  assert.doesNotMatch(layout, /Newsreader|Fragment_Mono|IBM_Plex|GeistSans|next\/font/);
+  assert.doesNotMatch(homeStyles, /#6fffb0|#efe6d4|#b42318/i);
+  assert.doesNotMatch(homeStyles, /Newsreader|Fragment Mono|linear-gradient|box-shadow|clip-path|rotate\(/);
+  assert.match(homeStyles, /Verdana, Arial/);
+  assert.match(homeStyles, /:visited/);
 });
 
 test('the proposed pipe is labeled and not implemented as a live CLI', () => {

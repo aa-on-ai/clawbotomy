@@ -1,270 +1,143 @@
 .page {
   position: relative;
   z-index: 2;
-  overflow: clip;
-  color: var(--ph-mute);
-  background: var(--ph-iron);
-  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
-}
-
-.rail {
-  width: min(var(--ph-rail), calc(100% - (2 * var(--cb-gutter))));
-  margin: 0 auto;
-}
-
-.hero {
-  padding: 56px 0 0;
-}
-
-.headline {
-  width: 100%;
-  margin: 0 0 22px;
-  color: var(--ph-paper);
-  font-size: clamp(2.35rem, 5.4vw, 3.55rem);
-  font-weight: 500;
-  line-height: 1.04;
-  letter-spacing: -0.03em;
-}
-
-.subhead {
-  width: 100%;
-  margin: 0;
-  font-size: 1.12rem;
+  min-height: 100vh;
+  color: var(--ph-ink);
+  background: var(--ph-ground);
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 15px;
   line-height: 1.55;
 }
 
-.subhead strong {
-  color: var(--ph-paper);
-  font-weight: 500;
+.page a:link {
+  color: var(--ph-link);
 }
 
-.doors {
+.page a:visited {
+  color: var(--ph-visited);
+}
+
+.page a:focus-visible,
+.pipeButton:focus-visible,
+.pipeCode:focus-visible {
+  outline: 2px solid var(--ph-link);
+  outline-offset: 2px;
+}
+
+.shell {
+  width: min(860px, calc(100% - (2 * var(--cb-gutter))));
+  margin: 20px var(--cb-gutter) 64px;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(13rem, 0.68fr);
-  gap: 20px 28px;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 8px 28px;
   align-items: start;
-  margin: 44px 0 0;
 }
 
-.door {
+.index {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  text-decoration: none;
-}
-
-.doorHuman {
-  padding: 26px 28px 30px 22px;
-  color: var(--ph-ink);
-  background: var(--ph-paper);
-  clip-path: polygon(0 3%, 98% 0, 100% 96%, 2% 100%);
-  transform: rotate(-0.7deg);
-}
-
-.doorModel {
-  margin-top: 36px;
-  padding: 14px 14px 16px;
-  color: var(--ph-ink);
-  background: #f4efe4;
-  border: 2px solid var(--ph-red);
-  border-top-width: 11px;
-  transform: rotate(0.45deg);
-}
-
-.doorLabel {
-  margin: 0;
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
-.doorHuman .doorLabel {
-  color: var(--ph-red);
-  font-style: italic;
-  font-family: var(--font-newsreader), Georgia, serif;
-  font-size: 15px;
-  letter-spacing: 0;
-}
-
-.doorModel .doorLabel {
-  color: var(--ph-red);
-}
-
-.door h2 {
-  margin: 0;
-  color: var(--ph-ink);
-}
-
-.doorHuman h2 {
-  font-size: 2.15rem;
-  font-weight: 500;
-  font-style: italic;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.doorModel h2 {
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 1.02rem;
-  font-weight: 400;
-  letter-spacing: 0.03em;
-}
-
-.door p {
-  margin: 0;
-  max-width: 34ch;
+  gap: 4px;
+  padding-top: 4px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
   line-height: 1.45;
 }
 
-.doorCue {
-  margin-top: 10px;
-  width: fit-content;
-  color: var(--ph-red);
-  font-family: var(--font-newsreader), Georgia, serif;
-  font-size: 1.02rem;
-  font-style: italic;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.index p {
+  margin: 0 0 6px;
+  color: var(--ph-ink);
 }
 
-.doorModel .doorCue {
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 12px;
-  font-style: normal;
+.document h1 {
+  margin: 0 0 12px;
+  color: var(--ph-ink);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
-.cabinetButton,
-.pipeButton {
+.document h2 {
+  margin: 22px 0 10px;
+  color: var(--ph-ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.document p,
+.excerpt p,
+.pipeCopy {
+  margin: 0 0 12px;
+  max-width: 62ch;
+}
+
+.document strong {
+  font-weight: 700;
+}
+
+.excerpt {
+  margin: 16px 0 18px;
+}
+
+.excerpt p:last-child {
+  margin-bottom: 0;
+  font-size: 14px;
+}
+
+.pipe {
+  margin: 22px 0 0;
+  scroll-margin-top: 64px;
+}
+
+.pipeKicker {
+  margin: 0 0 8px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.pipeCode {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  color: var(--ph-ink);
+  background: transparent;
+  border: 1px solid var(--ph-rule);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+}
+
+.pipeButton,
+.cabinetButton {
   width: fit-content;
   min-height: 44px;
   padding: 0;
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.03em;
+  color: var(--ph-link);
   background: transparent;
   border: 0;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 15px;
   text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.cabinetButton,
-.pipeButton {
-  color: var(--ph-red);
-}
-
-.pipe {
-  margin-top: 52px;
-  padding: 0;
-  display: grid;
-  gap: 12px;
-  scroll-margin-top: 72px;
-}
-
-.pipeKicker {
-  margin: 0;
-  color: var(--ph-red);
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.03em;
-}
-
-.pipeCopy {
-  margin: 0;
-  max-width: 62ch;
-  line-height: 1.6;
-}
-
-.pipeCode {
-  margin: 4px 0 0;
-  padding: 12px 14px;
-  overflow-x: auto;
-  color: var(--ph-ink);
-  background: var(--ph-paper);
-  border: 1px solid var(--ph-ink);
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 14px;
 }
 
 .why {
-  padding: 64px 0 0;
-}
-
-.sectionKicker {
-  margin: 0 0 10px;
-  color: var(--ph-mute);
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.03em;
-}
-
-.why h2,
-.keepKill h2 {
-  width: 100%;
-  max-width: none;
-  margin: 0 0 16px;
-  color: var(--ph-paper);
-  font-size: clamp(1.7rem, 3.2vw, 2.25rem);
-  font-weight: 500;
-  line-height: 1.18;
-  letter-spacing: -0.018em;
-}
-
-.why p,
-.keepKill p {
-  max-width: 68ch;
-  margin: 0 0 16px;
-  line-height: 1.7;
-}
-
-.keepKill {
-  margin-top: 36px;
-}
-
-.stayLine {
-  color: var(--ph-paper);
-}
-
-.dieLine {
-  max-width: 52ch;
-  color: var(--ph-red);
-}
-
-.dieLine strong,
-.stayLine strong {
-  font-family: var(--font-fragment-mono), ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.03em;
-}
-
-.drawer {
-  padding: 48px 0 96px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .cabinetButton:hover,
-  .pipeButton:hover,
-  .doorHuman:hover .doorCue,
-  .doorModel:hover .doorCue {
-    color: var(--ph-paper);
-  }
-
-  .doorHuman:hover .doorCue,
-  .doorModel:hover .doorCue {
-    color: var(--ph-ink);
-  }
+  margin-top: 28px;
 }
 
 @media (max-width: 720px) {
-  .doors {
+  .shell {
     grid-template-columns: 1fr;
   }
 
-  .doorModel {
-    width: 88%;
-    margin-top: 8px;
-    justify-self: end;
+  .index {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .index p {
+    width: 100%;
+    margin-bottom: 0;
   }
 }

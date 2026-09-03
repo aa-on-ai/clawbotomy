@@ -3,17 +3,28 @@
 @tailwind utilities;
 
 :root {
-  --ph-iron: #171410;
-  --ph-void: #171410;
-  --ph-rail: 920px;
-  --ph-rhodium: #B8BEC8;
+  --ph-ground: #101015;
+  --ph-iron: #101015;
+  --ph-void: #101015;
+  --ph-rail: 860px;
+  --ph-rhodium: #c8c4b8;
   --ph-bruise: #5C3D6E;
-  --ph-red: #b42318;
-  --ph-phosphor: #b42318;
-  --ph-amber: #b42318;
-  --ph-paper: #efe6d4;
-  --ph-ink: #2c261e;
-  --ph-mute: #8c8376;
+  --ph-red: #c65f5f;
+  --ph-phosphor: #7f9cff;
+  --ph-amber: #c65f5f;
+  --ph-paper: #c8c4b8;
+  --ph-ink: #c8c4b8;
+  --ph-mute: #c8c4b8;
+  --ph-link: #7f9cff;
+  --ph-visited: #9a7cb8;
+  --ph-refusal: #c65f5f;
+  --ph-rule: #44414b;
+  --font-geist-sans: Verdana, Arial, sans-serif;
+  --font-geist-mono: "Courier New", Courier, monospace;
+  --font-newsreader: Verdana, Arial, sans-serif;
+  --font-fragment-mono: "Courier New", Courier, monospace;
+  --font-plex-sans: Verdana, Arial, sans-serif;
+  --font-plex-mono: "Courier New", Courier, monospace;
   --cb-ink: oklch(0.1448 0 0);
   --cb-ink-raised: oklch(0.2 0.01 60);
   --cb-bone: oklch(0.9465 0.0099 87.47);
@@ -116,7 +127,7 @@
 
 html {
   scroll-behavior: smooth;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: Verdana, Arial, sans-serif;
 }
 
 body {
@@ -127,7 +138,7 @@ body {
     radial-gradient(circle at 16% 24%, rgba(78, 58, 87, 0.08), transparent 28%),
     var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-geist-sans), Verdana, Arial, sans-serif;
   font-weight: 400;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

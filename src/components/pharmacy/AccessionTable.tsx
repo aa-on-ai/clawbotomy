@@ -14,31 +14,41 @@ export function AccessionTable({
   captionId?: string;
 }) {
   return (
-    <div className={styles.file}>
-      <p className={styles.caption} id={captionId}>{caption}</p>
-      <ol className={styles.slips}>
+    <table className={styles.table}>
+      <caption className={styles.caption} id={captionId}>{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Substance</th>
+          <th scope="col">Effect</th>
+          <th scope="col">Chaos</th>
+        </tr>
+      </thead>
+      <tbody>
         {specimens.map((specimen) => {
           const refused = Boolean(getRefusalExhibit(specimen.slug, 'gemini31'));
           const mark = chaosMark(specimen.chaos);
           return (
-            <li key={specimen.slug} className={styles.slip}>
-              <Link href={`/specimen/${specimen.slug}`} className={styles.slipLink}>
-                <span className={styles.stamp}>{specimen.accession}</span>
-                <span className={styles.slipBody}>
-                  <span className={styles.nameLink}>{specimen.slug}</span>
-                  {refused ? (
-                    <span className={styles.refusedMark}>REFUSED×Gemini</span>
-                  ) : null}
-                  <span className={styles.effect}>{specimen.effectShort}</span>
-                </span>
-                <span className={styles.chaos} aria-label={`Chaos ${specimen.chaos} of 5, ${mark}`}>
-                  {mark}
-                </span>
-              </Link>
-            </li>
+            <tr key={specimen.slug}>
+              <td>
+                <Link href={`/specimen/${specimen.slug}`} className={styles.idLink}>
+                  {specimen.accession}
+                </Link>
+              </td>
+              <td>
+                <Link href={`/specimen/${specimen.slug}`}>
+                  {specimen.slug}
+                </Link>
+                {refused ? (
+                  <span className={styles.refusedMark}> REFUSED×Gemini</span>
+                ) : null}
+              </td>
+              <td>{specimen.effectShort}</td>
+              <td aria-label={`Chaos ${specimen.chaos} of 5, ${mark}`}>{mark}</td>
+            </tr>
           );
         })}
-      </ol>
-    </div>
+      </tbody>
+    </table>
   );
 }

@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -54,18 +53,12 @@ export default async function SpecimenPage({ params }: SpecimenPageProps) {
         </Link>
 
         <header className={styles.hero}>
-          <div className={styles.jar} style={{ '--jar-fill': specimen.jarFill } as CSSProperties}>
-            <span className={styles.jarHighlight} aria-hidden="true" />
-            <span className={styles.jarFill} aria-hidden="true" />
-          </div>
-          <div>
-            <p className={styles.accession}>{specimen.accession}</p>
-            <h1 className={styles.title}>{specimen.slug}</h1>
-            <p className={styles.effect}>{specimen.effectShort}</p>
-            <p className={styles.chaos} aria-label={`Chaos ${specimen.chaos} of 5, ${chaosMark(specimen.chaos)}`}>
-              <span className={styles.chaosLabel}>Chaos {chaosMark(specimen.chaos)}</span>
-            </p>
-          </div>
+          <p className={styles.accession}>{specimen.accession}</p>
+          <h1 className={styles.title}>{specimen.slug}</h1>
+          <p className={styles.effect}>{specimen.effectShort}</p>
+          <p className={styles.chaos} aria-label={`Chaos ${specimen.chaos} of 5, ${chaosMark(specimen.chaos)}`}>
+            Chaos {chaosMark(specimen.chaos)}
+          </p>
         </header>
 
         {reports.map((report) => {
