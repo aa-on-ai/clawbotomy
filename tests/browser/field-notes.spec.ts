@@ -9,6 +9,10 @@ for (const route of routes) {
     expect(response?.ok()).toBeTruthy();
     await expect(page.locator('.fieldNotes')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
+    for (const image of await page.locator('img').all()) {
+      if (await image.isVisible()) await image.scrollIntoViewIfNeeded();
+      await image.evaluate((el) => (el as HTMLImageElement).decode());
+    }
     expect(await page.locator('img').evaluateAll((images) => images.every((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBeTruthy();
     expect(await page.locator('body').innerText()).not.toContain('—');
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
@@ -21,8 +25,8 @@ test('the notebook preserves draft labels, topic states, navigation, and correct
   await expect(page.locator('.draftLabel')).toHaveCount(4);
   await page.getByRole('link', { name: 'Read the field note' }).first().click();
   await expect(page).toHaveURL(/\/notes\/note-004$/);
-  await expect(page.getByRole('heading', { name: 'The interview worked. Then we gave it a bug.' })).toBeVisible();
-  await expect(page.getByText(/independent regression checks covered empty lists/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'We gave two AI agents one small bug.' })).toBeVisible();
+  await expect(page.getByText(/I reviewed Hermy’s patch and applied it locally/)).toBeVisible();
   await expect(page.getByText(/Hermy authored the regression checks/i)).toHaveCount(0);
   await page.getByRole('link', { name: 'Back to field notes' }).click();
   await expect(page).toHaveURL(/\/notes$/);
