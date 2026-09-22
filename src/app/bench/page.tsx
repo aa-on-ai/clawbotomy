@@ -43,7 +43,6 @@ export default function BenchPage() {
 
       <header className={styles.header}>
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
           <div className={styles.headerGrid}>
             <h1>Evidence follows the runtime you actually operate.</h1>
             <p>
@@ -78,7 +77,6 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane / Configured-agent session</p>
               <h2 id="configured-title">The receipt ends in a decision.</h2>
             </div>
             <p>
@@ -142,7 +140,6 @@ export default function BenchPage() {
 
       <section className={styles.archiveOrientation} aria-labelledby="archive-orientation-title">
         <div className={styles.rail}>
-          <p className={styles.eyebrowSignal}>Historical evidence lane</p>
           <div className={styles.archiveOrientationGrid}>
             <h2 id="archive-orientation-title">Useful history, not the current product claim.</h2>
             <p>
@@ -166,7 +163,6 @@ export default function BenchPage() {
           <div className={styles.rail}>
             <div className={styles.sectionHeading}>
               <div>
-                <p className={styles.eyebrowSignal}>Historical comparable artifact pair</p>
                 <h2 id="comparison-title">A bounded Qwen size comparison.</h2>
               </div>
               <p>
@@ -239,7 +235,6 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane / Model benchmark observations</p>
               <h2 id="registry-title">Published artifact index</h2>
             </div>
             <p>Each artifact has a public manifest and case file accepted by the checked-in artifact validator. Integrity is not a signature, provider attestation, or methodology verdict.</p>
@@ -283,7 +278,6 @@ export default function BenchPage() {
         <div className={styles.rail}>
           <div className={styles.legacyHeader}>
             <div>
-              <p className={styles.eyebrowSignal}>Evidence lane / legacy model benchmark snapshot / {lastUpdated}</p>
               <h2 id="legacy-title">Legacy benchmark snapshot</h2>
             </div>
             <dl className={styles.legacyStatus} aria-label="Legacy evidence status">
@@ -295,7 +289,7 @@ export default function BenchPage() {
 
           <p className={styles.legacyIntro}>
             These values remain available for continuity and scrutiny. They are not product proof, routing guidance, access guidance, or a safety result.
-            Raw constituent cases are unavailable.
+            Raw constituent cases are unavailable. Last updated {lastUpdated}.
           </p>
 
           <p className={styles.tableHint}>Swipe horizontally to compare models. Task names stay pinned.</p>
@@ -340,7 +334,6 @@ export default function BenchPage() {
 
       <section className={styles.runSection} aria-labelledby="run-title">
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Local workflow</p>
           <div className={styles.runGrid}>
             <h2 id="run-title">Preview spend before the first request.</h2>
             <div>

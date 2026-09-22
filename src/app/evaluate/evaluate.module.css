@@ -393,7 +393,7 @@
   align-items: center;
   color: var(--cb-ink);
   font-weight: 700;
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   will-change: transform;

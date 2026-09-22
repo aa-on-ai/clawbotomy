@@ -77,7 +77,7 @@
   font-weight: 600;
   letter-spacing: 0.035em;
   text-transform: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 8px;
   transition:
     color var(--cb-motion-fast) ease,
     background-color var(--cb-motion-fast) ease,
@@ -101,12 +101,12 @@
 
   .navigation a:not(.navAction):hover {
     background: color-mix(in srgb, var(--cb-signal) 8%, transparent);
-    border-bottom-color: var(--cb-signal);
+    background: rgb(244 107 63 / 12%);
   }
 }
 
 .navigation .active {
-  border-bottom-color: var(--cb-signal);
+  background: rgb(244 107 63 / 12%);
 }
 
 .navigation .navAction {

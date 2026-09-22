@@ -23,7 +23,6 @@ export default function PreflightPage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Planning workspace / Inbox pack / Browser local</p>
               <h1 id="preflight-title">Define the powers before you test them.</h1>
               <p>
                 Choose what an agent may read or change. Clawbotomy turns that intent into a
@@ -65,7 +64,6 @@ export default function PreflightPage() {
       <section className={styles.nextSection} aria-labelledby="next-title">
         <div className={styles.rail}>
           <div className={styles.nextIntro}>
-            <p className={styles.darkEyebrow}>What this unlocks next</p>
             <h2 id="next-title">A testable contract for the agent you operate.</h2>
             <p>
               Take the exported plan to the local evaluation workspace, choose a checked-in OpenClaw

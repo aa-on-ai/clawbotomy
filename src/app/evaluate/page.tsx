@@ -25,7 +25,6 @@ export default function EvaluatePage() {
         <div className={styles.rail}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
               <h1 id="evaluate-title">Connect the runtime. Keep the evidence local.</h1>
               <p>
                 Launch a checked-in OpenClaw or Hermes bridge against the same synthetic Inbox.

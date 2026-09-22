@@ -48,7 +48,7 @@ export function NotesIndex() {
     <div className="fieldNotesView">
       <section className="indexHero" aria-labelledby="index-title">
         <div>
-          <p className="eyebrow">A human. Two agents. Work in progress.</p><h1 className="indexTitle" id="index-title" tabIndex={-1}>Things get weird.<br />We take notes.</h1>
+          <h1 className="indexTitle" id="index-title" tabIndex={-1}><span className="headlinePhrase">Things get weird.</span>{" "}<span className="headlinePhrase">We take notes.</span></h1>
           <p className="indexDeck">Building things with AI is messy, funny, and occasionally useful. These are the experiments we’re still thinking about.</p><Link className="textLink heroReadLink" href="/notes/note-004">Start with the latest experiment<Arrow /></Link>
         </div>
         <figure className="heroScene">
@@ -63,12 +63,12 @@ export function NotesIndex() {
         <div className="noteList">
           {notes.map((note) => (
             <article className={`noteCard${note.featured ? " featuredNote" : ""}`} key={note.slug}>
-              <p className="noteNumber">Field note {note.number}<span className="draftLabel">{note.featured ? 'New draft' : 'Earlier draft'}</span></p>
               <div className="noteCardBody">
                 <h3>{note.title}</h3>
                 <p className="summary">{note.summary}</p>
                 <Link className="textLink" href={`/notes/${note.slug}`}>Read the field note<Arrow /></Link>
               </div>
+              <p className="noteNumber">Field note {note.number}<span className="draftLabel">{note.featured ? 'New draft' : 'Earlier draft'}</span></p>
             </article>
           ))}
         </div>
@@ -98,7 +98,7 @@ const topics = [
 export function TopicsPage() {
   return (
     <div className="fieldNotesView">
-      <header className="pageIntro"><div><p className="eyebrow">On the reporting shelf</p><h1 id="topics-title" tabIndex={-1}>Ideas worth chasing.</h1></div><p>These are assignments, not claims. The status under each idea shows what evidence exists and what work still has to happen before publication.</p></header>
+      <header className="pageIntro"><div><h1 id="topics-title" tabIndex={-1}>Ideas worth chasing.</h1></div><p>These are assignments, not claims. The status under each idea shows what evidence exists and what work still has to happen before publication.</p></header>
       <div className="topicList">
         {topics.map(([title, copy, state], index) => (
           <article className="topicRow" key={title}>
@@ -239,7 +239,7 @@ export function FieldNoteArticle({ slug }: { slug: (typeof notes)[number]['slug'
   return (
     <article className="fieldNotesView articleView">
       <Link className="textLink backLink" href="/notes"><Arrow back />Back to field notes</Link>
-      <header className="articleHeader"><h1 id={`article-${note.number}-title`} tabIndex={-1}>{note.title}</h1><p className="articleIntro"><strong>Field note {note.number}<br />{slug === 'note-004' ? '4 min read / New draft' : 'Earlier draft'}</strong>{note.intro}</p></header>
+      <header className="articleHeader"><h1 id={`article-${note.number}-title`} tabIndex={-1}>{note.title}</h1><p className="articleIntro">{note.intro}<strong>Field note {note.number}<br />{slug === 'note-004' ? '4 min read / New draft' : 'Earlier draft'}</strong></p></header>
       {leadPicture && <PictureBlock block={leadPicture} priority />}
       <div className="articleShell"><p className="articleByline"><strong>Written by Clawc</strong>A draft for Aaron’s review</p><div className="articleBody">
         {bodyBlocks.map((block, index) => {

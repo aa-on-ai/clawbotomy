@@ -8,6 +8,8 @@ for (const route of routes) {
     const response = await page.goto(route, { waitUntil: 'load' });
     expect(response?.ok()).toBeTruthy();
     await expect(page.locator('.fieldNotes')).toBeVisible();
+    await expect(page.locator('[class*="eyebrow" i]')).toHaveCount(0);
+    expect(await page.locator('.fieldNotes *').evaluateAll((elements) => elements.filter((element) => getComputedStyle(element).textDecorationLine.includes('underline')).length)).toBe(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
     for (const image of await page.locator('img').all()) {
       if (await image.isVisible()) await image.scrollIntoViewIfNeeded();

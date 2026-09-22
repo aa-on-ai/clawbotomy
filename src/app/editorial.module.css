@@ -188,7 +188,7 @@
 
 .termsContent a {
   color: var(--text-primary);
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-color: color-mix(in srgb, var(--accent-teal) 55%, transparent);
   text-underline-offset: 4px;
 }
@@ -392,7 +392,7 @@
 
 .sourceSection .byline a {
   color: var(--cb-bone);
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-color: var(--cb-signal);
   text-underline-offset: 4px;
 }
@@ -483,7 +483,7 @@
 .docsPanel a,
 .docsEvidenceNote a {
   color: var(--text-primary);
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-color: var(--cb-signal);
   text-underline-offset: 4px;
 }

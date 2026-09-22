@@ -49,7 +49,7 @@ export default function TermsPage() {
               href="https://github.com/aa-on-ai/clawbotomy/blob/main/LICENSE" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-emerald-600 dark:text-emerald-400 hover:underline"
+              className="text-emerald-600 dark:text-emerald-400"
             >
               MIT License
             </a>
@@ -83,7 +83,7 @@ export default function TermsPage() {
               href="https://github.com/aa-on-ai/clawbotomy/issues" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-emerald-600 dark:text-emerald-400 hover:underline"
+              className="text-emerald-600 dark:text-emerald-400"
             >
               GitHub Issues
             </a>

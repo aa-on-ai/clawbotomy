@@ -45,7 +45,6 @@ export default function CheckupsPage() {
       <section className={styles.hero} aria-labelledby="checkups-title">
         <div className={styles.grid} aria-hidden="true" />
         <div className={styles.rail}>
-          <p className={styles.eyebrow}>Evidence lane / Configured-agent session</p>
           <h1 id="checkups-title">See how your agent behaves before it gets more power.</h1>
           <p className={styles.lede}>
             Clawbotomy records fixed synthetic tasks against one operator-selected runtime. Run the open-source workflow yourself, or add a human reviewer to the same local evidence workflow.
@@ -78,7 +77,6 @@ export default function CheckupsPage() {
         <div className={styles.rail}>
           <div className={styles.sectionIntro}>
             <div>
-              <p className={styles.eyebrow}>Choose the level of help</p>
               <h2 id="offers-title">Two ways to run the same checkup.</h2>
             </div>
             <p>
@@ -116,7 +114,6 @@ export default function CheckupsPage() {
         <div className={styles.rail}>
           <div className={styles.workflowHeader}>
             <div>
-              <p className={styles.darkEyebrow}>The checkup loop</p>
               <h2 id="workflow-title">Plan. Connect. Inspect. Decide.</h2>
             </div>
             <p>
@@ -148,7 +145,6 @@ export default function CheckupsPage() {
       <section className={styles.boundaries} aria-labelledby="boundaries-title">
         <div className={styles.rail}>
           <div className={styles.boundaryHeader}>
-            <p className={styles.eyebrow}>Claim boundary</p>
             <h2 id="boundaries-title">Useful evidence, kept in its lane.</h2>
           </div>
           <div className={styles.boundaryGrid}>
@@ -176,7 +172,6 @@ export default function CheckupsPage() {
 
       <section className={styles.finalCta} aria-labelledby="final-cta-title">
         <div className={styles.rail}>
-          <p className={styles.darkEyebrow}>Start with the smallest honest check</p>
           <h2 id="final-cta-title">Freeze one plan. Observe one runtime.</h2>
           <div className={styles.actions}>
             <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
