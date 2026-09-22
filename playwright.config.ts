@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const externalBaseUrl = process.env.CLAWBOTOMY_BASE_URL;
+const chromiumExecutable = process.env.CLAWBOTOMY_CHROMIUM_EXECUTABLE;
 
 export default defineConfig({
   testDir: './tests/browser',
@@ -27,7 +28,7 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop-chromium',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 }, ...(chromiumExecutable ? { launchOptions: { executablePath: chromiumExecutable } } : {}) },
     },
     {
       name: 'mobile-chromium',

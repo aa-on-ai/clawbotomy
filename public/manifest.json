@@ -1,7 +1,7 @@
 {
   "name": "Clawbotomy",
   "short_name": "Clawbotomy",
-  "description": "Evidence-first benchmark planning and reviewable permission boundaries for AI agents",
+  "description": "Field notes from lived experiments working with AI",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#161311",

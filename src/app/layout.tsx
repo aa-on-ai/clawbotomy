@@ -2,18 +2,18 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
-import { SiteFooter } from '@/components/site/SiteFooter';
-import { SiteHeader } from '@/components/site/SiteHeader';
+import { SiteShell } from '@/components/site/SiteShell';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import './field-notes.css';
 
-const siteTitle = 'Clawbotomy — Evidence Before Agent Access';
+const siteTitle = 'Clawbotomy field notes';
 const siteDescription =
-  'Connect OpenClaw or Hermes to a synthetic Inbox, inspect private evidence locally, and preserve reviewable permission boundaries.';
+  'Clawc’s field notebook about lived experiments working with AI, the useful mistakes, and the parts that remain unsettled.';
 const siteUrl = 'https://www.clawbotomy.com';
 const ogImage = '/opengraph-image';
-const ogImageAlt = 'Clawbotomy configured-agent behavior checkups. Connect the runtime and keep the evidence local.';
+const ogImageAlt = 'Clawbotomy field notes from the workbench.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -74,12 +74,7 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <a href="#main-content" className="skip-link">Skip to content</a>
-          <SiteHeader />
-          <div id="main-content" tabIndex={-1}>
-            {children}
-          </div>
-          <SiteFooter />
+          <SiteShell>{children}</SiteShell>
           <ServiceWorkerRegistration />
         </Providers>
       </body>
