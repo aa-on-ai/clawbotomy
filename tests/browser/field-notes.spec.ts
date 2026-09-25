@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const routes = ['/', '/notes', '/topics', '/about', '/notes/note-001', '/notes/note-002', '/notes/note-003', '/notes/note-004'];
+const routes = ['/', '/notes', '/topics', '/about'];
 
 for (const route of routes) {
   test(`${route} renders the field notebook without regressions`, async ({ page }) => {
@@ -23,42 +23,16 @@ for (const route of routes) {
   });
 }
 
-test('the notebook preserves draft labels, topic states, navigation, and corrected authorship', async ({ page }) => {
+test('retired notes are absent from the notebook, routes, and sitemap', async ({ page, request }) => {
   await page.goto('/notes');
-  await expect(page.locator('.draftLabel')).toHaveCount(4);
-  await page.getByRole('link', { name: 'Two agents. One bug. Human supervision required.' }).click();
-  await expect(page).toHaveURL(/\/notes\/note-004$/);
-  await expect(page.getByRole('heading', { name: 'Two agents. One bug. Human supervision required.' })).toBeVisible();
-  await expect(page.getByText('I reviewed and applied the patch. Seventeen checks passed. We replayed the long answer through Discord, clearly marked as a replay. Two messages arrived. This time the controller kept both IDs.')).toBeVisible();
-  await expect(page.getByText(/Hermy authored the regression checks/i)).toHaveCount(0);
-  await page.getByRole('link', { name: 'Back to field notes' }).click();
-  await expect(page).toHaveURL(/\/notes$/);
-  await page.getByRole('link', { name: 'Ideas', exact: true }).click();
-  await expect(page.locator('.topicRow')).toHaveCount(8);
-  await expect(page.getByText('Interview and experiment recorded')).toBeVisible();
-});
-
-test('reading controls, story furniture, and article continuity work together', async ({ page }) => {
-  await page.goto('/notes/note-004');
-
-  await page.emulateMedia({ colorScheme: 'light' });
-  await page.getByRole('button', { name: 'Switch to dark mode' }).click();
-  await expect(page.locator('.fieldNotes')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('.fieldNotes')).toHaveCSS('color-scheme', 'dark');
-  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
-  await page.getByRole('button', { name: 'Switch to light mode' }).click();
-  await expect(page.locator('.fieldNotes')).toHaveAttribute('data-theme', 'light');
-
-  await expect(page.locator('.cloud .open')).toHaveCSS('opacity', '1');
-  await expect(page.locator('.articleShell .storyFigure img')).toHaveAttribute('src', /small-bug-plush\.webp/);
-  expect(await page.locator('.articleBody > p').first().evaluate((element) => getComputedStyle(element, '::first-letter').float)).toBe('none');
-  await expect(page.locator('.storyQuote p')).toHaveText('why are you stopping every 5 seconds');
-  await expect(page.getByRole('link', { name: /Previous field note.*Your page is ready/ })).toBeVisible();
-  await expect(page.locator('.fieldNotesFooter')).toHaveText('© Clawbotomy 2026');
-
-  await page.goto('/notes/note-003');
-  await expect(page.locator('.articleShell .storyFigure img')).toHaveAttribute('src', /delivery-plush\.webp/);
-  await expect(page.getByRole('link', { name: /Next field note.*Two agents\. One bug/ })).toBeVisible();
+  await expect(page.locator('.noteCard')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'A fresh page.' })).toBeVisible();
+  for (const slug of ['note-001', 'note-002', 'note-003', 'note-004']) {
+    const response = await request.get(`/notes/${slug}`);
+    expect(response.status()).toBe(404);
+  }
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  expect(sitemap).not.toMatch(/note-00[1-4]/);
 });
 
 test('brand hover condenses the claw without hiding the brand', async ({ page }, testInfo) => {

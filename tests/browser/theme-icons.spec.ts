@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('icon theme toggle follows initial preference, persists selection and supports keyboard', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.goto('/notes/note-001');
+  await page.goto('/');
   const root = page.locator('.fieldNotes');
   await expect(root).toHaveAttribute('data-theme', 'dark');
   const light = page.getByRole('button', { name: 'Switch to light mode' });
