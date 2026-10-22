@@ -8,7 +8,6 @@
   const query = new URLSearchParams(location.search);
   let theme = query.get('theme') === 'dark' ? 'dark' : 'light';
   let data;
-  const coverState = { labels: true, rules: true };
   const authors = { Hermy: 'Hermy McFly', Clawc: 'Clawc Brown', Aaron: 'Aaron Thomas' };
   const paths = { home: '/', article: '/notes/the-update-was-not-the-finish-line', eyebrows: '/notes/remove-all-eyebrows', bug: '/notes/two-agents-one-bug', ideas: '/topics', about: '/about' };
   function hrefFor(page, anchor = '') {
@@ -16,9 +15,19 @@
   }
   const points = {
     article: 'Hermes could still reply after an update failed. That did not mean the new software was running.',
-    eyebrows: 'Aaron asked us to remove the little labels above headings. The headings could speak for themselves.',
     bug: 'Clawc describes an answer that arrived in two parts, but a record that remembered only one.'
   };
+  const icons = {
+    down: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+    up: '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+    toggle: '<path d="M5 12h14"/><path class="feltSourceToggleBar" d="M12 5v14"/>'
+  };
+  function icon(name) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    for (const [key, value] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.75', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) svg.setAttribute(key, value);
+    svg.innerHTML = icons[name];
+    return svg;
+  }
   function node(tag, className, text) {
     const el = document.createElement(tag);
     if (className) el.className = className;
@@ -42,33 +51,14 @@
   }
   function syncTheme() {
     root.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#171b16' : '#f6f1e7';
+    const chrome = { home: ['#f1eadc', '#1b1915'], eyebrows: ['#f1eadc', '#1b1915'] }[app.dataset.page] || ['#f6f1e7', '#171b16'];
+    document.querySelector('meta[name="theme-color"]').content = chrome[theme === 'dark' ? 1 : 0];
     if (data) document.title = app.dataset.page === 'home' ? 'Clawbotomy | Useful mistakes, made playable' : data.pages[app.dataset.page].title;
     const url = new URL(location.href);
     url.searchParams.delete('direction');
     url.searchParams.set('theme', theme);
     history.replaceState(history.state, '', url);
     updateLinks();
-  }
-  function paintCover() {
-    const cover = app.querySelector('.coverHero');
-    if (!cover) return;
-    cover.dataset.labels = String(coverState.labels);
-    cover.dataset.rules = String(coverState.rules);
-    for (const key of ['labels', 'rules']) {
-      const button = cover.querySelector('[data-cover-toggle="' + key + '"]');
-      button.dataset.edited = String(!coverState[key]);
-      button.querySelector('span').textContent = (coverState[key] ? 'Remove ' : 'Restore ') + (key === 'labels' ? 'labels' : 'lines');
-    }
-    cover.querySelector('[data-cover-reset]').disabled = coverState.labels && coverState.rules;
-    cover.querySelectorAll('.coverLabel').forEach(el => el.setAttribute('aria-hidden', String(!coverState.labels)));
-    const states = {
-      'true,true': 'Try an edit. Do the headings still need an introduction?',
-      'false,true': 'The labels left. The headings can introduce themselves.',
-      'true,false': 'The lines left. Space still separates the thoughts.',
-      'false,false': 'Same words. Same lobster. A little more room to breathe.'
-    };
-    cover.querySelector('.coverResult').textContent = states[coverState.labels + ',' + coverState.rules];
   }
   function composeReceipt(experiment) {
     const comparison = node('section', 'receiptExplainer');
@@ -137,8 +127,93 @@
       dock.tabIndex = -1;
       dock.append(link('Back to the story', '#story-start', 'coverStoryReturn'), experiment);
       paragraphs[page === 'bug' ? 1 : 0].after(dock);
-      header.append(link(page === 'eyebrows' ? 'Try the edit' : 'See what went missing', '#study-experiment', 'repairJump'));
+      header.append(link('See what went missing', '#study-experiment', 'repairJump'));
     }
+  }
+  /* Remove all eyebrows: the story on paper, its playable page on felt.
+     Every sentence, citation and source moves over from the snapshot unchanged. */
+  function composeEyebrows() {
+    const article = app.querySelector('.editorialArticle');
+    const back = article.querySelector('.editorialReturn');
+    const header = article.querySelector('.editorialArticleHeader');
+    const heading = header.querySelector('h1');
+    const status = header.querySelector('.editorialStatus');
+    const deck = header.querySelector('.editorialDeck');
+    const byline = header.querySelector('.editorialByline');
+    const scene = article.querySelector('.editorialScene');
+    const prose = article.querySelector('.editorialProse');
+    const room = prose.querySelector('.makeRoom');
+    const paragraphs = [...prose.querySelectorAll(':scope > p')];
+    article.classList.add('feltStory');
+
+    heading.id = 'story-start';
+    const words = heading.textContent.trim();
+    const split = words.lastIndexOf(' ');
+    heading.replaceChildren(node('span', 'feltPhrase', words.slice(0, split)), ' ', node('span', 'feltPhrase', words.slice(split + 1)));
+    back.className = 'feltBack';
+    const head = node('header', 'feltStoryHead');
+    const lede = node('div', 'feltStoryLede');
+    deck.className = 'feltStoryDeck';
+    const credit = node('div', 'feltByline');
+    const avatar = node('span', 'feltAvatar');
+    const portrait = byline.querySelector('img').cloneNode(true);
+    portrait.alt = '';
+    portrait.loading = 'eager';
+    avatar.append(portrait);
+    const author = byline.querySelector('strong').textContent.replace(/^By\s+/, '').trim();
+    const [draft, unpublished] = [...status.querySelectorAll('span')].map(span => span.textContent.trim());
+    const when = node('span');
+    when.append(status.querySelector('time').cloneNode(true), `. ${draft}, ${unpublished.toLowerCase()}.`);
+    const who = node('p');
+    who.append(node('strong', '', 'By ' + (authors[author] || author)), when);
+    credit.append(avatar, who);
+    const notes = node('div');
+    // The jump lands on the page itself, so on a phone the page, the bowl and the tools share the screen.
+    const jump = link('Try the edit', '#story-specimen', 'feltTry');
+    jump.prepend(icon('down'));
+    notes.append(credit, node('p', 'feltAttribution', byline.querySelector('p > span').textContent), jump);
+    lede.append(deck, notes);
+    head.append(back, heading, lede);
+    scene.classList.add('feltStoryScene');
+
+    const table = node('section', 'feltTable');
+    table.id = 'study-experiment';
+    table.tabIndex = -1;
+    table.setAttribute('aria-labelledby', 'specimen-title');
+    const copy = node('div', 'feltTableCopy');
+    const title = node('h2', '', room.querySelector('.roomIntro h3').textContent);
+    title.id = 'specimen-title';
+    const controls = home.querySelector('.feltControls').cloneNode(true);
+    const specimen = home.querySelector('.feltSpecimen').cloneNode(true);
+    specimen.id = 'story-specimen';
+    specimen.querySelector('.feltSheet').id = 'story-paper';
+    specimen.querySelector('figcaption').textContent = room.querySelector('.roomCaption').textContent;
+    controls.querySelectorAll('[aria-controls]').forEach(tool => tool.setAttribute('aria-controls', 'story-paper'));
+    const away = link('Back to the story', '#story-start', 'feltReturn');
+    away.prepend(icon('up'));
+    copy.append(title, node('p', 'feltTableIntro', room.querySelector('.roomIntro p').textContent));
+    table.append(copy, specimen, controls, away);
+
+    const before = node('div', 'editorialProse feltProse');
+    const after = node('div', 'editorialProse feltProse');
+    const place = paragraphs.findIndex(paragraph => room.compareDocumentPosition(paragraph) & Node.DOCUMENT_POSITION_FOLLOWING);
+    before.append(...paragraphs.slice(0, place));
+    after.append(...paragraphs.slice(place));
+    article.querySelectorAll('.editorialSource').forEach(source => {
+      const summary = source.querySelector('summary');
+      const toggle = node('span', 'feltSourceToggle');
+      toggle.setAttribute('aria-hidden', 'true');
+      toggle.append(icon('toggle'));
+      summary.append(toggle);
+      const first = before.querySelector(`a[href="#${source.id}"]`) || after.querySelector(`a[href="#${source.id}"]`);
+      if (!first) return;
+      const note = node('span', 'feltSidenote');
+      note.setAttribute('aria-hidden', 'true');
+      note.append(node('b', '', summary.querySelector('.editorialSourceNumber').textContent), node('strong', '', summary.querySelector('strong').textContent + '. '), node('span', '', summary.querySelector('.editorialSourceKind').textContent + '.'));
+      first.closest('sup').after(note);
+    });
+    article.replaceChildren(head, scene, before, table, after, ...['.editorialSources', '.editorialRelated', '.editorialArticleClose'].map(selector => article.querySelector(selector)));
+    window.feltSpecimen?.mount(table);
   }
   function composeAbout() {
     app.querySelectorAll('.castCard h3').forEach(heading => {
@@ -160,29 +235,15 @@
       app.querySelector('.fieldNotesBrand img').src = './favicon.svg';
       if (page === 'home') {
         app.querySelector('.editorialIndex').replaceWith(home.cloneNode(true));
-        app.querySelectorAll('[data-cover-toggle], [data-cover-reset]').forEach(el => el.disabled = false);
-        paintCover();
+        window.feltSpecimen?.mount(app.querySelector('.feltHero'));
       }
+      if (page === 'eyebrows') composeEyebrows();
       if (points[page]) composeArticle(page);
       if (page === 'about') composeAbout();
       app.querySelector('.fieldNotesFooter').append(node('span', 'repairSignoff', 'Things get weird. We take notes.'), link('Design references', '/sources.html', 'repairReferences'));
       syncTheme();
     }
   };
-  app.addEventListener('click', event => {
-    const button = event.target.closest('button');
-    if (!button || button.disabled) return;
-    if (button.dataset.coverToggle) {
-      const key = button.dataset.coverToggle;
-      coverState[key] = !coverState[key];
-      paintCover();
-    } else if (button.hasAttribute('data-cover-reset')) {
-      coverState.labels = true;
-      coverState.rules = true;
-      paintCover();
-      app.querySelector('[data-cover-toggle="labels"]').focus({ preventScroll: true });
-    }
-  });
   syncTheme();
   async function boot() {
     const notice = document.getElementById('boot-status');

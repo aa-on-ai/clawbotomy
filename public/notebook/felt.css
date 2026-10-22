@@ -1,0 +1,612 @@
+/* Paper for reading, felt for playing.
+   Scoped to the homepage (.feltHome) and the Remove all eyebrows story (.feltStory).
+   Other notebook pages keep their previous treatment until the direction is approved. */
+
+@font-face {
+  font-family: "Fraunces";
+  src: url(assets/fraunces.woff2) format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.fieldNotes {
+  --f-paper: #f1eadc;
+  --f-sheet: #fcf8f0;
+  --f-ink: #1f1c17;
+  --f-ink-2: #574f43;
+  --f-felt: #434a2e;
+  --f-felt-deep: #383e25;
+  --f-on-felt: #f5eddc;
+  --f-on-felt-2: #d8d0ba;
+  --f-lobster: #cf4a1e;
+  --f-lobster-ink: #a43a16;
+  --f-slip: #f0cdb5;
+  --f-slip-ink: #4a3628;
+  --f-blush: #ead2bf;
+  --f-night: #1f1c17;
+  --f-on-night: #efe6d4;
+  --f-on-night-2: #c2b8a5;
+  --f-focus-paper: #cf4a1e;
+  --f-focus-felt: #f2b34a;
+  --f-gutter: clamp(20px, 5vw, 64px);
+  --f-rail: 1200px;
+  --f-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --f-text: "Fraunces", "Iowan Old Style", Georgia, serif;
+  /* Long reading uses the notebook's original text face; Fraunces keeps the headings and decks. */
+  --f-body: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --f-ui: GeistSans, "GeistSans Fallback", ui-sans-serif, system-ui, sans-serif;
+  /* Highlighter for whatever takes over a removed piece's job. */
+  --f-mark: #f3dc72;
+  --f-measure: #9a6f0c;
+  --f-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --f-ease-move: cubic-bezier(.65, 0, .35, 1);
+  /* Felt fibre: a quiet noise layer so the table reads as material, not a flat fill. */
+  --f-fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .96 0 0 0 0 .86 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+}
+.fieldNotes[data-theme="dark"] {
+  --f-paper: #1b1915;
+  --f-sheet: #e9e0ce;
+  --f-ink: #efe7d7;
+  --f-ink-2: #b8ae9c;
+  --f-felt: #3a422a;
+  --f-felt-deep: #313822;
+  --f-on-felt: #f1e9d7;
+  --f-on-felt-2: #cfc7b1;
+  --f-lobster-ink: #f2895f;
+  --f-blush: #3b2e26;
+  --f-night: #11100d;
+  --f-focus-paper: #f2895f;
+}
+
+/* Type roles. Tracking follows one rule by size: -.035em at 96px and up,
+   -.03em from 64px, -.022em from 40px, -.012em from 28px, none below. */
+.feltHome, .feltStory, .fieldNotes:has(.feltHome) .fieldNotesFooter, .fieldNotes:has(.feltStory) .fieldNotesFooter {
+  font-family: var(--f-ui);
+}
+.feltDisplay, .feltHome h1, .feltHome h2, .feltHome h3, .feltStory h1, .feltStory h2, .feltSheetTitle, .feltSheetHeading {
+  font-family: var(--f-display);
+  font-weight: 720;
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+  font-optical-sizing: auto;
+  text-wrap: balance;
+}
+.feltPhrase { white-space: nowrap; }
+
+/* Shared chrome on felt pages: paper header, no underlines, filled active state, visible focus. */
+.fieldNotes:has(.feltHome), .fieldNotes:has(.feltStory) { background: var(--f-paper); color: var(--f-ink); }
+html:has(.feltHome), html:has(.feltHome) body, html:has(.feltStory), html:has(.feltStory) body { background-color: #f1eadc; }
+html[data-theme="dark"]:has(.feltHome), html[data-theme="dark"]:has(.feltHome) body, html[data-theme="dark"]:has(.feltStory), html[data-theme="dark"]:has(.feltStory) body { background-color: #1b1915; }
+.fieldNotes:has(.feltHome) .fieldNotesHeader, .fieldNotes:has(.feltStory) .fieldNotesHeader {
+  width: min(100% - 2 * var(--f-gutter), var(--f-rail));
+  min-height: 84px;
+  padding: 0;
+  position: relative;
+  z-index: 3;
+}
+.fieldNotes:has(.feltHome) .fieldNotesBrand, .fieldNotes:has(.feltStory) .fieldNotesBrand { font: 760 21px/1 var(--f-ui); letter-spacing: -.01em; color: inherit; }
+.fieldNotes:has(.feltHome) .fieldNotesNav a, .fieldNotes:has(.feltStory) .fieldNotesNav a {
+  min-height: 48px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  font: 600 15px/1 var(--f-ui);
+  color: var(--f-ink-2);
+}
+.fieldNotes:has(.feltHome) .fieldNotesNav a[aria-current="page"], .fieldNotes:has(.feltStory) .fieldNotesNav a[aria-current="page"] { color: var(--f-on-felt); background: var(--f-felt); }
+.fieldNotes:has(.feltHome) .fieldNotesThemeControl, .fieldNotes:has(.feltStory) .fieldNotesThemeControl { width: 48px; height: 48px; flex-basis: 48px; color: var(--f-ink); background: transparent; border: 1.5px solid color-mix(in srgb, var(--f-ink) 22%, transparent); }
+.fieldNotes:has(.feltHome) :focus-visible, .fieldNotes:has(.feltStory) :focus-visible { outline: 3px solid var(--f-focus-paper); outline-offset: 3px; }
+/* iOS 26 Safari paints page content under the status bar, where the parked skip link would show. */
+.fieldNotes:has(.feltHome) .fieldNotesSkip:not(:focus), .fieldNotes:has(.feltStory) .fieldNotesSkip:not(:focus) { opacity: 0; }
+
+/* ---------- Homepage ---------- */
+.fieldNotes .feltHome { width: 100%; max-width: none; margin: 0; padding: 0; }
+.fieldNotes:has(.feltHome) main { min-height: 0; }
+
+/* The masthead says what this is and who keeps it, before the cover story. */
+.feltMasthead {
+  width: min(100% - 2 * var(--f-gutter), var(--f-rail));
+  margin: 0 auto;
+  padding: clamp(8px, 1vw, 12px) 0 clamp(20px, 1.8vw, 24px);
+}
+.fieldNotes .feltMasthead h1 { margin: 0 0 14px; font-size: clamp(34px, 3.6vw, 46px); line-height: 1; letter-spacing: -.022em; color: var(--f-ink); }
+.feltCast { display: flex; flex-wrap: wrap; gap: 12px clamp(24px, 3vw, 40px); margin: 0; padding: 0; list-style: none; }
+.feltCast li { display: flex; align-items: center; gap: 12px; font: 400 15px/1.35 var(--f-ui); color: var(--f-ink-2); }
+.feltCast strong { display: block; font-size: 16px; font-weight: 650; color: var(--f-ink); }
+.feltCast .feltAvatar { flex-basis: 44px; width: 44px; height: 44px; }
+.fieldNotes .feltCast .feltAvatar img { transform: none; object-position: 50% 50%; }
+
+/* The felt table, on the homepage and in the story: copy and tools on the left, the page on the right. */
+.feltHero, .feltTable {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-areas: "copy sheet" "controls sheet" "after sheet";
+  grid-template-rows: auto auto 1fr;
+  column-gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+  color: var(--f-on-felt);
+  background: var(--f-fibre), var(--f-felt);
+}
+.feltHero { padding: clamp(20px, 2vw, 28px) max(var(--f-gutter), (100% - var(--f-rail)) / 2) clamp(48px, 6vw, 80px); }
+.feltHeroCopy, .feltTableCopy { grid-area: copy; position: relative; z-index: 2; }
+.fieldNotes .feltHero :focus-visible, .fieldNotes .feltTable :focus-visible { outline: 3px solid var(--f-focus-felt); outline-offset: 3px; }
+.fieldNotes .feltHero h2 { margin: 0 0 16px; font-size: clamp(46px, 5vw, 66px); line-height: .92; letter-spacing: -.03em; color: var(--f-on-felt); }
+.feltDeck { margin: 0 0 24px; max-width: 23em; font: 400 20px/1.4 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-on-felt-2); text-wrap: pretty; }
+.feltRead {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  font: 600 16px/1.2 var(--f-ui);
+  color: var(--f-on-felt);
+}
+.feltRead svg { width: 20px; height: 20px; flex: 0 0 20px; transition: transform 160ms var(--f-ease-out); }
+.feltHero > .feltRead, .feltTable > .feltReturn { grid-area: after; justify-self: start; align-self: start; margin-top: 4px; }
+
+/* ---------- The grooming table (shared by homepage and story) ---------- */
+.feltControls { grid-area: controls; margin: 0; }
+.feltTools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
+.feltResult { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.feltResultText { min-width: 0; flex: 1 1 auto; }
+.fieldNotes .feltTool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px 0 14px;
+  border: 1.5px solid color-mix(in srgb, var(--f-on-felt) 55%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--f-on-felt);
+  font: 600 16px/1.1 var(--f-ui);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 90ms ease;
+}
+.fieldNotes .feltTool svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.fieldNotes .feltToolPrimary { background: var(--f-on-felt); border-color: var(--f-on-felt); color: var(--f-felt); }
+.fieldNotes .feltToolQuiet { min-height: 48px; margin-left: -12px; border-color: transparent; padding-inline: 12px 14px; color: var(--f-on-felt-2); }
+.fieldNotes .feltTool:disabled { cursor: default; opacity: .42; }
+.fieldNotes .feltTool:not(:disabled):active { transform: translateY(1px) scale(.98); }
+/* Widths fit the longest label each button can show, so the row never shifts. */
+.feltTool[data-tool="labels"] { min-width: 14.9em; }
+.feltTool[data-tool="lines"] { min-width: 12.6em; }
+.feltStatus { min-height: 4.35em; margin: 0 0 2px; max-width: 26ch; font: 400 18px/1.45 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-on-felt); text-wrap: pretty; }
+
+/* The site already pads jumps by 24px; this lands the page 12px from the top. */
+.feltSpecimen { grid-area: sheet; position: relative; z-index: 1; margin: 0; min-width: 0; scroll-margin-top: -12px; }
+.feltSpecimen figcaption { margin-top: 10px; font: 500 14px/1.45 var(--f-ui); color: var(--f-on-felt-2); }
+.feltSheet {
+  position: relative;
+  padding: clamp(18px, 1.8vw, 24px) clamp(22px, 2.8vw, 36px) clamp(12px, 1.2vw, 16px);
+  color: #1f1c17;
+  background: var(--f-sheet);
+  border-radius: 3px;
+  box-shadow: 0 1px 1px rgb(34 28 14 / 14%), 0 10px 24px -6px rgb(20 16 6 / 34%), 0 30px 60px -24px rgb(20 16 6 / 40%);
+}
+.feltSheetTitle { margin: 0; font-size: clamp(31px, 3vw, 39px); line-height: .98; letter-spacing: -.022em; color: #1f1c17; }
+.feltSheetBody { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 4px 16px; align-items: center; }
+.feltSheetHeading { margin: 0; font-size: clamp(22px, 2vw, 26px); line-height: 1.02; letter-spacing: -.012em; color: #1f1c17; }
+.feltSheetBody p { margin: 12px 0 0; max-width: 26ch; font: 400 16px/1.45 var(--f-text); color: #574f43; }
+.feltSheetByline { display: block; font: 500 14px/1.4 var(--f-ui); color: #574f43; }
+.feltLobster { display: block; width: 100%; max-width: 150px; justify-self: end; }
+.fieldNotes .feltLobster img { width: 100%; height: auto; aspect-ratio: 600 / 660; object-fit: cover; object-position: 50% 0; }
+.feltSheet[data-ready="true"] .feltLobster { cursor: not-allowed; }
+.feltLobster[data-refused="true"] { animation: feltRefuse 420ms var(--f-ease-move); }
+@keyframes feltRefuse {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-4deg); }
+  45% { transform: rotate(3.5deg); }
+  70% { transform: rotate(-2deg); }
+}
+
+/* A plucked eyebrow leaves its space behind: as in the original playground, the text stays put. */
+.fieldNotes .feltSlip {
+  position: relative;
+  display: inline-block;
+  margin: 0 0 16px;
+  padding: 7px 12px 7px 14px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--f-slip);
+  color: var(--f-slip-ink);
+  font: 600 13px/1.2 var(--f-ui);
+  letter-spacing: .005em;
+  white-space: nowrap;
+  --r: -2.2deg;
+  transform: rotate(var(--r));
+  box-shadow: 0 1px 0 rgb(90 56 30 / 22%), 0 3px 8px -2px rgb(90 56 30 / 28%);
+  transition: transform 160ms var(--f-ease-out), box-shadow 160ms var(--f-ease-out);
+}
+.fieldNotes .feltSlip[data-slip="2"] { --r: 1.6deg; }
+.feltSlip::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  width: 18px;
+  height: 11px;
+  translate: 0 -50%;
+  rotate: -8deg;
+  background: rgb(255 252 240 / 62%);
+  box-shadow: 0 0 0 .5px rgb(120 100 70 / 18%);
+}
+.feltSheet[data-ready="true"] .feltSlip { cursor: pointer; }
+/* A larger invisible hit area for fingers, grown into the slip's own margin so it never covers the line above. */
+.feltSlip::after { content: ""; position: absolute; inset: 0 -6px -14px; }
+.feltSlip[data-gone="true"], .feltStitch[data-gone="true"] { visibility: hidden; }
+
+.fieldNotes .feltStitch {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 46px;
+  margin: -6px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--f-lobster);
+}
+.feltSheet[data-ready="true"] .feltStitch { cursor: pointer; }
+.feltStitch svg { position: absolute; left: 0; top: 50%; width: 100%; height: 6px; translate: 0 -50%; overflow: visible; }
+.feltStitch line { stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 10 8; }
+.feltStitch[data-pulling="true"] svg { animation: feltUnstitch 300ms cubic-bezier(.5, 0, .75, 0) forwards; }
+.feltStitch[data-restitch="true"] svg { animation: feltRestitch 320ms var(--f-ease-out); }
+@keyframes feltUnstitch { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
+@keyframes feltRestitch { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+
+/* Who does the job now. A plucked eyebrow marks the heading that introduces itself;
+   a pulled line marks the space that still separates. The marks lift after a few seconds. */
+.feltMark {
+  background-image: linear-gradient(var(--f-mark), var(--f-mark));
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  background-size: 0% 56%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-size 240ms ease-in;
+}
+.feltMark[data-marked="true"] { background-size: 100% 56%; transition: background-size 520ms var(--f-ease-out) 220ms; }
+/* A spacing mark, like a designer's redline: it measures the gap rather than redrawing the line. */
+.feltStitch::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: -2px;
+  width: 16px;
+  background:
+    linear-gradient(var(--f-measure), var(--f-measure)) 50% 0 / 16px 2.5px no-repeat,
+    linear-gradient(var(--f-measure), var(--f-measure)) 50% 50% / 2.5px 100% no-repeat,
+    linear-gradient(var(--f-measure), var(--f-measure)) 50% 100% / 16px 2.5px no-repeat;
+  visibility: visible;
+  transform: scaleY(0);
+  transition: transform 220ms ease-in;
+  pointer-events: none;
+}
+.feltStitch[data-marked="true"]::before { transform: scaleY(1); transition: transform 460ms var(--f-ease-out) 380ms; }
+
+/* Hermy McFly's dish, cropped from the eyebrow illustration. */
+.feltDish {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(108px, 11vw, 140px);
+  aspect-ratio: 1;
+  margin: -14px -10px -18px 0;
+  pointer-events: none;
+}
+.feltDish img { width: 100%; height: 100%; object-fit: cover; -webkit-mask-image: radial-gradient(closest-side, #000 58%, transparent 100%); mask-image: radial-gradient(closest-side, #000 58%, transparent 100%); }
+.feltDishPile { position: absolute; inset: 0; }
+.feltPiece { position: absolute; left: 0; top: 0; visibility: hidden; --r: 0deg; --s: .5; transform: translate(-50%, -50%) rotate(var(--r)) scale(var(--s)); }
+.feltPiece[data-here="true"] { visibility: visible; }
+.feltPiece[data-piece="slip-1"] { left: 37%; top: 75%; --r: -14deg; --s: .32; }
+.feltPiece[data-piece="slip-2"] { left: 51%; top: 77.5%; --r: 11deg; --s: .32; }
+.feltPiece[data-piece="stitch-1"] { left: 46%; top: 73%; --r: -8deg; --s: .5; }
+.feltPiece[data-piece="stitch-2"] { left: 40%; top: 79.5%; --r: 12deg; --s: .5; }
+.feltPieceSlip {
+  padding: 7px 12px 7px 14px;
+  background: var(--f-slip);
+  color: var(--f-slip-ink);
+  border-radius: 2px;
+  font: 600 13px/1.2 var(--f-ui);
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgb(40 24 10 / 35%);
+}
+.feltPieceThread { width: 64px; height: 26px; color: var(--f-lobster); }
+.feltPieceThread path { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+.feltFlight { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: visible; }
+.feltFlyer { position: absolute; margin: 0; transform-origin: center; transition: none; pointer-events: none; }
+.fieldNotes .feltFlyer.feltSlip { margin: 0; }
+
+/* Before the notebook boots on a story route, keep the homepage hero from flashing. */
+html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden; }
+
+/* ---------- Homepage: the notebook ---------- */
+.feltNotebook {
+  width: min(100% - 2 * var(--f-gutter), var(--f-rail));
+  margin: 0 auto;
+  padding: clamp(72px, 10vw, 144px) 0 clamp(56px, 8vw, 112px);
+}
+.fieldNotes .feltNotebook > h2 { margin: 0 0 clamp(48px, 7vw, 96px); font-size: clamp(40px, 5vw, 64px); line-height: .98; letter-spacing: -.022em; color: var(--f-ink); }
+
+.feltEntry { position: relative; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 32px clamp(32px, 5vw, 80px); align-items: center; }
+.feltEntry + .feltEntry { margin-top: clamp(72px, 10vw, 136px); }
+.feltEntry:nth-of-type(even) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+.feltEntry:nth-of-type(even) .feltEntryArt { order: 2; }
+/* The title is the link; its box stretches over the whole entry so the art and copy stay clickable. */
+.fieldNotes .feltEntryLink { color: inherit; }
+.fieldNotes .feltEntryLink::after { content: ""; position: absolute; inset: -12px; border-radius: 10px; }
+.fieldNotes .feltEntryLink:focus-visible { outline: none; }
+.fieldNotes .feltEntryLink:focus-visible::after { outline: 3px solid var(--f-focus-paper); outline-offset: 2px; }
+.feltEntryArt { position: relative; margin: 0; }
+.fieldNotes .feltEntryArt img { width: 100%; height: auto; }
+.feltArch {
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  aspect-ratio: 6 / 5;
+  overflow: hidden;
+  border-radius: 999px 999px 6px 6px;
+  background: var(--f-blush);
+}
+.fieldNotes .feltArch img { width: 74%; height: auto; margin-bottom: -2%; }
+.fieldNotes .feltScene img { aspect-ratio: 3 / 2; object-fit: cover; border-radius: 6px; }
+.fieldNotes .feltEntry h3 { margin: 0 0 18px; font-size: clamp(36px, 4.5vw, 60px); line-height: .98; letter-spacing: -.022em; transition: color 150ms ease; }
+.feltEntryCopy p { margin: 0 0 18px; max-width: 30ch; font: 400 21px/1.42 var(--f-text); color: var(--f-ink-2); text-wrap: pretty; }
+.fieldNotes .feltEntryCopy .feltEntryMeta { max-width: none; margin: 0 0 10px; font: 500 15px/1.4 var(--f-ui); color: var(--f-ink-2); }
+.feltEntryCopy .feltRead { color: var(--f-ink); }
+
+/* Two invented message parts, only one with a saved record. */
+.fieldNotes .feltReceipts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 440px; margin: 8px 0 28px; }
+.feltReceipt { padding: 14px 14px 14px 16px; color: #1f1c17; background: var(--f-sheet); border-radius: 3px; box-shadow: 0 1px 1px rgb(34 28 14 / 12%), 0 8px 18px -8px rgb(20 16 6 / 30%); rotate: -1deg; }
+.feltReceipt + .feltReceipt { rotate: 1.2deg; margin-top: 12px; }
+.feltReceiptPart { display: block; font: 650 13px/1.3 var(--f-ui); color: #574f43; }
+.fieldNotes .feltReceipt p { margin: 6px 0 12px; font: 400 17px/1.3 var(--f-text); color: #1f1c17; }
+.feltReceiptState { display: inline-flex; align-items: center; min-height: 28px; padding: 3px 10px; border: 1.5px solid transparent; border-radius: 2px; background: #dde2c4; color: #3d4a26; font: 650 13px/1 var(--f-ui); }
+.feltReceiptState[data-missing="true"] { background: transparent; border-color: #a43a16; border-style: dashed; color: #a43a16; }
+.fieldNotes .feltReceipts figcaption { grid-column: 1 / -1; margin-top: 2px; font: 500 13px/1.45 var(--f-ui); color: var(--f-ink-2); }
+
+/* ---------- Homepage: the crew ---------- */
+.feltCrew {
+  position: relative;
+  margin-top: clamp(96px, 12vw, 168px);
+  padding: 0 max(var(--f-gutter), (100% - var(--f-rail)) / 2) clamp(56px, 7vw, 88px);
+  color: var(--f-on-night);
+  background: var(--f-night);
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 24px clamp(32px, 5vw, 80px);
+  align-items: end;
+}
+.fieldNotes .feltCrewArt { margin: clamp(-150px, -11vw, -72px) 0 0; }
+.fieldNotes .feltCrewArt img { width: 100%; height: auto; filter: drop-shadow(0 22px 26px rgb(0 0 0 / 38%)); }
+.fieldNotes .feltCrew h2 { margin: 0 0 16px; font-size: clamp(38px, 4.4vw, 60px); line-height: .98; letter-spacing: -.022em; color: var(--f-on-night); }
+.feltCrewCopy { padding-bottom: 8px; }
+.feltCrewCopy p { margin: 0 0 22px; max-width: 30ch; font: 400 20px/1.45 var(--f-text); color: var(--f-on-night-2); }
+.feltCrewLinks { display: flex; flex-wrap: wrap; gap: 4px 28px; }
+.feltCrewLinks .feltRead { color: var(--f-on-night); }
+.fieldNotes .feltCrew :focus-visible { outline: 3px solid var(--f-focus-felt); outline-offset: 3px; }
+.fieldNotes:has(.feltHome) .fieldNotesFooter {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px max(var(--f-gutter), (100% - var(--f-rail)) / 2) max(32px, env(safe-area-inset-bottom));
+  color: var(--f-on-night-2);
+  background: var(--f-night);
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 24px;
+  font: 500 14px/1.4 var(--f-ui);
+}
+.fieldNotes:has(.feltHome) .fieldNotesFooter a { color: var(--f-on-night); }
+.fieldNotes:has(.feltHome) .fieldNotesFooter :focus-visible { outline: 3px solid var(--f-focus-felt); outline-offset: 3px; }
+.fieldNotes:has(.feltHome) .repairSignoff, .fieldNotes:has(.feltStory) .repairSignoff { font: 400 17px/1.4 var(--f-text); font-style: normal; font-variation-settings: "SOFT" 50, "WONK" 0; }
+
+/* ---------- Story: Remove all eyebrows ---------- */
+.fieldNotes .feltStory { width: 100%; max-width: none; margin: 0; padding: 0 0 clamp(64px, 8vw, 112px); }
+.feltStoryHead { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(32px, 4vw, 64px); align-items: start; width: min(100% - 2 * var(--f-gutter), var(--f-rail)); margin: 0 auto; padding-top: 8px; }
+.fieldNotes .feltBack { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin: 0 0 clamp(12px, 2vw, 28px); font: 600 15px/1.2 var(--f-ui); color: var(--f-ink-2); }
+.fieldNotes .feltBack svg { width: 18px; height: 18px; }
+.feltStoryHead .feltBack { grid-column: 1 / -1; justify-self: start; }
+.fieldNotes .feltStory h1 {
+  margin: 0;
+  font-size: clamp(60px, 11.6vw, 150px);
+  font-weight: 760;
+  line-height: .86;
+  letter-spacing: -.035em;
+  color: var(--f-ink);
+}
+.feltStoryLede { display: grid; gap: 20px; padding-top: 14px; }
+.fieldNotes .feltStoryDeck { margin: 0; max-width: 24ch; font: 400 clamp(22px, 1.9vw, 26px)/1.3 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-ink); letter-spacing: -.005em; text-wrap: pretty; }
+.feltByline { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
+.feltAvatar { flex: 0 0 52px; width: 52px; height: 52px; overflow: hidden; border-radius: 50%; background: var(--f-blush); }
+.fieldNotes .feltAvatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; transform: scale(1.45); transform-origin: 50% 20%; }
+.feltByline p { margin: 0; font: 500 15px/1.45 var(--f-ui); color: var(--f-ink-2); }
+.feltByline strong { display: block; font-weight: 650; color: var(--f-ink); }
+.feltAttribution { margin: 0 0 22px; max-width: 46ch; font: 400 15px/1.55 var(--f-ui); color: var(--f-ink-2); text-wrap: pretty; }
+.fieldNotes .feltTry {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px 0 18px;
+  border-radius: 999px;
+  color: var(--f-on-felt);
+  background: var(--f-felt);
+  font: 600 16px/1 var(--f-ui);
+  transition: background-color 150ms ease, transform 90ms ease;
+}
+.fieldNotes .feltTry svg { width: 20px; height: 20px; }
+.fieldNotes .feltTry:active { transform: translateY(1px) scale(.98); }
+
+.fieldNotes .feltStoryScene { width: min(100% - 2 * var(--f-gutter), var(--f-rail)); margin: clamp(32px, 4vw, 56px) auto clamp(48px, 6vw, 80px); }
+.fieldNotes .feltStoryScene img { width: 100%; height: auto; aspect-ratio: 21 / 9; object-fit: cover; object-position: 50% 58%; border-radius: 6px; }
+.fieldNotes .feltStoryScene figcaption { margin-top: 12px; font: 500 14px/1.45 var(--f-ui); color: var(--f-ink-2); }
+
+.fieldNotes .feltProse { width: min(100% - 2 * var(--f-gutter), 660px); margin: 0 auto; font: 400 20px/1.6 var(--f-body); color: var(--f-ink); }
+.fieldNotes .feltProse > p { margin: 0 0 1.1em; text-wrap: pretty; }
+.fieldNotes .feltProse .editorialCitation { position: relative; top: -.62em; margin-left: 1px; font: 700 13px/0 var(--f-ui); vertical-align: baseline; }
+.fieldNotes .feltProse .editorialCitation a {
+  /* Inline, not inline-block: an atomic box lets the number wrap away from its sentence. */
+  display: inline;
+  min-width: 0;
+  height: auto;
+  margin: -8px -4px;
+  padding: 8px 4px;
+  border-radius: 6px;
+  line-height: 1;
+  color: var(--f-lobster-ink);
+  background: transparent;
+}
+
+/* The specimen inside the story: a felt band between paragraphs five and six. */
+.feltTable {
+  margin: clamp(40px, 5vw, 64px) 0 clamp(48px, 6vw, 72px);
+  padding: clamp(40px, 5vw, 72px) max(var(--f-gutter), (100% - var(--f-rail)) / 2) clamp(48px, 6vw, 80px);
+  scroll-margin-top: 16px;
+}
+.fieldNotes .feltTable h2 { margin: 0 0 14px; font-size: clamp(36px, 4.2vw, 56px); line-height: .98; letter-spacing: -.022em; color: var(--f-on-felt); }
+.feltTableIntro { margin: 0 0 24px; max-width: 30ch; font: 400 19px/1.45 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-on-felt-2); }
+.fieldNotes .feltTable .feltReturn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 12px; font: 600 15px/1.2 var(--f-ui); color: var(--f-on-felt); }
+.feltTable .feltReturn svg { width: 18px; height: 18px; }
+
+.fieldNotes .feltStory .editorialSources, .fieldNotes .feltStory .editorialRelated, .fieldNotes .feltStory .editorialArticleClose { width: min(100% - 2 * var(--f-gutter), 680px); margin-inline: auto; }
+.fieldNotes .feltStory .editorialSources { margin-top: clamp(64px, 8vw, 104px); }
+.fieldNotes .feltStory .editorialSources h2, .fieldNotes .feltStory .editorialRelated h2 { margin: 0 0 14px; font: 720 clamp(32px, 3.4vw, 44px)/1 var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 0; letter-spacing: -.012em; color: var(--f-ink); }
+.fieldNotes .feltStory .editorialSources > p { margin: 0 0 28px; font: 400 18px/1.55 var(--f-body); color: var(--f-ink-2); }
+.fieldNotes .feltStory .editorialSourceList { display: grid; gap: 6px; }
+.fieldNotes .feltStory .editorialSource { border: 0; border-radius: 10px; background: transparent; }
+.fieldNotes .feltStory .editorialSource[open] { background: color-mix(in srgb, var(--f-blush) 55%, transparent); }
+.fieldNotes .feltStory .editorialSource summary {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 64px;
+  padding: 10px 12px 10px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.fieldNotes .feltStory .editorialSource summary::-webkit-details-marker { display: none; }
+.fieldNotes .feltStory .editorialSource summary::before, .fieldNotes .feltStory .editorialSource summary::after { content: none; display: none; }
+.fieldNotes .feltStory .editorialSourceNumber { display: block; width: auto; height: auto; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; text-align: center; font: 720 30px/1 var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 0; color: var(--f-lobster-ink); }
+.fieldNotes .feltStory .editorialSource summary > span:nth-child(2) strong { display: block; font: 650 17px/1.3 var(--f-ui); color: var(--f-ink); }
+.fieldNotes .feltStory .editorialSourceKind { display: block; margin-top: 2px; font: 500 14px/1.4 var(--f-ui); color: var(--f-ink-2); }
+.fieldNotes .feltStory .editorialSource .feltSourceToggle { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: var(--f-ink); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--f-ink) 30%, transparent); }
+.feltSourceToggle svg { width: 18px; height: 18px; }
+.editorialSource[open] .feltSourceToggleBar { display: none; }
+.fieldNotes .feltStory .editorialSourceBody { padding: 0 20px 20px 64px; font: 400 17px/1.55 var(--f-body); color: var(--f-ink); }
+.fieldNotes .feltStory .editorialSourceBody p { margin: 0 0 12px; }
+.fieldNotes .feltStory .editorialSourceBody .textLink { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; font: 600 15px/1.2 var(--f-ui); color: var(--f-lobster-ink); }
+.fieldNotes .feltStory .editorialSourceBody .textLink svg { width: 18px; height: 18px; }
+
+.fieldNotes .feltStory .editorialRelated { margin-top: clamp(56px, 7vw, 88px); display: grid; gap: 2px; }
+.fieldNotes .feltStory .editorialRelated a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 64px;
+  padding: 6px 0;
+  border: 0;
+  font: 650 clamp(24px, 2.4vw, 30px)/1.12 var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+  letter-spacing: -.008em;
+  color: var(--f-ink);
+}
+.fieldNotes .feltStory .editorialRelated a span { text-wrap: balance; }
+.fieldNotes .feltStory .editorialRelated a svg { width: 24px; height: 24px; flex: 0 0 24px; transition: transform 160ms var(--f-ease-out); }
+.fieldNotes .feltStory .editorialArticleClose { margin-top: clamp(48px, 6vw, 80px); padding: 0; background: none; border: 0; border-radius: 0; }
+.fieldNotes .feltStory .editorialArticleClose p { margin: 0 0 8px; max-width: 26ch; font: 400 24px/1.35 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-ink); }
+.fieldNotes .feltStory .editorialArticleClose .textLink { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; font: 600 15px/1.2 var(--f-ui); color: var(--f-lobster-ink); }
+.fieldNotes .feltStory .editorialArticleClose .textLink svg { width: 18px; height: 18px; }
+.fieldNotes:has(.feltStory) .fieldNotesFooter { width: min(100% - 2 * var(--f-gutter), var(--f-rail)); color: var(--f-ink-2); font: 500 14px/1.4 var(--f-ui); justify-content: space-between; align-items: center; }
+.fieldNotes:has(.feltStory) .fieldNotesFooter a { color: var(--f-ink); }
+
+/* Wide screens: the reading column steps left and each source's first citation gets a margin note. */
+.feltSidenote { display: none; }
+@media (min-width: 1240px) {
+  .fieldNotes .feltProse, .fieldNotes .feltStory .editorialSources, .fieldNotes .feltStory .editorialRelated, .fieldNotes .feltStory .editorialArticleClose {
+    margin-left: max(var(--f-gutter) + 96px, 50% - 450px);
+    margin-right: auto;
+  }
+  .feltSidenote {
+    display: block;
+    float: right;
+    clear: right;
+    width: 230px;
+    margin: .35em -280px 12px 0;
+    font: 500 13px/1.45 var(--f-ui);
+    color: var(--f-ink-2);
+  }
+  .feltSidenote b { display: block; margin-bottom: 2px; font: 720 22px/1 var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 0; color: var(--f-lobster-ink); }
+  .feltSidenote strong { font-weight: 650; color: var(--f-ink); }
+}
+
+/* Hover is a bonus on fine pointers only. */
+@media (hover: hover) and (pointer: fine) {
+  .fieldNotes .feltToolPrimary:not(:disabled):hover { background: #fffaf0; }
+  .fieldNotes .feltTool:not(.feltToolPrimary):not(:disabled):hover { border-color: var(--f-on-felt); background: rgb(255 250 235 / 8%); color: var(--f-on-felt); }
+  .feltRead:hover svg, .feltEntry:hover .feltRead svg, .fieldNotes .feltStory .editorialRelated a:hover svg { transform: translateX(4px); }
+  .feltEntry:hover h3, .fieldNotes .feltStory .editorialRelated a:hover { color: var(--f-lobster-ink); }
+  .feltSheet[data-ready="true"] .feltSlip:hover { transform: translateY(-2px) rotate(calc(var(--r) * 1.8)); box-shadow: 0 2px 0 rgb(90 56 30 / 18%), 0 8px 14px -4px rgb(90 56 30 / 34%); }
+  .feltSheet[data-ready="true"] .feltStitch:hover { color: #e0602f; }
+  .fieldNotes .feltTry:hover { background: var(--f-felt-deep); }
+  .fieldNotes:has(.feltHome) .fieldNotesNav a:not([aria-current="page"]):hover { color: var(--f-on-felt); background: rgb(255 250 235 / 10%); }
+  .fieldNotes:has(.feltStory) .fieldNotesNav a:not([aria-current="page"]):hover { color: var(--f-ink); background: color-mix(in srgb, var(--f-ink) 7%, transparent); }
+  .fieldNotes .feltStory .editorialSource summary:hover .feltSourceToggle { box-shadow: inset 0 0 0 1.5px var(--f-ink); }
+}
+
+/* ---------- Layout below desktop ---------- */
+@media (max-width: 1040px) {
+  /* One column: the page, then what happened to it, then the tools, so all three share a screen. */
+  .feltHero, .feltTable { grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "sheet" "controls" "after"; grid-template-rows: none; row-gap: 10px; }
+  .feltDeck, .feltStatus { max-width: 36ch; }
+  .feltDeck, .feltTableIntro { margin-bottom: 4px; }
+  .feltSpecimen { max-width: 640px; }
+  .feltSpecimen figcaption { margin-top: 8px; }
+  .feltControls { display: flex; flex-direction: column; gap: 8px; max-width: 640px; margin: 0; }
+  .feltResult { order: -1; }
+  .feltTools { margin: 0; }
+  .feltEntry, .feltEntry:nth-of-type(even) { grid-template-columns: minmax(0, 1fr); }
+  .feltEntry:nth-of-type(even) .feltEntryArt { order: 0; }
+  .feltEntryArt { max-width: 640px; }
+  .feltCrew { grid-template-columns: minmax(0, 1fr); }
+  .feltStoryHead { grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
+}
+@media (max-width: 640px) {
+  .fieldNotes:has(.feltHome) .fieldNotesHeader, .fieldNotes:has(.feltStory) .fieldNotesHeader { min-height: 68px; }
+  .fieldNotes:has(.feltHome) .fieldNotesNav a, .fieldNotes:has(.feltStory) .fieldNotesNav a { padding-inline: 12px; font-size: 14px; }
+  .feltMasthead { padding: 16px 0 28px; }
+  .fieldNotes .feltMasthead h1 { font-size: 34px; line-height: 1.02; }
+  .feltCast { flex-direction: column; gap: 8px; }
+  .feltCast li { font-size: 16px; }
+  .feltCast strong { display: inline; font-size: inherit; }
+  .feltCast .feltAvatar { flex-basis: 40px; width: 40px; height: 40px; }
+  .feltHero { padding-top: 28px; padding-bottom: 48px; }
+  .fieldNotes .feltHero h2 { margin-bottom: 12px; font-size: 46px; letter-spacing: -.022em; }
+  .feltDeck { font-size: 17px; }
+  .feltTools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-bottom: 16px; }
+  .fieldNotes .feltTool { min-height: 48px; padding: 0 16px 0 14px; gap: 9px; font-size: 16px; }
+  .feltTool[data-tool="labels"], .feltTool[data-tool="lines"] { min-width: 0; }
+  .feltStatus { font-size: 16px; }
+  .feltSheet { padding: 14px 18px 10px; }
+  .feltSheetTitle { font-size: 29px; }
+  .feltSheetBody { grid-template-columns: minmax(0, 1fr) 92px; gap: 4px 10px; }
+  .feltSheetHeading { font-size: 21px; }
+  .feltSheetBody p { font-size: 15px; }
+  .feltNotebook { padding-top: 72px; }
+  .feltEntryCopy p { font-size: 19px; }
+  .fieldNotes .feltProse { font-size: 18px; line-height: 1.56; }
+  .fieldNotes .feltStoryScene img { aspect-ratio: 3 / 2; }
+  .feltTable h2 { font-size: 38px; }
+  .fieldNotes:has(.feltHome) .fieldNotesFooter, .fieldNotes:has(.feltStory) .fieldNotesFooter { flex-direction: column; align-items: flex-start; }
+  .fieldNotes .feltStory .editorialSourceBody { padding-left: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feltSlip, .feltTool, .feltRead svg, .feltEntry h3, .feltMark, .feltStitch::before { transition: none !important; }
+  .feltLobster[data-refused="true"], .feltStitch[data-pulling="true"] svg, .feltStitch[data-restitch="true"] svg { animation: none !important; }
+}

@@ -1,65 +1,10 @@
-/* A playable editorial cover. Only the specimen changes, never the controls. */
+/* Shared notebook chrome plus the pieces cover.js composes into the other stories. The homepage now lives in felt.css. */
 html, body { overscroll-behavior: none; background-color: #f6f1e7; }
 html[data-theme="dark"], html[data-theme="dark"] body { background-color: #171b16; }
 html { scroll-padding-top: 24px; }
-.fieldNotes { --cover-ease: cubic-bezier(.22, .61, .36, 1); min-height: 100svh; }
+.fieldNotes { min-height: 100svh; }
 .fieldNotesHeader, .fieldNotesView, .fieldNotesFooter { max-width: 1120px; }
 .fieldNotesBrand img { object-fit: contain; }
-.coverHome { padding-top: 16px; }
-.coverWelcome br { display: none; }
-.fieldNotes .coverWelcome h1 { margin: 0; font: 500 32px/1.15 var(--sans); letter-spacing: -.025em; }
-.coverWelcome p { margin: 4px 0 0; color: var(--muted); font: 15px/1.5 var(--sans); }
-.coverHero { display: grid; grid-template-columns: 1fr 1.12fr; column-gap: 64px; padding: 24px 0 40px; align-items: start; }
-.coverLead { grid-column: 1; grid-row: 1; }
-.fieldNotes .coverLead h2 { margin: 22px 0 20px; font: 400 clamp(52px, 6.1vw, 80px)/.96 var(--serif); letter-spacing: -.045em; }
-.coverLead em { color: var(--orange-dark); font-weight: 400; }
-.coverLead p { margin: 0 0 14px; max-width: 360px; font: 17px/1.6 var(--sans); color: var(--muted); }
-.coverTools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
-.fieldNotes .coverHome button { min-height: 48px; border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent); border-radius: 8px; padding: 10px 14px; display: inline-flex; justify-content: center; align-items: center; gap: 9px; background: transparent; color: var(--ink); font: 600 14px/1.3 var(--sans); cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
-.fieldNotes .coverHome button[data-edited="true"] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
-.coverHome button svg, .coverRead svg { width: 19px; height: 19px; flex-shrink: 0; }
-.fieldNotes .coverHome .coverReset { border-color: transparent; width: 48px; flex: 0 0 48px; padding: 0; font-weight: 500; }
-.coverReset span { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
-.fieldNotes .coverHome button:disabled { cursor: default; opacity: .4; }
-.coverSpecimen { grid-column: 2; margin: 0; min-width: 0; padding: 16px; background: #e6dbc8; border-radius: 4px; }
-.coverPaper { padding: 20px; background: #fffaf1; color: #292e24; box-shadow: 0 2px 4px #5a3c1812, 0 12px 24px #5a3c1810; }
-.coverLabelSlot { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 280ms var(--cover-ease); }
-.coverLabelSlot > div { min-height: 0; overflow: hidden; }
-.coverLabel { display: inline-block; margin-bottom: 10px; padding: 5px 9px; font: 600 11px/1.3 var(--sans); letter-spacing: .01em; background: #ebceb7; color: #574637; border-radius: 2px; opacity: 1; transform: translateY(0); transition: opacity 160ms ease, transform 280ms var(--cover-ease); }
-.coverHero[data-labels="false"] .coverLabelSlot { grid-template-rows: 0fr; }
-.coverHero[data-labels="false"] .coverLabel { opacity: 0; transform: translateY(-15px); }
-.coverSampleTitle { font: 400 32px/1.07 var(--serif); letter-spacing: -.025em; }
-.coverRule { height: 2px; margin: 12px 0; background: #b4a68e; transform-origin: left; transition: transform 280ms var(--cover-ease), opacity 180ms ease; }
-.coverHero[data-rules="false"] .coverRule { transform: scaleX(0); opacity: 0; }
-.coverSampleBody { display: grid; grid-template-columns: 1.4fr 1fr; gap: 6px; align-items: center; }
-.coverSampleHeading { font: 400 25px/1.1 var(--serif); letter-spacing: -.02em; }
-.fieldNotes .coverSampleBody p { font: 14px/1.45 var(--sans); margin: 12px 0 0; max-width: 210px; color: #656458; }
-.fieldNotes .coverSampleBody img { width: 100%; max-height: 146px; height: auto; object-fit: contain; mix-blend-mode: multiply; }
-.coverPaperByline { font: 12px/1.4 var(--sans); color: #656458; }
-.coverSpecimen figcaption { margin-top: 12px; font: 11px/1.4 var(--sans); color: #665b4a; }
-.coverResult { min-height: 2em; margin: 0 0 12px; font: 15px/1.5 var(--serif); color: #665b4a; }
-.fieldNotes .coverRead { display: inline-flex; min-height: 48px; gap: 14px; align-items: center; color: var(--ink); font: 600 14px/1.4 var(--sans); }
-.coverReceipt { display: grid; grid-template-columns: .92fr 1.08fr; gap: 56px; align-items: center; margin: 36px 0 72px; padding: 44px 48px; background: var(--sage); border-radius: 4px; }
-.fieldNotes .coverReceipt h2, .fieldNotes .coverEssay h2 { margin: 0 0 16px; font: 400 clamp(32px, 3.5vw, 47px)/1.05 var(--serif); letter-spacing: -.035em; }
-.coverReceiptCopy > p:not(.coverReceiptResult) { margin: 0 0 24px; color: var(--muted); font: 16px/1.55 var(--sans); }
-.coverReceiptResult { min-height: 3em; margin: 16px 0 10px; color: var(--muted); font: 15px/1.5 var(--serif); }
-.coverRecordPair { position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 14px; margin: 0; }
-.coverRecord { min-width: 0; padding: 22px 18px; color: #292e24; background: #fffaf1; border-radius: 3px; box-shadow: 0 4px 12px #17230e0a; }
-.coverRecord:nth-child(2) { margin-top: 24px; }
-.coverPart { font: 600 13px/1.4 var(--sans); }
-.coverRecord p { margin: 20px 0 26px; font: 20px/1.25 var(--serif); }
-.coverRecordState { display: inline-flex; min-height: 33px; align-items: center; padding: 6px 8px; background: #dce7bf; color: #43522b; font: 600 12px/1.4 var(--sans); border: 1px solid transparent; border-radius: 3px; transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease; }
-.coverReceipt[data-complete="false"] .coverFirstRecord .coverRecordState { background: transparent; color: #9b4b2e; border: 1px dashed #9b4b2e; }
-.coverRecordPair figcaption { grid-column: 1/-1; margin-top: 4px; font: 12px/1.5 var(--sans); color: var(--muted); }
-.coverEssay { margin-bottom: 52px; }
-.coverEssayLink { display: grid; grid-template-columns: 1.08fr 1fr; gap: 56px; align-items: center; }
-.coverEssay figure { margin: 0; border-radius: 4px; background: var(--blush); overflow: hidden; }
-.fieldNotes .coverEssay img { width: 100%; height: auto; aspect-ratio: 1.65; object-fit: contain; mix-blend-mode: multiply; }
-.coverEssay p { max-width: 350px; margin: 0 0 20px; color: var(--muted); font: 16px/1.6 var(--sans); }
-.fieldNotes[data-theme="dark"] .coverEssay img { mix-blend-mode: normal; }
-.fieldNotes[data-theme="dark"] .coverSpecimen { background: #383e30; }
-.fieldNotes[data-theme="dark"] .coverSpecimen figcaption { color: #bbc1b1; }
-.fieldNotes[data-theme="dark"] .coverResult { color: #d2d4c8; }
 .repairExperiment { scroll-margin-top: 72px; }
 .fieldNotes .coverStoryReturn { display: inline-flex; align-items: center; min-height: 48px; margin-bottom: 10px; color: var(--muted); font: 500 14px/1.4 var(--sans); }
 #story-start { scroll-margin-top: 72px; }
@@ -83,32 +28,6 @@ html { scroll-padding-top: 24px; }
 .receiptComparisonCase .receiptComparisonMissing { background: color-mix(in srgb, var(--paper) 45%, transparent); color: var(--orange-dark); }
 .fieldNotes .receiptComparisonCase p { margin: 12px 0 0; font: 15px/1.5 var(--sans); }
 .fieldNotes .receiptExplainer .receiptProvenance { margin: 24px 0 0; padding: 0; background: transparent; color: var(--muted); font: 12px/1.5 var(--sans); }
-@media (min-width: 1001px) and (max-height: 760px) {
-  .coverSpecimen { padding-block: 12px; }
-  .coverPaper { padding-block: 12px; }
-  .coverSpecimen figcaption { margin-top: 8px; }
-}
-@media (hover: hover) and (pointer: fine) {
-  .fieldNotes .coverHome button:not(:disabled):hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
-  .fieldNotes .coverHome button[data-edited="true"]:hover { background: var(--orange-dark); border-color: var(--orange-dark); }
-  .fieldNotes .coverRead:hover, .coverEssayLink:hover h2 { color: var(--orange-dark); }
-}
-@media (max-width: 1000px) {
-  .coverHero { column-gap: 32px; }
-  .coverReceipt { gap: 32px; padding: 36px 32px; }
-  .coverPaper { padding: 20px; }
-  .coverTools { gap: 6px; }
-  .fieldNotes .coverHome button { padding-inline: 10px; font-size: 13px; }
-}
-@media (max-width: 760px) {
-  .coverHero { column-gap: 24px; }
-  .coverSampleHeading { font-size: 22px; }
-  .coverSpecimen { padding: 16px; }
-  .coverPaper { padding: 20px; }
-  .coverReceipt { grid-template-columns: 1fr; gap: 28px; }
-  .coverRecordPair { max-width: 460px; }
-  .coverEssayLink { gap: 28px; }
-}
 @media (max-width: 600px) {
   .repairCredits summary { width: 100%; display: grid; grid-template-columns: minmax(0,1fr) 24px; gap: 4px 12px; }
   .creditAuthor { grid-column: 1; grid-row: 1; }
@@ -118,51 +37,4 @@ html { scroll-padding-top: 24px; }
   .fieldNotes .receiptExplainer h3 { font-size: 22px; }
   .receiptComparisonColumns { grid-template-columns: 1fr; gap: 24px; }
   .fieldNotesHeader { padding-top: 8px; }
-  .coverHome { padding-top: 18px; }
-  .coverWelcome br { display: initial; }
-  .fieldNotes .coverWelcome h1 { max-width: 350px; font-size: 24px; }
-  .coverWelcome p { font-size: 13px; max-width: 310px; }
-  .coverHero { grid-template-columns: 1fr; padding: 22px 0 20px; gap: 12px; }
-  .coverLead { grid-column: 1; grid-row: 1; }
-  .fieldNotes .coverLead h2 { font-size: 40px; margin: 0 0 10px; }
-  .coverLead p { font-size: 14px; line-height: 1.5; margin-bottom: 4px; }
-  .coverTools { margin: 0 0 8px; flex-wrap: nowrap; }
-  .fieldNotes .coverHome button { padding: 10px 11px; font-size: 12px; gap: 7px; }
-  .coverHome button svg { width: 17px; height: 17px; }
-  .fieldNotes .coverHome .coverReset { margin-left: auto; min-width: 42px; }
-  .coverSpecimen { grid-column: 1; grid-row: 2; padding: 12px; }
-  .coverPaper { padding: 17px; }
-  .coverSampleTitle { font-size: 29px; }
-  .coverSampleHeading { font-size: 20px; }
-  .coverLabel { font-size: 10px; padding: 5px 8px; margin-bottom: 12px; }
-  .coverRule { margin-block: 14px; }
-  .coverSampleBody { grid-template-columns: 1.6fr 1fr; }
-  .fieldNotes .coverSampleBody p { font-size: 12px; margin-top: 10px; }
-  .fieldNotes .coverSampleBody img { max-height: 147px; }
-  .coverPaperByline { font-size: 10px; }
-  .coverSpecimen figcaption { font-size: 10px; }
-  .coverResult { min-height: 3em; margin-bottom: 10px; font-size: 14px; }
-  .fieldNotes .coverRead { font-size: 13px; gap: 10px; }
-  .coverReceipt { padding: 28px 22px; margin: 36px 0 44px; gap: 24px; }
-  .fieldNotes .coverReceipt h2, .fieldNotes .coverEssay h2 { font-size: 37px; }
-  .coverReceiptCopy > p:not(.coverReceiptResult) { font-size: 15px; }
-  .coverReceiptResult { min-height: 3em; }
-  .coverRecordPair { gap: 10px; }
-  .coverRecord { padding: 18px 12px; }
-  .coverRecord p { font-size: 18px; margin: 16px 0 22px; }
-  .coverRecordState { font-size: 10px; }
-  .coverRecordPair figcaption { font-size: 11px; }
-  .coverEssayLink { grid-template-columns: 1fr; gap: 22px; }
-  .coverEssay p { font-size: 15px; }
-}
-@media (max-width: 360px) {
-  .fieldNotes .coverHome button { padding-inline: 8px; gap: 5px; }
-  .coverTools { gap: 3px; }
-  .coverTools button svg { width: 14px; }
-  .coverPaper { padding: 17px; }
-  .coverSampleTitle { font-size: 27px; }
-  .coverSampleHeading { font-size: 21px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .coverHome *, .coverHome *::before, .coverHome *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
