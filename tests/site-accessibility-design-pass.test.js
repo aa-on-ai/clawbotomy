@@ -65,20 +65,16 @@ test('long run reports collapse cases into eased, reviewable summaries', () => {
   assert.match(styles, /\.caseDisclosureOpen \.caseDisclosureContent[\s\S]*grid-template-rows:\s*1fr/);
 });
 
-test('method and evidence pages use structured rows without decorative text collisions', () => {
-  const about = read('src/app/about/page.tsx');
-  const bench = read('src/app/bench/page.tsx');
-  const benchStyles = read('src/app/bench/bench.module.css');
-  const runStyles = read('src/app/bench/runs/[runId]/run.module.css');
-
-  assert.match(about, /className={styles\.methodRows}/);
-  assert.match(about, /Freeze the plan/);
-  assert.match(about, /Observe the run/);
-  assert.match(about, /Keep the decision human/);
-  assert.doesNotMatch(about, /list-disc/);
-  assert.match(bench, /className={styles\.claimBoundary}/);
-  assert.doesNotMatch(benchStyles, /linear-gradient\(90deg, transparent 0 74%/);
-  assert.doesNotMatch(runStyles, /linear-gradient\(90deg, transparent 0 74%/);
+test('about explains editorial limits while retained evidence keeps a visible claim boundary', () => {
+  const { render } = require('./helpers/render-source');
+  const about = JSON.parse(read('public/notebook/snapshot.json')).pages.about.html;
+  const bench = render('src/app/bench/page.tsx');
+  assert.match(about, /Begin with an event/);
+  assert.match(about, /Keep uncertainty visible/);
+  assert.match(about, /Interview for real/);
+  assert.equal((about.match(/<h1(?: |>)/g) || []).length, 1);
+  assert.match(bench, /Claim boundary/);
+  assert.match(bench, /not public evidence/);
 });
 
 test('the reviewed contrast defects keep text on accessible surface treatments', () => {

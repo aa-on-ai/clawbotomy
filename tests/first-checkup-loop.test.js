@@ -33,19 +33,20 @@ test('checked-in reference-control files match their integrity manifests', () =>
   }
 });
 
-test('primary navigation names the product path and keeps the model bench in the archive', () => {
-  const header = read('src/components/site/SiteHeader.tsx');
-  const footer = read('src/components/site/SiteFooter.tsx');
-  const home = read('src/app/page.tsx');
+test('retained tool navigation names the checkup path without replacing the notebook', () => {
+  const { render } = require('./helpers/render-source');
+  const header = render('src/components/site/SiteHeader.tsx', 'SiteHeader');
+  const footer = render('src/components/site/SiteFooter.tsx', 'SiteFooter');
+  const home = read('public/notebook/index.html');
 
-  assert.match(header, /href: '\/checkups', label: 'Checkups'/);
-  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
-  assert.match(header, /href: '\/about', label: 'Method'/);
-  assert.doesNotMatch(header, /href: '\/bench', label: 'Evidence'/);
+  assert.match(header, /href="\/checkups"[^>]*>Checkups<\/a>/);
+  assert.match(header, /href="\/evaluate"[^>]*>Inspect<\/a>/);
+  assert.match(header, /href="\/about"[^>]*>About<\/a>/);
+  assert.doesNotMatch(header, /href="\/bench"/);
   assert.match(header, /Plan a checkup/);
   assert.match(footer, /href="\/bench">Archive/);
-  assert.match(home, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
-  assert.match(home, /href="\/evaluate" className={styles\.inlineLink}>Inspect evidence/);
+  assert.match(home, /Read the story behind the edit/);
+  assert.doesNotMatch(home, /Plan a checkup|Inspect evidence/);
 });
 
 test('checked-in reference controls preserve their non-authorizing provenance and expected polarity', async () => {
@@ -93,7 +94,7 @@ test('OpenClaw preflight stages an external plan and resolves a launcher symlink
   fs.mkdirSync(runtime, { recursive: true });
   const planPath = path.join(downloads, 'plan.json');
   fs.copyFileSync(path.join(root, 'tests/fixtures/inbox-plan.v1.json'), planPath);
-  const runtimeBinary = path.join(runtime, 'openclaw.js');
+  const runtimeBinary = path.join(fs.realpathSync(runtime), 'openclaw.js');
   fs.writeFileSync(runtimeBinary, '#!/usr/bin/env node\n');
   fs.chmodSync(runtimeBinary, 0o755);
   const runtimeLink = path.join(directory, 'openclaw');

@@ -20,24 +20,25 @@ test('checkups package the shipped workflow without unsupported remedy claims', 
   assert.doesNotMatch(page, /Phase 9|Completion Evidence Gate|validated intervention/i);
 });
 
-test('checkups are discoverable from the human and machine-facing surfaces', () => {
-  const home = read('src/app/page.tsx');
-  const header = read('src/components/site/SiteHeader.tsx');
-  const footer = read('src/components/site/SiteFooter.tsx');
-  const sitemap = read('src/app/sitemap.ts');
+test('retained checkups remain discoverable separately from the editorial notebook', () => {
+  const { render, load } = require('./helpers/render-source');
+  const home = read('public/notebook/index.html');
+  const header = render('src/components/site/SiteHeader.tsx', 'SiteHeader');
+  const footer = render('src/components/site/SiteFooter.tsx', 'SiteFooter');
+  const sitemap = load('src/app/sitemap.ts').default();
   const llms = read('public/llms.txt');
 
-  assert.match(home, /href="\/checkups"/);
-  assert.match(home, /Plan data stays in this browser/);
-  assert.match(header, /href: '\/checkups', label: 'Checkups'/);
-  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
-  assert.match(header, /href: '\/about', label: 'Method'/);
+  assert.match(home, /An AI agent’s notebook/);
+  assert.doesNotMatch(home, /Plan a checkup/);
+  assert.match(header, /href="\/checkups"[^>]*>Checkups<\/a>/);
+  assert.match(header, /href="\/evaluate"[^>]*>Inspect<\/a>/);
+  assert.match(header, /href="\/about"[^>]*>About<\/a>/);
   assert.match(header, /href="\/preflight"/);
   assert.match(header, /Plan a checkup/);
   assert.match(footer, /href="\/bench">Archive/);
-  assert.doesNotMatch(header, /label: '(Evaluate|Trust|Routing|Lab|Docs)'/);
+  assert.doesNotMatch(header, />(Evaluate|Trust|Routing|Lab|Docs)<\/a>/);
   assert.match(footer, /href="\/checkups">Checkups/);
-  assert.match(sitemap, /'\/checkups'/);
+  assert.ok(sitemap.some(entry => new URL(entry.url).pathname === '/checkups'));
   assert.match(llms, /clawbotomy\.com\/checkups/);
 });
 

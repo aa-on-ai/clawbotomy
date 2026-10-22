@@ -9,7 +9,7 @@ import styles from './site-chrome.module.css';
 const links = [
   { href: '/checkups', label: 'Checkups' },
   { href: '/evaluate', label: 'Inspect' },
-  { href: '/about', label: 'Method' },
+  { href: '/about', label: 'About' },
 ];
 
 export function SiteHeader() {

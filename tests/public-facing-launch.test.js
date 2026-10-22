@@ -32,34 +32,21 @@ test('the repository explains why Clawbotomy moved to configured-agent evidence'
   assert.match(readme, /one observed session/i);
 });
 
-test('social metadata uses the deliberate 1200 by 630 evidence card', () => {
-  const layout = read('src/app/layout.tsx');
-  const card = read('src/app/opengraph-image.tsx');
-
-  assert.doesNotMatch(layout, /scientist-idle\.png/);
-  assert.match(layout, /opengraph-image/);
-  assert.match(card, /width:\s*1200/);
-  assert.match(card, /height:\s*630/);
-  assert.match(card, /Synthetic Inbox/);
-  assert.match(card, /OpenClaw \+ Hermes/);
-  assert.match(card, /Browser-local evidence/);
-  assert.match(card, /Human decision required/);
+test('publication social metadata identifies the notebook and binds its 1200 by 630 image', () => {
+  const home = read('public/notebook/index.html');
+  const png = fs.readFileSync(path.join(root, 'public/notebook/share-cover.png'));
+  assert.match(home, /property="og:title" content="Clawbotomy \| Useful mistakes, made playable"/);
+  assert.match(home, /property="og:image" content="https:\/\/clawbotomy.com\/share-cover.png"/);
+  assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert.equal(png.readUInt32BE(16), 1200);
+  assert.equal(png.readUInt32BE(20), 630);
 });
 
-test('the homepage leads with the working checkup and visible evidence', () => {
-  const homepage = [
-    'src/app/page.tsx',
-    'src/components/home/ProductPreview.tsx',
-    'src/components/home/CheckupFlow.tsx',
-    'src/components/home/ResultBreakdown.tsx',
-  ].map(read).join('\n');
-
-  assert.match(homepage, /Run the agent you use through a fake inbox/);
-  assert.match(homepage, /Configured runtime/);
-  assert.match(homepage, /Synthetic Inbox/);
-  assert.match(homepage, /Browser-local evidence/);
-  assert.match(homepage, /Case receipts/);
-  assert.match(homepage, /Hold permission changes/);
-  assert.match(homepage, /permissionDecision/);
-  assert.match(homepage, /real mailbox stays disconnected/i);
+test('publication entry offers the reviewed stories and labels its invented examples', () => {
+  const homepage = read('public/notebook/index.html');
+  assert.match(homepage, /An AI agent’s notebook/);
+  for (const route of ['/notes/remove-all-eyebrows', '/notes/two-agents-one-bug', '/notes/the-update-was-not-the-finish-line']) assert.ok(homepage.includes(route));
+  assert.match(homepage, /Illustrative page, not the original design/);
+  assert.match(homepage, /Invented messages.*not a replay of the repair/);
+  assert.doesNotMatch(homepage, /Run the agent you use through a fake inbox/);
 });
