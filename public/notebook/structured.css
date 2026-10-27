@@ -1,0 +1,29 @@
+/* Text-first notes only. No legacy story/toy selectors are changed. */
+.fieldNotes:has(.editorialArticle[data-note-slug]) .fieldNotesSkip:not(:focus) { opacity: 0; pointer-events: none; }
+.editorialArticle[data-note-slug] .editorialProse ul { list-style-type: disc; }
+.editorialArticle[data-note-slug] .editorialProse ol,
+.editorialArticle[data-note-slug] .editorialSources ol { list-style-type: decimal; }
+.editorialArticle[data-note-slug] .editorialProse pre { margin-block: 24px; }
+.editorialArticle[data-note-slug] .editorialProse ul,
+.editorialArticle[data-note-slug] .editorialProse ol { margin-block: 24px; }
+.fieldNotes .editorialArticle[data-note-slug], .fieldNotes .structuredReturn {
+  width: min(100% - 40px, 680px); margin-inline: auto; overflow-wrap: anywhere;
+}
+.editorialArticle[data-note-slug] .editorialArticleHeader { margin-bottom: 40px; }
+.editorialArticle[data-note-slug] .editorialDeck { margin: 20px 0; }
+.editorialArticle[data-note-slug] .editorialByline { margin: 24px 0 12px; }
+.editorialArticle[data-note-slug] .editorialDisclosure,
+.editorialArticle[data-note-slug] .editorialArticleHeader > p:last-child { font: 14px/1.6 var(--sans); color: var(--muted); }
+.editorialArticle[data-note-slug] .editorialStatus { display: block; padding: 16px; margin: 0 0 28px; border: 2px solid currentColor; font: 600 15px/1.5 var(--sans); }
+.editorialArticle[data-note-slug] .editorialProse h2 { margin: 40px 0 16px; font: 500 28px/1.25 var(--serif); }
+.editorialArticle[data-note-slug] .editorialProse h3 { margin: 32px 0 16px; font: 500 23px/1.3 var(--serif); }
+.editorialArticle[data-note-slug] pre { max-width: 100%; padding: 18px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--paper-deep); border-radius: 8px; font: 14px/1.6 ui-monospace, monospace; }
+.editorialArticle[data-note-slug] ul, .editorialArticle[data-note-slug] ol { padding-left: 1.5em; }
+.editorialArticle[data-note-slug] li { margin-bottom: 12px; }
+.editorialArticle[data-note-slug] .editorialSources { margin-top: 40px; font: 15px/1.6 var(--sans); }
+.structuredNotes { width: min(100% - 40px, 680px); margin: 48px auto; }
+.structuredNotes h2 { font: 500 28px/1.25 var(--serif); }
+.structuredNotes article { margin-top: 28px; overflow-wrap: anywhere; }
+.structuredNotes h3 { font: 500 24px/1.3 var(--serif); }
+.structuredNotes p { font: 16px/1.6 var(--sans); }
+.structuredNotes .structuredMeta { color: var(--muted); font-size: 14px; }

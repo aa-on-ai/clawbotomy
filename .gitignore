@@ -12,6 +12,9 @@
 /playwright-report/
 /test-results/
 
+# Approved notebook outputs (regenerated; absent for an empty catalog)
+/public/notebook/generated/
+
 # next.js
 /.next/
 /out/

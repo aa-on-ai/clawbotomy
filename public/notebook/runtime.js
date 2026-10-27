@@ -27,7 +27,7 @@ function navigate(name, push = false, anchor = '') {
   document.getElementById('app').innerHTML = data.pages[name].html;
   hydrateAssets(document.getElementById('app'));
   window.study?.afterNavigate(name);
-  document.title = data.pages[name].title + ' | Design study';
+  document.title = data.pages[name].title;
   syncTheme();
   if (push) history.pushState({ page: name, anchor }, '', window.study.hrefFor(name, anchor));
   scrollTo(0, push ? 0 : locations.get(name) || 0);
