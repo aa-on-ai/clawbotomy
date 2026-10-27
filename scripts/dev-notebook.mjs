@@ -26,7 +26,13 @@ function signalGroup(pid, signal) {
   try { process.kill(-pid, signal); } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 function groupExists(pid) {
-  try { process.kill(-pid, 0); return true; } catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+  try { process.kill(-pid, 0); return true; } catch (error) {
+    if (error.code === 'ESRCH') return false;
+    // A denied probe is not proof of absence. Keep the bounded wait/escalation;
+    // Darwin can briefly return EPERM while a terminating group disappears.
+    if (error.code === 'EPERM') return true;
+    throw error;
+  }
 }
 function stop(code, message) {
   if (stopping) return shutdown;

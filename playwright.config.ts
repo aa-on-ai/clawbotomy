@@ -21,8 +21,11 @@ export default defineConfig({
     ? undefined
     : {
         command: 'npm run dev -- --hostname 127.0.0.1 --port 3100',
-        url: 'http://127.0.0.1:3100',
+        // Wait for the boot-critical dynamic catalog, not only the static shell.
+        url: 'http://127.0.0.1:3100/notebook/catalog.json',
         reuseExistingServer: !process.env.CI,
+        // The supported dev wrapper must forward shutdown to its owned Next group.
+        gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
         timeout: 120_000,
       },
   projects: [

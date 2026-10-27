@@ -52,7 +52,7 @@ function linuxStat(pid) {
 function rememberProcesses(server) {
   server.startProcesses = descendants(server.proc.pid).map(row => ({ ...row, linuxStat: linuxStat(row.pid) }));
   server.pids = server.startProcesses.map(row => row.pid);
-  server.wrapper = server.startProcesses.find(row => /node scripts\/dev-notebook\.mjs/.test(row.command))?.pid;
+  server.wrapper = server.startProcesses.find(row => /^(?:\S*\/)?node scripts\/dev-notebook\.mjs(?:\s|$)/.test(row.command))?.pid;
 }
 async function shutdownObservation(server) {
   const rows = processRows();
@@ -79,10 +79,10 @@ function fixture(t) {
   });
   return root;
 }
-async function launch(t, root, args) {
+async function launch(t, root, args, env = {}) {
   const p = await port();
   const proc = spawn('npm', ['run', 'dev', '--', ...(args || ['--hostname', '127.0.0.1', '--port', String(p)])], {
-    cwd: root, detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' },
+    cwd: root, detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ...env, NEXT_TELEMETRY_DISABLED: '1' },
   });
   let log = ''; proc.stdout.on('data', chunk => { log += chunk; }); proc.stderr.on('data', chunk => { log += chunk; });
   const result = { proc, port: p, pids: [], log: () => log };
@@ -158,13 +158,18 @@ test('shutdown diagnostics distinguish live, stopped and reaped PIDs from the li
 
 test('supported npm dev fail-stops approved → retired; restart removes canonical AND raw artifacts', { timeout: 120000 }, async t => {
   const root = fixture(t);
-  const server = await launch(t, root); await ready(server);
+  // Retain a real npm shell on every POSIX host, as Linux npm does. Its command
+  // contains the wrapper text but the shell is not the signal-handler owner.
+  const shell = join(root, 'retained-shell.sh');
+  writeFileSync(shell, '#!/bin/sh\n/bin/sh "$@" &\nwait $!\n', { mode: 0o700 });
+  const env = { npm_config_script_shell: shell };
+  const server = await launch(t, root, undefined, env); await ready(server);
   const target = join(root, 'content/notebook/catalog.mjs');
   // Atomic-save editor behavior, not only an in-place write.
   writeFileSync(target + '.new', syntheticCatalogSource({ retiredSlugs: ['synthetic-fixture'] }));
   renameSync(target + '.new', target);
   await stopped(t, server);
-  const restarted = await launch(t, root);
+  const restarted = await launch(t, root, undefined, env);
   await until(() => restarted.log().includes('Ready in'), 'retired restart not ready', 45000);
   rememberProcesses(restarted);
   for (const path of paths) assert.equal((await fetch(`http://127.0.0.1:${restarted.port}${path}`)).status, 404, path);
@@ -174,6 +179,30 @@ test('supported npm dev fail-stops approved → retired; restart removes canonic
   assert.equal(existsSync(join(root, 'public/notebook/generated')), false);
   assert.ok(restarted.wrapper, 'owned wrapper must exist'); process.kill(restarted.wrapper, 'SIGTERM');
   await stopped(t, restarted, false);
+});
+
+test('transient group-probe EPERM stays conservative and shutdown still closes every owned process', { timeout: 90000 }, async t => {
+  const root = fixture(t);
+  const preload = join(root, 'group-probe-fault.cjs');
+  writeFileSync(preload, `
+if (process.argv[1]?.endsWith('/scripts/dev-notebook.mjs')) {
+  const original = process.kill;
+  let injected = false;
+  process.kill = function (pid, signal) {
+    if (!injected && pid < 0 && signal === 0) {
+      injected = true;
+      console.error('[probe-EPERM]');
+      throw Object.assign(new Error('kill EPERM'), { code: 'EPERM' });
+    }
+    return original.call(process, pid, signal);
+  };
+}
+`);
+  const server = await launch(t, root, undefined, { NODE_OPTIONS: `--require ${JSON.stringify(preload)}` });
+  await ready(server); assert.ok(server.wrapper); process.kill(server.wrapper, 'SIGTERM');
+  await stopped(t, server, false);
+  assert.match(server.log(), /\[probe-EPERM\]/);
+  assert.doesNotMatch(server.log(), /Error: kill EPERM/);
 });
 
 for (const invalid of ['schema', 'syntax', 'missing']) {
