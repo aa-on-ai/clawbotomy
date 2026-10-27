@@ -483,6 +483,7 @@
 .docsPanel a,
 .docsEvidenceNote a {
   color: var(--text-primary);
+  font-weight: 700;
   text-decoration: none;
   text-decoration-color: var(--cb-signal);
   text-underline-offset: 4px;

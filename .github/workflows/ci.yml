@@ -36,8 +36,12 @@ jobs:
 
   ui-browser:
     name: UI / browser regression audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
+    container:
+      # Match package-lock.json; browsers and OS libraries are already installed.
+      image: mcr.microsoft.com/playwright:v1.55.1-noble@sha256:2f29369043d81d6d69a815ceb80760f55e85f5020371ad06a4d996f18503ad1c
+      options: --user 1001 --init --ipc=host
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,7 +49,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:ui
       - name: Upload failure receipts
         if: failure()

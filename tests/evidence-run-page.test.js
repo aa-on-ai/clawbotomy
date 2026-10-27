@@ -37,14 +37,15 @@ test('the evidence route keeps long raw text contained and keyboard-scrollable',
   assert.match(styles, /overflow-wrap: anywhere/);
 });
 
-test('registry exposes human run pages while the homepage keeps configured-agent evidence scoped', () => {
-  const bench = fs.readFileSync(path.join(root, 'src/app/bench/page.tsx'), 'utf8');
-  const home = fs.readFileSync(path.join(root, 'src/app/page.tsx'), 'utf8');
-
-  assert.match(bench, /href=\{`\/bench\/runs\/\$\{run\.runId\}`\}/);
-  assert.doesNotMatch(bench, /href=\{`\/api\/bench\/runs\/\$\{run\.runId\}`\}>Inspect run/);
-  assert.match(home, /href="\/evaluate"/);
-  assert.match(home, /private bundle is not published/);
-  assert.match(home, /Human decision required/);
-  assert.doesNotMatch(home, /registry is currently empty/);
+test('retained registry exposes human run pages without elevating private aggregate evidence', () => {
+  const { render, load } = require('./helpers/render-source');
+  const bench = render('src/app/bench/page.tsx');
+  const { SANITIZED_HERMES_CASE_STUDY: study } = load('src/lib/agent-evaluation-insights.ts');
+  const index = JSON.parse(fs.readFileSync(path.join(root, 'public/evidence/index.json'), 'utf8'));
+  for (const run of index.runs) assert.ok(bench.includes(`href="/bench/runs/${run.runId}"`));
+  assert.match(bench, /href="\/evaluate"/);
+  assert.match(bench, /bundle is not published/);
+  assert.equal(study.decision, 'Hold permission changes');
+  assert.match(study.disallowedClaim, /does not.*authorize any production permission change/);
+  assert.match(study.boundary, /not public evidence/);
 });

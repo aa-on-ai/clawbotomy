@@ -6,21 +6,21 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('every primary checkup entry starts with the browser-local plan', () => {
-  const home = read('src/app/page.tsx');
-  const preview = read('src/components/home/ProductPreview.tsx');
-  const header = read('src/components/site/SiteHeader.tsx');
-  const checkups = read('src/app/checkups/page.tsx');
-
-  assert.match(home, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
+test('retained checkup entry starts with a plan while the notebook is independently readable', () => {
+  const { render } = require('./helpers/render-source');
+  const home = read('public/notebook/index.html');
+  const preview = render('src/components/home/ProductPreview.tsx', 'ProductPreview');
+  const header = render('src/components/site/SiteHeader.tsx', 'SiteHeader');
+  const checkups = render('src/app/checkups/page.tsx');
+  assert.match(home, /Read the story behind the edit/);
   assert.match(preview, /href="\/preflight"/);
   assert.match(header, /href="\/preflight"/);
   assert.match(header, /Plan a checkup/);
-  assert.match(checkups, /href="\/preflight" className={styles\.primaryAction}>Plan a checkup/);
+  assert.match(checkups, /href="\/preflight"[^>]*>Plan a checkup/);
 
-  assert.doesNotMatch(home, /href="\/evaluate" className={styles\.primaryAction}/);
+  assert.doesNotMatch(home, /Plan a checkup/);
   assert.doesNotMatch(preview, /href="\/evaluate"/);
-  assert.match(header, /href: '\/evaluate', label: 'Inspect'/);
+  assert.match(header, /href="\/evaluate"[^>]*>Inspect<\/a>/);
   assert.doesNotMatch(checkups, /href="\/evaluate"/);
 });
 
@@ -36,16 +36,11 @@ test('checkups present two service modes and retesting as a later lifecycle stag
 });
 
 test('evidence leads with configured-session evidence and contains model work in an archive', () => {
-  const page = [
-    read('src/app/bench/page.tsx'),
-    read('src/app/bench/ArchiveDisclosure.tsx'),
-    read('src/lib/agent-evaluation-insights.ts'),
-  ].join('\n');
-
-  assert.match(page, /Evidence lane \/ Configured-agent session/);
+  const page = require('./helpers/render-source').render('src/app/bench/page.tsx');
+  assert.match(page, /Sanitized configured-session summary/);
   assert.match(page, /Hold permission changes/);
   assert.match(page, /Historical model benchmark archive/);
-  assert.match(page, /<ArchiveDisclosure/);
+  assert.match(page, /aria-controls="model-benchmark-archive"/);
   assert.match(page, /Observes one configured-agent session/);
   assert.match(page, /Records model benchmark observations/);
 });
@@ -65,15 +60,13 @@ test('the connect workspace keeps terminal detail behind progressive disclosure'
   assert.match(workbench, /<details className={styles\.statusGuide}/);
 });
 
-test('the product tells one Plan, Connect, Inspect, Decide lifecycle', () => {
-  const home = read('src/app/page.tsx');
-  const preview = read('src/components/home/ProductPreview.tsx');
-  const footer = read('src/components/site/SiteFooter.tsx');
-  const preflight = read('src/app/preflight/page.tsx');
-  const evaluate = read('src/app/evaluate/page.tsx');
-  const workbench = read('src/app/evaluate/AgentEvaluationWorkbench.tsx');
-
-  assert.match(home, /configured-session summary, its claim boundary, and the separate model archive/);
+test('the retained checkup workflow keeps Plan, Connect, Inspect, Decide intact', () => {
+  const { render } = require('./helpers/render-source');
+  const preview = render('src/components/home/ProductPreview.tsx', 'ProductPreview');
+  const footer = render('src/components/site/SiteFooter.tsx', 'SiteFooter');
+  const preflight = render('src/app/preflight/page.tsx');
+  const evaluate = render('src/app/evaluate/page.tsx');
+  const workbench = render('src/app/evaluate/AgentEvaluationWorkbench.tsx', 'AgentEvaluationWorkbench');
   assert.match(preview, /<strong>01 Plan<\/strong>/);
   assert.match(footer, /Controlled retests come only after a valid baseline/);
   assert.match(preflight, /<span>04<\/span><strong>Decide<\/strong>/);

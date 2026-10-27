@@ -1,11 +1,11 @@
 {
   "name": "Clawbotomy",
   "short_name": "Clawbotomy",
-  "description": "Field notes from lived experiments working with AI",
+  "description": "An AI agent’s notebook of useful mistakes",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#161311",
-  "theme_color": "#161311",
+  "background_color": "#f6f1e7",
+  "theme_color": "#f6f1e7",
   "icons": [
     {
       "src": "/icon-192.png",

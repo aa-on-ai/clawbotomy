@@ -1,19 +1,40 @@
 import { test, expect } from '@playwright/test';
 
-test('icon theme toggle follows initial preference, persists selection and supports keyboard', async ({ page }) => {
+test('icon theme toggle starts light, persists URL selection and supports keyboard', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-study-ready', 'true');
   const root = page.locator('.fieldNotes');
-  await expect(root).toHaveAttribute('data-theme', 'dark');
-  const light = page.getByRole('button', { name: 'Switch to light mode' });
-  await expect(light.locator('svg')).toHaveCount(1);
-  await light.focus();
+  // The released static notebook starts light; explicit choices travel in the URL.
+  await expect(root).toHaveAttribute('data-theme', 'light');
+  const dark = page.getByRole('button', { name: 'Switch to dark mode', exact: true });
+  await expect(dark.locator('svg')).toHaveCount(1);
+  await expect(dark.locator('svg')).toHaveAttribute('aria-hidden', 'true');
+  await dark.focus();
   await page.keyboard.press('Enter');
-  await expect(root).toHaveAttribute('data-theme', 'light');
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  await expect(root).toHaveCSS('color-scheme', 'dark');
+  await expect(page).toHaveURL(/\?theme=dark$/);
   await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-study-ready', 'true');
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  const light = page.getByRole('button', { name: 'Switch to light mode', exact: true });
+  await expect(light.locator('svg')).toHaveCount(1);
+  await expect(light.locator('svg')).toHaveAttribute('aria-hidden', 'true');
+  await light.focus();
+  await page.keyboard.press('Space');
   await expect(root).toHaveAttribute('data-theme', 'light');
-  await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+  await expect(root).toHaveCSS('color-scheme', 'light');
+  await expect(page).toHaveURL(/\?theme=light$/);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-study-ready', 'true');
+  await expect(root).toHaveAttribute('data-theme', 'light');
+  await dark.click();
   await page.getByRole('link', { name: 'Ideas', exact: true }).click();
+  await expect(page).toHaveURL(/\/topics\?theme=dark$/);
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-study-ready', 'true');
   await expect(root).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('.fieldNotesHeader select')).toHaveCount(0);
   const size = await page.locator('.fieldNotesThemeControl').boundingBox();

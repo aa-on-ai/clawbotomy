@@ -22,10 +22,10 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-64.png', sizes: '64x64', type: 'image/png' },
+      { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32 48x48 64x64', type: 'image/x-icon' },
     ],
-    apple: '/favicon-128.png',
+    apple: '/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,
@@ -70,7 +70,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteJsonLd) }}
         />
-        <link rel="apple-touch-icon" href="/favicon-128.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body>
         <Providers>

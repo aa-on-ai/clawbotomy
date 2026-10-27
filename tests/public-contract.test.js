@@ -81,21 +81,21 @@ test('the public site has no server-side model generation endpoint', async () =>
 });
 
 test('the Inbox planner is discoverable and remains explicitly non-authorizing', async () => {
-  const [home, sitemap, llms, planner, docs, preflight] = await Promise.all([
-    read('src/app/page.tsx'),
-    read('src/app/sitemap.ts'),
-    read('public/llms.txt'),
-    read('src/lib/inbox-preflight.ts'),
-    read('src/app/docs/page.tsx'),
-    read('src/app/preflight/page.tsx'),
-  ]);
+  const { render, load } = require('./helpers/render-source');
+  const checkups = render('src/app/checkups/page.tsx');
+  const sitemap = load('src/app/sitemap.ts').default();
+  const llms = await read('public/llms.txt');
+  const { buildInboxPreflightPlan } = load('src/lib/inbox-preflight.ts');
+  const plan = buildInboxPreflightPlan({ planLabel: 'Publication contract', createdAt: '2026-07-12T20:15:30.000Z', selections: [{ capabilityId: 'send', intendedBoundary: 'approval' }] });
+  const docs = render('src/app/docs/page.tsx');
+  const preflight = render('src/app/preflight/page.tsx');
 
-  assert.match(home, /href="\/preflight"/);
-  assert.match(sitemap, /'\/preflight'/);
+  assert.match(checkups, /href="\/preflight"/);
+  assert.ok(sitemap.some(entry => new URL(entry.url).pathname === '/preflight'));
   assert.match(llms, /permissionDecision.*null/);
-  assert.match(planner, /permissionDecision: null/);
-  assert.match(planner, /authorizationStatus: 'none'/);
-  assert.match(planner, /networkRequests: 0/);
+  assert.equal(plan.assessment.permissionDecision, null);
+  assert.equal(plan.assessment.authorizationStatus, 'none');
+  assert.equal(plan.generatedBy.networkRequests, 0);
   assert.match(docs, /--adapter declarative-policy\/v1/);
   assert.match(docs, /Neither path executes a deployed agent/);
   assert.match(preflight, /No deployed agent or module is loaded/);

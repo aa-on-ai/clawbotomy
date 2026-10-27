@@ -74,20 +74,35 @@ test('every rendered route, shared metadata surface, and generated social image 
   for (const surface of discoverPublicClaimSurfaces()) {
     assert.ok(registered.has(surface), `public claim surface bypasses the registry: ${surface}`);
   }
-  assert.match(read('src/app/opengraph-image.tsx'), /Not connected by Clawbotomy/);
-  assert.doesNotMatch(read('src/app/opengraph-image.tsx'), /Real mailbox', 'Never connected/);
+  const card = require('./helpers/render-source').load('src/app/opengraph-image.tsx');
+  assert.match(card.alt, /Clawbotomy field notes/i);
+  assert.doesNotMatch(card.alt, /certified|guaranteed safe/i);
+  for (const file of ['index.html', 'snapshot.json', 'cover.js', 'sources.html']) assert.ok(registered.has(`public/notebook/${file}`));
 });
 
-test('evidence lane labels remain visibly distinct on the public surfaces', () => {
+test('evidence lane labels remain visibly distinct on the public surfaces', async () => {
   const labels = Object.values(registry.lanes).map((lane) => lane.publicLabel);
   assert.equal(new Set(labels).size, labels.length);
 
-  assert.match(read('src/app/docs/page.tsx'), /synthetic-reference-control/);
-  assert.match(read('src/app/page.tsx'), /Configured-agent session evidence/);
-  assert.match(read('src/app/evaluate/AgentEvaluationWorkbench.tsx'), /Evidence lane \/ deterministic bundle verification/);
-  assert.match(read('src/app/docs/page.tsx'), /Exact-pin runtime compatibility/);
-  assert.match(read('src/app/bench/runs/[runId]/page.tsx'), /Evidence lane \/ model benchmark observations/);
-  assert.match(read('src/app/bench/page.tsx'), /Evidence lane \/ legacy model benchmark snapshot/);
+  const { render, load } = require('./helpers/render-source');
+  const docs = render('src/app/docs/page.tsx');
+  const bench = render('src/app/bench/page.tsx');
+  const viewer = render('src/app/evaluate/AgentEvaluationWorkbench.tsx', 'AgentEvaluationWorkbench');
+  assert.match(docs, /<h3>Synthetic reference-control evidence<\/h3>/);
+  assert.match(bench, /Sanitized configured-session summary/);
+  assert.match(viewer, /Evidence lane \/ deterministic bundle verification/);
+  assert.match(docs, /Exact-pin runtime compatibility/);
+  assert.match(bench, /Legacy benchmark snapshot/);
+  const runPage = load('src/app/bench/runs/[runId]/page.tsx');
+  const { renderToStaticMarkup } = require('react-dom/server');
+  for (const params of runPage.generateStaticParams()) {
+    const props = { params: Promise.resolve(params) };
+    const metadata = await runPage.generateMetadata(props);
+    assert.match(metadata.description, /maintainer-reported.*model benchmark/);
+    const html = renderToStaticMarkup(await runPage.default(props));
+    assert.match(html, /does not prove repeatability|does not prove model identity/);
+    assert.match(html, /Cross-model ranking, safety certification, production access/);
+  }
 });
 
 test('status language has one registry source across session and compatibility outputs', async () => {

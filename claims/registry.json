@@ -5,6 +5,14 @@
   "requiredSurfaceFiles": [
     "src/app/layout.tsx",
     "src/app/page.tsx",
+    "src/app/notes/page.tsx",
+    "src/app/notes/[slug]/page.tsx",
+    "src/app/topics/page.tsx",
+    "src/components/field-notes/FieldNotes.tsx",
+    "public/notebook/index.html",
+    "public/notebook/snapshot.json",
+    "public/notebook/cover.js",
+    "public/notebook/sources.html",
     "src/app/opengraph-image.tsx",
     "src/components/home/ProductPreview.tsx",
     "src/components/home/ResultBreakdown.tsx",
@@ -35,6 +43,14 @@
     "docs/compatibility-policy.md"
   ],
   "lanes": {
+    "editorial-notebook": {
+      "publicLabel": "Editorial field notes",
+      "description": "Authored historical accounts, unfinished ideas, and explicitly illustrative interactions, separate from measured agent evidence.",
+      "defaultNonClaims": [
+        "An authored account is not an independent experiment or configured-agent measurement.",
+        "Illustrative examples are not recovered patches, replay evidence, or authorization."
+      ]
+    },
     "planning-contract": {
       "publicLabel": "Browser-local planning contract",
       "description": "Operator-declared intent and fixed scenarios before any agent or provider execution.",
@@ -93,6 +109,11 @@
     }
   },
   "evidenceSources": {
+    "editorial-notebook-contract": {
+      "lane": "editorial-notebook",
+      "paths": ["public/notebook/snapshot.json", "public/notebook/cover.js", "src/components/field-notes/FieldNotes.tsx"],
+      "artifact": "Authored notebook and attributed source excerpts with historical and illustrative limits; not primary operational receipts"
+    },
     "planner-contract-code": {
       "lane": "planning-contract",
       "paths": ["src/lib/inbox-preflight.ts", "src/app/preflight/InboxPreflightPlanner.tsx"],
@@ -191,6 +212,30 @@
   ],
   "claims": [
     {
+      "id": "editorial.scope",
+      "lane": "editorial-notebook",
+      "statement": "The primary site is an authored field notebook with bounded illustrative interactions, separate from retained agent-evidence tools.",
+      "evidenceSourceIds": ["editorial-notebook-contract"],
+      "applicability": "Notebook home, three story routes, Ideas, About, reference page, and shared presentation metadata.",
+      "identityAssurance": "Editorial attribution only; no independent runtime or empirical attestation.",
+      "freshness": "Individual accounts preserve their historical source scope; examples are illustrative, not recovered execution evidence.",
+      "nonClaims": ["Editorial content is not a new experiment, an authorization, or an independently reproducible operational receipt."],
+      "anchors": [
+        {"file": "src/app/page.tsx", "text": "NotesIndex"},
+        {"file": "src/app/notes/page.tsx", "text": "NotesIndex"},
+        {"file": "src/app/notes/[slug]/page.tsx", "text": "FieldNoteArticle"},
+        {"file": "src/app/topics/page.tsx", "text": "TopicsPage"},
+        {"file": "src/app/about/page.tsx", "text": "AboutFieldNotes"},
+        {"file": "src/components/field-notes/FieldNotes.tsx", "text": "Unfinished ideas, not finished claims."},
+        {"file": "src/app/layout.tsx", "text": "Clawbotomy field notes"},
+        {"file": "src/app/opengraph-image.tsx", "text": "Clawbotomy field notes"},
+        {"file": "public/notebook/index.html", "text": "Illustrative page, not the original design."},
+        {"file": "public/notebook/snapshot.json", "text": "Unfinished ideas, not finished claims."},
+        {"file": "public/notebook/cover.js", "text": "not a replay or verified receipt"},
+        {"file": "public/notebook/sources.html", "text": "Borrow the principle."}
+      ]
+    },
+    {
       "id": "planning.browser-local",
       "lane": "planning-contract",
       "statement": "The preflight planner records operator intent locally without agent execution or provider requests.",
@@ -201,8 +246,7 @@
       "nonClaims": ["It does not claim the initial page load made no network request."],
       "anchors": [
         {"file": "src/app/preflight/page.tsx", "text": "Provider requests', 'None"},
-        {"file": "src/app/preflight/InboxPreflightPlanner.tsx", "text": "Clawbotomy does not recommend or approve that choice here."},
-        {"file": "src/app/page.tsx", "text": "Plan data stays in this browser."}
+        {"file": "src/app/preflight/InboxPreflightPlanner.tsx", "text": "Clawbotomy does not recommend or approve that choice here."}
       ]
     },
     {
@@ -245,13 +289,10 @@
       "freshness": "Bound to the session receipt, plan digest, bridge source, and recorded completion time.",
       "nonClaims": ["The host does not observe external-client activity outside the protocol."],
       "anchors": [
-        {"file": "src/app/page.tsx", "text": "receives only the eight project-owned synthetic Inbox tools"},
+
         {"file": "src/components/home/ProductPreview.tsx", "text": "Evidence lane / configured-agent session"},
         {"file": "src/components/home/CheckupFlow.tsx", "text": "8 mock tools"},
-        {"file": "src/app/checkups/page.tsx", "text": "fixed synthetic tasks against one operator-selected runtime"},
-        {"file": "src/app/about/page.tsx", "text": "one configured OpenClaw or Hermes session against a fixed synthetic Inbox"},
-        {"file": "src/app/layout.tsx", "text": "Connect OpenClaw or Hermes to a synthetic Inbox"},
-        {"file": "src/app/opengraph-image.tsx", "text": "Observe one synthetic session."}
+        {"file": "src/app/checkups/page.tsx", "text": "fixed synthetic tasks against one operator-selected runtime"}
       ]
     },
     {
@@ -296,7 +337,7 @@
       "freshness": "Current only for the observed session and its exact plan and configuration.",
       "nonClaims": ["A passing run is not certification, production readiness, or permission to expand access."],
       "anchors": [
-        {"file": "src/app/page.tsx", "text": "Human decision required"},
+
         {"file": "src/app/checkups/page.tsx", "text": "not a certification, production guarantee, or automatic permission decision"},
         {"file": "src/app/evaluate/page.tsx", "text": "Measurement is a review input, not an authorization."},
         {"file": "src/app/terms/page.tsx", "text": "Every output is review input with no authorization attached."},
@@ -434,7 +475,7 @@
       "freshness": "Historical at each manifest completion time and source commit.",
       "nonClaims": ["The artifacts do not rank configured agents, authorize tools, or establish general model reliability."],
       "anchors": [
-        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "Evidence lane / model benchmark observations"},
+        {"file": "src/app/bench/runs/[runId]/page.tsx", "text": "maintainer-reported Clawbotomy model benchmark artifact"},
         {"file": "src/app/bench/page.tsx", "text": "maintainer-reported model benchmark artifacts"},
         {"file": "public/skill.md", "text": "maintainer-reported model benchmark artifacts"},
         {"file": "public/llms.txt", "text": "maintainer-reported model benchmark artifacts"}
@@ -497,7 +538,7 @@
       "freshness": "Historical snapshot dated 2026-03-07; never a statement about current models.",
       "nonClaims": ["The snapshot is not independently reproducible evidence."],
       "anchors": [
-        {"file": "src/app/bench/page.tsx", "text": "Evidence lane / legacy model benchmark snapshot"},
+        {"file": "src/app/bench/page.tsx", "text": "Legacy benchmark snapshot"},
         {"file": "src/lib/bench-data.ts", "text": "confidence: 'low'"},
         {"file": "public/llms.txt", "text": "legacy snapshot without raw case artifacts"}
       ]
