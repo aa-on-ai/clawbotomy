@@ -1,3 +1,5 @@
+import { notebookRewrites } from './scripts/lib/notebook-public.mjs';
+
 /** @type {import('next').NextConfig} */
 const upgradeInsecureRequests = process.env.NODE_ENV === 'production' ? '; upgrade-insecure-requests' : '';
 const developmentEval = process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'";
@@ -10,7 +12,7 @@ const nextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        ...['/', '/notes', '/topics', '/about', '/notes/remove-all-eyebrows', '/notes/two-agents-one-bug', '/notes/the-update-was-not-the-finish-line'].map(source => ({ source, destination: '/notebook/index.html' })),
+        ...notebookRewrites(),
         { source: '/sources.html', destination: '/notebook/sources.html' },
         ...['base.css', 'repair.css', 'cover.css', 'favicon.ico', 'favicon.svg', 'favicon-32.png', 'favicon-48.png', 'favicon-64.png', 'apple-touch-icon.png', 'share-cover.png'].map(file => ({ source: '/' + file, destination: '/notebook/' + file })),
       ],

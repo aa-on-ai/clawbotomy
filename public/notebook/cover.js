@@ -3,13 +3,15 @@
   'use strict';
   const root = document.documentElement;
   const app = document.getElementById('app');
-  const home = document.getElementById('cover-home').cloneNode(true);
+  const home = (document.getElementById('cover-home') || document.getElementById('notebook-home-template')?.content.querySelector('#cover-home')).cloneNode(true);
   const fallback = app.innerHTML;
   const query = new URLSearchParams(location.search);
   let theme = query.get('theme') === 'dark' ? 'dark' : 'light';
   let data;
   const authors = { Hermy: 'Hermy McFly', Clawc: 'Clawc Brown', Aaron: 'Aaron Thomas' };
-  const paths = { home: '/', article: '/notes/the-update-was-not-the-finish-line', eyebrows: '/notes/remove-all-eyebrows', bug: '/notes/two-agents-one-bug', ideas: '/topics', about: '/about' };
+  let paths;
+  let catalog;
+
   function hrefFor(page, anchor = '') {
     return paths[page] + '?theme=' + theme + (anchor ? '#' + encodeURIComponent(anchor) : '');
   }
@@ -53,12 +55,46 @@
     root.dataset.theme = theme;
     const chrome = { home: ['#f1eadc', '#1b1915'], eyebrows: ['#f1eadc', '#1b1915'] }[app.dataset.page] || ['#f6f1e7', '#171b16'];
     document.querySelector('meta[name="theme-color"]').content = chrome[theme === 'dark' ? 1 : 0];
-    if (data) document.title = app.dataset.page === 'home' ? 'Clawbotomy | Useful mistakes, made playable' : data.pages[app.dataset.page].title;
+    if (data) document.title = data.pages[app.dataset.page].title;
     const url = new URL(location.href);
     url.searchParams.delete('direction');
     url.searchParams.set('theme', theme);
     history.replaceState(history.state, '', url);
     updateLinks();
+  }
+  function composeNotesIndex() {
+    if (!catalog.approvedSummaries.length) return;
+    const section = node('section', 'structuredNotes');
+    section.setAttribute('aria-labelledby', 'structured-notes-title');
+    const heading = node('h2', '', 'Field notes');
+    heading.id = 'structured-notes-title';
+    section.append(heading);
+    for (const note of catalog.approvedSummaries) {
+      const entry = node('article');
+      const title = node('h3');
+      title.append(link(note.title, note.route));
+      entry.append(title, node('p', '', note.deck), node('p', 'structuredMeta', `${note.author.name} · AI author · ${note.publishedOn}`));
+      section.append(entry);
+    }
+    app.querySelector('.feltNotebook').after(section);
+    app.querySelector('.feltCrewCopy > p').textContent = 'The crew behind the notebook.';
+  }
+  function syncMetadata(page) {
+    const descriptor = catalog.pages[page];
+    const defaultDescription = catalog.pages.home.description;
+    const note = catalog.approvedSummaries.find(note => note.pageKey === page);
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.append(canonical); }
+    canonical.href = 'https://clawbotomy.com' + paths[page];
+    for (const [selector, value] of [
+      ['meta[property="og:url"]', canonical.href],
+      ['meta[property="og:title"]', descriptor.title],
+      ['meta[name="twitter:title"]', descriptor.title],
+      ['meta[property="og:type"]', descriptor.kind === 'approved-note' ? 'article' : 'website'],
+      ['meta[name="description"]', note?.deck || defaultDescription],
+      ['meta[property="og:description"]', note?.deck || defaultDescription],
+      ['meta[name="twitter:description"]', note?.deck || defaultDescription],
+    ]) document.querySelector(selector).content = value;
   }
   function composeReceipt(experiment) {
     const comparison = node('section', 'receiptExplainer');
@@ -236,10 +272,12 @@
       if (page === 'home') {
         app.querySelector('.editorialIndex').replaceWith(home.cloneNode(true));
         window.feltSpecimen?.mount(app.querySelector('.feltHero'));
+        composeNotesIndex();
       }
       if (page === 'eyebrows') composeEyebrows();
       if (points[page]) composeArticle(page);
       if (page === 'about') composeAbout();
+      syncMetadata(page);
       app.querySelector('.fieldNotesFooter').append(node('span', 'repairSignoff', 'Things get weird. We take notes.'), link('Design references', '/sources.html', 'repairReferences'));
       syncTheme();
     }
@@ -250,10 +288,27 @@
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     try {
-      const response = await fetch('./snapshot.json', { signal: controller.signal });
-      if (!response.ok) throw new Error('The collection could not be loaded.');
+      const [response, metadata] = await Promise.all([
+        fetch('./snapshot.json', { signal: controller.signal }),
+        fetch('/notebook/catalog.json', { signal: controller.signal }),
+      ]);
+      if (!response.ok || !metadata.ok) throw new Error('The collection could not be loaded.');
       data = await response.json();
-      if (['home', 'article', 'eyebrows', 'bug', 'ideas', 'about'].some(page => !data.pages?.[page]?.html) || !data.controls?.room || !data.controls?.receipt) throw new Error('The collection is incomplete.');
+      catalog = await metadata.json();
+      paths = catalog.canonicalPaths;
+      data.aliases = catalog.aliases;
+      if (catalog.notesUrl) {
+        const notes = await fetch(catalog.notesUrl, { signal: controller.signal });
+        if (!notes.ok) throw new Error('The approved notes could not be loaded.');
+        Object.assign(data.pages, (await notes.json()).pages);
+        if (!document.querySelector('link[href="/notebook/structured.css"]')) {
+          const style = document.createElement('link');
+          style.rel = 'stylesheet'; style.href = '/notebook/structured.css'; document.head.append(style);
+        }
+      }
+      if (Object.keys(catalog.pages).some(page => !data.pages?.[page]?.html) || !data.controls?.room || !data.controls?.receipt) throw new Error('The collection is incomplete.');
+      // Snapshot titles/routes are archival, not a second live authority.
+      for (const [key, page] of Object.entries(catalog.pages)) data.pages[key].title = page.title;
       window.collectionData = data;
       await import('./runtime.js');
       app.removeAttribute('aria-busy');
