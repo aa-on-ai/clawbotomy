@@ -19,11 +19,16 @@ async function until(check, label, timeout = 15000) {
   assert.fail(label);
 }
 function alive(pid) { try { process.kill(pid, 0); return true; } catch (error) { if (error.code === 'ESRCH') return false; throw error; } }
-function descendants(pid) {
-  const rows = execFileSync('ps', ['-axo', 'pid=,ppid=,command='], { encoding: 'utf8' }).trim().split('\n').map(line => {
-    const [, id, parent, command] = line.match(/^\s*(\d+)\s+(\d+)\s+(.*)$/);
-    return { pid: Number(id), parent: Number(parent), command };
+function processRows() {
+  return execFileSync('ps', ['-axo', 'pid=,ppid=,pgid=,stat=,lstart=,command='], { encoding: 'utf8' }).trim().split('\n').map(line => {
+    const match = line.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(.{24})\s+(.*)$/);
+    assert.ok(match, `Unparseable process row: ${line}`);
+    const [, id, parent, group, state, started, command] = match;
+    return { pid: Number(id), parent: Number(parent), group: Number(group), state, started, command };
   });
+}
+function descendants(pid) {
+  const rows = processRows();
   const found = new Set([pid]);
   for (let old = 0; old !== found.size;) { old = found.size; for (const row of rows) if (found.has(row.parent)) found.add(row.pid); }
   return rows.filter(row => found.has(row.pid));
@@ -38,6 +43,27 @@ async function closed(port) {
     socket.once('connect', () => { socket.destroy(); resolve(false); });
     socket.once('error', () => { socket.destroy(); resolve(true); });
   });
+}
+function linuxStat(pid) {
+  if (process.platform !== 'linux') return null;
+  try { return readFileSync(`/proc/${pid}/stat`, 'utf8').trim(); }
+  catch (error) { if (['ENOENT', 'ESRCH'].includes(error.code)) return null; throw error; }
+}
+function rememberProcesses(server) {
+  server.startProcesses = descendants(server.proc.pid).map(row => ({ ...row, linuxStat: linuxStat(row.pid) }));
+  server.pids = server.startProcesses.map(row => row.pid);
+  server.wrapper = server.startProcesses.find(row => /node scripts\/dev-notebook\.mjs/.test(row.command))?.pid;
+}
+async function shutdownObservation(server) {
+  const rows = processRows();
+  return {
+    port: server.port, portClosed: await closed(server.port),
+    exitCode: server.proc.exitCode, signalCode: server.proc.signalCode,
+    // Keep all original identities, even after reparenting or disappearance.
+    // Linux stat includes kernel start ticks; ps start time alone is coarse.
+    startProcesses: server.startProcesses,
+    processes: server.pids.map(pid => ({ pid, killZero: alive(pid), current: rows.find(row => row.pid === pid) || null, linuxStat: linuxStat(pid) })),
+  };
 }
 const cleanups = new Map();
 function fixture(t) {
@@ -75,8 +101,7 @@ async function ready(server) {
     assert.equal(server.proc.exitCode, null, server.log());
     return server.log().includes('Ready in');
   }, 'npm dev not ready: ' + server.log(), 45000);
-  server.pids = descendants(server.proc.pid).map(row => row.pid);
-  server.wrapper = descendants(server.proc.pid).find(row => /node scripts\/dev-notebook\.mjs/.test(row.command))?.pid;
+  rememberProcesses(server);
   for (const path of paths) {
     const response = await fetch(`http://127.0.0.1:${server.port}${path}`, { signal: AbortSignal.timeout(30000) });
     assert.equal(response.status, 200, path); assert.match(await response.text(), /A fixture paragraph\./);
@@ -86,12 +111,50 @@ async function stopped(t, server, message = true) {
   await until(() => server.proc.exitCode !== null || server.proc.signalCode !== null, 'npm dev did not fail-stop after catalog change: ' + server.log());
   assert.notEqual(server.proc.exitCode, 0);
   if (message) assert.match(server.log(), /Notebook catalog changed.*restart npm run dev/i);
-  await until(async () => await closed(server.port) && server.pids.every(pid => !alive(pid)), 'dev process/descendant/socket still open');
+  try {
+    await until(async () => await closed(server.port) && server.pids.every(pid => !alive(pid)), 'dev process/descendant/socket still open');
+  } catch (error) {
+    // Diagnostic only: never reinterpret Z/T states or weaken the failure.
+    try { t.diagnostic('shutdown failure: ' + JSON.stringify(await shutdownObservation(server))); }
+    catch (diagnosticError) { t.diagnostic(`shutdown observation failed: ${diagnosticError.message}`); }
+    throw error;
+  }
   for (const path of [...paths, '/notebook/catalog.json', '/sitemap.xml']) {
     await assert.rejects(fetch(`http://127.0.0.1:${server.port}${path}`, { signal: AbortSignal.timeout(2000) }), /fetch failed/);
   }
   t.diagnostic(JSON.stringify({ port: server.port, pids: server.pids, closed: true, pathsUnavailable: paths, exit: server.proc.exitCode }));
 }
+
+test('shutdown diagnostics distinguish live, stopped and reaped PIDs from the listening socket', { timeout: 15000 }, async t => {
+  const listener = net.createServer(socket => socket.destroy());
+  listener.listen(0, '127.0.0.1'); await once(listener, 'listening');
+  const proc = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000); console.log("ready")'], { stdio: ['ignore', 'pipe', 'ignore'] });
+  t.after(async () => {
+    if (proc.exitCode === null && proc.signalCode === null) { proc.kill('SIGKILL'); await once(proc, 'exit'); }
+    if (listener.listening) await new Promise(resolve => listener.close(resolve));
+  });
+  await once(proc.stdout, 'data');
+  const server = { proc, port: listener.address().port };
+  rememberProcesses(server);
+  const running = await shutdownObservation(server);
+  assert.equal(running.portClosed, false);
+  assert.equal(running.processes.find(row => row.pid === proc.pid).killZero, true);
+  assert.ok(running.startProcesses.find(row => row.pid === proc.pid).started);
+  if (process.platform === 'linux') assert.ok(running.startProcesses.find(row => row.pid === proc.pid).linuxStat);
+  proc.kill('SIGSTOP');
+  await until(() => processRows().some(row => row.pid === proc.pid && row.state.startsWith('T')), 'probe child did not stop');
+  const stopped = await shutdownObservation(server);
+  assert.equal(stopped.processes.find(row => row.pid === proc.pid).current.state.startsWith('T'), true);
+  assert.equal(stopped.processes.find(row => row.pid === proc.pid).killZero, true, 'stopped is still executable, not terminal');
+  proc.kill('SIGKILL'); await once(proc, 'exit');
+  const reaped = await shutdownObservation(server);
+  assert.equal(reaped.portClosed, false, 'an unrelated live listener must still fail shutdown');
+  assert.equal(reaped.processes.find(row => row.pid === proc.pid).killZero, false);
+  assert.equal(reaped.processes.find(row => row.pid === proc.pid).current, null);
+  assert.deepEqual(reaped.startProcesses, running.startProcesses);
+  await new Promise(resolve => listener.close(resolve));
+  assert.equal((await shutdownObservation(server)).portClosed, true);
+});
 
 test('supported npm dev fail-stops approved → retired; restart removes canonical AND raw artifacts', { timeout: 120000 }, async t => {
   const root = fixture(t);
@@ -103,8 +166,7 @@ test('supported npm dev fail-stops approved → retired; restart removes canonic
   await stopped(t, server);
   const restarted = await launch(t, root);
   await until(() => restarted.log().includes('Ready in'), 'retired restart not ready', 45000);
-  restarted.pids = descendants(restarted.proc.pid).map(row => row.pid);
-  restarted.wrapper = descendants(restarted.proc.pid).find(row => /node scripts\/dev-notebook\.mjs/.test(row.command))?.pid;
+  rememberProcesses(restarted);
   for (const path of paths) assert.equal((await fetch(`http://127.0.0.1:${restarted.port}${path}`)).status, 404, path);
   const catalog = await (await fetch(`http://127.0.0.1:${restarted.port}/notebook/catalog.json`)).json();
   assert.deepEqual(catalog.approvedSummaries, []); assert.equal(catalog.notesUrl, null);

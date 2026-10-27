@@ -49,9 +49,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run test:ui
+      - run: npm run test:ui -- --reporter=list,html
+        env:
+          DEBUG: pw:webserver
       - name: Upload failure receipts
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
