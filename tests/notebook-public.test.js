@@ -83,6 +83,21 @@ test('every public projection rejects unapproved, mutated, duplicate and retired
   }
 });
 
+test('published design references retain their links without a review-only notice', () => {
+  const sources = readFileSync(new URL('../public/notebook/sources.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(sources, /reviewRibbon|Review notice|Review preview|Not published/i);
+  assert.match(sources, /<h1>Borrow the principle\.<\/h1>/);
+  assert.match(sources, /These are design references, not sources for the stories\./);
+  for (const href of [
+    'https://ncase.me/trust/',
+    'https://ciechanow.ski/mechanical-watch/',
+    'https://blog.panic.com/',
+    'https://craigmod.com/essays/fast_software/',
+    'https://pudding.cool/process/how-to-make-dope-shit-part-1/',
+  ]) assert.ok(sources.includes(`href="${href}"`), `Reference link retained: ${href}`);
+  assert.match(sources, /href="\.\/">Back to the notebook<\/a>/);
+});
+
 test('unrelated redirects and security headers remain unchanged', async () => {
   assert.deepEqual(await config.redirects(), [
     { source: '/references.html', destination: '/sources.html', permanent: false },
