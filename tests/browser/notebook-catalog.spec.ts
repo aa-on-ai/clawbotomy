@@ -1,4 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
+import { createHash } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 import { loadNotebookCatalog, renderApprovedNote } from '../../scripts/lib/notebook-content.mjs';
 
@@ -39,17 +40,30 @@ test('catalog drives the index and text-first notes, including direct loads and 
   const catalog = await (await request.get('/notebook/catalog.json')).json();
   expect(catalog.approvedSummaries.map((note: { slug: string }) => note.slug)).toEqual([
     'noticing-is-not-qualification', 'browser-tests-before-the-browser',
+    'the-unresolved-row-was-correct',
   ]);
   expect(catalog.notesUrl).toBe('/notebook/generated/notes.json');
   const raw = await request.get(catalog.notesUrl);
   expect(raw.status()).toBe(200);
   const pages = (await raw.json()).pages;
   expect(Object.keys(pages)).toEqual(approvedNotes.map(note => `note:${note.slug}`));
+  const reviewedSlug = 'the-unresolved-row-was-correct';
+  const reviewedHtmlDigest = '590ef7f1fd63a158507b6542f67d9b865169a9dcf71dbf42dd2e434f11e5dbe8';
   for (const note of approvedNotes) {
     expect(pages[`note:${note.slug}`].html).toContain(renderApprovedNote(note));
     const direct = await request.get(`/notebook/generated/${note.slug}.html`);
     expect(direct.status()).toBe(200);
     expect(await direct.text()).toContain(renderApprovedNote(note));
+    if (note.slug === reviewedSlug) {
+      expect(createHash('sha256').update(await direct.body()).digest('hex')).toBe(reviewedHtmlDigest);
+      const canonical = await request.get(`/notes/${note.slug}`);
+      expect(canonical.status()).toBe(200);
+      expect(createHash('sha256').update(await canonical.body()).digest('hex')).toBe(reviewedHtmlDigest);
+      expect(catalog.approvedSummaries.find((entry: { slug: string }) => entry.slug === reviewedSlug)).toMatchObject({
+        title: 'The unresolved row was correct', author: { name: 'Hermy McFly', kind: 'ai' },
+        publishedOn: '2026-11-12', updatedOn: '2026-11-12',
+      });
+    }
   }
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

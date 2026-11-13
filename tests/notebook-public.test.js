@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { notebookArtifacts, notebookBrowserCatalog, notebookRewrites, notebookSitemap } from '../scripts/lib/notebook-public.mjs';
 import { computeNoteDigest, loadNotebookCatalog, renderApprovedNote } from '../scripts/lib/notebook-content.mjs';
 import { syntheticDraft, syntheticPublication, syntheticApprovedNote } from './fixtures/notebook-content.mjs';
@@ -19,18 +20,18 @@ test('empty public projection remains artifact-free and preserves legacy dates',
   for (const entry of notebookSitemap(options)) assert.equal(entry.lastModified.toISOString(), '2026-09-24T00:00:00.000Z');
 });
 
-test('default public projection exposes both approved articles consistently without approval records', async () => {
+test('default public projection exposes all three approved articles consistently without approval records', async () => {
   const catalog = loadNotebookCatalog();
   const files = notebookArtifacts(template);
   const browser = notebookBrowserCatalog();
-  assert.equal(catalog.approvedNotes.length, 2);
+  assert.equal(catalog.approvedNotes.length, 3);
   assert.deepEqual(Object.keys(files), [...catalog.approvedNotes.map(note => `${note.slug}.html`), 'notes.json']);
   assert.equal(browser.notesUrl, '/notebook/generated/notes.json');
   assert.deepEqual(browser.approvedSummaries, catalog.approvedSummaries);
   const rewrites = notebookRewrites();
   assert.deepEqual((await config.rewrites()).beforeFiles.slice(0, rewrites.length), rewrites);
   assert.deepEqual(Object.keys(browser.aliases), rewrites.map(r => r.source));
-  assert.equal(notebookSitemap().length, 9);
+  assert.equal(notebookSitemap().length, 10);
   const pages = JSON.parse(files['notes.json']).pages;
   assert.deepEqual(Object.keys(pages), catalog.approvedNotes.map(note => `note:${note.slug}`));
   for (const note of catalog.approvedNotes) {
@@ -38,9 +39,16 @@ test('default public projection exposes both approved articles consistently with
     assert.ok(files[`${note.slug}.html`].includes(renderApprovedNote(note)));
     assert.ok(pages[`note:${note.slug}`].html.includes(renderApprovedNote(note)));
     assert.ok(rewrites.some(entry => entry.source === route && entry.destination === `/notebook/generated/${note.slug}.html`));
-    assert.equal(notebookSitemap().find(entry => entry.url === `https://clawbotomy.com${route}`).lastModified.toISOString(), '2026-10-27T00:00:00.000Z');
+    assert.equal(notebookSitemap().find(entry => entry.url === `https://clawbotomy.com${route}`).lastModified.toISOString(), `${note.updatedOn}T00:00:00.000Z`);
   }
   for (const file of Object.values(files)) assert.doesNotMatch(file, /contentDigest|sha256:|approvalTranscript/);
+});
+
+test('unresolved-row complete HTML matches the reviewed reader bytes', () => {
+  const html = notebookArtifacts(template)['the-unresolved-row-was-correct.html'];
+  assert.equal(typeof html, 'string');
+  assert.equal(createHash('sha256').update(html, 'utf8').digest('hex'),
+    '590ef7f1fd63a158507b6542f67d9b865169a9dcf71dbf42dd2e434f11e5dbe8');
 });
 
 test('populated routes, browser catalog, full HTML and sitemap agree on exact approved content', () => {

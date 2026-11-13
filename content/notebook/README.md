@@ -1,8 +1,9 @@
 # Notebook content foundation
 
 `catalog.mjs` is the metadata authority for notebook pages, reserved/retired note
-slugs and new approved structured notes. The approved list contains two explicitly approved articles dated 2026-10-27. It contains no private drafts, approval transcripts or evidence
-pointers. The three existing bespoke stories remain snapshot-owned, byte-for-byte;
+slugs and new approved structured notes. The approved list contains three articles:
+two dated 2026-10-27 and one dated 2026-11-12. It contains no private drafts,
+approval transcripts or evidence pointers. The three existing bespoke stories remain snapshot-owned, byte-for-byte;
 **existing public availability is not retrospective editorial approval**.
 
 The pure Node ESM API lives in `scripts/lib/notebook-content.mjs`. It uses only
@@ -199,7 +200,7 @@ preview.status;      // 'unapproved'
 preview.indexable;   // false
 preview.robots;      // 'noindex, nofollow'
 // preview.html contains <p>&lt;script&gt; stays text.</p> and the visible warning.
-loadNotebookCatalog().approvedNotes; // the two dated public-approved articles
+loadNotebookCatalog().approvedNotes; // the three dated public-approved articles
 loadNotebookCatalog({ approvedNotes: [] }).approvedNotes; // explicit empty-state test seam
 ```
 
@@ -216,7 +217,7 @@ values exercise parsing and are not records of real editorial approval.
 - `/notebook/catalog.json` is a Next **force-static build-time** metadata response.
   It supplies canonical paths, aliases, descriptors and approved summaries to
   `cover.js`/`runtime.js`; archival snapshot aliases/titles are not a live authority.
-  It includes both approved summaries; the explicit empty test state still supports legacy navigation.
+  It includes all three approved summaries; the explicit empty test state still supports legacy navigation.
 - `npm run build` runs `scripts/build-notebook.mjs` through `prebuild`.
   `npm run dev` uses the guarded lifecycle below. Do not bypass these entry points
   with direct `next build`/`next dev` invocations.
@@ -279,11 +280,12 @@ npm run lint
 npm run build
 ```
 
-`tests/browser/notebook-catalog.spec.ts` exercises the two-entry release catalog,
+`tests/browser/notebook-catalog.spec.ts` exercises the three-entry release catalog,
 metadata, direct detail loads, index/back navigation, retired routes and legacy
 stories. Run it against the built server alongside the existing browser suites.
 Negative/lifecycle publication tests use explicit empty and synthetic catalogs in
 isolated temporary copies, never runtime flags or private drafts. The default
-contract pins the two public-approved commitments, dates and routes. Never commit
+contract pins the three public-approved commitments, dates and routes, plus the
+complete reviewed HTML digest for the unresolved-row article. Never commit
 generated test fixtures or private evidence. Any later publication needs its own
 authorization; a matching digest alone is not permission.
