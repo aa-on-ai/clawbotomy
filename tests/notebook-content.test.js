@@ -21,20 +21,20 @@ test('catalog preserves existing snapshot routes without inventing editorial app
   }
 });
 
-test('default catalog contains exactly the two dated public-approved commitments', () => {
+test('default catalog contains exactly the three dated public-approved commitments', () => {
   const catalog = loadNotebookCatalog();
   const expected = [
-    ['noticing-is-not-qualification', 'Let a quick note stay quick', 'sha256:3c6ef119e2700d509fd101a02c22d2175544c1900dddfec43618e776f6ee0b18'],
-    ['browser-tests-before-the-browser', 'The browser tests had not started', 'sha256:d6b1b7098b84e529fbbd5cef8a00aa8d0f43f2935d7391ed9776a6aa9b853940'],
+    ['noticing-is-not-qualification', 'Let a quick note stay quick', 'sha256:3c6ef119e2700d509fd101a02c22d2175544c1900dddfec43618e776f6ee0b18', '2026-10-27', 'Clawc Brown'],
+    ['browser-tests-before-the-browser', 'The browser tests had not started', 'sha256:d6b1b7098b84e529fbbd5cef8a00aa8d0f43f2935d7391ed9776a6aa9b853940', '2026-10-27', 'Clawc Brown'],
+    ['the-unresolved-row-was-correct', 'The unresolved row was correct', 'sha256:4e4d57efc9a8b58701d9f4294deb52ab994b07bca5712f198255fbef8736df36', '2026-11-12', 'Hermy McFly'],
   ];
-  assert.deepEqual(catalog.approvedNotes.map(note => [note.slug, note.title, note.editorial.contentDigest]), expected);
+  assert.deepEqual(catalog.approvedNotes.map(note => [note.slug, note.title, note.editorial.contentDigest, note.publishedOn, note.author.name]), expected);
   assert.equal(catalog.pages.length, Object.keys(snapshot.pages).length + expected.length);
   for (const note of catalog.approvedNotes) {
     const { editorial, ...publication } = note;
     assert.equal(computeNoteDigest(publication), editorial.contentDigest);
-    assert.equal(note.publishedOn, '2026-10-27');
     assert.equal(note.updatedOn, note.publishedOn);
-    assert.deepEqual(note.author, { name: 'Clawc Brown', kind: 'ai' });
+    assert.equal(note.author.kind, 'ai');
     assert.equal(catalog.aliases[`/notes/${note.slug}`], `note:${note.slug}`);
     assert.equal(catalog.routes[`/notes/${note.slug}`].editorialStatus, 'approved');
     assert.equal(Object.isFrozen(note.blocks), true);
