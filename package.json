@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev-notebook.mjs",
-    "prebuild": "node scripts/build-notebook.mjs",
+    "prebuild": "node scripts/build-notebook.mjs && node scripts/build-fetch.mjs",
+    "build:fetch": "node scripts/build-fetch.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",

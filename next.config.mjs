@@ -13,6 +13,7 @@ const nextConfig = {
     return {
       beforeFiles: [
         ...notebookRewrites(),
+        { source: '/play/fetch', destination: '/play/fetch.html' },
         { source: '/sources.html', destination: '/notebook/sources.html' },
         ...['base.css', 'repair.css', 'cover.css', 'favicon.ico', 'favicon.svg', 'favicon-32.png', 'favicon-48.png', 'favicon-64.png', 'apple-touch-icon.png', 'share-cover.png'].map(file => ({ source: '/' + file, destination: '/notebook/' + file })),
       ],

@@ -13,6 +13,7 @@
     "public/notebook/snapshot.json",
     "public/notebook/cover.js",
     "public/notebook/sources.html",
+    "content/games/fetch/game.html",
     "src/app/opengraph-image.tsx",
     "src/components/home/ProductPreview.tsx",
     "src/components/home/ResultBreakdown.tsx",
@@ -216,7 +217,7 @@
       "lane": "editorial-notebook",
       "statement": "The primary site is an authored field notebook with bounded illustrative interactions, separate from retained agent-evidence tools.",
       "evidenceSourceIds": ["editorial-notebook-contract"],
-      "applicability": "Notebook home, three story routes, Ideas, About, reference page, and shared presentation metadata.",
+      "applicability": "Notebook home, historical story routes, the illustrative Fetch puzzle, Ideas, About, reference page, and shared presentation metadata.",
       "identityAssurance": "Editorial attribution only; no independent runtime or empirical attestation.",
       "freshness": "Individual accounts preserve their historical source scope; examples are illustrative, not recovered execution evidence.",
       "nonClaims": ["Editorial content is not a new experiment, an authorization, or an independently reproducible operational receipt."],
@@ -232,7 +233,8 @@
         {"file": "public/notebook/index.html", "text": "Illustrative page, not the original design."},
         {"file": "public/notebook/snapshot.json", "text": "Unfinished ideas, not finished claims."},
         {"file": "public/notebook/cover.js", "text": "not a replay or verified receipt"},
-        {"file": "public/notebook/sources.html", "text": "Borrow the principle."}
+        {"file": "public/notebook/sources.html", "text": "Borrow the principle."},
+        {"file": "content/games/fetch/game.html", "text": "The rotating paths are an invented metaphor, not a replay of the bug."}
       ]
     },
     {

@@ -15,6 +15,9 @@
 # Approved notebook outputs (regenerated; absent for an empty catalog)
 /public/notebook/generated/
 
+# Fetch document (maintained in content/games/fetch; generated in dev/prebuild)
+/public/play/fetch.html
+
 # next.js
 /.next/
 /out/

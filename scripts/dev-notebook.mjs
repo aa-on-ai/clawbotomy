@@ -68,7 +68,8 @@ process.on('SIGTERM', () => { void stop(143); });
 monitor = setInterval(checkCatalog, 100);
 try {
   // Monitoring begins BEFORE generation, not in a separate predev hook.
-  const generated = await run([fileURLToPath(new URL('./build-notebook.mjs', import.meta.url))]);
+  let generated = await run([fileURLToPath(new URL('./build-notebook.mjs', import.meta.url))]);
+  if (!stopping && generated === 0) generated = await run([fileURLToPath(new URL('./build-fetch.mjs', import.meta.url))]);
   checkCatalog();
   if (!stopping && generated === 0) {
     const code = await run([fileURLToPath(new URL('../node_modules/next/dist/bin/next', import.meta.url)), 'dev', ...args]);
