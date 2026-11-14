@@ -6,7 +6,11 @@ const updated = new Date('2026-09-24');
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPaths = ['/evaluate', '/checkups', '/preflight', '/bench', '/docs', '/terms'];
-  return [...notebookSitemap(), ...staticPaths.map((path) => ({
+  return [...notebookSitemap(), {
+    url: `${baseUrl}/play/fetch`,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }, ...staticPaths.map((path) => ({
     url: `${baseUrl}${path}`,
     lastModified: updated,
     changeFrequency: path === '' ? ('weekly' as const) : ('monthly' as const),

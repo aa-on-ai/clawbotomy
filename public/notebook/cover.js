@@ -119,6 +119,12 @@
     experiment.replaceWith(comparison);
     return comparison;
   }
+  function fetchDiscovery() {
+    const discovery = node('div', 'fetchDiscovery');
+    discovery.append(link('Play Fetch', '/play/fetch', 'fetchPlay'),
+      node('p', 'fetchDescription', 'Bring both parts back to the notebook. An untimed puzzle; an invented metaphor, not a replay.'));
+    return discovery;
+  }
   function composeArticle(page) {
     const article = app.querySelector('.editorialArticle');
     const header = article.querySelector('.editorialArticleHeader');
@@ -165,6 +171,7 @@
       paragraphs[page === 'bug' ? 1 : 0].after(dock);
       header.append(link('See what went missing', '#study-experiment', 'repairJump'));
     }
+    if (page === 'bug') header.append(fetchDiscovery());
   }
   /* Remove all eyebrows: the story on paper, its playable page on felt.
      Every sentence, citation and source moves over from the snapshot unchanged. */
@@ -271,6 +278,7 @@
       app.querySelector('.fieldNotesBrand img').src = './favicon.svg';
       if (page === 'home') {
         app.querySelector('.editorialIndex').replaceWith(home.cloneNode(true));
+        app.querySelector('#selection-two-agents-one-bug .feltEntryCopy').append(fetchDiscovery());
         window.feltSpecimen?.mount(app.querySelector('.feltHero'));
         composeNotesIndex();
       }
