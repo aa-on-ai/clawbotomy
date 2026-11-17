@@ -3,9 +3,18 @@ import { createHash } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 import { loadNotebookCatalog, renderApprovedNote } from '../../scripts/lib/notebook-content.mjs';
 
+type DocumentMap = {
+  type: 'document-map'; heading: string; comparison: string;
+  before: { heading: string; label: string; measurement: string };
+  after: { heading: string; label: string; measurement: string };
+  references: { heading: string; labels: string[]; note: string };
+  scope: string; storage: { heading: string; measurement: string; delta: string };
+  preservation: { heading: string; duplicates: string; verification: string };
+  provenance: string; caption: string; gesture?: { label: string; hint: string };
+};
 type ApprovedArticle = {
   slug: string; title: string; deck: string;
-  blocks: Array<{ type: string; text?: string; level?: number; language?: string; ordered?: boolean; items?: string[] }>;
+  blocks: Array<DocumentMap | { type: 'paragraph' | 'heading' | 'code' | 'list'; text?: string; level?: number; language?: string; ordered?: boolean; items?: string[] }>;
   sources: Array<{ label: string; url: string }>;
 };
 const approvedNotes: ApprovedArticle[] = loadNotebookCatalog().approvedNotes;
@@ -15,15 +24,28 @@ async function exactArticle(page: Page, note: ApprovedArticle) {
   expect(await page.locator('.editorialDeck').textContent()).toBe(note.deck);
   expect(await page.locator('.editorialProse > *').evaluateAll(nodes => nodes.map(node => ({
     tag: node.tagName.toLowerCase(),
-    text: node.matches('ul,ol') ? null : node.textContent,
-    items: node.matches('ul,ol') ? Array.from(node.children).map(item => item.textContent) : null,
+    text: node.matches('ul,ol,figure.documentMap') ? null : node.textContent,
+    items: node.matches('figure.documentMap')
+      ? Array.from(node.querySelectorAll('h2,h3,p:not(:has(strong)),strong,.documentMapReference,button,figcaption')).map(item => item.textContent)
+      : node.matches('ul,ol') ? Array.from(node.children).map(item => item.textContent) : null,
     language: node.querySelector('code')?.getAttribute('data-language') || null,
-  })))).toEqual(note.blocks.map(block => ({
+  })))).toEqual(note.blocks.map(block => block.type === 'document-map' ? {
+    tag: 'figure', text: null, language: null,
+    items: [block.heading, block.comparison,
+      block.before.heading, block.before.label, block.before.measurement,
+      block.after.heading, block.after.label, block.after.measurement,
+      block.references.heading, ...block.references.labels,
+      ...(block.gesture ? [block.gesture.label, block.gesture.hint] : []),
+      block.references.note, block.scope,
+      block.storage.heading, block.storage.measurement, block.storage.delta,
+      block.preservation.heading, block.preservation.duplicates, block.preservation.verification,
+      block.provenance, block.caption],
+  } : {
     tag: block.type === 'paragraph' ? 'p' : block.type === 'code' ? 'pre' : block.type === 'heading' ? `h${block.level || 2}` : block.ordered ? 'ol' : 'ul',
     text: block.type === 'list' ? null : block.text,
     items: block.type === 'list' ? block.items : null,
     language: block.language || null,
-  })));
+  }));
   expect(await page.locator('.editorialSources a').evaluateAll(nodes => nodes.map(node => ({
     label: node.textContent, url: node.getAttribute('href'),
   })))).toEqual(note.sources);
@@ -40,7 +62,7 @@ test('catalog drives the index and text-first notes, including direct loads and 
   const catalog = await (await request.get('/notebook/catalog.json')).json();
   expect(catalog.approvedSummaries.map((note: { slug: string }) => note.slug)).toEqual([
     'noticing-is-not-qualification', 'browser-tests-before-the-browser',
-    'the-unresolved-row-was-correct',
+    'the-unresolved-row-was-correct', 'the-skill-didnt-shrink',
   ]);
   expect(catalog.notesUrl).toBe('/notebook/generated/notes.json');
   const raw = await request.get(catalog.notesUrl);
