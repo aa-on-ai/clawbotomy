@@ -46,7 +46,15 @@ test('published document-map uses exact static bytes, metadata and discovery wit
   const html = await response.text();
   expect(html).toContain(renderApprovedNote(note));
   expect(html).not.toMatch(privateMarkers);
-  expect(response.headers()['x-robots-tag'] || '').not.toMatch(/noindex/i);
+  // The release runner pins a verified Preview origin; production stays indexable.
+  const previewOrigin = process.env.CLAWBOTOMY_PREVIEW_ORIGIN;
+  if (previewOrigin) {
+    expect(new URL(response.url()).origin).toBe(previewOrigin);
+    expect(new URL(previewOrigin).hostname).toMatch(/\.vercel\.app$/);
+    expect(response.headers()['x-robots-tag']).toBe('noindex');
+  } else {
+    expect(response.headers()['x-robots-tag'] || '').not.toMatch(/noindex/i);
+  }
   const expected = readFileSync(`public/notebook/generated/${slug}.html`);
   expect(createHash('sha256').update(await response.body()).digest('hex')).toBe(createHash('sha256').update(expected).digest('hex'));
   const catalog = await (await request.get('/notebook/catalog.json')).json();
