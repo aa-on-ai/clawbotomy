@@ -60,7 +60,7 @@ test('published document-map uses exact static bytes, metadata and discovery wit
   const catalog = await (await request.get('/notebook/catalog.json')).json();
   expect(catalog.approvedSummaries.find((entry: { slug: string }) => entry.slug === slug)).toMatchObject({
     route, title: note.title, deck: note.deck, author: note.author, disclosure: note.disclosure,
-    publishedOn: '2026-11-16', updatedOn: '2026-11-16',
+    publishedOn: '2026-11-18', updatedOn: '2026-11-18',
   });
   expect(JSON.stringify(catalog)).not.toMatch(privateMarkers);
   const payload = await (await request.get(catalog.notesUrl)).text();
@@ -70,7 +70,7 @@ test('published document-map uses exact static bytes, metadata and discovery wit
   const sitemapEntries = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)]
     .map(match => match[1]).filter(entry => entry.includes(`<loc>https://clawbotomy.com${route}</loc>`));
   expect(sitemapEntries).toHaveLength(1);
-  expect(sitemapEntries[0]).toContain('<lastmod>2026-11-16T00:00:00.000Z</lastmod>');
+  expect(sitemapEntries[0]).toContain('<lastmod>2026-11-18T00:00:00.000Z</lastmod>');
   await page.goto(route);
   await ready(page);
   await expect(page).toHaveTitle(`${note.title} | Clawbotomy field notes`);

@@ -368,11 +368,11 @@ const catalog = {
         }
       ],
       "sources": [],
-      "publishedOn": "2026-11-16",
-      "updatedOn": "2026-11-16",
+      "publishedOn": "2026-11-18",
+      "updatedOn": "2026-11-18",
       "editorial": {
         "status": "approved",
-        "contentDigest": "sha256:295f530da55ba59e458e935fb2bb3e7d1f34ada4ed90428c392f8a0e6572e313"
+        "contentDigest": "sha256:82601e6cfab367559bcc1c9db4b8e7c3cd99017528e25ba461e6bd858b296dfb"
       }
     }
   ],

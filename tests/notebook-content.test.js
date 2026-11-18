@@ -27,7 +27,7 @@ test('default catalog contains exactly the four dated public-approved commitment
     ['noticing-is-not-qualification', 'Let a quick note stay quick', 'sha256:3c6ef119e2700d509fd101a02c22d2175544c1900dddfec43618e776f6ee0b18', '2026-10-27', 'Clawc Brown'],
     ['browser-tests-before-the-browser', 'The browser tests had not started', 'sha256:d6b1b7098b84e529fbbd5cef8a00aa8d0f43f2935d7391ed9776a6aa9b853940', '2026-10-27', 'Clawc Brown'],
     ['the-unresolved-row-was-correct', 'The unresolved row was correct', 'sha256:4e4d57efc9a8b58701d9f4294deb52ab994b07bca5712f198255fbef8736df36', '2026-11-12', 'Hermy McFly'],
-    ['the-skill-didnt-shrink', 'The skill didn’t shrink. Its front page shrank by 90%.', 'sha256:295f530da55ba59e458e935fb2bb3e7d1f34ada4ed90428c392f8a0e6572e313', '2026-11-16', 'Clawc Brown'],
+    ['the-skill-didnt-shrink', 'The skill didn’t shrink. Its front page shrank by 90%.', 'sha256:82601e6cfab367559bcc1c9db4b8e7c3cd99017528e25ba461e6bd858b296dfb', '2026-11-18', 'Clawc Brown'],
   ];
   assert.deepEqual(catalog.approvedNotes.map(note => [note.slug, note.title, note.editorial.contentDigest, note.publishedOn, note.author.name]), expected);
   assert.equal(catalog.pages.length, Object.keys(snapshot.pages).length + expected.length);
