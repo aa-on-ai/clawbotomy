@@ -285,6 +285,10 @@
       if (page === 'eyebrows') composeEyebrows();
       if (points[page]) composeArticle(page);
       if (page === 'about') composeAbout();
+      if (app.querySelector('[data-document-map-gesture]')) {
+        // Optional enhancement only; a failed load leaves a complete static map.
+        import('./document-map.js').then(() => window.documentMapGesture.mount(app)).catch(() => {});
+      }
       syncMetadata(page);
       app.querySelector('.fieldNotesFooter').append(node('span', 'repairSignoff', 'Things get weird. We take notes.'), link('Design references', '/sources.html', 'repairReferences'));
       syncTheme();

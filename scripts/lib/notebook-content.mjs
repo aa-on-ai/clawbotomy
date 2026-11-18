@@ -92,11 +92,42 @@ function sourceURL(value, path) {
   return value;
 }
 
+// A closed comparison. Every reader-visible label lives in the data
+// projection, including units, schematic limits and caption; no generated copy.
+const MAP_FIELDS = ['heading', 'before', 'after', 'comparison', 'references', 'scope', 'storage', 'preservation', 'provenance', 'caption'];
+function documentMap(value, path) {
+  record(value, ['type', ...MAP_FIELDS, 'gesture'], path, ['type', ...MAP_FIELDS]);
+  const labels = (input, fields, at) => {
+    record(input, fields, at);
+    return Object.fromEntries(fields.map(key => [key, text(input[key], `${at}.${key}`, 1000)]));
+  };
+  record(value.references, ['heading', 'labels', 'note'], `${path}.references`);
+  return {
+    type: 'document-map',
+    heading: text(value.heading, `${path}.heading`, 300),
+    before: labels(value.before, ['heading', 'label', 'measurement'], `${path}.before`),
+    after: labels(value.after, ['heading', 'label', 'measurement'], `${path}.after`),
+    comparison: text(value.comparison, `${path}.comparison`, 300),
+    references: {
+      heading: text(value.references.heading, `${path}.references.heading`, 300),
+      labels: array(value.references.labels, `${path}.references.labels`, 4, 4).map((v, i) => text(v, `${path}.references.labels[${i}]`, 120)),
+      note: text(value.references.note, `${path}.references.note`, 1000),
+    },
+    scope: text(value.scope, `${path}.scope`, 1000),
+    storage: labels(value.storage, ['heading', 'measurement', 'delta'], `${path}.storage`),
+    preservation: labels(value.preservation, ['heading', 'duplicates', 'verification'], `${path}.preservation`),
+    provenance: text(value.provenance, `${path}.provenance`, 1000),
+    caption: text(value.caption, `${path}.caption`, 2000),
+    ...(Object.hasOwn(value, 'gesture') ? { gesture: labels(value.gesture, ['label', 'hint'], `${path}.gesture`) } : {}),
+  };
+}
+
 function block(value, index) {
   const path = `note.blocks[${index}]`;
   // Read the discriminant only after ruling out accessors and unexpected fields.
-  record(value, ['type', 'text', 'level', 'ordered', 'items', 'language'], path, ['type']);
+  record(value, ['type', 'text', 'level', 'ordered', 'items', 'language', ...MAP_FIELDS, 'gesture'], path, ['type']);
   switch (value.type) {
+    case 'document-map': return documentMap(value, path);
     case 'paragraph':
       record(value, ['type', 'text'], path);
       return { type: value.type, text: text(value.text, `${path}.text`) };
@@ -165,7 +196,7 @@ function publicationProjection(value) {
 }
 
 const digest = projection => 'sha256:' + createHash('sha256')
-  .update(JSON.stringify({ schemaVersion: 1, ...projection }), 'utf8').digest('hex');
+  .update(JSON.stringify({ schemaVersion: projection.blocks.some(block => block.type === 'document-map' && block.gesture) ? 3 : projection.blocks.some(block => block.type === 'document-map') ? 2 : 1, ...projection }), 'utf8').digest('hex');
 
 /** Validate a draft-only interchange object; never adds dates or approval. */
 export function validateDraft(value) {
@@ -240,9 +271,30 @@ function escapeHTML(value) {
 
 // Only validated projections enter this private renderer. No caller supplies tags,
 // attributes, classes, raw HTML, Markdown, event handlers or output destinations.
+function renderDocumentMap(map) {
+  const e = escapeHTML;
+  const document = (entry, size) => `<section class="documentMapColumn"><h3>${e(entry.heading)}</h3><div class="documentMapPage documentMapPage--${size}"><p>${e(entry.label)}</p><strong>${e(entry.measurement)}</strong><div class="documentMapLines" aria-hidden="true"></div></div>`;
+  return [
+    `<figure class="documentMap"${map.gesture ? ' data-document-map-gesture' : ''}>`,
+    `<h2>${e(map.heading)}</h2>`,
+    `<p class="documentMapComparison">${e(map.comparison)}</p>`,
+    '<div class="documentMapPair">',
+    document(map.before, 'large') + '</section>',
+    document(map.after, 'compact'),
+    `<div class="documentMapReferences"><p class="documentMapReferenceHeading">${e(map.references.heading)}</p><div class="documentMapCards">${map.references.labels.map(label => { const paper = `<div class="documentMapReference">${e(label)}</div>`; return map.gesture ? `<div class="documentMapReferenceSlot">${paper}</div>` : paper; }).join('')}</div>${map.gesture ? `<div class="documentMapAction"><button type="button" class="documentMapToggle" aria-pressed="false" hidden>${e(map.gesture.label)}</button><p class="documentMapHint" hidden>${e(map.gesture.hint)}</p></div>` : ''}<p class="documentMapNote">${e(map.references.note)}</p></div></section></div>`,
+    `<p class="documentMapScope">${e(map.scope)}</p>`,
+    `<div class="documentMapStorage"><h3>${e(map.storage.heading)}</h3><p>${e(map.storage.measurement)}</p><strong>${e(map.storage.delta)}</strong></div>`,
+    `<div class="documentMapPreservation"><p><strong>${e(map.preservation.heading)}</strong></p><p>${e(map.preservation.duplicates)}</p><p>${e(map.preservation.verification)}</p></div>`,
+    `<p class="documentMapProvenance">${e(map.provenance)}</p>`,
+    `<figcaption>${e(map.caption)}</figcaption>`,
+    '</figure>',
+  ].join('\n');
+}
+
 function renderArticle(note, preview) {
   const body = note.blocks.map(block => {
     switch (block.type) {
+      case 'document-map': return renderDocumentMap(block);
       case 'paragraph': return `<p>${escapeHTML(block.text)}</p>`;
       case 'heading': return `<h${block.level}>${escapeHTML(block.text)}</h${block.level}>`;
       case 'code': return `<pre><code${block.language ? ` data-language="${block.language}"` : ''}>${escapeHTML(block.text)}</code></pre>`;

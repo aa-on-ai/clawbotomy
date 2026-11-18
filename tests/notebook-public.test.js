@@ -20,18 +20,18 @@ test('empty public projection remains artifact-free and preserves legacy dates',
   for (const entry of notebookSitemap(options)) assert.equal(entry.lastModified.toISOString(), '2026-09-24T00:00:00.000Z');
 });
 
-test('default public projection exposes all three approved articles consistently without approval records', async () => {
+test('default public projection exposes all four approved articles consistently without approval records', async () => {
   const catalog = loadNotebookCatalog();
   const files = notebookArtifacts(template);
   const browser = notebookBrowserCatalog();
-  assert.equal(catalog.approvedNotes.length, 3);
+  assert.equal(catalog.approvedNotes.length, 4);
   assert.deepEqual(Object.keys(files), [...catalog.approvedNotes.map(note => `${note.slug}.html`), 'notes.json']);
   assert.equal(browser.notesUrl, '/notebook/generated/notes.json');
   assert.deepEqual(browser.approvedSummaries, catalog.approvedSummaries);
   const rewrites = notebookRewrites();
   assert.deepEqual((await config.rewrites()).beforeFiles.slice(0, rewrites.length), rewrites);
   assert.deepEqual(Object.keys(browser.aliases), rewrites.map(r => r.source));
-  assert.equal(notebookSitemap().length, 10);
+  assert.equal(notebookSitemap().length, 11);
   const pages = JSON.parse(files['notes.json']).pages;
   assert.deepEqual(Object.keys(pages), catalog.approvedNotes.map(note => `note:${note.slug}`));
   for (const note of catalog.approvedNotes) {
