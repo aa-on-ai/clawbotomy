@@ -1,5 +1,8 @@
 import { expect, test, type Page, type Request } from '@playwright/test';
-import { writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 // The local production-build review uses a loopback TLS certificate so WebKit
 // exercises the unchanged production CSP (including upgrade-insecure-requests).
@@ -65,6 +68,8 @@ interface NetworkObservation {
   rsc?: string;
   prefetch?: string;
   status?: number;
+  contentType?: string;
+  documentFallbackVerified?: boolean;
   errorText?: string;
 }
 
@@ -78,13 +83,22 @@ function knownHostingObservation(observation: NetworkObservation, origin: string
   // These HTML rewrites have no RSC payload. Both deployed baseline and
   // candidate prefetch them before falling back to ordinary document navigation.
   const url = new URL(observation.url);
-  const knownPrefetch = url.origin === origin && ['/', '/about'].includes(url.pathname)
+  const knownRscRoute = url.origin === origin && ['/', '/about'].includes(url.pathname)
     && Boolean(url.searchParams.get('_rsc'))
     && [...url.searchParams.keys()].every(key => key === '_rsc')
     && observation.method === 'GET' && observation.resourceType === 'fetch'
-    && observation.rsc === '1' && observation.prefetch === '1';
-  return knownPrefetch && ((observation.kind === 'response' && observation.status === 404)
-    || (observation.kind === 'failed' && observation.errorText === 'net::ERR_ABORTED'));
+    && observation.rsc === '1';
+  const prefetch = observation.prefetch === '1'
+    && ((observation.kind === 'response' && observation.status === 404)
+      || (observation.kind === 'failed' && observation.errorText === 'net::ERR_ABORTED'));
+  // Development mode fetches on click rather than prefetching. A 200 HTML
+  // response causes a full-document fallback, cancelling the unused RSC body.
+  // Accept only the exact request tied to a separately verified document load.
+  const documentFallback = observation.prefetch === undefined
+    && observation.kind === 'failed' && observation.errorText === 'net::ERR_ABORTED'
+    && observation.status === 200 && observation.contentType?.split(';')[0].trim() === 'text/html'
+    && observation.documentFallbackVerified === true;
+  return knownRscRoute && (prefetch || documentFallback);
 }
 
 function requestObservation(request: Request) {
@@ -92,6 +106,53 @@ function requestObservation(request: Request) {
   return { url: request.url(), method: request.method(), resourceType: request.resourceType(),
     rsc: headers.rsc, prefetch: headers['next-router-prefetch'] };
 }
+
+test('dev chunk replacement preserves in-flight readers and propagates write errors', () => {
+  const fixture = mkdtempSync(join(tmpdir(), 'clawbotomy-dev-chunks-'));
+  try {
+    const result = spawnSync(process.execPath, [
+      '--import', resolve('scripts/lib/dev-atomic-chunks.mjs'), '--input-type=module', '-e', `
+      import assert from 'node:assert/strict';
+      import fs from 'node:fs';
+      import { promisify } from 'node:util';
+      const write = promisify(fs.writeFile);
+      const directory = '.next/static/chunks/app';
+      fs.mkdirSync(directory, { recursive: true });
+      const file = directory + '/layout.js';
+      const original = Buffer.from('const before = true;\\n'.repeat(20000));
+      const replacement = Buffer.from('const after = true;\\n'.repeat(20000));
+      fs.writeFileSync(file, original);
+      const reader = fs.openSync(file, 'r');
+      const prefix = Buffer.alloc(196608);
+      fs.readSync(reader, prefix, 0, prefix.length, null);
+      await write(file, replacement);
+      const remainder = fs.readFileSync(reader);
+      fs.closeSync(reader);
+      assert.ok(Buffer.concat([prefix, remainder]).equals(original), 'an in-flight chunk must retain its complete original bytes');
+      assert.ok(fs.readFileSync(file).equals(replacement));
+      await write(file, 'const encoded = true;', 'utf8');
+      assert.equal(fs.readFileSync(file, 'utf8'), 'const encoded = true;');
+      assert.deepEqual(fs.readdirSync(directory), ['layout.js']);
+      const blocked = directory + '/blocked.js';
+      fs.mkdirSync(blocked);
+      await assert.rejects(write(blocked, 'cannot replace a directory'));
+      assert.deepEqual(fs.readdirSync(directory).sort(), ['blocked.js', 'layout.js']);
+      await assert.rejects(write(directory + '/missing/child.js', 'no parent'), { code: 'ENOENT' });
+      // Files outside generated JS chunks retain ordinary write semantics.
+      const outside = '.next/static/outside.js';
+      fs.writeFileSync(outside, 'original');
+      const inode = fs.statSync(outside).ino;
+      await write(outside, 'replacement');
+      assert.equal(fs.statSync(outside).ino, inode);
+      await write(file, ' appended', { flag: 'a' });
+      assert.equal(fs.readFileSync(file, 'utf8'), 'const encoded = true; appended');
+    `], { cwd: fixture, encoding: 'utf8', timeout: 10_000 });
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stderr).toBe(0);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
 
 test('hosting observations never hide failed fonts, documents or unknown requests', () => {
   const origin = 'https://font-contract.vercel.app';
@@ -103,6 +164,18 @@ test('hosting observations never hide failed fonts, documents or unknown request
   expect(knownHostingObservation({ ...prefetch, url: `${origin}/about?_rsc=fixture` }, origin)).toBe(true);
   expect(knownHostingObservation({ ...prefetch, kind: 'failed', errorText: 'net::ERR_ABORTED' }, origin)).toBe(true);
   expect(knownHostingObservation(toolbar, origin, origin)).toBe(true);
+  const navigation: NetworkObservation = { ...prefetch, kind: 'failed', prefetch: undefined,
+    status: 200, contentType: 'text/html; charset=UTF-8', errorText: 'net::ERR_ABORTED', documentFallbackVerified: true };
+  expect(knownHostingObservation(navigation, origin)).toBe(true);
+  for (const invalid of [
+    { ...navigation, documentFallbackVerified: false }, { ...navigation, documentFallbackVerified: undefined },
+    { ...navigation, contentType: undefined }, { ...navigation, contentType: 'text/x-component' },
+    { ...navigation, status: 404 }, { ...navigation, status: 500 },
+    { ...navigation, resourceType: 'font' }, { ...navigation, resourceType: 'document' },
+    { ...navigation, prefetch: '0' }, { ...navigation, rsc: undefined },
+    { ...navigation, errorText: 'net::ERR_CONNECTION_REFUSED' },
+    { ...navigation, url: `${origin}/missing?_rsc=fixture` },
+  ]) expect(knownHostingObservation(invalid, origin)).toBe(false);
   for (const invalid of [
     { ...prefetch, url: `${origin}/notebook/assets/allo/AlloVariableFriendly.woff2` },
     { ...prefetch, resourceType: 'font' }, { ...prefetch, resourceType: 'document' },
@@ -115,7 +188,7 @@ test('hosting observations never hide failed fonts, documents or unknown request
     { ...prefetch, url: 'https://other.example/?_rsc=fixture' },
     { ...toolbar, url: `${origin}/notebook/cover.js` },
     { ...toolbar, errorText: 'net::ERR_CONNECTION_REFUSED' },
-  ]) expect(knownHostingObservation(invalid, origin, origin)).toBe(false);
+  ]) expect(knownHostingObservation({ ...invalid, documentFallbackVerified: true }, origin, origin)).toBe(false);
   expect(knownHostingObservation(toolbar, origin)).toBe(false);
   expect(knownHostingObservation(toolbar, 'https://www.clawbotomy.com', 'https://www.clawbotomy.com')).toBe(false);
 });
@@ -124,15 +197,17 @@ test('Allo renders on real notebook routes, both themes and narrow mobile', asyn
   const origin = new URL(baseURL!).origin;
   const errors: string[] = [];
   const hostingObservations: NetworkObservation[] = [];
-  const observe = (observation: NetworkObservation) => {
-    if (knownHostingObservation(observation, origin, process.env.CLAWBOTOMY_PREVIEW_ORIGIN)) {
-      hostingObservations.push(observation);
-    } else errors.push(JSON.stringify(observation));
-  };
+  const observations: { request: Request; signal: NetworkObservation }[] = [];
+  const received = new Map<Request, { status: number; contentType: string }>();
+  const verifiedFallbackRequests = new Set<Request>();
   page.on('pageerror', error => errors.push(error.message));
-  page.on('requestfailed', request => observe({ kind: 'failed', ...requestObservation(request), errorText: request.failure()?.errorText }));
+  page.on('requestfailed', request => observations.push({ request,
+    signal: { kind: 'failed', ...requestObservation(request), ...received.get(request), errorText: request.failure()?.errorText } }));
   page.on('response', response => {
-    if (response.status() >= 400) observe({ kind: 'response', ...requestObservation(response.request()), status: response.status() });
+    const request = response.request();
+    received.set(request, { status: response.status(), contentType: response.headers()['content-type'] });
+    if (response.status() >= 400) observations.push({ request,
+      signal: { kind: 'response', ...requestObservation(request), status: response.status() } });
   });
   const evidence = [];
   for (const [route, selector] of [
@@ -176,17 +251,38 @@ test('Allo renders on real notebook routes, both themes and narrow mobile', asyn
     // Opening mobile navigation starts route prefetches. Let them finish rather
     // than manufacturing asset cancellations by immediately leaving the page.
     await page.waitForLoadState('networkidle');
+    const startedDuringClick: Request[] = [];
+    const capture = (request: Request) => {
+      const url = new URL(request.url());
+      if (url.origin === origin && url.pathname === path) startedDuringClick.push(request);
+    };
+    page.on('request', capture);
+    const documentResponse = page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return response.request().isNavigationRequest() && url.origin === origin && url.pathname === path;
+    });
     await link.click();
+    const loaded = await documentResponse;
+    expect(loaded.status()).toBe(200);
+    expect(loaded.headers()['content-type']).toContain('text/html');
     await expect(page).toHaveURL(url => url.origin === origin && url.pathname === path);
     await ready(page);
     await expect(page.locator('h1').first()).toHaveText(heading);
     await page.waitForLoadState('networkidle');
+    page.off('request', capture);
+    for (const request of startedDuringClick) verifiedFallbackRequests.add(request);
   }
   if (browserName === 'webkit') {
     await page.setViewportSize({ width: 320, height: 740 });
     for (const route of ['/', article, '/notes/remove-all-eyebrows', '/topics', '/about']) {
       await page.goto(route); await ready(page); await noOverflow(page);
     }
+  }
+  for (const { request, signal } of observations) {
+    const observation = { ...signal, documentFallbackVerified: verifiedFallbackRequests.has(request) };
+    if (knownHostingObservation(observation, origin, process.env.CLAWBOTOMY_PREVIEW_ORIGIN)) {
+      hostingObservations.push(observation);
+    } else errors.push(JSON.stringify(observation));
   }
   await info.attach('font-evidence', { body: JSON.stringify(evidence, null, 2), contentType: 'application/json' });
   await info.attach('hosting-observations', { body: JSON.stringify(hostingObservations, null, 2), contentType: 'application/json' });

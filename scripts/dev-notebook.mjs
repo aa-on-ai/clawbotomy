@@ -72,7 +72,8 @@ try {
   if (!stopping && generated === 0) generated = await run([fileURLToPath(new URL('./build-fetch.mjs', import.meta.url))]);
   checkCatalog();
   if (!stopping && generated === 0) {
-    const code = await run([fileURLToPath(new URL('../node_modules/next/dist/bin/next', import.meta.url)), 'dev', ...args]);
+    const code = await run(['--import', fileURLToPath(new URL('./lib/dev-atomic-chunks.mjs', import.meta.url)),
+      fileURLToPath(new URL('../node_modules/next/dist/bin/next', import.meta.url)), 'dev', ...args]);
     // A dev server is long-lived: even Next's exit-0 startup failure is a stop,
     // not successful readiness. Operator signals already carry their own codes.
     await stop(code || 1, 'Next development server exited; restart npm run dev.');
