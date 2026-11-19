@@ -1,0 +1,48 @@
+name: Public release QA
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  public-browser:
+    name: Public / exact-deployment browser audit
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.55.1-noble@sha256:2f29369043d81d6d69a815ceb80760f55e85f5020371ad06a4d996f18503ad1c
+      options: --user 1001 --init --ipc=host
+    env:
+      RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      RELEASE_PHASE: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run prebuild
+      - name: Resolve exact source deployment and freeze source
+        run: node scripts/resolve-public-release.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Verify public bytes and all browser scenarios without retries
+        run: node scripts/verify-public-origin.mjs
+        env:
+          CI: ''
+      - name: Preserve public verification receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-release-qa
+          path: ${{ runner.temp }}/public-release-qa/
+          retention-days: 7
