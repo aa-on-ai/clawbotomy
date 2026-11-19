@@ -66,6 +66,7 @@ test('home and article discover Fetch in the same tab, preserving the notebook',
   await ready(page);
   expect(context.pages().length).toBe(pagesBefore);
   await page.getByRole('link', { name: 'Back to the notebook', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-study-ready', 'true');
   await expect(card).toBeVisible();
   await activate(card.locator('.feltEntryLink'), mobile);
   await expect(page).toHaveURL(/\/notes\/two-agents-one-bug/);

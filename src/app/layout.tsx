@@ -4,9 +4,9 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorker';
 import { Providers } from '@/components/Providers';
 import { SiteShell } from '@/components/site/SiteShell';
 import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/structured-data';
-import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './field-notes.css';
+import '../../public/notebook/typography.css';
 
 const siteTitle = 'Clawbotomy field notes';
 const siteDescription =
@@ -60,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={GeistMono.variable}>
       <head>
         <script
           type="application/ld+json"

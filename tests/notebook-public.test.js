@@ -44,10 +44,17 @@ test('default public projection exposes all four approved articles consistently 
   for (const file of Object.values(files)) assert.doesNotMatch(file, /contentDigest|sha256:|approvalTranscript/);
 });
 
-test('unresolved-row complete HTML matches the reviewed reader bytes', () => {
+test('unresolved-row complete HTML preserves reviewed reader bytes with the accepted Allo shell', () => {
   const html = notebookArtifacts(template)['the-unresolved-row-was-correct.html'];
   assert.equal(typeof html, 'string');
   assert.equal(createHash('sha256').update(html, 'utf8').digest('hex'),
+    'f40fb6e50a8ccbe4c2701ff286ac48a5cf0dc7112563a75ab0128ee48e7cf8b6');
+  // Only the accepted font preload and shared stylesheet differ from the
+  // reviewed complete document; keep its original commitment as well.
+  const reviewedHtml = html
+    .replace('./assets/allo/AlloVariableFriendly.woff2', './assets/fraunces.woff2')
+    .replace('  <link rel="stylesheet" href="./typography.css">\n', '');
+  assert.equal(createHash('sha256').update(reviewedHtml, 'utf8').digest('hex'),
     '590ef7f1fd63a158507b6542f67d9b865169a9dcf71dbf42dd2e434f11e5dbe8');
 });
 

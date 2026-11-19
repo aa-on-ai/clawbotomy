@@ -71,16 +71,26 @@ test('catalog drives the index and text-first notes, including direct loads and 
   expect(Object.keys(pages)).toEqual(approvedNotes.map(note => `note:${note.slug}`));
   const reviewedSlug = 'the-unresolved-row-was-correct';
   const reviewedHtmlDigest = '590ef7f1fd63a158507b6542f67d9b865169a9dcf71dbf42dd2e434f11e5dbe8';
+  const expectReviewedHtml = (bytes: Buffer) => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(
+      'f40fb6e50a8ccbe4c2701ff286ac48a5cf0dc7112563a75ab0128ee48e7cf8b6');
+    // Preserve the original complete reader commitment after reversing only
+    // the accepted typography preload and shared stylesheet integration.
+    const reviewedHtml = bytes.toString('utf8')
+      .replace('./assets/allo/AlloVariableFriendly.woff2', './assets/fraunces.woff2')
+      .replace('  <link rel="stylesheet" href="./typography.css">\n', '');
+    expect(createHash('sha256').update(reviewedHtml).digest('hex')).toBe(reviewedHtmlDigest);
+  };
   for (const note of approvedNotes) {
     expect(pages[`note:${note.slug}`].html).toContain(renderApprovedNote(note));
     const direct = await request.get(`/notebook/generated/${note.slug}.html`);
     expect(direct.status()).toBe(200);
     expect(await direct.text()).toContain(renderApprovedNote(note));
     if (note.slug === reviewedSlug) {
-      expect(createHash('sha256').update(await direct.body()).digest('hex')).toBe(reviewedHtmlDigest);
+      expectReviewedHtml(await direct.body());
       const canonical = await request.get(`/notes/${note.slug}`);
       expect(canonical.status()).toBe(200);
-      expect(createHash('sha256').update(await canonical.body()).digest('hex')).toBe(reviewedHtmlDigest);
+      expectReviewedHtml(await canonical.body());
       expect(catalog.approvedSummaries.find((entry: { slug: string }) => entry.slug === reviewedSlug)).toMatchObject({
         title: 'The unresolved row was correct', author: { name: 'Hermy McFly', kind: 'ai' },
         publishedOn: '2026-11-12', updatedOn: '2026-11-12',

@@ -2,14 +2,6 @@
    Scoped to the homepage (.feltHome) and the Remove all eyebrows story (.feltStory).
    Other notebook pages keep their previous treatment until the direction is approved. */
 
-@font-face {
-  font-family: "Fraunces";
-  src: url(assets/fraunces.woff2) format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 .fieldNotes {
   --f-paper: #f1eadc;
   --f-sheet: #fcf8f0;
@@ -31,11 +23,10 @@
   --f-focus-felt: #f2b34a;
   --f-gutter: clamp(20px, 5vw, 64px);
   --f-rail: 1200px;
-  --f-display: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --f-text: "Fraunces", "Iowan Old Style", Georgia, serif;
-  /* Long reading uses the notebook's original text face; Fraunces keeps the headings and decks. */
-  --f-body: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
-  --f-ui: GeistSans, "GeistSans Fallback", ui-sans-serif, system-ui, sans-serif;
+  --f-display: var(--font-allo);
+  --f-text: var(--font-allo);
+  --f-body: var(--font-allo);
+  --f-ui: var(--font-allo);
   /* Highlighter for whatever takes over a removed piece's job. */
   --f-mark: #f3dc72;
   --f-measure: #9a6f0c;
@@ -67,7 +58,7 @@
 .feltDisplay, .feltHome h1, .feltHome h2, .feltHome h3, .feltStory h1, .feltStory h2, .feltSheetTitle, .feltSheetHeading {
   font-family: var(--f-display);
   font-weight: 720;
-  font-variation-settings: "SOFT" 100, "WONK" 0;
+  font-variation-settings: normal;
   font-optical-sizing: auto;
   text-wrap: balance;
 }
@@ -132,7 +123,7 @@ html[data-theme="dark"]:has(.feltHome), html[data-theme="dark"]:has(.feltHome) b
 .feltHeroCopy, .feltTableCopy { grid-area: copy; position: relative; z-index: 2; }
 .fieldNotes .feltHero :focus-visible, .fieldNotes .feltTable :focus-visible { outline: 3px solid var(--f-focus-felt); outline-offset: 3px; }
 .fieldNotes .feltHero h2 { margin: 0 0 16px; font-size: clamp(46px, 5vw, 66px); line-height: .92; letter-spacing: -.03em; color: var(--f-on-felt); }
-.feltDeck { margin: 0 0 24px; max-width: 23em; font: 400 20px/1.4 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-on-felt-2); text-wrap: pretty; }
+.feltDeck { margin: 0 0 24px; max-width: 23em; font: 400 20px/1.4 var(--f-text); font-variation-settings: normal; color: var(--f-on-felt-2); text-wrap: pretty; }
 .feltRead {
   display: inline-flex;
   align-items: center;
@@ -172,7 +163,7 @@ html[data-theme="dark"]:has(.feltHome), html[data-theme="dark"]:has(.feltHome) b
 /* Widths fit the longest label each button can show, so the row never shifts. */
 .feltTool[data-tool="labels"] { min-width: 14.9em; }
 .feltTool[data-tool="lines"] { min-width: 12.6em; }
-.feltStatus { min-height: 4.35em; margin: 0 0 2px; max-width: 26ch; font: 400 18px/1.45 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-on-felt); text-wrap: pretty; }
+.feltStatus { min-height: 4.35em; margin: 0 0 2px; max-width: 26ch; font: 400 18px/1.45 var(--f-text); font-variation-settings: normal; color: var(--f-on-felt); text-wrap: pretty; }
 
 /* The site already pads jumps by 24px; this lands the page 12px from the top. */
 .feltSpecimen { grid-area: sheet; position: relative; z-index: 1; margin: 0; min-width: 0; scroll-margin-top: -12px; }
@@ -407,7 +398,7 @@ html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden
 }
 .fieldNotes:has(.feltHome) .fieldNotesFooter a { color: var(--f-on-night); }
 .fieldNotes:has(.feltHome) .fieldNotesFooter :focus-visible { outline: 3px solid var(--f-focus-felt); outline-offset: 3px; }
-.fieldNotes:has(.feltHome) .repairSignoff, .fieldNotes:has(.feltStory) .repairSignoff { font: 400 17px/1.4 var(--f-text); font-style: normal; font-variation-settings: "SOFT" 50, "WONK" 0; }
+.fieldNotes:has(.feltHome) .repairSignoff, .fieldNotes:has(.feltStory) .repairSignoff { font: 400 17px/1.4 var(--f-text); font-style: normal; font-variation-settings: normal; }
 
 /* ---------- Story: Remove all eyebrows ---------- */
 .fieldNotes .feltStory { width: 100%; max-width: none; margin: 0; padding: 0 0 clamp(64px, 8vw, 112px); }
@@ -424,7 +415,7 @@ html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden
   color: var(--f-ink);
 }
 .feltStoryLede { display: grid; gap: 20px; padding-top: 14px; }
-.fieldNotes .feltStoryDeck { margin: 0; max-width: 24ch; font: 400 clamp(22px, 1.9vw, 26px)/1.3 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-ink); letter-spacing: -.005em; text-wrap: pretty; }
+.fieldNotes .feltStoryDeck { margin: 0; max-width: 24ch; font: 400 clamp(22px, 1.9vw, 26px)/1.3 var(--f-text); font-variation-settings: normal; color: var(--f-ink); letter-spacing: -.005em; text-wrap: pretty; }
 .feltByline { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
 .feltAvatar { flex: 0 0 52px; width: 52px; height: 52px; overflow: hidden; border-radius: 50%; background: var(--f-blush); }
 .fieldNotes .feltAvatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; transform: scale(1.45); transform-origin: 50% 20%; }
@@ -473,13 +464,13 @@ html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden
   scroll-margin-top: 16px;
 }
 .fieldNotes .feltTable h2 { margin: 0 0 14px; font-size: clamp(36px, 4.2vw, 56px); line-height: .98; letter-spacing: -.022em; color: var(--f-on-felt); }
-.feltTableIntro { margin: 0 0 24px; max-width: 30ch; font: 400 19px/1.45 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-on-felt-2); }
+.feltTableIntro { margin: 0 0 24px; max-width: 30ch; font: 400 19px/1.45 var(--f-text); font-variation-settings: normal; color: var(--f-on-felt-2); }
 .fieldNotes .feltTable .feltReturn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 12px; font: 600 15px/1.2 var(--f-ui); color: var(--f-on-felt); }
 .feltTable .feltReturn svg { width: 18px; height: 18px; }
 
 .fieldNotes .feltStory .editorialSources, .fieldNotes .feltStory .editorialRelated, .fieldNotes .feltStory .editorialArticleClose { width: min(100% - 2 * var(--f-gutter), 680px); margin-inline: auto; }
 .fieldNotes .feltStory .editorialSources { margin-top: clamp(64px, 8vw, 104px); }
-.fieldNotes .feltStory .editorialSources h2, .fieldNotes .feltStory .editorialRelated h2 { margin: 0 0 14px; font: 720 clamp(32px, 3.4vw, 44px)/1 var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 0; letter-spacing: -.012em; color: var(--f-ink); }
+.fieldNotes .feltStory .editorialSources h2, .fieldNotes .feltStory .editorialRelated h2 { margin: 0 0 14px; font: 720 clamp(32px, 3.4vw, 44px)/1 var(--f-display); font-variation-settings: normal; letter-spacing: -.012em; color: var(--f-ink); }
 .fieldNotes .feltStory .editorialSources > p { margin: 0 0 28px; font: 400 18px/1.55 var(--f-body); color: var(--f-ink-2); }
 .fieldNotes .feltStory .editorialSourceList { display: grid; gap: 6px; }
 .fieldNotes .feltStory .editorialSource { border: 0; border-radius: 10px; background: transparent; }
@@ -497,7 +488,7 @@ html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden
 }
 .fieldNotes .feltStory .editorialSource summary::-webkit-details-marker { display: none; }
 .fieldNotes .feltStory .editorialSource summary::before, .fieldNotes .feltStory .editorialSource summary::after { content: none; display: none; }
-.fieldNotes .feltStory .editorialSourceNumber { display: block; width: auto; height: auto; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; text-align: center; font: 720 30px/1 var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 0; color: var(--f-lobster-ink); }
+.fieldNotes .feltStory .editorialSourceNumber { display: block; width: auto; height: auto; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; text-align: center; font: 720 30px/1 var(--f-display); font-variation-settings: normal; color: var(--f-lobster-ink); }
 .fieldNotes .feltStory .editorialSource summary > span:nth-child(2) strong { display: block; font: 650 17px/1.3 var(--f-ui); color: var(--f-ink); }
 .fieldNotes .feltStory .editorialSourceKind { display: block; margin-top: 2px; font: 500 14px/1.4 var(--f-ui); color: var(--f-ink-2); }
 .fieldNotes .feltStory .editorialSource .feltSourceToggle { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: var(--f-ink); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--f-ink) 30%, transparent); }
@@ -518,14 +509,14 @@ html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden
   padding: 6px 0;
   border: 0;
   font: 650 clamp(24px, 2.4vw, 30px)/1.12 var(--f-display);
-  font-variation-settings: "SOFT" 100, "WONK" 0;
+  font-variation-settings: normal;
   letter-spacing: -.008em;
   color: var(--f-ink);
 }
 .fieldNotes .feltStory .editorialRelated a span { text-wrap: balance; }
 .fieldNotes .feltStory .editorialRelated a svg { width: 24px; height: 24px; flex: 0 0 24px; transition: transform 160ms var(--f-ease-out); }
 .fieldNotes .feltStory .editorialArticleClose { margin-top: clamp(48px, 6vw, 80px); padding: 0; background: none; border: 0; border-radius: 0; }
-.fieldNotes .feltStory .editorialArticleClose p { margin: 0 0 8px; max-width: 26ch; font: 400 24px/1.35 var(--f-text); font-variation-settings: "SOFT" 50, "WONK" 0; color: var(--f-ink); }
+.fieldNotes .feltStory .editorialArticleClose p { margin: 0 0 8px; max-width: 26ch; font: 400 24px/1.35 var(--f-text); font-variation-settings: normal; color: var(--f-ink); }
 .fieldNotes .feltStory .editorialArticleClose .textLink { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; font: 600 15px/1.2 var(--f-ui); color: var(--f-lobster-ink); }
 .fieldNotes .feltStory .editorialArticleClose .textLink svg { width: 18px; height: 18px; }
 .fieldNotes:has(.feltStory) .fieldNotesFooter { width: min(100% - 2 * var(--f-gutter), var(--f-rail)); color: var(--f-ink-2); font: 500 14px/1.4 var(--f-ui); justify-content: space-between; align-items: center; }
@@ -547,7 +538,7 @@ html[data-route="page"]:not([data-study-ready]) #cover-home { visibility: hidden
     font: 500 13px/1.45 var(--f-ui);
     color: var(--f-ink-2);
   }
-  .feltSidenote b { display: block; margin-bottom: 2px; font: 720 22px/1 var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 0; color: var(--f-lobster-ink); }
+  .feltSidenote b { display: block; margin-bottom: 2px; font: 720 22px/1 var(--f-display); font-variation-settings: normal; color: var(--f-lobster-ink); }
   .feltSidenote strong { font-weight: 650; color: var(--f-ink); }
 }
 

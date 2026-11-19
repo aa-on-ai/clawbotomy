@@ -1,0 +1,42 @@
+/* Allo 1.0.3, official Friendly build: ROND fixed at 50.
+   Shared by the static notebook, generated articles and the React shell.
+   Keep the existing role names so typography changes do not alter page geometry. */
+@font-face {
+  font-family: "Allo";
+  src: url("./assets/allo/AlloVariableFriendly.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Allo";
+  src: url("./assets/allo/Allo-Oblique.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+:root {
+  --font-allo: "Allo", ui-sans-serif, system-ui, sans-serif;
+  /* Compatibility token for the pre-existing React and snapshot consumers. */
+  --font-geist-sans: var(--font-allo);
+  font-optical-sizing: auto;
+  font-synthesis: none;
+}
+html.__variable_245d8d { --font-geist-sans: var(--font-allo); }
+html .fieldNotes {
+  --sans: var(--font-allo);
+  --serif: var(--font-allo);
+  font-family: var(--font-allo);
+}
+/* Allo's display weight replaces the former light serif hierarchy; prose,
+   measures, line heights, palettes and semantic monospace remain unchanged. */
+.fieldNotes .editorialArticleHeader h1,
+.fieldNotes .repairSources h1 { font-weight: 720; }
+.fieldNotes .structuredNotes h2,
+.fieldNotes .structuredNotes h3,
+.fieldNotes .editorialArticle[data-note-slug] .editorialProse h2,
+.fieldNotes .editorialArticle[data-note-slug] .editorialProse h3 { font-weight: 700; }
+.fieldNotes .editorialArticle[data-note-slug] .documentMap h2 { font-weight: 700; }
+.fieldNotes .editorialArticle[data-note-slug] .documentMap h3 { font-weight: 600; }
+.fieldNotes .fieldNotesNav a { font-weight: 600; }
+code, pre, kbd, samp { font-variant-ligatures: no-contextual; }
