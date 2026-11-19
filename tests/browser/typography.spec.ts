@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Request } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 
 // The local production-build review uses a loopback TLS certificate so WebKit
@@ -8,6 +8,9 @@ const article = '/notes/the-skill-didnt-shrink';
 async function ready(page: Page) {
   await expect(page.locator('html')).toHaveAttribute('data-study-ready', 'true');
   await page.evaluate(() => document.fonts.ready);
+  // This test observes every network failure across multiple navigations.
+  // Drain the current document's requests before the test replaces it.
+  await page.waitForLoadState('networkidle');
 }
 async function fontEvidence(page: Page, selector: string, chromium: boolean) {
   const sample = page.locator(selector).first();
@@ -54,11 +57,83 @@ async function noOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
 
-test('Allo renders on real notebook routes, both themes and narrow mobile', async ({ page, browserName }, info) => {
+interface NetworkObservation {
+  kind: 'response' | 'failed';
+  url: string;
+  method: string;
+  resourceType: string;
+  rsc?: string;
+  prefetch?: string;
+  status?: number;
+  errorText?: string;
+}
+
+function knownHostingObservation(observation: NetworkObservation, origin: string, previewOrigin?: string) {
+  if (observation.kind === 'failed'
+    && origin === previewOrigin && new URL(origin).hostname.endsWith('.vercel.app')
+    && observation.url === 'https://vercel.live/_next-live/feedback/feedback.js'
+    && observation.method === 'GET' && observation.resourceType === 'script'
+    && observation.errorText === 'csp') return true;
+
+  // These HTML rewrites have no RSC payload. Both deployed baseline and
+  // candidate prefetch them before falling back to ordinary document navigation.
+  const url = new URL(observation.url);
+  const knownPrefetch = url.origin === origin && ['/', '/about'].includes(url.pathname)
+    && Boolean(url.searchParams.get('_rsc'))
+    && [...url.searchParams.keys()].every(key => key === '_rsc')
+    && observation.method === 'GET' && observation.resourceType === 'fetch'
+    && observation.rsc === '1' && observation.prefetch === '1';
+  return knownPrefetch && ((observation.kind === 'response' && observation.status === 404)
+    || (observation.kind === 'failed' && observation.errorText === 'net::ERR_ABORTED'));
+}
+
+function requestObservation(request: Request) {
+  const headers = request.headers();
+  return { url: request.url(), method: request.method(), resourceType: request.resourceType(),
+    rsc: headers.rsc, prefetch: headers['next-router-prefetch'] };
+}
+
+test('hosting observations never hide failed fonts, documents or unknown requests', () => {
+  const origin = 'https://font-contract.vercel.app';
+  const prefetch: NetworkObservation = { kind: 'response', url: `${origin}/?_rsc=fixture`,
+    method: 'GET', resourceType: 'fetch', rsc: '1', prefetch: '1', status: 404 };
+  const toolbar: NetworkObservation = { kind: 'failed', method: 'GET', resourceType: 'script',
+    url: 'https://vercel.live/_next-live/feedback/feedback.js', errorText: 'csp' };
+  expect(knownHostingObservation(prefetch, origin)).toBe(true);
+  expect(knownHostingObservation({ ...prefetch, url: `${origin}/about?_rsc=fixture` }, origin)).toBe(true);
+  expect(knownHostingObservation({ ...prefetch, kind: 'failed', errorText: 'net::ERR_ABORTED' }, origin)).toBe(true);
+  expect(knownHostingObservation(toolbar, origin, origin)).toBe(true);
+  for (const invalid of [
+    { ...prefetch, url: `${origin}/notebook/assets/allo/AlloVariableFriendly.woff2` },
+    { ...prefetch, resourceType: 'font' }, { ...prefetch, resourceType: 'document' },
+    { ...prefetch, kind: 'failed' as const, resourceType: 'font', errorText: 'net::ERR_ABORTED' },
+    { ...prefetch, rsc: undefined }, { ...prefetch, prefetch: undefined },
+    { ...prefetch, method: 'POST' }, { ...prefetch, status: 500 },
+    { ...prefetch, url: `${origin}/missing?_rsc=fixture` },
+    { ...prefetch, url: `${origin}/about` },
+    { ...prefetch, url: `${origin}/?_rsc=fixture&unexpected=1` },
+    { ...prefetch, url: 'https://other.example/?_rsc=fixture' },
+    { ...toolbar, url: `${origin}/notebook/cover.js` },
+    { ...toolbar, errorText: 'net::ERR_CONNECTION_REFUSED' },
+  ]) expect(knownHostingObservation(invalid, origin, origin)).toBe(false);
+  expect(knownHostingObservation(toolbar, origin)).toBe(false);
+  expect(knownHostingObservation(toolbar, 'https://www.clawbotomy.com', 'https://www.clawbotomy.com')).toBe(false);
+});
+
+test('Allo renders on real notebook routes, both themes and narrow mobile', async ({ page, browserName, baseURL }, info) => {
+  const origin = new URL(baseURL!).origin;
   const errors: string[] = [];
+  const hostingObservations: NetworkObservation[] = [];
+  const observe = (observation: NetworkObservation) => {
+    if (knownHostingObservation(observation, origin, process.env.CLAWBOTOMY_PREVIEW_ORIGIN)) {
+      hostingObservations.push(observation);
+    } else errors.push(JSON.stringify(observation));
+  };
   page.on('pageerror', error => errors.push(error.message));
-  page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
-  page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()}: ${response.url()}`); });
+  page.on('requestfailed', request => observe({ kind: 'failed', ...requestObservation(request), errorText: request.failure()?.errorText }));
+  page.on('response', response => {
+    if (response.status() >= 400) observe({ kind: 'response', ...requestObservation(response.request()), status: response.status() });
+  });
   const evidence = [];
   for (const [route, selector] of [
     ['/', '.feltMasthead h1'], [article, '.editorialArticleHeader h1'],
@@ -84,6 +159,29 @@ test('Allo renders on real notebook routes, both themes and narrow mobile', asyn
   evidence.push({ route: '/docs (React)', ...(await fontEvidence(page, 'h1', browserName === 'chromium')) });
   const code = page.locator('code').first();
   await expect(code).toHaveCSS('font-family', /(?:Geist|mono)/i);
+  await page.waitForLoadState('networkidle');
+  // A prefetch exception is not permission for a broken document or dead link.
+  for (const [path, heading] of [
+    ['/about', /Close to the work\./], ['/', /An AI agent’s notebook of useful\s+mistakes\./],
+  ] as const) {
+    const response = await page.request.get(path);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('text/html');
+    await page.goto('/docs');
+    const link = page.locator(`header a[href="${path}"]`).first();
+    if (!await link.isVisible()) {
+      await page.getByRole('button', { name: 'Open primary navigation', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Close primary navigation', exact: true })).toHaveAttribute('aria-expanded', 'true');
+    }
+    // Opening mobile navigation starts route prefetches. Let them finish rather
+    // than manufacturing asset cancellations by immediately leaving the page.
+    await page.waitForLoadState('networkidle');
+    await link.click();
+    await expect(page).toHaveURL(url => url.origin === origin && url.pathname === path);
+    await ready(page);
+    await expect(page.locator('h1').first()).toHaveText(heading);
+    await page.waitForLoadState('networkidle');
+  }
   if (browserName === 'webkit') {
     await page.setViewportSize({ width: 320, height: 740 });
     for (const route of ['/', article, '/notes/remove-all-eyebrows', '/topics', '/about']) {
@@ -91,6 +189,7 @@ test('Allo renders on real notebook routes, both themes and narrow mobile', asyn
     }
   }
   await info.attach('font-evidence', { body: JSON.stringify(evidence, null, 2), contentType: 'application/json' });
+  await info.attach('hosting-observations', { body: JSON.stringify(hostingObservations, null, 2), contentType: 'application/json' });
   writeFileSync(info.outputPath('font-evidence.json'), JSON.stringify(evidence, null, 2));
   expect(errors).toEqual([]);
 });
@@ -106,6 +205,8 @@ test('type change preserves cover controls, navigation, diagram and Fetch entry'
   const figure = page.locator('.documentMap');
   const button = figure.locator('.documentMapToggle');
   const original = await figure.textContent();
+  await expect(button).toBeVisible();
+  await expect(figure).toHaveAttribute('data-spread', 'false');
   await expect(button).toHaveAttribute('aria-pressed', 'false');
   if (mobile) await button.tap(); else { await button.focus(); await button.press('Space'); }
   await expect(button).toHaveAttribute('aria-pressed', 'true');
