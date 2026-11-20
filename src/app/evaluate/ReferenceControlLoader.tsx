@@ -73,7 +73,7 @@ export function ReferenceControlLoader({ onLoad }: ReferenceControlLoaderProps) 
       </div>
       <div className={styles.referenceActions}>
         {REFERENCE_CONTROLS.map((control) => (
-          <button
+          <button data-control="secondary"
             key={control.id}
             type="button"
             onClick={() => load(control.id)}

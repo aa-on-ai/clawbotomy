@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Icon } from '@/components/ui/Icon';
 import { notFound } from 'next/navigation';
 
 import {
@@ -129,7 +130,13 @@ function EvidenceDisclosure({ record, runId, label }: { record: EvidenceRecord; 
   return (
     <>
       <details className={styles.evidenceDisclosure}>
-        <summary>{label}</summary>
+        <summary>
+          <span>{label}</span>
+          <i data-control-indicator aria-hidden="true">
+            <Icon name="plus" className={styles.disclosureClosed} />
+            <Icon name="minus" className={styles.disclosureOpen} />
+          </i>
+        </summary>
         <div className={styles.evidencePair}>
           <div>
             <h4>System prompt</h4>

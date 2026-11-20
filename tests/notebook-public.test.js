@@ -48,10 +48,21 @@ test('unresolved-row complete HTML preserves reviewed reader bytes with the acce
   const html = notebookArtifacts(template)['the-unresolved-row-was-correct.html'];
   assert.equal(typeof html, 'string');
   assert.equal(createHash('sha256').update(html, 'utf8').digest('hex'),
+    '4e00ea7277dcd935eacc74a241a647a39790ba5184e9b278b3028bfcca05f4a6');
+  // Reverse only the two exact decorative SVG replacements.
+  const controlsHtml = html
+    .replace("<svg data-glyph=\"pluck\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 16-1-2L15 3a2.1 2.1 0 0 1 3 3L9 19l-2-1\"/><path d=\"M6 18c-1 2-2 3-4 3\"/></svg>", "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><g transform=\"rotate(42 12 12)\"><path d=\"M12 2.2 8.9 11l2.4 10.8\"/><path d=\"M12 2.2 15.1 11l-2.4 10.8\"/></g></svg>")
+    .replace("<svg data-glyph=\"pull\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2 18h3m3 0h3m3 0c4 0 5-3 5-6V3\"/><path d=\"m15 7 4-4 4 4\"/></svg>", "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 15h3m3 0h3c3.4 0 4.6-1.7 5.6-4S19.4 6 21 6\"/></svg>");
+  assert.equal(createHash('sha256').update(controlsHtml, 'utf8').digest('hex'),
+    '47655bf26ed14c86f016c4c0d2abae9dc8077f3750f63b30315b1ff541f8582d');
+  // The control finish is one stylesheet link. Reversing exactly that delta
+  // restores the complete accepted Allo document, not a relaxed projection.
+  const alloHtml = controlsHtml.replace('  <link rel="stylesheet" href="/controls.css">\n', '');
+  assert.equal(createHash('sha256').update(alloHtml, 'utf8').digest('hex'),
     'f40fb6e50a8ccbe4c2701ff286ac48a5cf0dc7112563a75ab0128ee48e7cf8b6');
   // Only the accepted font preload and shared stylesheet differ from the
   // reviewed complete document; keep its original commitment as well.
-  const reviewedHtml = html
+  const reviewedHtml = alloHtml
     .replace('./assets/allo/AlloVariableFriendly.woff2', './assets/fraunces.woff2')
     .replace('  <link rel="stylesheet" href="./typography.css">\n', '');
   assert.equal(createHash('sha256').update(reviewedHtml, 'utf8').digest('hex'),

@@ -1,0 +1,130 @@
+/* Shared control finish, not a page theme. Existing palettes and type roles own
+   the colours and text. Story objects (slips, stitches, Fetch tiles) opt out.
+   48px targets, 11px corners, 18px Lucide UI glyphs, full perimeter, soft depth. */
+:root {
+  --control-radius: 11px;
+  --control-gap: 8px;
+  --control-depth: 0 2px 4px rgb(25 22 15 / 12%), 0 5px 12px rgb(25 22 15 / 8%);
+  --control-held-depth: 0 1px 3px rgb(25 22 15 / 12%);
+}
+/* Explicit React consumers retain their own layout and palette. Disclosure rows
+   stay rows; primary, secondary and quiet actions share the smaller object. */
+html [data-control][data-control] {
+  border-radius: var(--control-radius);
+  clip-path: none;
+  box-shadow: var(--control-depth);
+  transform: none;
+  opacity: 1;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+html [data-control][data-control]:where(:not([data-control="disclosure"]):not([data-control="row"])) {
+  min-height: 48px;
+  gap: var(--control-gap);
+  border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+}
+html [data-control][data-control="quiet"], html [data-control][data-control="row"], html [data-control][data-control="disclosure"] { box-shadow: none; }
+html [data-control][data-control="row"] { border-radius: 0; }
+html [data-control][data-control="disclosure"] { border-radius: 0; }
+html [data-control][data-control]:active:not(:disabled):not([data-control="quiet"]):not([data-control="row"]):not([data-control="disclosure"]) { transform: none; opacity: 1; box-shadow: var(--control-held-depth); }
+html [data-control][data-control]:disabled { opacity: .65; box-shadow: none; cursor: not-allowed; }
+html [data-control][data-control]:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+html [data-control][data-control="disclosure"]:focus-visible { outline-offset: -3px; }
+html [data-control][data-control="row"][aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: -3px; }
+/* Selection stays inset; native keyboard focus is a separate outer ring. */
+html [data-control][data-control="row"]:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+html [data-control][data-control="quiet"] { border-color: transparent; }
+html [data-control][data-control="quiet"]:is(:hover, :active) { background: color-mix(in srgb, currentColor 8%, transparent); }
+html [data-control][data-control]::after { content: none; }
+html .controlGlyph {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  stroke-width: 1.75;
+  pointer-events: none;
+}
+html [data-control-indicator][data-control-indicator] { display: grid; place-items: center; }
+html [data-control-indicator][data-control-indicator]::before, html [data-control-indicator][data-control-indicator]::after { content: none; }
+html [data-control-indicator][data-control-indicator] .controlGlyph { width: 18px; height: 18px; }
+html i[data-control-indicator] { border-radius: 9px; transform: none; }
+html [data-control-indicator][data-control-indicator] .controlGlyph { transition: none; }
+html details[open] > summary .controlPlusVertical { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  html [data-control][data-control]:hover:not(:disabled) { transform: none; }
+  html [data-control][data-control]:hover i[data-control-indicator] { transform: none; }
+  html [data-control][data-control]:not([data-control="row"]):not([data-control="disclosure"]):not([data-control="quiet"]):hover:not(:disabled) { border-color: currentColor; }
+}
+/* Notebook surfaces use their original warm paper/ink and cream-on-felt. */
+html .fieldNotes.fieldNotes :is(.feltTool, .fieldNotesThemeControl, .feltTry, .fetchPlay, .documentMapToggle, .roomControls :where(button)) {
+  min-height: 48px;
+  border: 1px solid color-mix(in srgb, currentColor 48%, transparent);
+  border-radius: var(--control-radius);
+  box-shadow: var(--control-depth);
+  gap: var(--control-gap);
+  transform: none;
+  opacity: 1;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+html .fieldNotes.fieldNotes .fieldNotesThemeControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0;
+  color: var(--ink);
+  background: var(--paper);
+}
+html .fieldNotes.fieldNotes:has(:is(.feltHome, .feltStory)) .fieldNotesThemeControl { color: var(--f-ink); background: var(--f-paper); }
+html .fieldNotes.fieldNotes .feltTool { padding-block: 10px; }
+html .fieldNotes.fieldNotes .feltTool:not(.feltToolPrimary):not(.feltToolQuiet) { background: var(--f-felt-deep); color: var(--f-on-felt); }
+html .fieldNotes.fieldNotes .feltToolPrimary { color: var(--f-felt-deep); background: var(--f-on-felt); }
+html .fieldNotes.fieldNotes .feltToolQuiet { background: transparent; color: var(--f-on-felt); border-color: transparent; box-shadow: none; }
+html .fieldNotes.fieldNotes .feltToolQuiet:is(:hover, :active):not(:disabled) { background: color-mix(in srgb, var(--f-on-felt) 10%, transparent); transform: none; opacity: 1; }
+html .fieldNotes.fieldNotes .feltTool:disabled { color: var(--f-on-felt-2); background: transparent; border-color: transparent; box-shadow: none; cursor: default; }
+html .fieldNotes.fieldNotes .feltTool[aria-pressed="true"] { border-style: dashed; }
+html .fieldNotes.fieldNotes .documentMapToggle[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: -4px; background: var(--sage); }
+html .fieldNotes.fieldNotes .fieldNotesNav a { min-height: 48px; border-radius: var(--control-radius); }
+html .fieldNotes.fieldNotes .fieldNotesHeaderSide { gap: 12px; }
+html .fieldNotes.fieldNotes :is(.feltRead, .feltBack, .feltTry, .feltReturn, .textLink, .editorialReturn, .fieldNotesThemeControl, .feltTool) svg {
+  width: 18px; height: 18px; flex: 0 0 18px; stroke-width: 1.75;
+}
+html .fieldNotes.fieldNotes .feltStory .feltSourceToggle { border: 1px solid color-mix(in srgb, var(--f-ink) 38%, transparent); border-radius: 9px; box-shadow: none; }
+html .fieldNotes.fieldNotes :is(.feltTool, .fieldNotesThemeControl, .feltTry, .fetchPlay, .documentMapToggle, .roomControls button):active:not(:disabled):not(.feltToolQuiet) { transform: none; opacity: 1; box-shadow: var(--control-held-depth); }
+html .fieldNotes.fieldNotes :is(.feltTool, .fieldNotesThemeControl, .feltTry, .fetchPlay, .documentMapToggle, .roomControls button):focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+html .fieldNotes.fieldNotes :is(.feltHero, .feltTable) .feltTool:focus-visible { outline-color: var(--f-focus-felt); }
+@media (hover: hover) and (pointer: fine) {
+  html .fieldNotes.fieldNotes .fieldNotesNav a:not([aria-current="page"]):hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  html .fieldNotes.fieldNotes:has(:is(.feltHome, .feltStory)) .fieldNotesNav a:not([aria-current="page"]):hover { color: var(--f-ink); background: color-mix(in srgb, var(--f-ink) 8%, transparent); }
+  html .fieldNotes.fieldNotes :is(.fieldNotesThemeControl, .documentMapToggle):hover { border-color: currentColor; box-shadow: var(--control-held-depth); }
+  html .fieldNotes.fieldNotes .feltToolPrimary:hover:not(:disabled) { background: #fcf8f0; }
+  html .fieldNotes.fieldNotes .feltTool:not(.feltToolPrimary):not(.feltToolQuiet):hover:not(:disabled) { color: var(--f-on-felt); background: var(--f-felt-deep); border-color: var(--f-on-felt); }
+}
+/* Fetch is intentionally light-only. Its clay tiles are the game, not toolbar
+   controls. Do not apply control geometry, icon strokes or shadows to the board. */
+html .game :is(.actions :where(button), .sound) {
+  min-height: 48px;
+  border-radius: var(--control-radius);
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  box-shadow: var(--control-depth);
+  gap: var(--control-gap);
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+html .game .actions { gap: 8px; }
+html .game .actions .secondary { background: var(--paper); }
+html .game .sound { box-shadow: none; border-color: transparent; }
+html .game .sound[aria-pressed="true"] { border-color: var(--olive); background: #e9e5d8; }
+html .game .icon { width: 18px; height: 18px; stroke-width: 1.75; }
+html .game .actions button:disabled { opacity: 1; color: var(--muted); background: #e9e5d8; border-color: var(--line); box-shadow: none; cursor: default; }
+html .game .actions button:active:not(:disabled) { box-shadow: var(--control-held-depth); }
+html .game .actions button { white-space: normal; }
+html .game a { text-decoration: none; }
+@media (prefers-reduced-motion: reduce) {
+  html [data-control][data-control], html .fieldNotes.fieldNotes :is(.feltTool, .fieldNotesThemeControl, .feltTry, .fetchPlay, .documentMapToggle, .roomControls button), html .game :is(.actions button, .sound) { transition: none !important; transform: none !important; }
+}
+@media (forced-colors: active) {
+  html [data-control][data-control="row"][aria-pressed="true"] { border: 2px dashed ButtonText; }
+  html [data-control][data-control="row"]:focus-visible { outline-color: Highlight; }
+  html [data-control][data-control], html .fieldNotes.fieldNotes :is(.feltTool, .fieldNotesThemeControl, .feltTry, .fetchPlay, .documentMapToggle), html .game :is(.actions button, .sound) { border: 1px solid ButtonText; box-shadow: none; }
+  html [data-control][data-control]:disabled, html .fieldNotes.fieldNotes .feltTool:disabled, html .game .actions button:disabled { color: GrayText; border-color: GrayText; }
+}

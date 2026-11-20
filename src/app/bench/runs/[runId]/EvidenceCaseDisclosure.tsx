@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Icon } from '@/components/ui/Icon';
 import { useState } from 'react';
 
 import styles from './run.module.css';
@@ -23,7 +24,7 @@ export function EvidenceCaseDisclosure({
 
   return (
     <article className={`${styles.caseDisclosure} ${open ? styles.caseDisclosureOpen : ''}`}>
-      <button
+      <button data-control="disclosure"
         type="button"
         className={styles.caseDisclosureToggle}
         aria-expanded={open}
@@ -39,7 +40,7 @@ export function EvidenceCaseDisclosure({
           <strong>{score}</strong>
           <span className={styles.caseDisclosureState}>
             {open ? 'Hide case evidence' : 'Review case evidence'}
-            <i aria-hidden="true">{open ? '−' : '+'}</i>
+            <i data-control-indicator aria-hidden="true"><Icon name={open ? 'minus' : 'plus'} /></i>
           </span>
         </span>
       </button>

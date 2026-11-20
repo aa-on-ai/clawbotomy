@@ -29,6 +29,9 @@
     const tools = Object.fromEntries(['labels', 'lines', 'reset'].map(name => [name, root.querySelector(`[data-tool="${name}"]`)]));
     if (!sheet || !status || Object.values(tools).some(tool => !tool)) return;
     root.dataset.specimenReady = 'true';
+    // Keep the decorative drawing in sync with the action, not the removed state.
+    const removalIcons = Object.fromEntries(['labels', 'lines'].map(kind => [kind, tools[kind].querySelector('svg').innerHTML]));
+    const restoreIcon = tools.reset.querySelector('svg').innerHTML;
 
     const piece = name => root.querySelector(`[data-piece="${name}"]`);
     const items = [
@@ -58,6 +61,12 @@
       for (const kind of ['labels', 'lines']) {
         const left = present(kind), total = group(kind).length;
         tools[kind].querySelector('span').textContent = verbs[kind][left === total ? 0 : left ? 1 : 2];
+        const icon = tools[kind].querySelector('svg');
+        const glyph = left ? (kind === 'labels' ? 'pluck' : 'pull') : 'restore';
+        if (icon.dataset.glyph !== glyph) {
+          icon.innerHTML = left ? removalIcons[kind] : restoreIcon;
+          icon.dataset.glyph = glyph;
+        }
       }
       const untouched = items.every(item => item.present);
       if (untouched && document.activeElement === tools.reset) tools.labels.focus({ preventScroll: true });
