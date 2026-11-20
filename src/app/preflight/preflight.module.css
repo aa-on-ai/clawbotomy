@@ -340,13 +340,11 @@
   position: absolute;
   top: 50%;
   right: 18px;
-  width: 9px;
-  height: 9px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
+  width: 18px;
+  height: 18px;
   color: var(--cb-ink);
   pointer-events: none;
-  transform: translateY(-70%) rotate(45deg);
+  transform: translateY(-50%);
 }
 
 .intentField select:disabled + .selectChevron {
@@ -473,14 +471,9 @@
     background-color var(--cb-motion-fast) ease;
 }
 
-.checkboxGlyph::after {
-  content: '';
-  width: 6px;
-  height: 11px;
-  border-right: 2px solid var(--cb-bone);
-  border-bottom: 2px solid var(--cb-bone);
+.checkboxGlyph svg {
   opacity: 0;
-  transform: translateY(-1px) rotate(45deg);
+  color: var(--cb-bone);
 }
 
 .checkboxControl input:checked + .checkboxGlyph {
@@ -488,7 +481,7 @@
   background: var(--cb-signal-strong);
 }
 
-.checkboxControl input:checked + .checkboxGlyph::after {
+.checkboxControl input:checked + .checkboxGlyph svg {
   opacity: 1;
 }
 
@@ -790,14 +783,27 @@
   min-height: 58px;
   padding: 12px 0;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr) 18px;
   gap: 10px;
   align-items: center;
   cursor: pointer;
 }
 
-.scenarioList summary::marker {
+.scenarioIndicator {
   color: var(--cb-signal);
+}
+
+.scenarioList summary::-webkit-details-marker {
+  display: none;
+}
+
+.scenarioList .disclosureOpen,
+.scenarioList details[open] > summary .disclosureClosed {
+  display: none;
+}
+
+.scenarioList details[open] > summary .disclosureOpen {
+  display: block;
 }
 
 .scenarioList summary > span {

@@ -517,6 +517,8 @@
   padding: 0 16px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
@@ -524,6 +526,23 @@
   transition:
     color var(--cb-motion-fast) ease,
     background-color var(--cb-motion-fast) ease;
+}
+
+.evidenceDisclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.evidenceDisclosure summary > i {
+  flex: 0 0 18px;
+}
+
+.evidenceDisclosure .disclosureOpen,
+.evidenceDisclosure[open] > summary .disclosureClosed {
+  display: none;
+}
+
+.evidenceDisclosure[open] > summary .disclosureOpen {
+  display: block;
 }
 
 @media (hover: hover) and (pointer: fine) {

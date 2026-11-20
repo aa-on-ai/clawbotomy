@@ -9,7 +9,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 test('external source CTA renders exactly one diagonal arrow', () => {
   const page = read('src/app/checkups/page.tsx');
 
-  assert.match(page, />\s*View source\s*<\/a>/);
+  assert.match(page, />\s*View source<Icon name="externalLink" \/>\s*<\/a>/);
+  assert.match(read('public/controls.css'), /html \[data-control\]\[data-control\]::after \{ content: none; \}/);
   assert.doesNotMatch(page, /View source ↗/);
 });
 

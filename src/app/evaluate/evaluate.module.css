@@ -1239,6 +1239,12 @@
   overscroll-behavior: contain;
 }
 
+/* Keep the keyboard ring inside this clipping scrollport. Selection retains
+   its own thinner perimeter/background; sibling run rows keep their outer ring. */
+html .caseIndex button[data-control][data-control='row']:focus-visible {
+  outline-offset: -4px;
+}
+
 .caseIndex button {
   width: 100%;
   min-height: 62px;
@@ -2503,8 +2509,6 @@
   .commandBlock button:active,
   .referenceActions button:hover,
   .adapterSelector > p a:hover,
-  .launchDetailsToggle:hover .launchDetailsIndicator,
-  .statusGuide > summary:hover .statusGuideIndicator,
   .exampleLink:hover,
   .compareEmpty a:hover,
   .limitationsLayout a:hover,
@@ -2515,5 +2519,10 @@
   .unscoredAction a:hover,
   .unscoredAction a:active {
     transform: none;
+  }
+  /* Centering is structural, not decorative motion. */
+  .launchDetailsToggle:hover .launchDetailsIndicator,
+  .statusGuide > summary:hover .statusGuideIndicator {
+    transform: translateY(-50%);
   }
 }

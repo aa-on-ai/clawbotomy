@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Request } from '@playwright/test';
+import { knownHostingObservation, knownHostingConsole, collectHostingObservations, requestObservation, type NetworkObservation } from './helpers/hosting-observations';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -60,53 +61,6 @@ async function noOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
 
-interface NetworkObservation {
-  kind: 'response' | 'failed';
-  url: string;
-  method: string;
-  resourceType: string;
-  rsc?: string;
-  prefetch?: string;
-  status?: number;
-  contentType?: string;
-  documentFallbackVerified?: boolean;
-  errorText?: string;
-}
-
-function knownHostingObservation(observation: NetworkObservation, origin: string, previewOrigin?: string) {
-  if (observation.kind === 'failed'
-    && origin === previewOrigin && new URL(origin).hostname.endsWith('.vercel.app')
-    && observation.url === 'https://vercel.live/_next-live/feedback/feedback.js'
-    && observation.method === 'GET' && observation.resourceType === 'script'
-    && observation.errorText === 'csp') return true;
-
-  // These HTML rewrites have no RSC payload. Both deployed baseline and
-  // candidate prefetch them before falling back to ordinary document navigation.
-  const url = new URL(observation.url);
-  const knownRscRoute = url.origin === origin && ['/', '/about'].includes(url.pathname)
-    && Boolean(url.searchParams.get('_rsc'))
-    && [...url.searchParams.keys()].every(key => key === '_rsc')
-    && observation.method === 'GET' && observation.resourceType === 'fetch'
-    && observation.rsc === '1';
-  const prefetch = observation.prefetch === '1'
-    && ((observation.kind === 'response' && observation.status === 404)
-      || (observation.kind === 'failed' && observation.errorText === 'net::ERR_ABORTED'));
-  // Development mode fetches on click rather than prefetching. A 200 HTML
-  // response causes a full-document fallback, cancelling the unused RSC body.
-  // Accept only the exact request tied to a separately verified document load.
-  const documentFallback = observation.prefetch === undefined
-    && observation.kind === 'failed' && observation.errorText === 'net::ERR_ABORTED'
-    && observation.status === 200 && observation.contentType?.split(';')[0].trim() === 'text/html'
-    && observation.documentFallbackVerified === true;
-  return knownRscRoute && (prefetch || documentFallback);
-}
-
-function requestObservation(request: Request) {
-  const headers = request.headers();
-  return { url: request.url(), method: request.method(), resourceType: request.resourceType(),
-    rsc: headers.rsc, prefetch: headers['next-router-prefetch'] };
-}
-
 test('dev chunk replacement preserves in-flight readers and propagates write errors', () => {
   const fixture = mkdtempSync(join(tmpdir(), 'clawbotomy-dev-chunks-'));
   try {
@@ -154,12 +108,48 @@ test('dev chunk replacement preserves in-flight readers and propagates write err
   }
 });
 
-test('hosting observations never hide failed fonts, documents or unknown requests', () => {
+test('hosting observations never hide failed fonts, documents or unknown requests', async ({ page }) => {
   const origin = 'https://font-contract.vercel.app';
   const prefetch: NetworkObservation = { kind: 'response', url: `${origin}/?_rsc=fixture`,
     method: 'GET', resourceType: 'fetch', rsc: '1', prefetch: '1', status: 404 };
   const toolbar: NetworkObservation = { kind: 'failed', method: 'GET', resourceType: 'script',
     url: 'https://vercel.live/_next-live/feedback/feedback.js', errorText: 'csp' };
+  const resource = { text: 'Failed to load resource: the server responded with a status of 404 ()',
+    location: { url: prefetch.url, lineNumber: 0, columnNumber: 0 }, argumentCount: 0 };
+  expect(knownHostingConsole(resource, [prefetch], [], origin)).toBe(true);
+  expect(knownHostingConsole({ ...resource, text: resource.text.replace('()', '(Not Found)') }, [prefetch], [], origin)).toBe(true);
+  // An allowed response elsewhere never excuses an unrelated console failure.
+  for (const invalid of [
+    { ...resource, location: { ...resource.location, url: `${origin}/missing.js` } },
+    { ...resource, location: { ...resource.location, url: '' } },
+    { ...resource, location: { ...resource.location, url: `${origin}/?_rsc=other` } },
+    { ...resource, argumentCount: 1 },
+    { ...resource, text: 'Application failed with 404' },
+    { ...resource, text: resource.text.replace('404', '500') },
+  ]) expect(knownHostingConsole(invalid, [prefetch], [], origin)).toBe(false);
+  expect(knownHostingConsole(resource, [], [], origin)).toBe(false);
+  for (const invalid of [
+    { ...prefetch, prefetch: undefined }, { ...prefetch, rsc: undefined },
+    { ...prefetch, status: 500 }, { ...prefetch, method: 'POST' },
+    { ...prefetch, resourceType: 'font' }, { ...prefetch, resourceType: 'document' },
+    { ...prefetch, resourceType: 'script' },
+    { ...prefetch, url: `${origin}/missing?_rsc=fixture` },
+    { ...prefetch, url: 'https://other.example/?_rsc=fixture' },
+  ]) expect(knownHostingConsole({ ...resource, location: { ...resource.location, url: invalid.url } }, [invalid], [], origin)).toBe(false);
+  const blocked = { documentURI: `${origin}/preflight`, blockedURI: toolbar.url,
+    effectiveDirective: 'script-src-elem', disposition: 'enforce' };
+  const toolbarConsole = { ...resource, text: `Refused to load ${toolbar.url} because it does not appear in the script-src directive of the Content Security Policy.`,
+    location: { url: '', lineNumber: 0, columnNumber: 0 } };
+  expect(knownHostingConsole(toolbarConsole, [], [blocked], origin, origin)).toBe(true);
+  expect(knownHostingConsole(toolbarConsole, [], [], origin, origin)).toBe(false);
+  expect(knownHostingConsole(toolbarConsole, [], [blocked], origin)).toBe(false);
+  for (const invalid of [
+    { ...blocked, disposition: 'report' }, { ...blocked, effectiveDirective: 'img-src' },
+    { ...blocked, documentURI: 'https://other.example/preflight' },
+    { ...blocked, blockedURI: `${origin}/app.js` },
+  ]) expect(knownHostingConsole(toolbarConsole, [], [invalid], origin, origin)).toBe(false);
+  expect(knownHostingConsole({ ...toolbarConsole, text: `Failed to load resource: ${toolbar.url}` }, [toolbar], [blocked], origin, origin)).toBe(false);
+  expect(knownHostingConsole({ ...toolbarConsole, argumentCount: 1 }, [], [blocked], origin, origin)).toBe(false);
   expect(knownHostingObservation(prefetch, origin)).toBe(true);
   expect(knownHostingObservation({ ...prefetch, url: `${origin}/about?_rsc=fixture` }, origin)).toBe(true);
   expect(knownHostingObservation({ ...prefetch, kind: 'failed', errorText: 'net::ERR_ABORTED' }, origin)).toBe(true);
@@ -191,6 +181,30 @@ test('hosting observations never hide failed fonts, documents or unknown request
   ]) expect(knownHostingObservation({ ...invalid, documentFallbackVerified: true }, origin, origin)).toBe(false);
   expect(knownHostingObservation(toolbar, origin)).toBe(false);
   expect(knownHostingObservation(toolbar, 'https://www.clawbotomy.com', 'https://www.clawbotomy.com')).toBe(false);
+
+  // Real browser events, wholly intercepted locally: an allowed hosting error
+  // must coexist with (not erase) genuine app console, page and asset failures.
+  const observed = await collectHostingObservations(page, origin, origin);
+  await page.route(`${origin}/**`, route => route.fulfill({
+    status: new URL(route.request().url()).pathname === '/missing.js' ? 404 : 200,
+    contentType: 'text/html', headers: { 'Content-Security-Policy': "script-src 'self' 'unsafe-inline'" },
+    body: `<script src="${toolbar.url}"></script><h1>Classifier fixture</h1>`,
+  }));
+  await page.goto(`${origin}/fixture`);
+  await expect.poll(() => observed().csp.length).toBeGreaterThan(0);
+  await page.evaluate(async ({ text }) => {
+    console.error(text);
+    await fetch('/missing.js');
+  }, resource);
+  const pageError = page.waitForEvent('pageerror');
+  await page.evaluate(() => { setTimeout(() => { throw new Error('classifier-page-error'); }, 0); });
+  await pageError;
+  const result = observed();
+  expect(result.consoleDisposition.some(item => item.knownHosting)).toBe(true);
+  expect(result.consoleDisposition.some(item => !item.knownHosting && item.observation.argumentCount > 0 && item.observation.text === resource.text)).toBe(true);
+  expect(result.pageErrors).toEqual(['classifier-page-error']);
+  expect(result.networkDisposition.some(item => !item.knownHosting && item.observation.url === `${origin}/missing.js` && item.observation.status === 404)).toBe(true);
+  expect(result.errors.length).toBeGreaterThanOrEqual(3);
 });
 
 test('Allo renders on real notebook routes, both themes and narrow mobile', async ({ page, browserName, baseURL }, info) => {

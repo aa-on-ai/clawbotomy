@@ -7,6 +7,7 @@ import { organizationJsonLd, serializeJsonLd, websiteJsonLd } from '@/lib/struct
 import { GeistMono } from 'geist/font/mono';
 import './field-notes.css';
 import '../../public/notebook/typography.css';
+import '../../public/controls.css';
 
 const siteTitle = 'Clawbotomy field notes';
 const siteDescription =

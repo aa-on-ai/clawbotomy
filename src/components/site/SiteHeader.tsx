@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '@/components/ui/Icon';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -41,7 +42,7 @@ export function SiteHeader() {
           <span className={styles.brandMode}>Evidence lab</span>
         </Link>
 
-        <button
+        <button data-control="quiet"
           ref={menuButtonRef}
           type="button"
           className={styles.menuButton}
@@ -50,6 +51,7 @@ export function SiteHeader() {
           aria-controls="site-navigation"
           onClick={() => setOpen((value) => !value)}
         >
+          <Icon name={open ? 'close' : 'menu'} />
           {open ? 'Close' : 'Menu'}
         </button>
 
@@ -73,6 +75,7 @@ export function SiteHeader() {
           })}
           <Link
             href="/preflight"
+            data-control="primary"
             aria-current={pathname === '/preflight' ? 'page' : undefined}
             className={`${styles.navAction} ${pathname === '/preflight' ? styles.active : ''}`}
           >

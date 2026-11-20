@@ -31,8 +31,8 @@ export default function EvaluatePage() {
                 Validate the bundle in your terminal, then inspect its local browser projection.
               </p>
               <div className={styles.heroActions}>
-                <Link href="/preflight" className={styles.primaryLink}>Build an Inbox plan</Link>
-                <a href="#connect-agent" className={styles.secondaryLink}>Choose an adapter</a>
+                <Link href="/preflight" className={styles.primaryLink} data-control="primary">Build an Inbox plan</Link>
+                <a href="#connect-agent" className={styles.secondaryLink} data-control="secondary">Choose an adapter</a>
               </div>
             </div>
 

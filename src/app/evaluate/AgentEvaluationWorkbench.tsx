@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, useMemo, useRef, useState } from 'react';
+import { Icon } from '@/components/ui/Icon';
 
 import {
   AGENT_ADAPTERS,
@@ -247,7 +248,7 @@ export function AgentEvaluationWorkbench() {
               <p className={styles.adapterDescription}>{adapter.description}</p>
 
               <div className={`${styles.launchDetails} ${setupOpen ? styles.launchDetailsOpen : ''}`}>
-                <button
+                <button data-control="disclosure"
                   type="button"
                   className={styles.launchDetailsToggle}
                   aria-expanded={setupOpen}
@@ -259,8 +260,9 @@ export function AgentEvaluationWorkbench() {
                   <span
                     className={styles.launchDetailsIndicator}
                     data-testid="disclosure-indicator"
+                    data-control-indicator
                     aria-hidden="true"
-                  />
+                  ><Icon name={setupOpen ? 'minus' : 'plus'} /></span>
                 </button>
                 <div id="launch-setup-details" className={styles.launchDetailsContent}>
                   <div
@@ -279,7 +281,7 @@ export function AgentEvaluationWorkbench() {
                     <div className={styles.commandBlock}>
                       <div>
                         <h4>Copyable launch command</h4>
-                        <button type="button" onClick={copyCommand}>
+                        <button data-control="secondary" type="button" onClick={copyCommand}>
                           {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy command'}
                         </button>
                       </div>
@@ -300,8 +302,9 @@ export function AgentEvaluationWorkbench() {
               <span
                 className={styles.statusGuideIndicator}
                 data-testid="status-guide-indicator"
+                data-control-indicator
                 aria-hidden="true"
-              />
+              ><svg className="controlGlyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><path d="M5 12h14" /><path className="controlPlusVertical" d="M12 5v14" /></svg></span>
             </summary>
             <div className={styles.statusRows}>
               {STATUS_GUIDE.map((item) => (
@@ -351,7 +354,7 @@ export function AgentEvaluationWorkbench() {
               aria-hidden="true"
               onChange={readEvidence}
             />
-            <button
+            <button data-control="primary"
               type="button"
               className={styles.fileButton}
               onClick={() => fileInputRef.current?.click()}
@@ -394,7 +397,7 @@ export function AgentEvaluationWorkbench() {
                     const key = runKey(run);
                     return (
                       <li key={key}>
-                        <button
+                        <button data-control="row"
                           type="button"
                           onClick={() => selectRun(run)}
                           aria-pressed={key === runKey(selectedRun || run)}
@@ -429,7 +432,7 @@ export function AgentEvaluationWorkbench() {
                         <i className={styles.statusSignal} aria-hidden="true" />
                         {statusLabel(selectedRun.status)}
                       </span>
-                      <button type="button" onClick={() => removeRun(selectedRun)}>
+                      <button data-control="secondary" type="button" onClick={() => removeRun(selectedRun)}>
                         Unload from viewer
                       </button>
                     </div>
@@ -508,7 +511,7 @@ export function AgentEvaluationWorkbench() {
                           <ul>
                             {filteredCases.map((item) => (
                               <li key={item.caseId}>
-                                <button
+                                <button data-control="row"
                                   type="button"
                                   onClick={() => setSelectedCaseId(item.caseId)}
                                   aria-pressed={item.caseId === selectedCase?.caseId}
@@ -714,7 +717,7 @@ export function AgentEvaluationWorkbench() {
                         <span>Guardrail to test</span>
                         <p>{recommendation.nextAction}</p>
                       </div>
-                      <button
+                      <button data-control="secondary"
                         type="button"
                         onClick={() => inspectRecommendation(recommendation.caseIds[0])}
                       >

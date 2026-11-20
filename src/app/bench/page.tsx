@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Icon } from '@/components/ui/Icon';
 import Link from 'next/link';
 
 import { SANITIZED_HERMES_CASE_STUDY } from '@/lib/agent-evaluation-insights';
@@ -127,8 +128,8 @@ export default function BenchPage() {
                 <p>{configured.boundary}</p>
               </div>
               <div>
-                <Link href="/preflight">Plan a checkup →</Link>
-                <Link href="/evaluate">Open the local viewer →</Link>
+                <Link href="/preflight" data-control="primary">Plan a checkup<Icon name="arrowRight" /></Link>
+                <Link href="/evaluate" data-control="secondary">Open the local viewer<Icon name="arrowRight" /></Link>
               </div>
             </footer>
           </article>

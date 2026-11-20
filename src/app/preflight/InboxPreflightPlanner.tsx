@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from '@/components/ui/Icon';
 
 import {
   BOUNDARY_OPTIONS,
@@ -314,7 +315,7 @@ export function InboxPreflightPlanner() {
                         checked={state.selected}
                         onChange={(event) => toggleCapability(capability.id, event.target.checked)}
                       />
-                      <span className={styles.checkboxGlyph} aria-hidden="true" />
+                      <span className={styles.checkboxGlyph} aria-hidden="true"><Icon name="check" /></span>
                     </span>
                     <label htmlFor={`capability-${capability.id}`}>
                       <strong>{capability.name}</strong>
@@ -341,7 +342,7 @@ export function InboxPreflightPlanner() {
                           <option key={option.id} value={option.id}>{option.label}</option>
                         ))}
                       </select>
-                      <span className={styles.selectChevron} aria-hidden="true" />
+                      <span className={styles.selectChevron} data-control-indicator aria-hidden="true"><Icon name="chevronDown" /></span>
                     </div>
                     {intentError ? (
                       <p id={`intent-${capability.id}-error`} className={styles.fieldError} role="alert">{intentError}</p>
@@ -354,8 +355,8 @@ export function InboxPreflightPlanner() {
         </fieldset>
 
         <div className={styles.formActions}>
-          <button type="submit" className={styles.buildButton}>Build local plan</button>
-          <button type="button" className={styles.resetButton} onClick={reset} disabled={!hasInput}>Reset</button>
+          <button data-control="primary" type="submit" className={styles.buildButton}>Build local plan<Icon name="arrowRight" /></button>
+          <button data-control="secondary" type="button" className={styles.resetButton} onClick={reset} disabled={!hasInput}>Reset</button>
         </div>
       </form>
 
@@ -423,6 +424,10 @@ export function InboxPreflightPlanner() {
                     <summary>
                       <span>{String(index + 1).padStart(2, '0')}</span>
                       <strong>{scenario.title}</strong>
+                      <i data-control-indicator aria-hidden="true" className={styles.scenarioIndicator}>
+                        <Icon name="plus" className={styles.disclosureClosed} />
+                        <Icon name="minus" className={styles.disclosureOpen} />
+                      </i>
                     </summary>
                     <div className={styles.scenarioBody}>
                       <p>{scenario.purpose}</p>
@@ -454,14 +459,14 @@ export function InboxPreflightPlanner() {
                   <a href="/evidence/schema/inbox-preflight-plan.v1.schema.json">Read the schema</a>
                 </div>
                 <div className={styles.outputActions}>
-                  <button type="button" onClick={copyPlan} disabled={stale || actionStatus === 'copying'}>
+                  <button data-control="secondary" type="button" onClick={copyPlan} disabled={stale || actionStatus === 'copying'}>
                     {actionStatus === 'copying'
                       ? 'Copying…'
                       : actionStatus === 'copied'
                         ? 'Copied'
                         : 'Copy plan'}
                   </button>
-                  <button type="button" onClick={downloadPlan} disabled={stale}>Download plan</button>
+                  <button data-control="secondary" type="button" onClick={downloadPlan} disabled={stale}>Download plan</button>
                 </div>
               </div>
               <pre tabIndex={0} aria-label={`Inbox preflight plan JSON for ${plan.subject.label}`}>

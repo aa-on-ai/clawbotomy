@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Icon } from '@/components/ui/Icon';
 import Link from 'next/link';
 
 import styles from './checkups.module.css';
@@ -50,14 +51,14 @@ export default function CheckupsPage() {
             Clawbotomy records fixed synthetic tasks against one operator-selected runtime. Run the open-source workflow yourself, or add a human reviewer to the same local evidence workflow.
           </p>
           <div className={styles.actions}>
-            <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
+            <Link href="/preflight" className={styles.primaryAction} data-control="primary">Plan a checkup<Icon name="arrowRight" /></Link>
             <a
               href="https://x.com/aa_on_ai"
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.secondaryAction}
+              className={styles.secondaryAction} data-control="secondary"
             >
-              Discuss a guided checkup
+              Discuss a guided checkup<Icon name="externalLink" />
             </a>
           </div>
           <p className={styles.boundaryNote}>
@@ -174,14 +175,14 @@ export default function CheckupsPage() {
         <div className={styles.rail}>
           <h2 id="final-cta-title">Freeze one plan. Observe one runtime.</h2>
           <div className={styles.actions}>
-            <Link href="/preflight" className={styles.primaryAction}>Plan a checkup</Link>
+            <Link href="/preflight" className={styles.primaryAction} data-control="primary">Plan a checkup<Icon name="arrowRight" /></Link>
             <a
               href="https://github.com/aa-on-ai/clawbotomy"
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.secondaryAction}
+              className={styles.secondaryAction} data-control="secondary"
             >
-              View source
+              View source<Icon name="externalLink" />
             </a>
           </div>
         </div>

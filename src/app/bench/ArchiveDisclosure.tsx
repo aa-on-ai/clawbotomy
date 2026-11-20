@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Icon } from '@/components/ui/Icon';
 import { useState } from 'react';
 
 import styles from './bench.module.css';
@@ -16,7 +17,7 @@ export function ArchiveDisclosure({
 
   return (
     <section className={`${styles.archiveDisclosure} ${open ? styles.archiveDisclosureOpen : ''}`}>
-      <button
+      <button data-control="disclosure"
         type="button"
         className={styles.archiveToggle}
         aria-expanded={open}
@@ -33,7 +34,7 @@ export function ArchiveDisclosure({
           </span>
           <span className={styles.archiveState}>
             <span>{open ? 'Close archive' : 'Open archive'}</span>
-            <i aria-hidden="true">{open ? '−' : '+'}</i>
+            <i data-control-indicator aria-hidden="true"><Icon name={open ? 'minus' : 'plus'} /></i>
           </span>
         </span>
       </button>

@@ -157,7 +157,7 @@
     $('sound').setAttribute('aria-pressed',String(soundOn));
     $('sound').setAttribute('aria-label',soundOn?'Turn sound off':'Turn sound on');
     $('sound-label').textContent=soundOn?'Sound on':'Sound off';
-    $('sound-waves').setAttribute('d',soundOn?'M17 8q5 4 0 8M20 5q8 7 0 14':'m17 9 5 6m0-6-5 6');
+    $('sound-waves').setAttribute('href',soundOn?'#i-volume-on':'#i-volume-off');
   }
   function turn(cell) {
     const changed=M.turn(state,cell);
