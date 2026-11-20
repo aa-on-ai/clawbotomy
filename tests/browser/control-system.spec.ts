@@ -75,14 +75,23 @@ test('planner glyphs and local action retain validation selected and completed s
   await target(build);
   await build.click();
   await expect(page.locator('#plan-label-error')).toBeVisible();
-  await page.getByLabel('Plan label').fill('Control review local fixture');
+  const label = page.getByLabel('Plan label');
+  // Validation schedules focus in requestAnimationFrame; visible error text
+  // alone does not mean that app-owned focus work has finished.
+  await expect(label).toBeFocused();
+  await label.fill('Control review local fixture');
   const checkbox = page.getByRole('checkbox').first();
   await expect(checkbox).toBeChecked();
   const glyph = checkbox.locator('xpath=following-sibling::span').locator('svg');
   await expect(glyph).toHaveCSS('opacity', '1');
+  await checkbox.focus();
+  await expect(checkbox).toBeFocused();
   await checkbox.press('Space');
+  await expect(checkbox).not.toBeChecked();
   await expect(glyph).toHaveCSS('opacity', '0');
   await checkbox.press('Space');
+  await expect(checkbox).toBeChecked();
+  await expect(glyph).toHaveCSS('opacity', '1');
   // Re-selecting a capability intentionally clears its prior intent.
   await page.getByLabel('Your intended boundary').first().selectOption('approval');
   await build.press('Enter');

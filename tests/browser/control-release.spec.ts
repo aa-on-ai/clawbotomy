@@ -1,15 +1,15 @@
 import { test, expect, type Page, type Locator, type TestInfo } from '@playwright/test';
+import { collectHostingObservations } from './helpers/hosting-observations';
 
-const appErrors = new WeakMap<Page, string[]>();
-test.beforeEach(async ({ page }) => {
-  const errors: string[] = [];
-  appErrors.set(page, errors);
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+const observations = new WeakMap<Page, Awaited<ReturnType<typeof collectHostingObservations>>>();
+test.beforeEach(async ({ page, baseURL }) => {
+  observations.set(page, await collectHostingObservations(page, new URL(baseURL!).origin, process.env.CLAWBOTOMY_PREVIEW_ORIGIN));
 });
 test.afterEach(async ({ page }, info) => {
-  await info.attach('app-errors', { body: JSON.stringify(appErrors.get(page)), contentType: 'application/json' });
-  expect(appErrors.get(page)).toEqual([]);
+  const result = observations.get(page)!();
+  await info.attach('hosting-observations', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
+  await info.attach('app-errors', { body: JSON.stringify(result.errors), contentType: 'application/json' });
+  expect(result.errors).toEqual([]);
 });
 
 async function ready(page: Page, route: string) {
