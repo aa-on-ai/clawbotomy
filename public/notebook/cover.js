@@ -289,6 +289,10 @@
         // Optional enhancement only; a failed load leaves a complete static map.
         import('./document-map.js').then(() => window.documentMapGesture.mount(app)).catch(() => {});
       }
+      if (app.querySelector('[data-gate-runs]')) {
+        // Optional replay only; a failed load leaves every recorded run visible.
+        import('./gate-runs.js').then(() => window.gateRunsReplay.mount(app)).catch(() => {});
+      }
       syncMetadata(page);
       app.querySelector('.fieldNotesFooter').append(node('span', 'repairSignoff', 'Things get weird. We take notes.'), link('Design references', '/sources.html', 'repairReferences'));
       syncTheme();

@@ -122,12 +122,59 @@ function documentMap(value, path) {
   };
 }
 
+// Recorded gate runs: one test page, a 2x2 grid of this page under each rule
+// combination, and one known-bad control. Every visible label is committed data;
+// outcomes are a closed enum used only for styling and the reveal order.
+const GATE_FIELDS = ['heading', 'intro', 'predict', 'test', 'grid', 'control', 'grain', 'controls', 'provenance'];
+const GATE_CONTROLS = ['runTest', 'runPage', 'choose', 'fixBase', 'fixData', 'other', 'runControl', 'reset', 'notRun', 'guess'];
+function gateRuns(value, path) {
+  record(value, ['type', ...GATE_FIELDS], path);
+  const run = (input, at) => {
+    record(input, ['outcome', 'summary', 'message'], at);
+    if (!['passed', 'refused'].includes(input.outcome)) fail(`${at}.outcome`, 'expected passed or refused');
+    return { outcome: input.outcome, summary: text(input.summary, `${at}.summary`, 120), message: text(input.message, `${at}.message`, 300) };
+  };
+  const labels = (input, at, n, max) => array(input, at, n, n).map((v, i) => text(v, `${at}[${i}]`, max));
+  record(value.predict, ['question', 'options', 'reveal'], `${path}.predict`);
+  record(value.test, ['heading', 'code', 'run'], `${path}.test`);
+  record(value.grid, ['heading', 'rows', 'columns', 'cells'], `${path}.grid`);
+  record(value.control, ['heading', 'run'], `${path}.control`);
+  record(value.grain, ['heading', 'note'], `${path}.grain`);
+  record(value.controls, GATE_CONTROLS, `${path}.controls`);
+  return {
+    type: 'gate-runs',
+    heading: text(value.heading, `${path}.heading`, 300),
+    intro: text(value.intro, `${path}.intro`, 1000),
+    predict: {
+      question: text(value.predict.question, `${path}.predict.question`, 300),
+      options: labels(value.predict.options, `${path}.predict.options`, 3, 60),
+      reveal: text(value.predict.reveal, `${path}.predict.reveal`, 1000),
+    },
+    test: {
+      heading: text(value.test.heading, `${path}.test.heading`, 300),
+      code: text(value.test.code, `${path}.test.code`, 2000),
+      run: run(value.test.run, `${path}.test.run`),
+    },
+    grid: {
+      heading: text(value.grid.heading, `${path}.grid.heading`, 300),
+      rows: labels(value.grid.rows, `${path}.grid.rows`, 2, 120),
+      columns: labels(value.grid.columns, `${path}.grid.columns`, 2, 120),
+      cells: array(value.grid.cells, `${path}.grid.cells`, 4, 4).map((cell, i) => run(cell, `${path}.grid.cells[${i}]`)),
+    },
+    control: { heading: text(value.control.heading, `${path}.control.heading`, 300), run: run(value.control.run, `${path}.control.run`) },
+    grain: { heading: text(value.grain.heading, `${path}.grain.heading`, 300), note: text(value.grain.note, `${path}.grain.note`, 1000) },
+    controls: Object.fromEntries(GATE_CONTROLS.map(key => [key, text(value.controls[key], `${path}.controls.${key}`, 120)])),
+    provenance: text(value.provenance, `${path}.provenance`, 1000),
+  };
+}
+
 function block(value, index) {
   const path = `note.blocks[${index}]`;
   // Read the discriminant only after ruling out accessors and unexpected fields.
-  record(value, ['type', 'text', 'level', 'ordered', 'items', 'language', ...MAP_FIELDS, 'gesture'], path, ['type']);
+  record(value, ['type', 'text', 'level', 'ordered', 'items', 'language', ...new Set([...MAP_FIELDS, 'gesture', ...GATE_FIELDS])], path, ['type']);
   switch (value.type) {
     case 'document-map': return documentMap(value, path);
+    case 'gate-runs': return gateRuns(value, path);
     case 'paragraph':
       record(value, ['type', 'text'], path);
       return { type: value.type, text: text(value.text, `${path}.text`) };
@@ -196,7 +243,7 @@ function publicationProjection(value) {
 }
 
 const digest = projection => 'sha256:' + createHash('sha256')
-  .update(JSON.stringify({ schemaVersion: projection.blocks.some(block => block.type === 'document-map' && block.gesture) ? 3 : projection.blocks.some(block => block.type === 'document-map') ? 2 : 1, ...projection }), 'utf8').digest('hex');
+  .update(JSON.stringify({ schemaVersion: projection.blocks.some(block => block.type === 'gate-runs') ? 4 : projection.blocks.some(block => block.type === 'document-map' && block.gesture) ? 3 : projection.blocks.some(block => block.type === 'document-map') ? 2 : 1, ...projection }), 'utf8').digest('hex');
 
 /** Validate a draft-only interchange object; never adds dates or approval. */
 export function validateDraft(value) {
@@ -291,10 +338,39 @@ function renderDocumentMap(map) {
   ].join('\n');
 }
 
+// Complete without script: every recorded run is visible. The optional replay
+// only hides and reveals these same nodes; its buttons start hidden.
+function renderGateRuns(gate) {
+  const e = escapeHTML;
+  // <wbr> after each slash lets long messages wrap at a path break on phones; text is unchanged.
+  const result = run => `<p class="gateRunsResult" data-outcome="${run.outcome}"><strong>${e(run.summary)}</strong><code>${e(run.message).replaceAll('/', '/<wbr>')}</code></p>`;
+  const button = (action, label, extra = '') => `<button type="button" class="gateRunsButton" data-action="${action}"${extra} hidden>${e(label)}</button>`;
+  const cell = index => `<td role="cell" data-cell="${index}" data-column="${e(gate.grid.columns[index % 2])}">${result(gate.grid.cells[index])}</td>`;
+  const c = gate.controls;
+  return [
+    `<figure class="gateRuns" data-gate-runs data-not-run="${e(c.notRun)}" data-guess="${e(c.guess)}">`,
+    `<h2>${e(gate.heading)}</h2>`,
+    `<p class="gateRunsIntro">${e(gate.intro)}</p>`,
+    `<div class="gateRunsPredict"><p class="gateRunsQuestion">${e(gate.predict.question)}</p><div class="gateRunsOptions">${gate.predict.options.map((option, i) => button('guess', option, ` data-guess-index="${i}"`)).join('')}</div><p class="gateRunsReveal">${e(gate.predict.reveal)}</p></div>`,
+    `<section class="gateRunsTest" data-step="test"><h3>${e(gate.test.heading)}</h3><pre><code data-language="html">${e(gate.test.code)}</code></pre>${result(gate.test.run)}</section>`,
+    `<section class="gateRunsGrid" data-step="grid"><h3>${e(gate.grid.heading)}</h3><div class="gateRunsTableWrap"><table role="table"><thead role="rowgroup"><tr role="row"><td role="cell"></td>${gate.grid.columns.map(col => `<th scope="col" role="columnheader">${e(col)}</th>`).join('')}</tr></thead><tbody role="rowgroup">`,
+    `<tr role="row"><th scope="row" role="rowheader">${e(gate.grid.rows[0])}</th>${cell(0)}${cell(1)}</tr>`,
+    `<tr role="row"><th scope="row" role="rowheader">${e(gate.grid.rows[1])}</th>${cell(2)}${cell(3)}</tr>`,
+    '</tbody></table></div></section>',
+    `<div class="gateRunsGrain" data-step="grain"><span class="gateRunsSwatch" aria-hidden="true"></span><p><strong>${e(gate.grain.heading)}</strong> ${e(gate.grain.note)}</p></div>`,
+    `<section class="gateRunsControl" data-step="control"><h3>${e(gate.control.heading)}</h3>${result(gate.control.run)}</section>`,
+    `<div class="gateRunsActions"><p class="gateRunsChoose" hidden>${e(c.choose)}</p>${button('test', c.runTest)}${button('page', c.runPage)}${button('base', c.fixBase)}${button('data', c.fixData)}${button('other', c.other)}${button('control', c.runControl)}${button('reset', c.reset)}</div>`,
+    '<p class="gateRunsStatus repairSrOnly" role="status" aria-live="polite"></p>',
+    `<figcaption>${e(gate.provenance)}</figcaption>`,
+    '</figure>',
+  ].join('\n');
+}
+
 function renderArticle(note, preview) {
   const body = note.blocks.map(block => {
     switch (block.type) {
       case 'document-map': return renderDocumentMap(block);
+      case 'gate-runs': return renderGateRuns(block);
       case 'paragraph': return `<p>${escapeHTML(block.text)}</p>`;
       case 'heading': return `<h${block.level}>${escapeHTML(block.text)}</h${block.level}>`;
       case 'code': return `<pre><code${block.language ? ` data-language="${block.language}"` : ''}>${escapeHTML(block.text)}</code></pre>`;

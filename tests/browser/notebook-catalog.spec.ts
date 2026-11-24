@@ -24,12 +24,28 @@ async function exactArticle(page: Page, note: ApprovedArticle) {
   expect(await page.locator('.editorialDeck').textContent()).toBe(note.deck);
   expect(await page.locator('.editorialProse > *').evaluateAll(nodes => nodes.map(node => ({
     tag: node.tagName.toLowerCase(),
-    text: node.matches('ul,ol,figure.documentMap') ? null : node.textContent,
+    text: node.matches('ul,ol,figure.documentMap,figure.gateRuns') ? null : node.textContent,
     items: node.matches('figure.documentMap')
       ? Array.from(node.querySelectorAll('h2,h3,p:not(:has(strong)),strong,.documentMapReference,button,figcaption')).map(item => item.textContent)
+      // Committed gate text only; the replay's placeholders and guess line are excluded.
+      : node.matches('figure.gateRuns')
+      ? Array.from(node.querySelectorAll('h2,h3,.gateRunsIntro,.gateRunsQuestion,.gateRunsReveal,pre code,.gateRunsResult strong,.gateRunsResult code,th,.gateRunsGrain strong,.gateRunsGrain p,.gateRunsChoose,button,figcaption'))
+        .map(item => item.matches('.gateRunsReveal,.gateRunsGrain p') ? Array.from(item.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : item.textContent)
       : node.matches('ul,ol') ? Array.from(node.children).map(item => item.textContent) : null,
     language: node.querySelector('code')?.getAttribute('data-language') || null,
-  })))).toEqual(note.blocks.map(block => block.type === 'document-map' ? {
+  })))).toEqual(note.blocks.map(block => block.type === 'gate-runs' ? {
+    tag: 'figure', text: null, language: 'html',
+    items: [block.heading, block.intro, block.predict.question, ...block.predict.options, block.predict.reveal,
+      block.test.heading, block.test.code, block.test.run.summary, block.test.run.message,
+      block.grid.heading, ...block.grid.columns,
+      block.grid.rows[0], ...block.grid.cells.slice(0, 2).flatMap(c => [c.summary, c.message]),
+      block.grid.rows[1], ...block.grid.cells.slice(2).flatMap(c => [c.summary, c.message]),
+      block.grain.note, block.grain.heading, // DOM order: the paragraph precedes its <strong>
+      block.control.heading, block.control.run.summary, block.control.run.message,
+      block.controls.choose, block.controls.runTest, block.controls.runPage, block.controls.fixBase,
+      block.controls.fixData, block.controls.other, block.controls.runControl, block.controls.reset,
+      block.provenance],
+  } : block.type === 'document-map' ? {
     tag: 'figure', text: null, language: null,
     items: [block.heading, block.comparison,
       block.before.heading, block.before.label, block.before.measurement,
@@ -63,6 +79,7 @@ test('catalog drives the index and text-first notes, including direct loads and 
   expect(catalog.approvedSummaries.map((note: { slug: string }) => note.slug)).toEqual([
     'noticing-is-not-qualification', 'browser-tests-before-the-browser',
     'the-unresolved-row-was-correct', 'the-skill-didnt-shrink',
+    'the-gate-had-never-seen-a-real-page',
   ]);
   expect(catalog.notesUrl).toBe('/notebook/generated/notes.json');
   const raw = await request.get(catalog.notesUrl);
