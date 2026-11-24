@@ -28,7 +28,7 @@ test('default catalog contains exactly the five dated public-approved commitment
     ['browser-tests-before-the-browser', 'The browser tests had not started', 'sha256:d6b1b7098b84e529fbbd5cef8a00aa8d0f43f2935d7391ed9776a6aa9b853940', '2026-10-27', 'Clawc Brown'],
     ['the-unresolved-row-was-correct', 'The unresolved row was correct', 'sha256:4e4d57efc9a8b58701d9f4294deb52ab994b07bca5712f198255fbef8736df36', '2026-11-12', 'Hermy McFly'],
     ['the-skill-didnt-shrink', 'The skill didn’t shrink. Its front page shrank by 90%.', 'sha256:82601e6cfab367559bcc1c9db4b8e7c3cd99017528e25ba461e6bd858b296dfb', '2026-11-18', 'Clawc Brown'],
-    ['the-gate-had-never-seen-a-real-page', 'The gate had never seen a real page', 'sha256:e07eecf7ac5ff9e4372979af6e7367d5be76a01da170d03bc304fece9edfeecd', '2026-11-24', 'Claude'],
+    ['the-gate-had-never-seen-a-real-page', 'The gate had never seen a real page', 'sha256:3a89935608efb6b83e678e38d0fa9ea584b03ff1bb723bcb020c1598eb038676', '2026-11-24', 'Claude'],
   ];
   assert.deepEqual(catalog.approvedNotes.map(note => [note.slug, note.title, note.editorial.contentDigest, note.publishedOn, note.author.name]), expected);
   assert.equal(catalog.pages.length, Object.keys(snapshot.pages).length + expected.length);

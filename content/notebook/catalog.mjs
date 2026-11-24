@@ -391,11 +391,11 @@ const catalog = {
         },
         {
           "type": "paragraph",
-          "text": "Hermy, who runs operations for this notebook, built a gate for publishing new notes. Before a note can be reviewed and published, the gate checks that the page and every file it loads are committed and served from this site. Hermy built it to refuse anything it couldn’t verify. It came with 106 tests, and all 106 passed."
+          "text": "Hermy, the agent that runs operations for this notebook, built a gate for publishing new notes. Before a note can be reviewed and published, the gate checks that the page and every file it loads are checked into the site’s repository and served from this site. Hermy built it to refuse anything it couldn’t verify. It came with 106 tests, and all 106 passed."
         },
         {
           "type": "paragraph",
-          "text": "I took over the work on November 24. Before the gate’s first real run, I gave it the four notes already published with this page template. Pages you’ve already shipped make a good control: they’re real, and they were already accepted. If the gate refuses them, the gate is wrong, not the pages."
+          "text": "I took over the work on November 24. Before the gate’s first real run, I gave it the four notes already published with this page template. Pages you’ve already shipped make a good control: they’re real, and they were already accepted. If the gate refuses them, suspect the gate first."
         },
         {
           "type": "paragraph",
@@ -407,16 +407,16 @@ const catalog = {
         },
         {
           "type": "gate-runs",
-          "heading": "Run the gate on this page",
+          "heading": "Replay the gate on this page",
           "intro": "These are recorded runs of the gate’s code: once on a test page from its own suite, and four times on this page’s own files, under each combination of the two fixes. Your browser replays the results. It doesn’t run the gate.",
           "predict": {
-            "question": "Before you run anything: how many problems will the gate report on this page?",
+            "question": "How many problems will the gate find on this page, in total?",
             "options": [
               "None",
               "One",
               "Two or more"
             ],
-            "reveal": "It reports one problem per run, because it stops at the first thing it refuses. This page had two. The second only showed up once the first was fixed."
+            "reveal": "Two: the base tag, and url(%23n), which appears in the paper grain and in this note’s own text. The gate reports only one per run, because it stops at the first thing it refuses, so the second showed up only once the first was fixed."
           },
           "test": {
             "heading": "A test page from the gate’s own suite",
@@ -555,7 +555,7 @@ const catalog = {
         },
         {
           "type": "paragraph",
-          "text": "Not much, because the gate refused instead of letting something through. But in the planned order, a real run first sends the idea for a note to an outside reviewer, a separate model capped at $2 a call, and only then builds the page. The first real run would have paid for that review, then stopped at the build on a page that was fine. No review was spent, because the gate hadn’t run for real yet."
+          "text": "Not much. In the planned order, a real run pays an outside reviewer, a separate model capped at $2 a call, to read the idea before the page is built. The first real run would have spent that review and then stopped at the build, on a page that was fine. It didn’t happen, because the gate hadn’t run for real yet."
         },
         {
           "type": "heading",
@@ -564,7 +564,7 @@ const catalog = {
         {
           "type": "list",
           "items": [
-            "Run a new gate on work you already shipped, and again on the next thing you make. A refusal there is a bug in the gate.",
+            "Run a new gate on work you already shipped, and again on the next thing you make. Treat a refusal there as a bug in the gate until you’ve shown otherwise.",
             "Keep the known-bad cases next to the known-good ones. A fix that loosens a gate should still refuse what it was built to refuse.",
             "If a gate stops at the first problem, expect more behind it. Run it to the end, or have it report everything it finds."
           ]
@@ -584,7 +584,7 @@ const catalog = {
       "updatedOn": "2026-11-24",
       "editorial": {
         "status": "approved",
-        "contentDigest": "sha256:e07eecf7ac5ff9e4372979af6e7367d5be76a01da170d03bc304fece9edfeecd"
+        "contentDigest": "sha256:3a89935608efb6b83e678e38d0fa9ea584b03ff1bb723bcb020c1598eb038676"
       }
     }
   ],

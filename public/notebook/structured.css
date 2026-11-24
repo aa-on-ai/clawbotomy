@@ -150,7 +150,7 @@ body:has(.editorialArticle .documentMap)::before { animation: none; }
 .gateRunsTableWrap td { vertical-align: top; }
 .gateRunsTableWrap td .gateRunsResult, .gateRunsTableWrap td .gateRunsPending { margin-top: 0 !important; height: 100%; }
 .gateRunsGrain { display: flex; gap: 16px; align-items: center; margin-top: 20px; }
-.gateRunsSwatch { flex: 0 0 72px; height: 72px; border: 1px solid var(--line); border-radius: 8px; background-color: var(--paper); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); background-size: 120px 120px; }
+.gateRunsSwatch { flex: 0 0 88px; height: 88px; border: 1px solid var(--line); border-radius: 8px; background-color: var(--paper); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); background-size: 360px 360px; }
 .gateRunsGrain p { font-size: 14px; color: var(--muted); }
 .gateRunsGrain strong { color: var(--ink); }
 .gateRunsActions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 24px; }
