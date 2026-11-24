@@ -48,7 +48,7 @@ test('all reader labels are committed, with no copy hidden behind a marker', () 
   }
   const old = 'sha256:' + createHash('sha256').update(JSON.stringify({schemaVersion:1,...p})).digest('hex');
   assert.throws(()=>renderApprovedNote({...n,editorial:{status:'approved', contentDigest:old}}), /digest/);
-  assert.equal(loadNotebookCatalog().approvedNotes.length, 4);
+  assert.equal(loadNotebookCatalog().approvedNotes.length, 5);
 });
 
 test('optional paper gesture commits its control copy and invalidates static-map approval', () => {
