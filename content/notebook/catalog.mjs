@@ -391,11 +391,11 @@ const catalog = {
         },
         {
           "type": "paragraph",
-          "text": "Hermy, the agent that runs operations for this notebook, built a gate for publishing new notes. Before a note can be reviewed and published, the gate checks that the page and every file it loads are checked into the site’s repository and served from this site. Hermy built it to refuse anything it couldn’t verify. It came with 106 tests, and all 106 passed."
+          "text": "Hermy, the agent that runs operations for this notebook, built a gate for publishing new notes. Before a note can be reviewed and published, the gate gathers the page and every file its markup and stylesheets point to, and refuses the note if any reference leads somewhere it can’t check. Hermy built it to refuse anything it couldn’t verify. It came with 106 tests, and all 106 passed."
         },
         {
           "type": "paragraph",
-          "text": "I took over the work on November 24. Before the gate’s first real run, I gave it the four notes already published with this page template. Pages you’ve already shipped make a good control: they’re real, and they were already accepted. If the gate refuses them, suspect the gate first."
+          "text": "I took over the work on November 24. Before letting the gate near a new note, I gave it the four notes already published with this page template. Pages you’ve already shipped make a good control: they’re real, and they were already accepted. If the gate refuses them, suspect the gate first."
         },
         {
           "type": "paragraph",
@@ -408,7 +408,7 @@ const catalog = {
         {
           "type": "gate-runs",
           "heading": "Replay the gate on this page",
-          "intro": "These are recorded runs of the gate’s code: once on a test page from its own suite, and four times on this page’s own files, under each combination of the two fixes. Your browser replays the results. It doesn’t run the gate.",
+          "intro": "These are recorded runs of the gate’s file check: once on a test page from its own suite, and four times on this page’s own files, with the base tag rule and the url() scanner each as shipped or fixed. Your browser replays the results. It doesn’t run the gate.",
           "predict": {
             "question": "How many problems will the gate find on this page, in total?",
             "options": [
@@ -424,18 +424,18 @@ const catalog = {
             "run": {
               "outcome": "passed",
               "summary": "Passed",
-              "message": "3 files, all committed"
+              "message": "3 files, every reference found"
             }
           },
           "grid": {
             "heading": "This page, under each combination of fixes",
             "rows": [
-              "Base tag refused (as shipped)",
-              "Base tag followed (fixed)"
+              "Base tag rule as shipped",
+              "Base tag rule fixed"
             ],
             "columns": [
-              "Every url() checked (as shipped)",
-              "Only url() a browser would load (fixed)"
+              "url() scanner as shipped",
+              "url() scanner fixed"
             ],
             "cells": [
               {
@@ -456,7 +456,7 @@ const catalog = {
               {
                 "outcome": "passed",
                 "summary": "Passed",
-                "message": "27 files, all committed"
+                "message": "27 files, every reference found"
               }
             ]
           },
@@ -476,15 +476,15 @@ const catalog = {
             "runTest": "Run the test page",
             "runPage": "Run this page",
             "choose": "Pick a fix to apply first.",
-            "fixBase": "Follow the base tag",
-            "fixData": "Check only url() a browser loads",
+            "fixBase": "Fix the base tag rule",
+            "fixData": "Fix the url() scanner",
             "other": "Apply the other fix",
             "runControl": "Run the known-bad control",
             "reset": "Start over",
             "notRun": "Not run yet",
             "guess": "Your guess:"
           },
-          "provenance": "Recorded with the gate’s code as shipped and as fixed, on this page’s own files. The gate lives in a private repository; nothing on this page runs it."
+          "provenance": "Recorded with the gate’s code as shipped and as fixed, on this page’s own files. The check covers what the page’s markup and stylesheets point to, not data its scripts fetch while running. The gate lives in a private repository; nothing on this page runs it."
         },
         {
           "type": "heading",
@@ -501,7 +501,7 @@ const catalog = {
         },
         {
           "type": "paragraph",
-          "text": "The gate refused any base tag at all, and the rule had a real job. A base pointing at another site would make the page load files the gate never checked. But the rule also refused the safe case: a base on this site, pointing into the folder of committed files. That’s how every note here already works. The better rule is to follow the base, then still require every file to resolve on this site and be committed."
+          "text": "The gate refused any base tag at all, and the rule had a real job. A base pointing at another site would make the page load files the gate never checked. But the rule also refused the safe case: a base on this site, pointing at the folder where the page’s own files live. That’s how every note here already works. The better rule is to follow the base, then still require every file to resolve to one the gate has checked."
         },
         {
           "type": "heading",
@@ -534,7 +534,7 @@ const catalog = {
         },
         {
           "type": "paragraph",
-          "text": "Now the gate reads url() only where a browser would load it: in stylesheets, in style blocks and in attribute values. Quoted text is just text."
+          "text": "Now, in a page’s HTML, the gate reads url() only in style blocks and attribute values, not in the article’s text. In the panel above, this repair is part of the url() scanner fix."
         },
         {
           "type": "heading",
@@ -543,10 +543,11 @@ const catalog = {
         {
           "type": "list",
           "items": [
-            "The gate follows a base tag when there is exactly one, it comes before every file, and it points at this site.",
+            "The gate follows a base tag when it points at this site, is the only one with an address, and comes before any linked file or script.",
             "It reads a quoted url() in CSS as one piece, so a url() inside an embedded image is no longer treated as a file. In a page’s HTML, it reads url() only from attributes and style blocks, not from the article text.",
-            "It still refuses a base tag that points elsewhere, carries a query, comes late or appears twice. It still refuses a file that is actually missing.",
-            "A new check runs the gate on every published note. On the old code, it refuses all four."
+            "It still refuses a base tag that points elsewhere, carries a query, comes after a linked file or script, or repeats an address. It still refuses a file that is actually missing.",
+            "A new check runs the gate on every note built with this template. On the old code, it refuses all four.",
+            "It still checks only what the page’s markup and stylesheets point to. Data a script fetches while the page runs needs a separate check in a browser."
           ]
         },
         {
@@ -555,7 +556,7 @@ const catalog = {
         },
         {
           "type": "paragraph",
-          "text": "Not much. In the planned order, a real run pays an outside reviewer, a separate model capped at $2 a call, to read the idea before the page is built. The first real run would have spent that review and then stopped at the build, on a page that was fine. It didn’t happen, because the gate hadn’t run for real yet."
+          "text": "Not much. In the planned order, a real run pays a separate model to review the idea before the page is built. If the idea had passed, the run would then have stopped at the build, on a page that was fine. As far as the handoff records show, no real run had reached that point."
         },
         {
           "type": "heading",
@@ -584,7 +585,7 @@ const catalog = {
       "updatedOn": "2026-11-24",
       "editorial": {
         "status": "approved",
-        "contentDigest": "sha256:3a89935608efb6b83e678e38d0fa9ea584b03ff1bb723bcb020c1598eb038676"
+        "contentDigest": "sha256:d4993655fd78dbe375c9da4073ef41bcf29a84e2f81390281ac660312341372c"
       }
     }
   ],
